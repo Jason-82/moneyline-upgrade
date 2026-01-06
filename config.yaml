@@ -1,0 +1,86 @@
+# Moneyline Backtesting Configuration
+# =====================================
+
+# Data paths
+data:
+  # Primary series (coinUSD)
+  usd_path: "data/eth-usd.csv"
+  # Optional secondary series for dual-series confirmation (coinBTC)
+  btc_path: null  # Set to "data/eth-btc.csv" for dual-series mode
+
+  # Column mapping (maps your CSV columns to canonical names)
+  column_mapping:
+    timestamp: "time"      # or "Date", "timestamp", "unix"
+    open: "open"
+    high: "high"
+    low: "low"
+    close: "close"
+    volume: "Volume"       # optional
+
+# Moneyline indicator parameters
+moneyline:
+  conversion_period: 9      # Tenkan-sen period (conv)
+  base_period: 26           # Kijun-sen period (base)
+  fast_hma_period: 5        # HMA period on tenkan
+  slow_ema_period: 13       # EMA period on kijun
+  exit_percent: 2.0         # Adjustment for exit threshold
+
+# Contraction detection (Bollinger Band Width)
+contraction:
+  bb_period: 20             # Bollinger Band period
+  bb_std: 2.0               # Bollinger Band std deviation multiplier
+  quantile_window: 252      # Rolling window for quantile calculation
+  quantile_threshold: 0.20  # 20th percentile threshold
+  lookback_bars: 20         # M: bars to look back for recent contraction
+
+# Breakout detection (Donchian Channel)
+breakout:
+  donchian_period: 20       # N: bars for highest high calculation
+
+# Dual-series mode settings
+dual_series:
+  enabled: false            # Enable coinBTC confirmation
+  require_btc_entry: true   # Require BTC crossover for entry
+  require_btc_exit: true    # Exit on BTC exit signal (OR logic)
+  require_btc_contraction: false  # Require contraction on BTC series too
+  require_btc_breakout: false     # Require breakout on BTC series too
+
+# Backtest parameters
+backtest:
+  initial_capital: 10000.0
+  fee_percent: 0.1          # Fee per trade side (0.1% = 10 bps)
+  slippage_bps: 5           # Slippage in basis points
+  fill_on_next_open: true   # Signal at close, fill at next open
+
+# Strategy selection
+strategy:
+  # Options: "baseline", "filtered", "hybrid", "all"
+  run: "all"
+
+# Evaluation parameters
+evaluation:
+  # True trend capture thresholds
+  true_trend_min_duration: 30     # Minimum days for a "true trend" trade
+  true_trend_min_pnl_pct: 10.0    # Minimum profit % for "true trend"
+  trade_match_window_days: 5      # ±A days window for matching trades
+
+  # Chop ratio
+  chop_max_duration: 10           # Trades <= K days with negative PnL
+
+  # Walk-forward settings
+  walk_forward:
+    enabled: false
+    train_ratio: 0.7              # 70% train, 30% test
+    param_sweep:
+      quantile_range: [0.15, 0.20, 0.25]
+      contraction_lookback_range: [10, 20, 30]
+      donchian_range: [10, 20, 30]
+
+# Output settings
+output:
+  reports_dir: "reports"
+  trades_csv: true
+  equity_plot: true
+  drawdown_plot: true
+  price_chart: true
+  html_report: true

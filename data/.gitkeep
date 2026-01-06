@@ -1,0 +1,2 @@
+# Place your OHLC CSV files here
+# Expected format: time,open,high,low,close,volume (volume optional)
