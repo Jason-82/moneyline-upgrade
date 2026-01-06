@@ -199,6 +199,100 @@ def align_series(
     return df_usd_aligned, df_btc_aligned
 
 
+def load_price_csv(
+    path: str,
+    price_col: str = 'price',
+    timestamp_col: str = 'snapped_at',
+    volume_col: str = 'total_volume',
+    synthesize_ohlc: bool = True,
+    ohlc_window: int = 1
+) -> pd.DataFrame:
+    """
+    Load price-only CSV and optionally synthesize OHLC data.
+
+    For price-only data (like CoinGecko exports), this creates synthetic
+    OHLC columns using rolling windows to approximate intraday ranges.
+
+    Parameters
+    ----------
+    path : str
+        Path to CSV file
+    price_col : str
+        Name of the price column
+    timestamp_col : str
+        Name of the timestamp column
+    volume_col : str
+        Name of the volume column (optional)
+    synthesize_ohlc : bool
+        If True, create synthetic high/low from rolling windows
+    ohlc_window : int
+        Window size for synthetic OHLC (1 = use price as all OHLC)
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with OHLC columns, indexed by UTC datetime
+    """
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"CSV file not found: {path}")
+
+    df = pd.read_csv(path)
+
+    # Parse timestamp
+    if timestamp_col in df.columns:
+        df['timestamp'] = pd.to_datetime(df[timestamp_col], utc=True)
+    else:
+        raise ValueError(f"Timestamp column '{timestamp_col}' not found")
+
+    # Get price
+    if price_col not in df.columns:
+        raise ValueError(f"Price column '{price_col}' not found")
+
+    df['close'] = pd.to_numeric(df[price_col], errors='coerce')
+
+    # Set index and sort
+    df = df.set_index('timestamp')
+    df = df.sort_index()
+
+    # Remove duplicates
+    if df.index.duplicated().any():
+        n_dupes = df.index.duplicated().sum()
+        warnings.warn(f"Removed {n_dupes} duplicate timestamps")
+        df = df[~df.index.duplicated(keep='last')]
+
+    # Synthesize OHLC
+    if synthesize_ohlc:
+        if ohlc_window == 1:
+            # Simple: use close price for all OHLC
+            df['open'] = df['close'].shift(1).fillna(df['close'])
+            df['high'] = df[['open', 'close']].max(axis=1)
+            df['low'] = df[['open', 'close']].min(axis=1)
+        else:
+            # Use rolling window for more realistic high/low
+            df['open'] = df['close'].shift(1).fillna(df['close'])
+            df['high'] = df['close'].rolling(window=ohlc_window, min_periods=1).max()
+            df['low'] = df['close'].rolling(window=ohlc_window, min_periods=1).min()
+            # Ensure high >= close and low <= close
+            df['high'] = df[['high', 'close', 'open']].max(axis=1)
+            df['low'] = df[['low', 'close', 'open']].min(axis=1)
+    else:
+        df['open'] = df['close']
+        df['high'] = df['close']
+        df['low'] = df['close']
+
+    # Volume
+    if volume_col in df.columns:
+        df['volume'] = pd.to_numeric(df[volume_col], errors='coerce')
+    else:
+        df['volume'] = 0
+
+    # Select canonical columns
+    result = df[['open', 'high', 'low', 'close', 'volume']].copy()
+
+    return result
+
+
 def validate_ohlc(df: pd.DataFrame) -> Dict[str, any]:
     """
     Validate OHLC data and return integrity report.

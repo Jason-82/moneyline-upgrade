@@ -1,0 +1,4 @@
+System,Total Return (%),CAGR (%),Max Drawdown (%),Sharpe Ratio,Sortino Ratio,Num Trades,Win Rate (%),Avg Win (%),Avg Loss (%),Profit Factor,Avg Duration (days),Exposure (%),Chop Ratio (%),True Trend Recall (%),True Trend Precision (%)
+baseline,41032.91,60.84,77.01,0.966,1.02,63,44.4,56.89,-10.75,4.23,43.9,59.8,7.9,100.0,31.7
+filtered,15295.55,48.84,56.61,1.007,0.821,31,54.8,61.71,-10.06,7.45,53.6,35.9,6.5,65.0,41.9
+hybrid,18412.56,51.02,60.3,0.959,0.828,35,54.3,62.77,-13.37,5.57,51.8,39.2,2.9,50.0,28.6
