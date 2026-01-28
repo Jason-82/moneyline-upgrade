@@ -1,0 +1,7 @@
+# Moneyline Watchlist
+# One ticker per line, comments start with #
+# For local CSV mode: put files like AAPL.csv in data/ directory
+# For API mode: use --api YOUR_ALPHA_VANTAGE_KEY
+
+# Test with sample data
+sample_eth
