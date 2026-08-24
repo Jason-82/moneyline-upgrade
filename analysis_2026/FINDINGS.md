@@ -81,3 +81,55 @@ fill convention swings BNB from +1,203% to +2,329% and SOL from +703% to
 Daily exports cover just 2025-10-29 to 2026-08-24 (300 bars, a bear window
 where every asset's B&H is negative) - too short to conclude anything. More
 daily history requires scrolling the TV chart back before exporting.
+
+---
+
+# 2026-08-24 (final) — full-history re-run on the real signal
+
+data/tv_full holds the deep exports (BTC daily to 2015, ETH 2016, BNB 2017,
+ZEC 2019, SOL 2021). Sample sizes are now 38-75 daily trades per asset, so
+these results carry weight the earlier 300-bar files could not.
+
+## Daily signal vs buy & hold (full history, same-bar close fill)
+
+| asset | Signal | B&H | Sig DD | B&H DD | Sharpe | trades |
+|-------|--------|-----|--------|--------|--------|--------|
+| BTC | **40,688%** | 28,427% | **-55.0%** | -83.8% | 1.4 | 75 |
+| ETH | **128,237%** | 18,003% | **-58.1%** | -94.0% | 1.4 | 72 |
+| SOL | **1,133%** | 226% | **-67.3%** | -96.3% | 1.1 | 39 |
+| BNB | **805,945%** | 596,293% | **-59.8%** | -80.3% | 1.5 | 47 |
+| ZEC | 1,139% | 1,379% | **-87.8%** | -94.3% | 0.8 | 54 |
+
+Beats buy & hold on BOTH return and drawdown on 4 of 5.
+
+## Daily beats weekly decisively
+
+| asset | daily | weekly | weekly vs B&H |
+|-------|-------|--------|---------------|
+| BTC | 40,688% | 8,206% | loses (B&H 33,628%) |
+| ETH | 128,237% | 10,873% | loses (B&H 20,892%) |
+| SOL | 1,133% | 704% | wins (B&H 33%) |
+| BNB | 805,945% | 29,440% | loses (B&H 89,665%) |
+| ZEC | 1,139% | -3% | loses (B&H 1,024%) |
+
+Weekly loses to buy & hold on 4 of 5. The truncated 300-bar files pointed the
+other way purely because they started in Nov-2020.
+
+## Correction to the previous round
+
+Using the wrong (Moneyline-crossover) model I reported that taking a daily
+green flip while the weekly was red was "worse than buying at random" for BTC
+and SOL. On the real signal that does not hold - BTC weekly-red flips return a
++3.3% 30d median vs a +2.9% all-bar baseline, and +11.2% vs +10.1% at 90d.
+Roughly neutral, not harmful.
+
+Weekly-green context does improve flip quality on ETH/BNB/SOL, but requiring
+both states still costs far more than it saves: Daily AND Weekly cuts BTC from
+40,688% to 5,392% and BNB from 805,945% to 15,407%.
+
+## The stop is built into the indicator
+
+Distance from price to the trailing line IS the risk on a fresh entry. Realised
+losing trades cluster tight: median -1.1% (BTC) to -4.5% (ZEC), 5th percentile
+-14% to -22%, worst -22% to -43%. No external stop is needed and adding one
+would cut winners - the line already trails.
