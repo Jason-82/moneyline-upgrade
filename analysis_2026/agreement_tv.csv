@@ -1,0 +1,31 @@
+tf,asset,model,agree_pct
+1W,BTC,Moneyline cross,70.66666666666667
+1W,BTC,close > kijun,90.33333333333333
+1W,BTC,trend_green (fast>slow),76.0
+1W,ETH,Moneyline cross,74.66666666666667
+1W,ETH,close > kijun,90.66666666666666
+1W,ETH,trend_green (fast>slow),79.0
+1W,SOL,Moneyline cross,71.86311787072243
+1W,SOL,close > kijun,86.31178707224335
+1W,SOL,trend_green (fast>slow),75.2851711026616
+1W,BNB,Moneyline cross,69.66666666666667
+1W,BNB,close > kijun,82.66666666666667
+1W,BNB,trend_green (fast>slow),72.33333333333334
+1W,ZEC,Moneyline cross,65.17241379310344
+1W,ZEC,close > kijun,81.37931034482759
+1W,ZEC,trend_green (fast>slow),64.48275862068965
+1D,BTC,Moneyline cross,82.0
+1D,BTC,close > kijun,84.0
+1D,BTC,trend_green (fast>slow),79.0
+1D,ETH,Moneyline cross,81.0
+1D,ETH,close > kijun,86.0
+1D,ETH,trend_green (fast>slow),82.0
+1D,SOL,Moneyline cross,80.33333333333333
+1D,SOL,close > kijun,84.33333333333334
+1D,SOL,trend_green (fast>slow),83.0
+1D,BNB,Moneyline cross,77.0
+1D,BNB,close > kijun,86.66666666666667
+1D,BNB,trend_green (fast>slow),77.33333333333333
+1D,ZEC,Moneyline cross,75.66666666666667
+1D,ZEC,close > kijun,77.0
+1D,ZEC,trend_green (fast>slow),73.0

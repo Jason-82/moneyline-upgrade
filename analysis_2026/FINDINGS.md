@@ -34,3 +34,50 @@ is the integer -1 (truthy). Any `series & ~series.shift(1)` flip-detection
 silently returns every True bar instead of the transitions. run_all.py and
 robustness.py are unaffected (crossover() shifts float series), but ad-hoc
 analysis must use `.to_numpy(dtype=bool)` before negating.
+
+---
+
+# 2026-08-24 (cont.) — the indicator identified from TradingView exports
+
+Ten exports (5 assets x 1D/1W) settle it. Columns: `time, close, Up Trend,
+Down Trend, Macro Score Heatmap, Rate Hike, Rate Cut, ATR`.
+
+`Up Trend` and `Down Trend` are mutually exclusive; the populated one is the
+active line. Evidence the indicator is an ATR trailing stop (SuperTrend), NOT
+the Ichimoku HMA/EMA crossover in README.md:
+
+* green <=> `close > line` on 100.0% of bars, all 10 series
+* the line never retraces within a trend run: 0 violations in 2,837 in-run bars
+* on a flip the line sits ~2-3x ATR from close (multiplier ~3 applied to hl2)
+
+Every backtest in this repo before this point modeled the wrong signal.
+
+## Model agreement with the real state (% of bars)
+
+| tf | asset | Moneyline cross | close > kijun | fast>slow |
+|----|-------|-----------------|---------------|-----------|
+| 1W | BTC   | 70.7            | **90.3**      | 76.0      |
+| 1W | ETH   | 74.7            | **90.7**      | 79.0      |
+| 1W | SOL   | 71.9            | **86.3**      | 75.3      |
+| 1W | BNB   | 69.7            | **82.7**      | 72.3      |
+| 1W | ZEC   | 65.2            | **81.4**      | 64.5      |
+
+`close > kijun` was the best available proxy, but it is not the construction.
+
+## Weekly results, real signal, 2020-11 to 2026-08 (same-bar close fill)
+
+| asset | TV signal | B&H    | TV DD  | B&H DD | trades |
+|-------|-----------|--------|--------|--------|--------|
+| BTC   | +245%     | +312%  | -46.9% | -75.2% | 6      |
+| ETH   | +324%     | +319%  | -54.3% | -76.8% | 7      |
+| SOL   | +703%     | +33%   | -62.1% | -96.0% | 4      |
+| BNB   | +1,203%   | +2,309%| -80.1% | -68.6% | 5      |
+| ZEC   | -14%      | +444%  | -94.9% | -93.9% | 9      |
+
+Sample sizes are tiny (4-9 completed trades each) and a one-week change in
+fill convention swings BNB from +1,203% to +2,329% and SOL from +703% to
++397%. Treat as directional only.
+
+Daily exports cover just 2025-10-29 to 2026-08-24 (300 bars, a bear window
+where every asset's B&H is negative) - too short to conclude anything. More
+daily history requires scrolling the TV chart back before exporting.
