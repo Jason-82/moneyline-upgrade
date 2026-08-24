@@ -190,3 +190,47 @@ Covid was too fast for a weekly signal to help. In rallies it lags by design.
 SPX and NDX are daily RED (since 08-03) but weekly GREEN (since 04-13) -
 price is 1.4%/2.6% below the daily line and 3.9%/4.1% above the weekly.
 IWM is green on both. COIN is daily GREEN, weekly RED since 2025-05-12.
+
+---
+
+# 2026-08-24 — TSLA, and the cross-asset scorecard
+
+## TSLA: the signal is bad on both timeframes
+
+| tf | Signal CAGR | B&H CAGR | Sig DD | B&H DD | trades/yr |
+|----|-------------|----------|--------|--------|-----------|
+| 1D | 21.1% | **42.3%** | -63.6% | -73.6% | 7.0 |
+| 1W | 20.2% | **41.4%** | -65.8% | -72.2% | 1.5 |
+
+Half the compounding surrendered for 8-10 points of drawdown - a worse deal
+than the indices, where weekly saved 16-30 points. TSLA's return is
+concentrated in a few explosive moves (best weekly trade +348%) and its
+drawdowns recover fast, so time out of the market is expensive.
+
+## Scorecard: where the signal beats buy & hold
+
+Crypto daily (edge in CAGR points): ETH +35.1, SOL +37.0, BNB +8.8,
+BTC +5.5, ZEC -3.4 - and 20-36 points of drawdown saved on four of five.
+
+Equity daily: SPX -9.0, NDX -9.2, IWM -6.4, TSLA -20.1, COIN +3.5.
+Equity weekly: SPX -1.7, NDX -2.1, IWM -3.3, TSLA -20.0, COIN +20.6.
+
+Profit factor separates the two classes cleanly: 3.4-16.3 on crypto daily,
+1.5-2.0 on equity daily. The signal needs sustained trends and deep
+drawdowns to pay; equity indices grind up and mean-revert too fast.
+
+## Entering late into an existing green run is NOT penalised
+
+Median remaining return in the run, by the day you enter:
+
+| asset | day 0-20 | day 21-50 | day 51+ |
+|-------|----------|-----------|---------|
+| BTC | +2.6% (61% win) | +6.0% (65%) | **+15.3% (74%)** |
+| BNB | +4.9% (64%) | +2.9% (59%) | **+26.3% (71%)** |
+| ZEC | 0.0% (47%) | -1.4% (38%) | **+31.8% (71%)** |
+| SOL | +3.3% (59%) | -0.3% (41%) | +6.5% (58%) |
+| ETH | +3.8% (58%) | +2.8% (58%) | 0.0% (42%) |
+
+Survivorship, not mean reversion: a run that has already lasted 50 days is
+evidence of a real trend. Four of five assets pay MORE from a late entry.
+ETH is the exception (n=66).
