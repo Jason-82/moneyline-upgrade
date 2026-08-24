@@ -133,3 +133,60 @@ Distance from price to the trailing line IS the risk on a fresh entry. Realised
 losing trades cluster tight: median -1.1% (BTC) to -4.5% (ZEC), 5th percentile
 -14% to -22%, worst -22% to -43%. No external stop is needed and adding one
 would cut winners - the line already trails.
+
+---
+
+# 2026-08-24 — stocks and indices (SPX / NDX / IWM / COIN)
+
+Costs lowered to 1bp fee + 2bp slippage (liquid ETF execution) from the crypto
+10bp+5bp. Series are price-only: no dividends, and no interest on cash while
+flat. An `adjusted` view estimates both (SPX 2.0%/4.0%, NDX 0.8%/3.0%,
+IWM 1.3%/2.0%, COIN 0%/2.0%).
+
+## Equities invert the crypto result
+
+Daily, price-only:
+
+| asset | Signal CAGR | B&H CAGR | Sig DD | B&H DD | trades/yr |
+|-------|-------------|----------|--------|--------|-----------|
+| SPX | 3.3% | **12.8%** | -28.2% | -33.9% | 7.8 |
+| NDX | 8.7% | **18.7%** | -26.4% | -35.6% | 7.7 |
+| IWM | 3.4% | **10.0%** | -33.2% | -42.3% | 6.9 |
+
+The daily signal surrenders 60-75% of the compounding for 6-9 points of
+drawdown. 40-46% of daily index trades close inside +/-2% - pure whipsaw.
+Profit factor is only 1.2-1.4 vs 3.4-16.3 on crypto.
+
+## Weekly is the defensible timeframe, once cash yield is counted
+
+Adjusted (dividends to holders, T-bill to the flat):
+
+| asset | Signal CAGR | B&H CAGR | give-up | Sig DD | B&H DD | DD saved |
+|-------|-------------|----------|---------|--------|--------|----------|
+| SPX | 8.3% | 10.0% | 1.7pt | -38.9% | -55.0% | 16pt |
+| NDX | 13.1% | 15.2% | 2.1pt | -52.2% | -82.3% | 30pt |
+| IWM | 5.3% | 8.6% | 3.3pt | -36.2% | -57.7% | 22pt |
+| COIN | **16.6%** | -4.0% | wins | -39.2% | -90.3% | 51pt |
+
+Weekly runs ~1.2 trades/yr. NDX weekly wins 70.6% of trades at profit factor
+6.6 over 41 years.
+
+## It earns its keep in crashes, and only there
+
+Weekly signal edge vs buy & hold over each window:
+
+| crash | SPX | NDX | IWM |
+|-------|-----|-----|-----|
+| Dot-com | +6.3 | **+28.2** | +15.6 |
+| GFC | **+29.5** | **+28.2** | +21.9 |
+| Covid | +2.3 | -4.0 | +12.8 |
+| 2022 | +1.6 | +9.0 | -1.3 |
+| 2025-26 rally | **-13.2** | **-20.3** | -10.6 |
+
+Covid was too fast for a weekly signal to help. In rallies it lags by design.
+
+## Current state (2026-08-24)
+
+SPX and NDX are daily RED (since 08-03) but weekly GREEN (since 04-13) -
+price is 1.4%/2.6% below the daily line and 3.9%/4.1% above the weekly.
+IWM is green on both. COIN is daily GREEN, weekly RED since 2025-05-12.
