@@ -234,3 +234,37 @@ Median remaining return in the run, by the day you enter:
 Survivorship, not mean reversion: a run that has already lasted 50 days is
 evidence of a real trend. Four of five assets pay MORE from a late entry.
 ETH is the exception (n=66).
+
+---
+
+# 2026-08-27 — HOOD
+
+Only 5.0 years of history (IPO Jul-2021), and the period is dominated by one
+move: $11.55 (Feb-2024) to $152.46 (Oct-2025).
+
+| tf | Signal CAGR | B&H CAGR | Sig DD | B&H DD | trades |
+|----|-------------|----------|--------|--------|--------|
+| 1D | 18.2% | 16.7% | -66.2% | -86.5% | 29 |
+| 1W | 19.9% | **22.1%** | -68.8% | -82.8% | 6 |
+| 1D Daily AND Weekly | **28.4%** | 16.7% | **-32.7%** | -86.5% | 15 |
+
+The AND result is the best number in the whole project (Sharpe 0.9, PF 3.9,
+67% win, 29% exposure). It does not survive scrutiny:
+
+* **Concentration** — daily signal: 196% all trades, 21.4% ex-best,
+  **-23.4% ex-top-2**. The entire daily edge is 2 trades out of 28.
+  AND filter: 244.5% -> 92.2% ex-best -> 21.3% ex-top-2.
+* **Fill sensitivity** — daily 132.3% same-bar vs 31.6% at +1 bar, a 101-point
+  spread. Weekly swings 86.6% / 118.7% / 227.5% across 0/1/2-bar lags.
+  Nothing with that instability is a measured edge.
+* **Sample** — 15 AND-trades, of which 5 pre-2024 trades are small losses and
+  the result rests on +58.4% and +79.2%.
+
+Conclusion: HOOD's profile (-86.5% drawdown then 13x) is exactly the terrain
+this indicator is built for, but 5 years cannot validate it. Use COIN as the
+reference class instead - closest comparable business, and its weekly signal
+beat buy & hold by +20.6 CAGR points while saving 51 points of drawdown.
+
+State at 2026-08-27: daily GREEN since 08-21 (6 days), weekly GREEN since
+05-26, price 111.68, -26.7% from the Oct-2025 ATH, +14.7% above the daily
+line and +31.3% above the weekly line.
