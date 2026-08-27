@@ -268,3 +268,38 @@ beat buy & hold by +20.6 CAGR points while saving 51 points of drawdown.
 State at 2026-08-27: daily GREEN since 08-21 (6 days), weekly GREEN since
 05-26, price 111.68, -26.7% from the Oct-2025 ATH, +14.7% above the daily
 line and +31.3% above the weekly line.
+
+---
+
+# 2026-08-27 — CRCL
+
+IPO Jun-2025. 1.19 years daily / 1.05 years weekly after indicator warmup.
+
+**4 closed daily trades. 1 closed weekly trade.** No statistical conclusion is
+available and none should be drawn.
+
+Daily trades, in full:
+
+| entry | exit | in | out | pnl |
+|-------|------|-----|-----|-----|
+| 2025-09-11 | 2025-10-16 | 133.70 | 128.46 | -3.9% |
+| 2025-12-03 | 2026-01-20 | 86.29 | 72.70 | -15.8% |
+| 2026-02-18 | 2026-03-24 | 63.15 | 101.17 | **+60.2%** |
+| 2026-04-14 | 2026-05-26 | 105.49 | 104.17 | -1.3% |
+
+The headline "Signal +52.7% vs B&H -52.8%" is that one +60.2% trade. The other
+three lose. Weekly's single closed trade lost 13.6%, and weekly overall is
+-65.3% vs -40.8% for holding.
+
+## Entry geometry is the usable finding
+
+Price 94.15, -64.3% from the 263.45 spike (2025-06-23), low 50.23.
+
+* daily GREEN 16 days, **+16.5%** above the daily line -> stop is -14.2% away
+* weekly GREEN 0 days (flipped this week), **+57.1%** above the weekly line
+  -> stop is **-36.4%** away
+
+Across every other asset studied, a fresh flip sits 11-22% above its line.
+CRCL's weekly is at 57% because weekly ATR (16.1) is enormous relative to the
+line and the trailing stop has not caught up after the collapse-and-rebound.
+Taking the weekly flip here means risking 36% to the exit.
