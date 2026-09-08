@@ -303,3 +303,58 @@ Across every other asset studied, a fresh flip sits 11-22% above its line.
 CRCL's weekly is at 57% because weekly ATR (16.1) is enormous relative to the
 line and the trailing stop has not caught up after the collapse-and-rebound.
 Taking the weekly flip here means risking 36% to the exit.
+
+---
+
+# 2026-08-27 — decomposing the confirmation-filter question
+
+Does a confirmation filter raise P(real uptrend) while lowering the remaining
+gain - and does that trade become favourable under leverage? Tested on the real
+daily signal, pooled across BTC/ETH/SOL/BNB/ZEC (287 baseline entries).
+
+## The premise is half right
+
+| confirmation | entries | P(gain>0) | P(gain>25%) | mean ret | geo/trade |
+|--------------|---------|-----------|-------------|----------|-----------|
+| none (flip)  | 287 | 46.7% | 19.5% | 24.7% | 9.73% |
+| breakout_20  | 247 | 48.2% | 20.6% | 24.7% | 11.41% |
+| breakout_50  | 170 | 51.8% | 20.6% | 28.2% | 12.70% |
+| weekly green | 153 | 53.6% | 22.2% | 30.4% | 12.89% |
+| squeeze      | 171 | 44.4% | 17.0% | 22.8% | 8.62% |
+| retest_5pct  | 184 | 34.8% | 10.9% | 11.8% | 4.16% |
+
+Good confirmations raise hit rate AND per-trade gain - there is no magnitude
+sacrifice. The reason total return still falls is purely **opportunity count**.
+
+## Why some filters work and others destroy you
+
+What each filter passed on, priced at what baseline earned:
+
+* breakout_20 skipped 40 runs. Every decile negative. 5% were winners,
+  **0% were >100%**. It filters pure losers.
+* squeeze skipped 116 runs. 50% were winners, **5.2% were >100%**, biggest
+  missed +1,216%. It filters the monsters.
+
+The entire question is whether a filter is correlated with the fat right tail.
+
+## The leverage claim is CORRECT - via left-tail truncation, not magnitude
+
+In-trade drawdown (MAE) distribution:
+
+| confirmation | median | p1 | worst | max safe L | best L | geo/trade @ best L |
+|--------------|--------|-----|-------|------------|--------|--------------------|
+| none | -5.6% | -30.0% | **-42.7%** | 2.34x | 1.75x | 11.52% |
+| breakout_20 | -4.8% | -20.9% | -29.6% | 3.38x | 2.50x | 15.96% |
+| breakout_50 | -4.0% | -20.4% | **-25.8%** | **3.88x** | 2.75x | **17.95%** |
+| retest_5pct | -4.8% | -16.2% | -19.2% | 5.21x | 1.50x | 4.50% |
+
+Baseline is liquidated at 3x (0.7% of trades hit -33%); breakout survives to
+~3.9x. At its optimal leverage breakout_50 compounds 18.0%/trade against
+baseline's 11.5%. Confirmation buys leverage headroom.
+
+**But** this only holds when liquidation is ruin. Sizing at 20% of capital per
+trade so a wipeout is survivable, baseline wins at every leverage level -
+287 trades out-compound 170 better ones.
+
+Retest is the worst filter tested: safest tail (max L 5.2x) and the lowest
+growth of any variant. Safe and unprofitable.
