@@ -1,1 +1,5 @@
 __pycache__/
+
+# downloaded price data and scan outputs (keep out of the public repo)
+data/universe/
+private/

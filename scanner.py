@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """
+DEPRECATED - models the WRONG indicator (Ichimoku HMA/EMA crossover). Use
+`python -m screener.scan` (exact replicated indicator) instead. See HANDOFF.md.
+
 Moneyline Watchlist Scanner
 ===========================
 Scans a list of tickers and reports Moneyline status changes.
