@@ -179,6 +179,26 @@ Do **not** add these (all tested):
 
 ---
 
+## 4b. Opening up the stock universe (`screener/`)
+
+- **Scan broadly, trade narrowly.** `screener/scan.py` runs the exact indicator on any
+  list of stocks and reports state, flipped today, days since flip, % since flip and
+  distance to line, like Ivan on Tech's screener. Scanning is information only.
+- **Only a whitelist is traded.** It comes from a selection rule that has itself passed
+  the walk-forward test in `screener/selection.py`. That test uses drift-neutral timing
+  skill, non-overlapping windows, a permutation test with Holm correction, and a
+  2023-25 holdout. Each pick must then pass `gate.py`, including the SPY hurdle.
+- **Picking the stocks with the best past backtests is not evidence.** On no-skill
+  synthetic stocks, the top 20 showed +28 CAGR points in-sample and nothing afterwards.
+- **Expect a small list, possibly empty.** 0 of 7 real stocks pass so far, and noise
+  passes the gate ~2% of the time at 7-8 years of history.
+- **Data for the real study:** a survivorship-free universe (point-in-time members plus
+  delisted histories) from 1993 on, so that 2000-02 and 2008 fall inside test windows.
+  Not reachable from the research sandbox.
+- **Daily monitoring of a small whitelist** can run inside a Claude Code session using
+  Robinhood's historicals (10 symbols per call) with a local bar store. No local cron is
+  needed for that.
+
 ## 5. Validation gate (`analysis_2026/gate.py` is authoritative)
 
 Run per asset **per vehicle**, using that vehicle's cost and timing. The coin's own
@@ -202,6 +222,14 @@ history stands in for an ETF.
    must be ≥ −0.15 in every block, with a median above 0, and rule 2 (pre-tax) must
    pass since 2022.
 7. **Low whipsaw:** ≤ 30% of trades end within ±2%.
+8. **T2b, beats holding SPY:** after-tax CAGR ≥ holding the S&P 500 (dividends counted,
+   taxed once at the long-term rate) over the same dates, or within 2 points with max
+   drawdown ≥ 15 points shallower; and above the after-tax T-bill yield. Rule 2 alone
+   flatters assets that fell; COIN passes rule 2 while losing money.
+
+Noise also passes. On no-edge stocks about 2% get TRADE at 7-8 years of history, versus
+~0.2-0.7% at 19-20 years. When gating many names, compare the real pass count with
+`placebo()`'s expected false passes.
 
 Results:
 
@@ -312,6 +340,14 @@ rates. Re-run quarterly and after every new data export. Judge a candidate list 
 ---
 
 ## 8. Rollout
+
+**Interim (no local job, nothing unvalidated):**
+
+- **IBIT:** hold and ignore flips.
+- **BSOL:** if you follow the SOL signal (PROBATION, ≤10%), read it on TradingView
+  **COINBASE:SOLUSD**, after the 00:00 UTC close, and act in the next NYSE session.
+  Never read it off BSOL's own chart.
+- **Ivan's screener:** discovery only, with a dated log of what it flags.
 
 0. **Prerequisites:**
    - US resident; not New York, for crypto

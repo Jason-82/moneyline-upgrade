@@ -22,8 +22,16 @@ Tests (pinned definitions):
                  annualised ln(signal wealth / B&H wealth) >= -0.15 in every block,
                  median block > 0, and the pre-tax T2 rule passes since 2022-01-01
   T7 whipsaw     <= 30% of closed trades end within +/-2%
+  T2b vs SPY     after-tax CAGR >= holding the S&P 500 (SPX + 2%/yr dividend proxy, taxed
+                 once at the long-term rate) over the same dates, or >= SPY - 2 pts with max
+                 DD >= 15 pts shallower; and above the after-tax T-bill yield. Needed because
+                 T2 compares with the asset's OWN buy & hold, which flatters assets that fell.
 
 Verdict: TRADE (all pass) | PROBATION (fails only T1) | NO-SIGNAL (hold or skip).
+Noise passes too: on no-edge random walks about 2% get TRADE at ~7-8 years of history
+and ~0.2-0.7% at 19-20 years. placebo() estimates a per-asset false-pass rate by
+circularly shifting the signal; report the expected false-pass count next to the real
+pass count whenever many names are gated (see screener/README.md).
 Weekly INSURANCE for indices: weekly signal with dividends + cash yield gives up
 <= 3 CAGR pts/yr and saves >= 15 pts of max drawdown, at both same-week and
 next-week fills.
@@ -51,6 +59,25 @@ VEHICLES = {
     "spot_etf": dict(cost=0.0002, primary="s1", alternate="s2"),
     "stock_daily": dict(cost=0.0003, primary="next", alternate="same"),
 }
+
+
+TBILL = 0.03          # illustrative cash yield for the T2b floor (taxed at ST_RATE)
+_SPX = None
+
+
+def spy_hurdle(idx):
+    """After-tax CAGR and max DD of holding the S&P 500 over idx[0]..idx[-1]."""
+    global _SPX
+    if _SPX is None:
+        _SPX = RS.load("SPX", "1D").close
+    s = _SPX[(_SPX.index >= idx[0]) & (_SPX.index <= idx[-1])]
+    if len(s) < 50:
+        return np.nan, np.nan
+    b = RS.bh(s, div=RS.DIV_YIELD["SPX"])
+    mult = (1 + b["return_pct"] / 100) * (1 - VEHICLES["stock_daily"]["cost"]) ** 2
+    if mult > 1:
+        mult -= LT_RATE * (mult - 1)
+    return cagr(mult, s.index), b["max_dd_pct"]
 
 
 def timing_want(index, green, how):
@@ -117,7 +144,14 @@ def t2_rule(sig_cagr, sig_dd, bh_cagr, bh_dd):
     return sig_cagr >= bh_cagr or (sig_cagr >= bh_cagr - 2 and sig_dd >= bh_dd + 15)
 
 
-def evaluate(close, green, vehicle):
+def evaluate(close, green, vehicle, asof=None, recent_years=None):
+    """asof: use only bars on or before this date (walk-forward use).
+    recent_years: T6's recent check covers the trailing N years; None keeps the pinned
+    2022-01-01 start used for results_gate.csv."""
+    green = np.asarray(green, dtype=bool)
+    if asof is not None:
+        keep = close.index <= pd.Timestamp(asof)
+        close, green = close[keep], green[keep]
     v = VEHICLES[vehicle]; cost = v["cost"]; idx = close.index
     res = {}
     wp = timing_want(idx, green, v["primary"])
@@ -132,6 +166,10 @@ def evaluate(close, green, vehicle):
                edge_pre=sig_pre_c - bh_pre_c, edge_tax=sig_tax_c - bh_tax_c)
     res["T1"] = yrs >= 7 and len(trades) >= 40
     res["T2"] = t2_rule(sig_tax_c, dd, bh_tax_c, bh_dd)
+    spy_c, spy_dd = spy_hurdle(idx)
+    res.update(spy_cagr_tax=spy_c, edge_vs_spy_tax=sig_tax_c - spy_c)
+    res["T2b"] = bool(np.isfinite(spy_c) and t2_rule(sig_tax_c, dd, spy_c, spy_dd)
+                      and sig_tax_c > TBILL * (1 - ST_RATE) * 100)
     win, los = rets[rets > 0].sum(), abs(rets[rets <= 0].sum())
     res["PF"] = win / los if los > 0 else np.inf
     res["T3"] = res["PF"] >= 2.0
@@ -162,20 +200,33 @@ def evaluate(close, green, vehicle):
         s_ = eq[m]; bb = close[m]
         blocks.append((y, (np.log(s_.iloc[-1] / s_.iloc[0]) - np.log(bb.iloc[-1] / bb.iloc[0])) / 3))
         y += 3
-    since = idx >= "2022-01-01"
-    cs, cb = close[since], close[since]
-    es, _, _ = simulate(cs, timing_want(cs.index, np.asarray(green)[since], v["primary"]), cost)
-    pb, pdd = bh(cb, cost)
-    ok22 = t2_rule(cagr(es.iloc[-1], cs.index), maxdd(es), cagr(pb, cb.index), pdd)
+    start = pd.Timestamp("2022-01-01") if recent_years is None else idx[-1] - pd.DateOffset(years=recent_years)
+    since = idx >= start
+    cs = close[since]
+    if len(cs) < 2 or (cs.index[-1] - cs.index[0]).days < 365:
+        ok22 = False                                # no usable recent window
+    else:
+        es, _, _ = simulate(cs, timing_want(cs.index, green[since], v["primary"]), cost)
+        pb, pdd = bh(cs, cost)
+        ok22 = t2_rule(cagr(es.iloc[-1], cs.index), maxdd(es), cagr(pb, cs.index), pdd)
     vals = [b_[1] for b_ in blocks]
     res["eras"] = ", ".join(f"{b_[0]}-{b_[0] + 2}:{b_[1]:+.2f}" for b_ in blocks)
     res["T6"] = bool(vals) and min(vals) >= -0.15 and float(np.median(vals)) > 0 and ok22
     res["whipsaw_%"] = float((np.abs(rets) < 2).mean() * 100) if len(rets) else np.nan
     res["T7"] = res["whipsaw_%"] <= 30
-    fails = [t for t in ("T1", "T2", "T3", "T4", "T5", "T6", "T7") if not res[t]]
+    fails = [t for t in ("T1", "T2", "T2b", "T3", "T4", "T5", "T6", "T7") if not res[t]]
     res["fails"] = ",".join(fails) or "-"
     res["verdict"] = "TRADE" if not fails else ("PROBATION" if fails == ["T1"] else "NO-SIGNAL")
     return res
+
+
+def placebo(close, green, vehicle, n=100, min_shift=252, seed=0):
+    """False-pass rate: the gate run on circularly shifted copies of the signal (same
+    trade frequency and run lengths, timing destroyed)."""
+    g = np.asarray(green, dtype=bool); rng = np.random.default_rng(seed)
+    v = [evaluate(close, np.roll(g, int(k)), vehicle)["verdict"]
+         for k in rng.integers(min_shift, len(g) - min_shift, n)]
+    return {"placebo_trade_p": v.count("TRADE") / n, "placebo_prob_p": v.count("PROBATION") / n}
 
 
 def insurance(sym):
@@ -214,7 +265,7 @@ if __name__ == "__main__":
     f = lambda x: f"{x:,.1f}"  # noqa: E731
     print(f"Tax rates used: short-term {ST_RATE:.0%}, long-term {LT_RATE:.0%} (illustrative)\n")
     print(gate[["asset", "vehicle", "years", "trades", "edge_pre", "edge_tax", "sig_dd", "bh_dd", "PF",
-                "edge_ex_best", "edge_tax_alt", "whipsaw_%", "fails", "verdict"]].to_string(index=False, float_format=f))
+                "edge_ex_best", "edge_tax_alt", "edge_vs_spy_tax", "whipsaw_%", "fails", "verdict"]].to_string(index=False, float_format=f))
     print("\nEra blocks (annualised log wealth vs B&H):")
     for _, r in gate.iterrows():
         print(f"  {r.asset:5s} {r.vehicle:13s} {r.eras}")

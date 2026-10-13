@@ -536,3 +536,31 @@ at 0.02%/side) keeps ETH +22..+43, SOL +38..+40, BTC +1.4..+1.8 (DD -61% vs -84%
   similar for full allocation, fixed 25% and distance-based sizing; prefer fixed fraction.
 * `replicate.py`: IWM daily 100.000% / 213 of 213 flips; weekly 100% / 38 of 38;
   hl2-consistency 100% on 23 of 24 exports for (10, 2.0), 4-95% for alternatives.
+
+
+---
+
+# 2026-10-13 (later still) — stock universe: screener and selection study
+
+The user wants to widen the stock universe beyond the 7 tested names, either by scanning
+for flips or by picking a basket where the indicator "worked best historically".
+
+* `screener/scan.py`: exact indicator on any OHLC. Matches TradingView on IWM for all
+  3,517 dates 2012-2025 (state, flip date, days in state). Fed dividend-adjusted data it
+  disagreed on 23 dates in 8 episodes; e.g. a 0.34% dividend adjustment hid the
+  2025-12-17 red flip.
+* `screener/selection.py`: walk-forward selection study. A 28-agent review (21 of 25
+  high/medium findings confirmed) fixed:
+  - the test metric: drift-neutral skill instead of "beat own buy & hold", which
+    rewards fallers
+  - look-ahead eligibility on delisting
+  - overlapping windows; added a permutation test with Holm correction
+  - a 2023-25 holdout
+* Synthetic harness checks: on no-skill random walks, picks with +21.5%/yr formation skill
+  earned -1.3%/yr in test vs -2.1% for all (p = 0.39). In a persistent-trend world
+  they kept +16.8% vs +5.3% (p < 0.01).
+* `gate.py` gains T2b, a vs-SPY after-tax hurdle (COIN now fails it; no other verdict
+  changed); `placebo()` (circular-shift false-pass rate; ~2% of no-edge stocks pass at
+  7-8 years of history); and `asof`/`recent_years` for walk-forward use.
+* Not run: the real-data selection study. No stock data is reachable from the sandbox,
+  and a current-S&P-500 yfinance universe would be survivorship-biased anyway.

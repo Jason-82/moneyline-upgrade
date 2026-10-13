@@ -36,7 +36,11 @@ plan.
      after short-term tax.
    - Gate verdicts (`gate.py`): **ETH = TRADE (via ETF), SOL = PROBATION** (too little
      history), BTC/BNB/ZEC = no signal (hold or skip).
-4. **Stocks: the daily signal never passes.** The weekly signal on SPY/QQQ qualifies
+4. **Stocks: the daily signal never passes** (0 of 7 tested). To open up the universe,
+   `screener/` provides a daily scanner (exact indicator, matches TradingView on every
+   IWM date 2012-2025) and a walk-forward selection study. The study tests whether
+   "trade only stocks where it worked before" persists; its real-data run is pending
+   survivorship-free stock data. Otherwise: The weekly signal on SPY/QQQ qualifies
    only as optional crash insurance; on IWM it does not. TSLA: no. COIN, HOOD and CRCL:
    too little history, and their results hinge on one or two trades and on fill timing.
 5. **No market data reaches this cloud environment.** Yahoo, Alpha Vantage, Binance,
@@ -405,6 +409,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 
 **Doable now in a sandbox:**
 
+0. Stock universe: get a survivorship-free daily OHLC universe from 1993 (point-in-time
+   members plus delisted names). Run `screener/selection.py` on data up to 2022, freeze
+   the rule, run the 2023-25 holdout once, then gate the picks. Until then, the scanner
+   is information only.
+
 1. Build the phase-1 signal job (`signal_job.py`):
    - fetch adapters (Coinbase, a stock OHLC source)
    - `moneyline_ref` on closed bars
@@ -447,10 +456,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | file | purpose |
 |---|---|
 | `AGENTIC_TRADING_PLAN.md` | Robinhood + Claude automated-trading design. |
+| `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study, `data.py` loaders (CSV / Robinhood JSON / yfinance). See `screener/README.md` for the holdout, survivorship and expected-pass-rate rules. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
 | `analysis_2026/replicate.py` | IWM replication and hl2-consistency evidence. |
-| `analysis_2026/gate.py` | Per-asset, per-vehicle validation gate (after tax) and index INSURANCE test. |
+| `analysis_2026/gate.py` | Per-asset, per-vehicle validation gate (after tax; vs own buy & hold and vs SPY), index INSURANCE test, `placebo()` false-pass estimate, `asof` for walk-forward use. |
 | `analysis_2026/costs.py` | Robinhood cost sensitivity; weekend-aware spot-ETF proxy (`etf_want`, `etf_proxy`). |
 | `analysis_2026/portfolio.py` | Portfolio sizing comparison. |
 | `analysis_2026/supplementary.py` | Losing trades, late entry (medians and pooled geometric means), entry distance and exit overshoot, era split, daily-AND-weekly, fill convention. |

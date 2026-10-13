@@ -8,15 +8,23 @@ Price adjustment matters (see HANDOFF.md section 2): the indicator matches
 TradingView only on SPLIT-adjusted, NOT dividend-adjusted prices.
   - yfinance:   download(..., auto_adjust=False) -> Open/High/Low/Close are
                 split-adjusted; 'Adj Close' (ignored here) carries dividends.
-  - Robinhood:  get_equity_historicals with adjustment_type='split' (default).
+  - Robinhood:  get_equity_historicals with interval='day', adjustment_type='split'.
   - CSV folder: whatever you put there (TradingView candle-mode exports are fine).
+
+Only CLOSED sessions belong in a scan: a bar that is still forming can show a flip that
+is gone by the close. fetch_yfinance and from_robinhood_json drop it.
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+_NY = "America/New_York"
+_CLOSE_ET = pd.Timedelta(hours=16)
+_CLOSE_BUFFER = pd.Timedelta(minutes=20)   # closing prints settle a little after 16:00
 
 _ALIASES = {
     "open": ("open", "open_price", "o"),
@@ -27,9 +35,40 @@ _ALIASES = {
 }
 
 
+def last_closed_session(now=None) -> pd.Timestamp:
+    """Latest calendar date whose regular US session has surely closed (half-days are
+    treated as 16:00: a complete bar may be held back a few hours, never a partial one
+    let through)."""
+    now = pd.Timestamp.now(tz=_NY) if now is None else pd.Timestamp(now)
+    now = (now.tz_localize(_NY) if now.tzinfo is None else now).tz_convert(_NY)
+    closed = now >= now.normalize() + _CLOSE_ET + _CLOSE_BUFFER
+    return now.normalize().tz_localize(None) - pd.Timedelta(days=0 if closed else 1)
+
+
+def drop_unclosed(df: pd.DataFrame, asof=None) -> pd.DataFrame:
+    asof = last_closed_session() if asof is None else pd.Timestamp(asof)
+    return df[df.index <= asof]
+
+
+def _parse_dates(d: pd.Series) -> pd.DatetimeIndex:
+    if pd.api.types.is_numeric_dtype(d):
+        v = pd.to_numeric(d)
+        if v.between(19000101, 21001231).all():
+            return pd.to_datetime(v.astype("int64").astype(str), format="%Y%m%d")
+        return pd.to_datetime(v, unit="ms" if v.max() > 1e11 else "s")
+    parsed = pd.to_datetime(d, format="mixed", errors="coerce")
+    if isinstance(parsed.dtype, pd.DatetimeTZDtype):
+        return parsed.dt.tz_localize(None)        # keep the local calendar date as written
+    if parsed.dtype == object:                    # mixed offsets
+        return pd.to_datetime(d, utc=True, format="mixed").dt.tz_localize(None)
+    return parsed
+
+
 def normalise(df: pd.DataFrame) -> pd.DataFrame:
-    """Map common column names to date/open/high/low/close and clean the frame."""
-    cols = {c.lower().strip(): c for c in df.columns}
+    """Map common column names to open/high/low/close + date and clean the frame."""
+    if isinstance(df.columns, pd.MultiIndex):
+        raise ValueError("MultiIndex columns (raw yfinance download?) - select one ticker first")
+    cols = {str(c).lower().strip(): c for c in df.columns}
     out = {}
     for key, names in _ALIASES.items():
         for n in names:
@@ -41,18 +80,15 @@ def normalise(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError(f"missing OHLC columns: {missing}")
     frame = pd.DataFrame({k: pd.to_numeric(v, errors="coerce") for k, v in out.items() if k != "date"})
     if "date" in out:
-        d = out["date"]
-        if pd.api.types.is_numeric_dtype(d):
-            d = pd.to_datetime(d, unit="s")
-        else:
-            d = pd.to_datetime(d, utc=True, format="mixed").dt.tz_localize(None)
-        frame.index = d.dt.normalize().values
+        frame.index = pd.DatetimeIndex(_parse_dates(out["date"])).normalize()
     elif isinstance(df.index, pd.DatetimeIndex):
-        frame.index = df.index.normalize()
+        idx = df.index.tz_localize(None) if df.index.tz is not None else df.index
+        frame.index = idx.normalize()
     else:
         raise ValueError("no date column or DatetimeIndex")
-    frame = frame.dropna().sort_index()
-    frame = frame[~frame.index.duplicated(keep="last")]
+    frame = frame[frame.index.notna()].dropna()
+    frame = frame.sort_index(kind="stable")
+    frame = frame[~frame.index.duplicated(keep="last")]   # later row in the file wins
     frame.index.name = "date"
     return frame
 
@@ -66,42 +102,77 @@ def from_csv_folder(folder: str | Path, symbols=None) -> dict[str, pd.DataFrame]
             continue
         try:
             out[sym] = normalise(pd.read_csv(f))
-        except Exception as exc:  # keep going; report bad files
+        except Exception as exc:
             print(f"skip {f.name}: {exc}")
     return out
 
 
-def from_robinhood_json(path: str | Path) -> dict[str, pd.DataFrame]:
+def from_robinhood_json(path: str | Path, drop_open_session: bool = True) -> dict[str, pd.DataFrame]:
     """
-    Parse a saved get_equity_historicals tool result (raw JSON, unedited).
-    Accepts {symbol: [bars]} or {"results"/"historicals": [{symbol, historicals/bars: [...]}]}.
-    Field names follow Robinhood's API (begins_at, open_price, ...); verify against a real
-    response before relying on it.
+    Parse a saved get_equity_historicals tool result (raw JSON, unedited). Accepts the
+    documented {"data": {"results": [{symbol, interval, bars: [{begins_at, open_price,
+    high_price, low_price, close_price, volume, session, interpolated}]}]}} shape, the MCP
+    {"content": [{"type": "text", "text": ...}]} wrapper, a single-symbol object, a list,
+    or {symbol: [bars]}. Field names come from a third-party schema capture - check against
+    a real response. Request interval='day' explicitly: without it the server picks an
+    interval targeting ~2,500 bars, which is intraday for short ranges.
     """
     raw = json.loads(Path(path).read_text())
-    items = raw.get("results") or raw.get("historicals") or raw.get("data") or raw
-    out = {}
+    if isinstance(raw, dict) and isinstance(raw.get("content"), list):
+        texts = [c.get("text", "") for c in raw["content"] if isinstance(c, dict) and c.get("type") == "text"]
+        if texts:
+            raw = json.loads("".join(texts))
+    if isinstance(raw, dict) and isinstance(raw.get("data"), (dict, list)):
+        raw = raw["data"]
+    if isinstance(raw, dict) and raw.get("not_found"):
+        print(f"not found: {', '.join(map(str, raw['not_found']))}")
+    if isinstance(raw, dict) and raw.get("symbol") and isinstance(raw.get("historicals") or raw.get("bars"), list):
+        items = [raw]
+    elif isinstance(raw, dict):
+        items = raw.get("results") or raw.get("historicals") or raw
+    else:
+        items = raw
     if isinstance(items, dict):
-        items = [{"symbol": k, "bars": v} for k, v in items.items()]
+        items = [{"symbol": k, "bars": v} for k, v in items.items() if isinstance(v, list)]
+    if not isinstance(items, list):
+        raise ValueError(f"unrecognised JSON shape in {path}")
+    if items and all(isinstance(it, dict) and "begins_at" in it for it in items):   # flat bars
+        grouped: dict[str, list] = {}
+        for b in items:
+            grouped.setdefault(str(b.get("symbol", "")).upper(), []).append(b)
+        items = [{"symbol": k, "bars": v} for k, v in grouped.items()]
+    asof = last_closed_session() if drop_open_session else None
+    out = {}
     for it in items:
-        sym = (it.get("symbol") or "").upper()
+        sym = str(it.get("symbol") or "").upper()
         bars = it.get("historicals") or it.get("bars") or []
-        if sym and bars:
-            df = normalise(pd.DataFrame(bars))
-            if "session" in pd.DataFrame(bars).columns:
-                pass  # interday bars carry no session split
-            out[sym] = df
+        interval = str(it.get("interval", "day")).lower()
+        if interval not in ("day", "1d", "daily"):
+            print(f"skip {sym}: interval '{interval}' is not daily - request interval='day'")
+            continue
+        if not sym or not bars:
+            continue
+        b = pd.DataFrame(bars)
+        if "interpolated" in b.columns:
+            b = b[~b["interpolated"].fillna(False).astype(bool)]      # gap-fill bars
+        df = normalise(b)
+        out[sym] = df[df.index <= asof] if asof is not None else df
+    if not out:
+        raise ValueError(f"no daily bars parsed from {path}")
     return out
 
 
-def fetch_yfinance(symbols, start="2005-01-01", out_folder: str | Path | None = None):
+def fetch_yfinance(symbols, start="1993-01-01", out_folder: str | Path | None = None, include_today=False):
     """
-    Download split-adjusted (not dividend-adjusted) daily OHLC with yfinance.
-    Needs network access to Yahoo (blocked in the default Claude cloud sandbox; works
-    locally or in an environment whose network policy allows it).
+    Download split-adjusted (not dividend-adjusted) daily OHLC with yfinance. Needs network
+    access to Yahoo (blocked in the default Claude cloud sandbox; works locally or in an
+    environment whose network policy allows it). Yahoo has no delisted tickers, so
+    histories built this way are survivorship-biased. A still-forming bar is dropped unless
+    include_today=True.
     """
     import yfinance as yf  # pip install yfinance
 
+    asof = None if include_today else last_closed_session()
     out = {}
     for i in range(0, len(symbols), 50):
         chunk = symbols[i:i + 50]
@@ -109,13 +180,17 @@ def fetch_yfinance(symbols, start="2005-01-01", out_folder: str | Path | None = 
                           group_by="ticker", progress=False, threads=True)
         for s in chunk:
             try:
-                sub = raw[s] if len(chunk) > 1 else raw
+                sub = raw[s] if isinstance(raw.columns, pd.MultiIndex) else raw
                 df = normalise(sub.reset_index().rename(columns={"Date": "date"}))
+                if asof is not None:
+                    df = df[df.index <= asof]
                 if len(df) > 50:
                     out[s] = df
                     if out_folder:
                         Path(out_folder).mkdir(parents=True, exist_ok=True)
                         df.to_csv(Path(out_folder) / f"{s}.csv")
+                else:
+                    print(f"skip {s}: only {len(df)} rows")
             except Exception as exc:
                 print(f"skip {s}: {exc}")
     return out
@@ -135,7 +210,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Fetch split-adjusted daily OHLC with yfinance")
     ap.add_argument("--sp500", action="store_true", help="current S&P 500 members (survivorship-biased)")
     ap.add_argument("--symbols", help="comma-separated tickers")
-    ap.add_argument("--start", default="2005-01-01")
+    ap.add_argument("--start", default="1993-01-01", help="1993 puts 2000-02 and 2008 inside test windows")
     ap.add_argument("--out", default="data/universe")
     a = ap.parse_args()
     syms = sp500_symbols() if a.sp500 else []
