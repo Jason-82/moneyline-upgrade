@@ -1,253 +1,377 @@
 # Agentic trading plan — running the indicator strategy through Robinhood + Claude
 
-Status: **design, not yet built.** Written 2026-10-13. Companion to `HANDOFF.md`.
-Nothing here is financial advice; the account owner is fully responsible for every
-trade an agent places (Robinhood's terms say so explicitly).
+Status: **design, not yet built.** Written 2026-10-13, revised the same day after an
+adversarial review (35 of 37 high/medium findings confirmed and applied). Companion
+to `HANDOFF.md`. Not financial advice; the account owner is fully responsible for
+every trade an agent places.
+
+Every number below comes from a committed script: `analysis_2026/costs.py`,
+`gate.py`, `portfolio.py`, `supplementary.py`, `replicate.py`.
 
 ---
 
-## 1. What Robinhood actually offers (researched Oct 2026)
+## 1. What Robinhood offers (researched Oct 2026)
 
-Sources were mostly read via search snippets because robinhood.com is blocked from
-the research environment; verify in the app before relying on any detail.
+Mostly read through search snippets, because robinhood.com is blocked from the
+research environment. Verify in the app before relying on any detail.
 
 | topic | finding |
 |---|---|
-| Product | **Agentic Trading** (beta since 2026-05-27; options June; crypto rolled out 2026-08-17 to 08-31). US only. |
-| Account | A separate **Agentic account**. The agent can *read* all your Robinhood accounts but can *trade* only in the Agentic account, and only with funds deposited there. Cash or "limited margin" (no borrowing, no leverage, no shorting). Taxable individual account, not an IRA. |
-| Connect Claude | `claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading`, then `/mcp` to log in (OAuth). Claude Desktop: Settings → Connectors → Add custom connector. |
-| Approvals | **Off by default for external agents like Claude** (on by default for Robinhood's built-in agents). Setting: Agent Settings → Safety Controls → Trade approvals. With approvals on, the agent's order becomes a proposal you tap to approve in the app. |
-| Limits | No documented per-order, position or daily-loss caps. The **funded balance is the only hard limit**. Disconnecting the agent does not cancel open orders. |
-| Market data (stocks) | `get_equity_historicals`: daily/weekly OHLCV, up to 10 symbols per call, split-adjusted by default (`adjustment_type`: none/split/all). `get_index_historicals` for SPX/NDX. Server-side `get_equity_technical_indicators` includes SuperTrend (default 10 / ×3, adjustable). |
-| Market data (crypto) | **No historical candles.** Only live quotes (`get_crypto_quotes`). Crypto bars must come from outside Robinhood (e.g. Coinbase Exchange public candles, 00:00 UTC days). |
-| Orders | Stocks: market, limit, stop-market, stop-limit; GFD/GTC; fractional/dollar orders only as market orders in regular hours; extended/overnight = limit only. No trailing-stop or bracket orders. Crypto: market, limit, stop-loss, stop-limit; dollar-market orders have collars (~+1% on buys, ~−5% on sells). `ref_id` UUID for idempotent retries. `review_equity_order` / `preview_crypto_order` simulate without placing. |
-| Paper trading | **None.** Dry runs = the review/preview tools. |
-| Auth | OAuth; access token ~4 days; refresh tokens appear single-use and rotating — two sessions using the connector at once can revoke the login. Headless `claude -p` cannot do the OAuth flow; log in interactively first. Claude Code cloud routines have open bug reports about attaching the Robinhood connector and hanging. |
-| Crypto coverage | BTC, ETH, SOL, BNB, ZEC are all listed for US customers. Agent crypto trading is **not available in New York** (and BNB is not tradable in NY at all). |
-| Crypto cost | **~0.95% per side on the default market-maker route** (≈1.9% round trip; a 1.87% BTC spread was observed on an agentic account in Sep 2026). Exchange routing: 0.95% taker / 0.50% maker below $10K trailing-30-day volume, falling to 0.25%/0.125% at $50K-$250K and 0.15%/0.075% at $250K-$500K. **Unknown which route agent orders use** — check with `preview_crypto_order`. |
-| Stock cost | $0 commission; tiny sell-side SEC/FINRA fees; fills at or near NBBO. |
-| Rules | Pattern-day-trader rule eliminated (effective 2026-06-04). T+1 settlement (cash accounts wait a day after stock sales). Wash-sale rule applies to stocks and ETFs across *all* your accounts (Robinhood does not cross-check); not to spot crypto under current law, but bill H.R. 10357 would apply it from 2026-09-14 if enacted as written. Gains will be short-term. |
-| Policy | Robinhood's tool descriptions tell the agent to show a preview and get explicit confirmation before placing orders. Anthropic's usage policy update (effective 2026-11-12) treats personalized buy/sell recommendations as high-risk, needing a human in the loop. There are anecdotal (unverified) reports of Claude refusing to place Robinhood trades since late Aug 2026. **Design for approvals ON.** |
-| Alternatives | **Robinhood Agents** (built-in, announced 2026-09-29): mobile-only, approvals on by default, pick an LLM. **Loops** (standing automations) "coming soon". Simpler, but cannot run our own validated code. |
+| Product | **Agentic Trading**: beta since 2026-05-27, options added in June, crypto rolled out 2026-08-17 to 08-31. US only. |
+| Account | A separate **Agentic account**. The agent can *read* all your Robinhood accounts but *trades* only the Agentic account, using only funds deposited there. Cash or "limited margin" (no borrowing, no leverage, no shorting). Taxable individual account, not an IRA. |
+| Connect Claude | `claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading`, then `/mcp` to log in (OAuth). |
+| Approvals | **Off by default for external agents like Claude.** Turn on under Agent Settings → Safety Controls → Trade approvals. With approvals on, the agent's order becomes a proposal that you approve in the app. |
+| Limits | No documented per-order, position or loss caps. **The funded balance is the only hard limit.** Disconnecting the agent does not cancel open orders, and crypto limit orders last 90 days. |
+| Stock data | `get_equity_historicals`: daily/weekly OHLCV, 10 symbols per call, `adjustment_type` = `split` (default) / `none` / `all`. Server-side SuperTrend indicator available (default 10 / ×3, adjustable). |
+| Crypto data | **No historical candles.** Live quotes only, so crypto bars must come from outside Robinhood (e.g. Coinbase Exchange public candles, 00:00 UTC). |
+| Orders | Stocks: market, limit, stop-market, stop-limit, GFD/GTC. Fractional and dollar orders are market-only, regular hours. Extended hours: limit only. No trailing-stop or bracket orders. Crypto: market, limit, stop-loss, stop-limit; dollar-market orders have collars (~+1% buy / ~−5% sell). `ref_id` UUID for idempotency. `review_equity_order` / `preview_crypto_order` simulate an order without placing it. |
+| Paper trading | **None.** Dry runs use the review/preview tools. |
+| Auth | OAuth. Access token ~4 days. Refresh tokens appear single-use and rotating, so two sessions using the connector at once can revoke the login. Headless `claude -p` cannot run the OAuth flow. Open bug reports cover the Robinhood connector in Claude Code cloud routines. |
+| Crypto coverage | BTC, ETH, SOL, BNB, ZEC are listed for US customers. Agent crypto trading is **not available in New York**. |
+| Crypto cost | **~0.95% per side on the default route** (~1.9% round trip; a 1.87% BTC spread was observed on an agentic account). Exchange routing: 0.95% taker / 0.50% maker under $10K trailing-30-day volume, about 0.15% taker only above $250K. **Which route agent orders use is unknown**; check with `preview_crypto_order`. |
+| Stock cost | $0 commission; small sell-side SEC/FINRA fees. |
+| Rules | The pattern-day-trader rule is gone (2026-06-04). T+1 settlement. Wash sales apply to stocks/ETFs across *all* your accounts, and Robinhood does not cross-check them; spot crypto is not covered under current law (H.R. 10357 would change that). Gains will be short-term. |
+| Policy | Robinhood's tool descriptions require a preview and explicit user confirmation before an order is placed. Anthropic's usage policy (effective 2026-11-12) treats personalized buy/sell recommendations as high-risk, needing a human in the loop. There are unverified reports of Claude refusing Robinhood trades since late August. **Design for approvals ON.** |
+| Alternatives | **Robinhood Agents** (built-in, announced 2026-09-29): mobile-only, approvals on by default. **Loops** "coming soon". Simpler, but they cannot run this repo's validated code. |
 
-Key sources: Robinhood support "Trading with your agent" / "Agentic trading overview";
-Robinhood newsroom (2026-05-27, 2026-09-29 HOOD Summit); Robinhood crypto fee schedule
+Key sources: Robinhood support articles ("Trading with your agent", "Agentic trading
+overview"); Robinhood newsroom (2026-05-27, 2026-09-29); Robinhood crypto fee schedule
 (June 2026); third-party capture of the official MCP tool schemas
 (github.com/kevin1chun/robinhood-for-agents, 2026-10-12); Claude Code docs (MCP,
 routines); anthropic.com/legal/aup.
 
 ---
 
-## 2. Five facts that shape the design
+## 2. Facts that shape the design
 
-1. **The indicator can be computed exactly from price bars.** Claude cannot look at a
-   TradingView chart, and Robinhood cannot run a TradingView script. The repo's
-   `analysis_2026/moneyline_ref.py` reproduces the indicator bar for bar (Wilder
-   ATR(10) × 2.0 around (high+low)/2, reset-on-flip; 100% match on IWM, 213/213 flips).
-   It needs **real highs and lows, unadjusted prices, and closed bars only** (fetch
-   ≥250 daily bars so the line settles).
-2. **Robinhood's crypto pricing destroys most of the crypto edge.** At ~0.95% per side
-   (vs the 0.15% our backtests assumed), the daily signal falls behind buy-and-hold on
-   BTC (+5.5 → −12.2 CAGR points) and BNB (+8.8 → −12.7). It survives on ETH (+13.5)
-   and SOL (+18.4). See `analysis_2026/costs.py`.
-3. **Spot crypto ETFs rescue it.** Trading the same daily crypto signal through
-   commission-free spot ETFs one to two days later (the next US session) keeps the edge:
-   ETH +22 to +43, SOL +38 to +40 CAGR points vs buy-and-hold; BTC roughly
-   break-even on return but max drawdown −61% instead of −84%. (Proxy test using
-   each coin's own history; real ETFs only exist since 2024-25.)
-4. **The strategy only suits some assets.** From the research: crypto majors yes; equity
-   indices no (daily destroys returns; weekly is optional crash insurance); TSLA no;
-   HOOD/CRCL/COIN unvalidated. So every new ticker must pass a backtest gate first.
-5. **Keep the math out of the LLM.** A deterministic Python script decides; Claude
-   operates (fetches data, runs the script, shows the plan, places approved orders,
-   reconciles). This makes every decision reproducible and testable.
+1. **The indicator can be computed exactly from price bars** (`moneyline_ref.py`:
+   Wilder ATR(10) × 2.0 around (high+low)/2, reset-on-flip). On IWM it matched
+   100% of bars and 213/213 flips (`replicate.py`), and it is consistent with all 23
+   testable exports. Requirements:
+   - real highs and lows
+   - **split-adjusted but not dividend-adjusted** prices, i.e. TradingView's default
+     (Robinhood `adjustment_type='split'`). Never `'none'`: every split becomes a fake
+     crash and a false red flip.
+   - **closed bars only**
+   - ≥250 daily bars of history
+2. **Robinhood's crypto pricing destroys most of the direct-crypto edge.** At ~0.95%
+   per side the daily signal trails buy-and-hold on BTC (−12.2 CAGR points) and BNB
+   (−12.7). ETH (+13.5) and SOL (+18.4) survive on full history, but since 2022 ETH is
+   only +1.4, and since 2024 it is −2.7.
+3. **Spot crypto ETFs rescue ETH and SOL, not BTC.** The proxy uses the daily crypto
+   signal, executed only in NYSE sessions (weekend and holiday signals wait), at
+   0.02% per side. CAGR edge vs buy-and-hold, next session / one session later:
+   - **ETH +38.7 / +25.8**
+   - **SOL +42.4 / +35.7**
+   - **BTC −3.1 / −0.2** (max drawdown −69% vs −84%)
+   - BNB −0.4 / −2.7
+
+   Proxy caveats:
+   - It uses each coin's own history, because real ETFs only exist since 2024-25.
+   - It fills at the crypto close, ~4 h after the US close.
+   - It ignores ETF fees (~0.1-0.25%/yr), premium/discount, and spreads on small SOL ETFs.
+   - An earlier version also traded on weekends and overstated BTC (+1.8); superseded.
+4. **Taxes matter, because the account is taxable.** The signal realizes short-term
+   gains about 7 times a year per coin; buy-and-hold defers them. With illustrative
+   35% short-term / 20% long-term rates (`gate.py`), after-tax edges via ETF are:
+   - ETH +21.5
+   - SOL +26.6
+   - BTC −14.3
+5. **The edge vs holding is mostly bear-market avoidance.** ETH's edge sits in the
+   2017-19 block (+0.60/yr in log wealth, vs +0.05 in 2020-22 and −0.07 in 2023-25).
+   SOL's comes from 2022. Across five correlated coins that is roughly two
+   independent crashes (2018, 2022). Expect the signal to lag in bull markets.
+6. **Keep the math out of the LLM.** Deterministic Python decides; Claude operates.
+   - Price bars come from public feeds that Python reads directly.
+   - Robinhood account data (positions, equity, quotes) reaches Python only as raw,
+     unedited MCP tool output saved to disk, which Python validates.
+   - Only Python produces orders. Claude never retypes numbers or sizes positions.
 
 ---
 
 ## 3. Architecture
 
 ```
-            ┌─────────────────────── monthly / quarterly ───────────────────────┐
-            │  VALIDATION GATE  (offline backtest per candidate asset, realistic │
-            │  costs for the actual vehicle)  ->  approved universe + class     │
-            └──────────────────────────────────┬─────────────────────────────────┘
-                                               │ approved_universe.json
-   daily, after bar close                      ▼
- ┌──────────────┐   ┌───────────────────────────────────────────┐   ┌──────────────────┐
- │ DATA         │──▶│ SIGNAL ENGINE (deterministic Python)      │──▶│ ORDER PLAN +      │
- │ stocks/ETFs: │   │ moneyline_ref.py on last CLOSED bar       │   │ DAILY DIGEST     │
- │  RH MCP      │   │ -> state, flip?, line, distance-to-line   │   │ (json + markdown)│
- │  historicals │   │ sizing + caps -> target weights           │   └────────┬─────────┘
- │ crypto:      │   │ vs current positions -> orders            │            │
- │  Coinbase    │   │ sanity checks (stale data, bad bars)      │            ▼
- │  candles     │   └───────────────────────────────────────────┘   ┌──────────────────┐
- └──────────────┘                                                    │ EXECUTION        │
-                                                                     │ Claude + RH MCP  │
-   ┌───────────────────────────────────────────────────────────┐    │ preview/review → │
-   │ RECONCILE + MONITOR: fills vs plan, positions vs targets,  │◀───│ place (approvals │
-   │ auth/data failures -> alert; kill-switch file             │    │ ON → you tap OK) │
-   └───────────────────────────────────────────────────────────┘    └──────────────────┘
+  quarterly:  GATE (gate.py on fresh data, vehicle costs + timing, after tax)
+              -> approved_universe.json  {asset: class, vehicle, size}
+
+  PHASE 1 — cron, no Robinhood access, after each bar closes
+  ┌────────────────────────┐   ┌──────────────────────────────────────────────┐
+  │ PUBLIC DATA            │──▶│ SIGNAL JOB (Python)                          │
+  │ crypto: Coinbase daily │   │ moneyline_ref on last CLOSED bar per asset   │
+  │  candles (00:00 UTC)   │   │ state, flip, line, distance, target weight   │
+  │ stocks/ETFs: public    │   │ data checks (dates, OHLC sanity, big wicks)  │
+  │  split-adj. daily OHLC │   │ -> signals.json + digest (private store)     │
+  └────────────────────────┘   └──────────────────────────┬───────────────────┘
+                                                           │
+  PHASE 2 — interactive Claude Code session (holds the only Robinhood login)
+  ┌────────────────────────────────────────────────────────▼───────────────────┐
+  │ 1. Claude saves raw MCP JSON: positions, equity, quotes, open orders       │
+  │ 2. Python validates it (schema, positions×quotes+cash≈equity, quotes near  │
+  │    last close, RH bars ≈ public bars) and writes plan.json:                │
+  │    plan_id, as_of_bar, valid_until, orders[symbol, side, whole shares,     │
+  │    limit, TIF, ref_id = uuid5(plan_id|symbol|side|attempt)]                │
+  │ 3. Claude previews and places ONLY plan.json orders. A PreToolUse hook     │
+  │    blocks any place/cancel call that doesn't match exactly (see section 7) │
+  │ 4. Approvals ON: you approve in the app, checking against the digest       │
+  │ 5. Python reconciles fills and journals them (private store)               │
+  └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 Timing
+### 3.1 Timing and plan validity
 
-| asset | signal computed | executed |
-|---|---|---|
-| Crypto via spot ETF | after the 00:00 UTC daily close (8 pm ET) | next US regular session (open or close); weekend signals wait for Monday |
-| Crypto direct on Robinhood (only if cheap routing is confirmed) | after 00:00 UTC | immediately, limit order near mid (24/7) |
-| Stocks / ETFs (daily class) | after 16:00 ET close (use `get_equity_quotes` for the settled close) | next regular session |
-| Weekly class | after Friday close | Monday session |
-
-Never act on a bar that is still forming — an intraday "flip" can reverse by the close.
-
-### 3.2 Where it runs (pick one)
-
-- **A. Local computer (recommended to start).** A cron job / Task Scheduler runs the
-  Python signal job daily and writes the digest + order plan. You then open Claude Code
-  and say "execute today's plan": Claude previews each order and places it; with
-  approvals ON you tap approve on your phone. No unattended auth problems. Crypto
-  candles come straight from Coinbase's public API (works locally; it is blocked only in
-  this cloud sandbox).
-- **B. Fully scheduled Claude run** (`claude -p` locally, or a Claude Code cloud
-  routine). Possible, but fragile today: OAuth re-login every few days, rotating refresh
-  tokens, open bugs with the Robinhood connector in cloud routines. Only after A has run
-  cleanly for weeks, and with approvals still ON.
-- **C. Robinhood's built-in Agents / Loops.** Simplest, but you cannot run this repo's
-  validated code or backtests inside it. Worth revisiting when Loops ships.
-
----
-
-## 4. Strategy rules by asset class (what the research supports)
-
-| asset | rule | vehicle | why |
+| vehicle | signal computed | executed | plan expires (`valid_until`) |
 |---|---|---|---|
-| ETH | daily signal, long while green | spot ETH ETF (e.g. ETHA, FETH), or direct crypto only if fees ≤ ~0.25%/side | edge survives every cost and fill test |
-| SOL | daily signal | spot SOL ETF (e.g. BSOL/GSOL/FSOL/VSOL, launched late 2025 — verify), or direct | largest, most cost-robust edge; but −30% since 2024 |
-| BTC | daily signal **for drawdown control** (return ≈ buy-and-hold), or simply hold | spot BTC ETF (e.g. IBIT, FBTC) | at Robinhood crypto prices the signal loses to holding |
-| BNB | watch / hold | no confirmed US spot ETF; direct cost kills the edge | marginal even via ETF proxy |
-| ZEC | exclude from signal | — | signal loses to holding |
-| SPY / QQQ / IWM | buy-and-hold core; optional **weekly** signal as crash insurance | ETFs | daily signal gives up 60-75% of returns; weekly costs ~2 pts/yr for 16-30 pts less drawdown |
-| TSLA | hold or skip; don't use the signal | — | signal halves CAGR |
-| COIN, HOOD, CRCL | watch-only, or small "probation" size if you insist | — | too little history; results hinge on 1-2 trades and fill timing |
-| Any new ticker | must pass the gate in section 5 | — | most stocks are expected to fail |
+| Crypto via spot ETF | after the 00:00 UTC close (8 pm ET) | next NYSE regular session; weekend/holiday signals wait | 15:45 ET that session |
+| Crypto direct (only if cheap routing is confirmed) | after 00:00 UTC | right away, limit near mid, with the section 7 reprice ladder | 6 h |
+| Stocks/ETFs (daily class) | after 16:00 ET | next regular session | 15:45 ET that session |
+| Weekly class (index insurance) | after Friday close | Monday session | Monday 15:45 ET |
 
-Things the research says **not** to add: daily-AND-weekly confirmation (gives up 30-98%
-of returns), squeeze or retest filters (skip the biggest runs), trailing 1.5×ATR stops
-(−37 CAGR points), leverage (not available anyway).
+- Never act on a bar that is still forming.
+- At `valid_until`, cancel everything unfilled or unapproved from that plan, and let the
+  next run recompute. Never re-submit an old plan.
+- Lag costs money. Executing every trade one session late cuts ETH's ETF-route edge from
+  +38.7 to +25.8.
+- Evening option, after verifying in shadow mode: place whole-share GFD limit orders for
+  the next session right after the 00:00 UTC run, and approve them while you're awake.
+
+### 3.2 Where it runs
+
+- **A. Local computer (recommended).** Phase 1 runs from cron / Task Scheduler.
+  Coinbase's public API works locally; it is blocked only in this cloud sandbox. For
+  phase 2 you open Claude Code and say "execute today's plan". Only the interactive
+  session holds the Robinhood login, so nothing expires unattended.
+- **B. Fully scheduled Claude run** (`claude -p`, or a cloud routine). This is fragile
+  today: re-login every few days, rotating refresh tokens, and connector bugs. Consider
+  it only after A has run cleanly for weeks, still with approvals on.
+- **C. Robinhood's built-in Agents / Loops.** Simplest, but cannot run this repo's
+  validated code.
 
 ---
 
-## 5. Per-asset validation gate
+## 4. Verdicts by asset (from `gate.py`, illustrative tax rates)
 
-Run on **unadjusted daily OHLC** with the indicator computed by `moneyline_ref.py`, and
-with **costs for the vehicle you will actually trade** (≈0.02%/side for ETFs and stocks;
-0.50-0.95%/side for Robinhood crypto unless cheaper routing is confirmed).
+| asset | gate result | what to do | vehicle |
+|---|---|---|---|
+| **ETH** | **TRADE** via spot ETF (passes all 7 tests). Direct crypto fails era stability (2023-25 block −0.27/yr) and is +1.9 after tax. | daily signal | spot ETH ETF (e.g. ETHA, FETH) |
+| **SOL** | **PROBATION**: fails only the history test (5.2 yrs, 39 trades). After-tax ETF edge +26.6. Edge comes from 2022; −30% since 2024. | daily signal at small fixed size (≤10%); re-gate mid-2028 | spot SOL ETF (BSOL/GSOL/FSOL/VSOL reported since late 2025; verify) |
+| BTC | NO-SIGNAL: −14.3 after tax via ETF, −22.2 direct | **hold** (signal only in a tax-advantaged account, by explicit choice) | spot BTC ETF or coin |
+| BNB | NO-SIGNAL | hold or skip | no confirmed US spot ETF |
+| ZEC | NO-SIGNAL | hold or skip | — |
+| SPY / QQQ | daily NO-SIGNAL; weekly **INSURANCE** qualifies (SPX gives up 1.7-1.9 pts/yr for 16-21 pts less drawdown; NDX 2.1-2.9 for 30-36) | hold; optional weekly signal as crash insurance | ETF |
+| IWM | daily NO-SIGNAL; weekly fails INSURANCE (gives up 3.3-4.1 pts/yr) | hold | ETF |
+| TSLA | NO-SIGNAL (signal halves CAGR) | hold or skip | — |
+| COIN, HOOD, CRCL | NO-SIGNAL; also fail the history test | watch only | — |
+| new tickers | run `gate.py` first | — | — |
 
-An asset is tradable with the daily signal (**TRADE**) only if all of these hold:
+Caveats on these verdicts:
 
-1. **Enough history:** ≥ 7 years and ≥ 40 closed trades, ideally covering a full bear market.
-2. **Beats holding after costs:** CAGR ≥ buy-and-hold, **or** CAGR within 2 points and
-   max drawdown ≥ 15 points shallower (risk-reduction case, e.g. BTC).
-3. **Profit factor ≥ 2.0** (crypto majors scored 3.4-16; daily equity indices 1.2-1.9).
-4. **Not one lucky run:** still passes test 2 after removing the single best run.
-5. **Fill-robust:** passes with both same-bar and next-bar fills.
-6. **Era-stable:** not worse than buy-and-hold by more than 10 CAGR points in any
-   ~3-year sub-period, and passes test 2 since 2022.
+- The gate thresholds were written after seeing these results.
+- The five coins are correlated survivors.
+- A pass on ~two bear markets of evidence is not proof.
+
+Do **not** add these (all tested):
+
+- daily-AND-weekly confirmation (gives up 30-98% of terminal wealth)
+- squeeze or retest filters
+- trailing 1.5×ATR stops (−37 CAGR points)
+- leverage (not available anyway)
+
+---
+
+## 5. Validation gate (`analysis_2026/gate.py` is authoritative)
+
+Run per asset **per vehicle**, using that vehicle's cost and timing. The coin's own
+history stands in for an ETF.
+
+| vehicle | cost/side | primary timing | alternate timing |
+|---|---|---|---|
+| crypto direct | 0.95% | same-bar close | next bar |
+| spot ETF | 0.02% | next NYSE session | session after |
+| stock daily | 0.03% | next session | same-bar |
+
+1. **History:** ≥ 7 years and ≥ 40 closed trades.
+2. **Edge after costs and taxes**, primary timing: after-tax CAGR ≥ buy-and-hold's
+   after-tax CAGR (taxed once at the long-term rate), **or** within 2 points with max
+   drawdown ≥ 15 points shallower.
+3. **Profit factor ≥ 2.0** (sum of winning trade % / |sum of losing %|).
+4. **Not one lucky trade:** remove the best closed trade's dates from both series;
+   rule 2 (pre-tax) must still pass.
+5. **Timing-robust:** rule 2 (after tax) also passes at the alternate timing.
+6. **Era-stable:** non-overlapping 3-calendar-year blocks. Annualized ln(signal ÷ B&H)
+   must be ≥ −0.15 in every block, with a median above 0, and rule 2 (pre-tax) must
+   pass since 2022.
 7. **Low whipsaw:** ≤ 30% of trades end within ±2%.
 
-Other classes: **INSURANCE** (weekly signal saves ≥ 15 pts of drawdown for ≤ 3 pts/yr
-CAGR), **HOLD** (no signal; buy-and-hold), **WATCH** (fails test 1), **EXCLUDE**.
+Results:
 
-Re-run the gate quarterly; demote anything that fails twice. Beware survivorship: we
-only tested assets that are still around and popular. Judge a candidate list chosen
-*before* looking at results, and treat a pass rate near 100% as a red flag.
+- **TRADE**: all seven pass.
+- **PROBATION**: fails only test 1; small fixed size at most.
+- **NO-SIGNAL**: hold or skip.
+- **INSURANCE** (weekly index signal, dividends and cash yield counted): gives up
+  ≤ 3 CAGR points a year and saves ≥ 15 points of drawdown, at both same-week and
+  next-week fills.
 
----
-
-## 6. Sizing and portfolio rules
-
-- **Fund the agentic account only with money you are willing to let an agent trade.** It
-  is the only hard limit Robinhood enforces.
-- **Size by distance to the line.** The line is the exit, so the loss if it flips today
-  is (price − line)/price. Choose a risk budget per position (e.g. 2-3% of the account):
-  `position = account × risk% ÷ distance-to-line`, capped at the max position size.
-  Typical crypto distance is 6-12%, so 2.5% risk → ~20-40% position, before the cap.
-- **Caps:** max ~30% of the account in any one asset; crypto (BTC+ETH+SOL, ETF or direct)
-  together ≤ ~60%, because they move together and behave like one bet.
-- **Joining a run already in progress:** within ~3 weeks of the flip, entering earns about
-  the same as entering on the flip day (geometric mean per trade: BTC 7.6% vs 8.3%, SOL
-  7.0% vs 6.3%). Later than that the evidence is thin (ETH and SOL roughly halve) — use
-  reduced size or wait for the next flip.
-- **Cash while flat** should earn interest — check whether the agentic account's cash
-  earns a sweep rate.
+Tax rates are inputs: replace the illustrative 35% / 20% with your federal + state
+rates. Re-run quarterly and after every new data export. Judge a candidate list chosen
+*before* looking at results, and treat a high pass rate as a red flag.
 
 ---
 
-## 7. Safety rails (ours, because Robinhood provides almost none)
+## 6. Sizing (from `portfolio.py`, ETF route, pre-tax)
 
-- **Trade approvals ON** — permanently is reasonable; at minimum for the first 2 months.
-- Hard-coded **allowlist** of symbols and **max notional per order / per day** in the
-  script; refuse anything else. Long-only; no options.
-- **Kill switch:** the script checks for a `STOP` file (or env flag) and does nothing if
-  present; plus Robinhood's own disconnect. Remember disconnecting does not cancel open
-  orders.
-- **Idempotency:** one `ref_id` per (date, symbol, side); check order status before any
-  retry; never send an order twice.
-- **Data sanity:** the last bar must be the expected closed date; reject zero or negative
-  prices, missing highs/lows, or a close far from the live quote; skip trading on any
-  failure and alert.
-- **Reconcile every run:** positions vs expected; any mismatch → no new orders, alert.
+| basket | buy & hold | signal, full allocation | fixed 25% per asset | 2.5% risk ÷ (1.5 × distance), cap 30% |
+|---|---|---|---|---|
+| ETH+SOL (2021-06+) | 17.7% / −91% | 49.4% / −60% | 31.6% / −37% | 15.6% / −19% |
+| BTC+ETH (2016-06+) | 64.8% / −91% | 89.3% / −60% | 48.8% / −36% | 30.8% / −22% |
+
+(CAGR / max drawdown. Total crypto exposure is capped at 60% in all signal schemes.)
+
+- **Sizing sets how much risk you take; it adds no edge.** Return per unit of drawdown
+  is about the same for every scheme. Distance-based sizing is no better than a fixed
+  fraction, so **prefer a fixed fraction**. It is simpler, and it doesn't grow late
+  entries.
+- **Caps:** ≤30% per asset; total crypto ≤60%, because the coins flip red together.
+- **The line is a trigger, not a stop price.** At a flip, price sits a median 10-16%
+  above the line (BTC 10.0, ETH 13.5, SOL 15.9), versus 6.6-10.5% later in a run.
+  Exits fill past the line:
+
+  | | median | 10th percentile | worst |
+  |---|---|---|---|
+  | same-bar | 1.5-2.3% | 5.5-7.1% | 10-33% |
+  | ETF route (next session) | 1.0-2.9% | 8-12% | 21-40% |
+
+  Plan for a crash costing several times the "distance" across the whole crypto cluster.
+- **Joining a run already in progress:** entering within ~3 weeks of the flip earns
+  about the same as entering on the flip. Pooled geometric mean, at flip vs day 1-20:
+
+  | | at flip | day 1-20 |
+  |---|---|---|
+  | BTC | 8.3% | 7.6% |
+  | SOL | 6.3% | 7.0% |
+  | BNB | 21.0% | 23.7% |
+
+  After ~3 weeks ETH roughly halves and SOL falls by a third, on thin samples. Use at
+  most the flip-day size.
+- Check whether cash in the agentic account earns interest.
+
+---
+
+## 7. Safety rails (Robinhood provides almost none)
+
+- **Approvals ON**, and prove it. After each place call, read the order status; it must
+  show "awaiting your approval" (record the exact status name in shadow mode). If an
+  order is accepted or filled without approval, write `STOP` and alert.
+- **Rails enforced where orders are placed.** Python enforces the allowlist and the
+  per-order and per-day notional caps when it writes `plan.json`. A Claude Code
+  `PreToolUse` hook on `mcp__robinhood-trading__(place|cancel)_.*` re-reads `plan.json`
+  and blocks the call (exit 2) unless all of these hold:
+  - no `STOP` file exists
+  - the plan date is today and the time is before `valid_until`
+  - symbol, side, type, time-in-force and `ref_id` exactly match a plan entry
+  - quantity is no more than the plan's
+  - the limit price is within the plan's collar
+  - today's placed notional (from a local ledger) stays under the daily cap
+
+  Deny every other write-capable Robinhood tool in `permissions.deny` (options, alerts,
+  scans, watchlists). Give the executor session no web or news tools. Execute only from
+  Claude Code; Claude Desktop has no hooks.
+- **Kill switch.** A `STOP` file blocks all place calls; the executor then lists the
+  agent's open orders and cancels each one (there is no bulk cancel). A `FLATTEN` file
+  allows sells only.
+- **Idempotency and journal.** Python generates every `ref_id`. A private journal
+  records (plan_id, ref_id, status, filled quantity). At the start of each run:
+  1. list open orders and pending proposals, and cancel any that aren't in today's plan
+  2. resume, never re-send, anything already placed
+  3. size against positions plus open orders
+- **Reconcile in shares.** Expected = last reconciled positions + journaled fills.
+  - Partial fills and expired orders are normal states, not mismatches.
+  - An unexplained change (manual trade, unknown order, corporate action) blocks new
+    *buys* and alerts.
+  - **Exits toward target are always allowed.**
+- **Unfilled limits:** time out (15 min for stocks/ETFs, 30 min for crypto), re-quote up
+  to twice, then cross the spread within a set collar. An exit still unfilled goes to
+  you as an urgent alert; it is never silently skipped.
+- **Data sanity:**
+  - the last bar is the expected closed date
+  - no zero or negative prices; high ≥ max(open, close) ≥ min(open, close) ≥ low
+  - quotes are near the last close (in ATR units)
+  - one-day close ratios near 1/2, 1/3, 1/10 (missed splits) are flagged
+  - a bar whose true range exceeds ~4× the prior ATR10 is flagged, and you check it on
+    TradingView before approving. A single bad wick can move a flip.
+
+  Any data failure means no new buys and an alert.
+- **Script vs chart.** The script on closed bars is the authority. If a daily check
+  finds a different state, flip date or line (beyond 0.05%) from TradingView's closed
+  bar, block entries for that asset, still allow exits, and alert.
 - **One session at a time** with the Robinhood connector (rotating refresh tokens).
-- **Log everything** (signals, plans, previews, orders, fills) in the repo or a private
-  store. The public repo must never contain account numbers or balances.
+- **Logs go to a private store only** (outside this public repo, or a gitignored
+  `private/`). Orders, fills and digests reveal positions and account size. Only code
+  and backtests are committed.
 
 ---
 
 ## 8. Rollout
 
-0. **Prerequisites:** US resident, not in New York for crypto; primary Robinhood account
-   in good standing; open the Agentic account (cash, or limited margin to reuse
-   unsettled stock proceeds); link the crypto account; turn **approvals ON**; connect
-   Claude Code and run `tools/list` to confirm the real tool set.
-1. **Cost discovery:** `preview_crypto_order` small BTC/ETH/SOL orders → read route and
-   fee. Check spot-ETF tradability and spreads (`get_equity_tradability`, quotes).
-   Decide: ETF route vs direct crypto.
-2. **Replication check on live data:** pull 300 daily bars via `get_equity_historicals`
-   (adjustment_type = none) for a few ETFs and compare `moneyline_ref.py` with the
-   TradingView chart; for crypto, compare Coinbase-candle results with the chart for
-   two weeks. Expect 100% agreement; investigate any mismatch.
-3. **Validation gate** on the candidate list at realistic costs → verdict table.
-4. **Shadow mode, 4-8 weeks:** daily digest plus would-be orders via review/preview only.
-   Check each day against TradingView.
-5. **Small live:** fund a small amount; approvals ON; TRADE-class assets only.
-6. **Scale** after a clean run of several weeks with no data, auth or reconciliation
-   incidents.
+0. **Prerequisites:**
+   - US resident; not New York, for crypto
+   - open the Agentic account (cash, or limited margin to reuse unsettled stock
+     proceeds)
+   - link the crypto account
+   - turn **approvals ON**
+   - connect Claude Code and run `tools/list` to confirm the real tool set
+1. **Cost discovery:**
+   - `preview_crypto_order` small BTC/ETH/SOL orders and read the route and fee
+   - check spot-ETF tradability and spreads
+   - decide ETF route vs direct crypto
+2. **Replication check:**
+   - **Stocks/ETFs:** 300 daily bars (`adjustment_type='split'`) for a few ETFs.
+     Compare state, flip dates **and line value** with the TradingView chart.
+   - **Crypto, locally:** fetch Coinbase daily candles covering
+     `data/tv_full/{BTC,ETH,SOL}_1D.csv` (TradingView's COINBASE pairs). Check the
+     closes match every day, then require every flip on the same day and the line
+     within 0.05% after a 250-bar warm-up.
+   - A two-week colour-only comparison proves little. Do not trade crypto until this
+     check passes.
+3. **Gate:** run `gate.py` with your tax rates on fresh exports.
+4. **Shadow mode, 4-8 weeks:** daily digest plus would-be orders via review/preview
+   only. Compare the closed bar's line value (not just its colour) with TradingView
+   every day. Confirm:
+   - which status a proposal shows
+   - whether unapproved proposals expire
+   - whether orders placed after the close are queued
+5. **Small live:** approvals ON; ETH (TRADE) at normal size; SOL (PROBATION) at
+   ≤10%. Keep the daily line check running.
+6. **Scale** after several clean weeks with no data, auth or reconciliation incidents.
 
 ---
 
-## 9. Daily digest (what you would receive)
+## 9. Daily digest — EXAMPLE, NOT AN ORDER
 
 ```
-MONEYLINE DIGEST — bars closed 2026-10-13 (crypto 00:00 UTC / stocks 16:00 ET)
-ASSET  VEHICLE  STATE  DAYS  FLIP   LINE      DIST   ACTION     SIZE
-ETH    ETHA     GREEN   41    -     2,310.4   -8.2%  HOLD       27% (cap 30%)
-SOL    BSOL     GREEN    2   NEW    88.1      -9.6%  BUY        +24%
-BTC    IBIT     RED      5    -     81,920    +3.1%  STAY FLAT  0%
-SPY    SPY      (hold core; weekly GREEN since 2026-04-13)       —
-Portfolio: target 51% invested / 49% cash; crypto cluster 51% (cap 60%)
-Orders to approve: BUY BSOL $12,000 (limit at ask)
-Warnings: none   |  Data: Coinbase candles OK, RH historicals OK, auth expires in 2d
+MONEYLINE DIGEST
+crypto bar 2026-10-12 (closed 00:00 UTC 10-13) / stocks bar 2026-10-12 (closed 16:00 ET)
+ASSET  VEHICLE  STATE  DAYS  FLIP  LINE         DIST    TARGET   ACTION
+ETH    ETHA     GREEN   41    -    2310.4123    -8.2%   25%      HOLD
+SOL    BSOL     GREEN    2   NEW   88.1077      -14.1%  10%      BUY (probation size)
+BTC    IBIT     (hold core — signal not used)
+SPY    SPY      (hold core; weekly GREEN since 2026-04-13)
+Orders for phase 2: BUY <N> sh BSOL LIMIT <ask+collar> GFD, valid until 15:45 ET
+                    (whole shares computed at execution from the live ask)
+Warnings: none | Data: Coinbase candles OK, stock OHLC OK
 ```
-(Illustrative numbers.)
+(Illustrative numbers. TradingView labels a crypto daily candle by its 00:00 UTC open.)
 
 ---
 
 ## 10. Open items before building
 
-- Confirm which crypto route agent orders use, and the real fee (step 1).
-- Confirm `get_equity_historicals` returns ≥ 250 daily bars per symbol, unadjusted.
-- Backtest the ETF route on the real ETF price histories (they are short: 2024+ for
-  BTC/ETH, late 2025 for SOL) to complement the proxy test.
-- Decide the user's risk budget, caps and how much to fund.
-- Tax plan: short-term gains in a taxable account; track wash sales across all accounts
-  for ETF/stock re-entries.
+- Crypto order route and fee (step 1); spot-ETF spreads, especially the small SOL ETFs.
+- A public source of split-adjusted daily OHLC for stocks/ETFs, checked against
+  Robinhood historicals.
+- Whether Claude Code can save an MCP tool result to disk without the model retyping it.
+  If not, keep payloads small and rely on Python validation.
+- Your tax rates (federal + state); wash-sale tracking across all accounts for ETF
+  re-entries.
+- Backtest on real ETF price histories (short: BTC/ETH 2024+, SOL late 2025+).
+- Your risk budget, caps and funding amount.

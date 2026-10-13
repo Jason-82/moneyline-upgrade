@@ -496,3 +496,43 @@ at 0.02%/side) keeps ETH +22..+43, SOL +38..+40, BTC +1.4..+1.8 (DD -61% vs -84%
   daily states; COIN weekly turned red 2025-07-28, not 2025-05-12). Recompute from fresh
   exports.
 * Equity daily profit factor range is 1.2-1.9 (raw), not "1.2-1.4".
+
+---
+
+# 2026-10-13 (later) — adversarial review of HANDOFF and the agentic plan
+
+41 agents: claims-vs-code, operational risk, strategy soundness and a newcomer test;
+35 of 37 high/medium findings were confirmed by refute-or-reproduce and applied.
+
+## Corrections to the entry above
+
+* **Spot-ETF proxy traded on weekends.** The "1-day lag" shifted the 24/7 series by one
+  calendar day, so it bought and sold on Saturdays, Sundays and NYSE holidays. Weekend-
+  aware version (`costs.etf_want`, NYSE sessions only, 0.02%/side), next / second
+  session: BTC -3.1 / -0.2 (DD -69% vs -84%), ETH +38.7 / +25.8, SOL +42.4 / +35.7,
+  BNB -0.4 / -2.7, ZEC +2.3 / -28.3. The earlier BTC +1.8 / DD -61% is superseded.
+* **"Unadjusted prices"** was the wrong instruction: TradingView shows split-adjusted,
+  not dividend-adjusted prices. Use Robinhood adjustment_type='split'.
+* **Late-entry geometric table** is pooled over overlapping (run, entry-day) pairs, not
+  "per trade"; now in `supplementary.late_entry_geo()`.
+* **Position sizing**: distance at a flip is a median 10-16%, not 6-12% (that is the
+  in-run figure); exits fill a median 1.5-2.3% past the line (worst 10-33%; 21-40% on
+  the ETF route).
+* **IWM fails the weekly INSURANCE test** (gives up 3.3-4.1 pts/yr).
+* **Equity daily profit factor** (raw): SPX 1.6, NDX 2.0, IWM 1.3 in gate.py's
+  next-session view; 1.4-1.9 same-bar. Not "1.2-1.4".
+* The stop-loss entry's "the indicator is itself a Wilder ATR(14) trailing stop": the
+  line is ATR(10) x 2.0; ATR(14) is only the exported column used there as a ruler.
+
+## New committed results
+
+* `gate.py` (illustrative 35% short-term / 20% long-term tax): ETH via spot ETF passes
+  all 7 tests (after-tax edge +21.5); SOL fails only the history test (PROBATION);
+  BTC (-14.3 after tax via ETF), BNB, ZEC and every stock fail. SPX/NDX qualify as
+  weekly INSURANCE, IWM does not.
+* Era blocks (annualised log wealth vs B&H, ETF route): ETH 2017-19 +0.60, 2020-22
+  +0.05, 2023-25 -0.07; BTC +0.10, -0.10, -0.13. The edge is bear-market avoidance.
+* `portfolio.py`: sizing changes risk, not quality - CAGR per unit of drawdown is
+  similar for full allocation, fixed 25% and distance-based sizing; prefer fixed fraction.
+* `replicate.py`: IWM daily 100.000% / 213 of 213 flips; weekly 100% / 38 of 38;
+  hl2-consistency 100% on 23 of 24 exports for (10, 2.0), 4-95% for alternatives.

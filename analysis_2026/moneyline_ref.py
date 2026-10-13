@@ -23,9 +23,15 @@ ratcheting in the background, whereas the user's indicator restarts the line at
 the flip bar's fresh band. That changes the line on ~10% of flips and the
 green/red state on ~0.03% of bars; 'reset' matches TradingView on 100%.
 
-Use UNADJUSTED (as-traded) prices to match the chart to the cent. Feeding
-dividend-adjusted prices (e.g. yfinance auto_adjust) moves the line by the
-adjustment factor and changes a few flips.
+Use SPLIT-ADJUSTED but NOT dividend-adjusted prices - TradingView's default chart
+data (Robinhood get_equity_historicals adjustment_type='split', its default). Raw
+as-traded prices ('none') put a fake crash at every stock split and force false RED
+flips; dividend-adjusted prices (yfinance auto_adjust, adjustment_type='all') move
+the line by the adjustment factor and change a few flips.
+
+Not used by any backtest in this repo: the TradingView exports are close-only, so
+the backtests read the exported Up/Down Trend state directly. Reproduce the IWM
+verification with analysis_2026/replicate.py.
 
 The first ~period bars are warm-up (ATR undefined); allow ~100 bars before
 trusting the state so the RMA seed and the initial direction wash out.

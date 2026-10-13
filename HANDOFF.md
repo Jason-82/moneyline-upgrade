@@ -1,52 +1,63 @@
 # HANDOFF — trend-indicator research (read this first)
 
-This file lets a new AI instance (or a person) continue the work without
-re-deriving anything. It is the authoritative summary. The detailed, chronological
-log with every table is `analysis_2026/FINDINGS.md` (read its final "audit
-corrections" section — some earlier entries there are wrong). The design for
-automated trading is `AGENTIC_TRADING_PLAN.md`.
+This file lets a new AI instance, or a person, continue the work without re-deriving
+anything. It is the authoritative summary.
 
-**Repo:** https://github.com/Jason-82/moneyline-upgrade (**public** — never commit
-account numbers, balances or positions).
+- Detailed chronological log with every table: `analysis_2026/FINDINGS.md`. Read its
+  final "audit corrections" sections; several earlier entries there are wrong.
+- Automated-trading design: `AGENTIC_TRADING_PLAN.md`.
+
+**Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
+commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-13.
+**Last updated:** 2026-10-13, after a 41-agent adversarial review of this file and the
+plan.
 
 ---
 
-## 0. The things you must know before anything else
+## 0. Know these first
 
-1. **The indicator is an ATR trailing stop, and it is now replicated exactly.** The
-   user's TradingView indicator ("Moneyline", from Ivan on Tech) is a
-   reset-on-flip SuperTrend: Wilder ATR(**10**) × **2.0** around **hl2**.
-   `analysis_2026/moneyline_ref.py` reproduces it bar for bar (100.000% state
-   agreement and 213/213 flips on IWM, where real OHLC exists; consistent with all 23
-   exported series). See section 2.
-2. **README.md, `src/`, `run_backtest.py`, `scanner.py`, `reports/` and
-   `analysis_2026/{run_all,common,strategies_ext,robustness}.py` model the WRONG
-   indicator** (an Ichimoku HMA/EMA crossover). Do not cite their results.
-3. **Crypto: the DAILY signal works; weekly does not.** Daily beat buy-and-hold on
-   return and drawdown on 4 of 5 coins at low costs. **But at Robinhood's crypto
-   pricing (~0.95% per side) it only survives on ETH and SOL**; trading via spot ETFs
-   (near-zero cost, 1-2 day delay) keeps the edge for ETH/SOL and the drawdown benefit
-   for BTC. Filters, confirmations and add-on ATR stops do not robustly help.
-4. **Stocks: the signal mostly does not work.** Daily on indices destroys returns;
-   weekly on indices is optional crash insurance. TSLA: no. HOOD, CRCL, COIN: too little
-   history — results hinge on one or two trades and on fill timing.
-5. **This cloud environment has no market-data access** (Yahoo, Alpha Vantage,
-   Binance, Kraken, Coinbase, CoinGecko, robinhood.com all blocked → 403). Data came
-   from the user's TradingView CSV exports, which hold **close only**.
+1. **The indicator is an ATR trailing stop, replicated exactly.** The user's TradingView
+   indicator ("Moneyline", from Ivan on Tech) is a reset-on-flip SuperTrend: Wilder
+   ATR(**10**) × **2.0** around **hl2**.
+   - `analysis_2026/moneyline_ref.py` reproduces it bar for bar.
+   - Evidence (`analysis_2026/replicate.py`): 100.000% state agreement and 213/213
+     flips on IWM daily, after rescaling the dividend-adjusted yfinance OHLC to
+     TradingView's closes. It is also consistent with 23 of 24 exports (CRCL weekly is
+     too short to test).
+2. **The obsolete code models the wrong indicator** (an Ichimoku HMA/EMA crossover):
+   README's indicator section, `src/`, `run_backtest.py`, `scanner.py`, `reports/`,
+   and `analysis_2026/{run_all,common,strategies_ext,robustness}.py`. Do not cite them.
+3. **Crypto: the daily signal beats buy-and-hold before costs, but costs and taxes
+   decide.**
+   - At Robinhood's ~0.95%/side crypto pricing only ETH and SOL survive.
+   - Via spot ETFs (near-zero cost, executed in the next NYSE session), ETH and SOL keep
+     large edges. BTC slightly trails holding (−3.1 CAGR points) and is clearly behind
+     after short-term tax.
+   - Gate verdicts (`gate.py`): **ETH = TRADE (via ETF), SOL = PROBATION** (too little
+     history), BTC/BNB/ZEC = no signal (hold or skip).
+4. **Stocks: the daily signal never passes.** The weekly signal on SPY/QQQ qualifies
+   only as optional crash insurance; on IWM it does not. TSLA: no. COIN, HOOD and CRCL:
+   too little history, and their results hinge on one or two trades and on fill timing.
+5. **No market data reaches this cloud environment.** Yahoo, Alpha Vantage, Binance,
+   Kraken, Coinbase, CoinGecko and robinhood.com are all blocked (403). All data came
+   from the user's TradingView CSV exports, which are **close-only**.
+   - Every backtest therefore reads the exported Up/Down Trend state; none of them uses
+     `moneyline_ref.py`.
+   - The latest state available here is the 2026-08-24 bar, which was still forming
+     when exported (see section 3).
 
 ---
 
 ## 1. Who the user is (no personal financial data here)
 
-- Uses TradingView with Ivan on Tech's indicator; reads daily and weekly green/red
-  flips. Trades crypto and US stocks on Robinhood. Interested in leverage,
-  stop-losses, confirmation filters, a daily scanner, and (latest) **Robinhood Agentic
-  Trading with Claude** (see `AGENTIC_TRADING_PLAN.md`).
-- Holds concentrated single-stock positions; specifics are deliberately not in this
-  public repo — ask the user if they matter.
-- Asks sharp "does this add up?" questions. Answer with a reconciliation and a
+- Uses TradingView with Ivan on Tech's indicator and reads daily and weekly green/red
+  flips. Trades crypto and US stocks on Robinhood.
+- Has explored leverage, stop-losses, confirmation filters, a daily scanner, and
+  **Robinhood Agentic Trading with Claude** (`AGENTIC_TRADING_PLAN.md`).
+- Holds concentrated single-stock positions. The specifics are deliberately left out of
+  this public repo; ask the user if they matter.
+- Asks sharp "does this add up?" questions. Answer with a reconciliation and the
   decisive table, state caveats once, give a concrete recommendation, and correct
   earlier mistakes plainly.
 
@@ -57,15 +68,16 @@ account numbers, balances or positions).
 **Export format** (TradingView "Export chart data"):
 `time, close, Up Trend, Down Trend, Macro Score Heatmap, Rate Hike, Rate Cut, ATR`
 
-- `Up Trend` populated ⇔ GREEN, `Down Trend` populated ⇔ RED (mutually exclusive);
-  the value is the trailing line. GREEN ⇔ close > line on 100% of bars.
-- The exported `ATR` column is Wilder RMA(**14**) — a separate plot, *not* the ATR the
-  line uses. It lets you recover each day's true range exactly:
-  `TR_t = 14·ATR_t − 13·ATR_{t−1}`, and bound the low:
+- `Up Trend` populated ⇔ GREEN, `Down Trend` populated ⇔ RED. The two are mutually
+  exclusive, and the value is the trailing line. GREEN ⇔ close > line.
+- The exported `ATR` column is Wilder RMA(**14**). It is a separate plot, not the ATR
+  the line uses, but it lets you recover each day's true range exactly:
+  `TR_t = 14·ATR_t − 13·ATR_{t−1}`. That bounds the low:
   `low_t ≥ max(close_t, close_{t−1}) − TR_t`.
-- `Macro Score Heatmap` is always 1; `Rate Hike`/`Rate Cut` are sparse flags. Unused.
+- `Macro Score Heatmap` is always 1, and `Rate Hike`/`Rate Cut` are sparse flags. Both
+  unused.
 
-**Exact construction** (`analysis_2026/moneyline_ref.py`, function `moneyline(df)`):
+**Exact construction** (`moneyline_ref.moneyline(df)`):
 
 ```
 atr  = Wilder RMA(10) of true range          (seeded with SMA of first 10 TRs)
@@ -74,19 +86,28 @@ GREEN: line = max(line[1], lo); if close < line → RED,   line = hi (fresh band
 RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band)
 ```
 
-- Differs from TradingView's built-in `ta.supertrend` only on flip bars (restarts at
-  the fresh band); `ta.supertrend(2, 10)` agrees on 99.97% of bars.
-- Evidence: IWM daily 2011-2025, 3,790 bars: 100.000% state agreement, 213/213 flips
-  same day, line error median 0.0004% (verified independently twice). IWM weekly:
-  100%, 39/39 flips. Neighbours are clearly worse (ATR14×2 98.2%, ATR10×2.5 87.8%,
-  ATR10×3 78.9%). On all 23 crypto/stock exports, inferred hl2 at every ratchet and
-  flip bar is consistent with (10, 2.0) and inconsistent with alternatives.
-- Requirements for matching the chart: **real highs/lows** (close-only input agrees on
-  only 72% of bars), **unadjusted** as-traded prices (dividend-adjusted prices break a
-  few flips), **closed bars only**, and ≥150-250 bars of history (the state locks on
-  within ~10-45 bars, the line within ~60).
-- Same parameters drive daily and weekly charts, stocks and crypto. Weekly bars are
-  Monday-labelled (`to_weekly()`).
+- It differs from TradingView's built-in `ta.supertrend(2, 10)` only on flip bars, where
+  it restarts at the fresh band. The built-in agrees on 99.97% of bars.
+- **IWM results** (`replicate.py`):
+
+  | test | state agreement | flips | line error |
+  |---|---|---|---|
+  | daily, 3,790 bars | 100.000% | 213/213 same day | median 0.0004% |
+  | weekly 2010+ | 100% | 38/38 | — |
+
+- **Neighbours are clearly worse:** ATR14×2 98.2%, ATR10×2.5 87.8%, ATR10×3 78.9%,
+  close-only input 72.2%.
+- **hl2-consistency test** on every export: (10, 2.0) passes 100% of the ratchet and
+  flip bars, while the alternatives pass only 4-95%.
+- **What you need to match the chart:**
+  - real highs and lows
+  - **split-adjusted but not dividend-adjusted** prices, which is TradingView's default.
+    Raw as-traded prices put a fake crash at every split; dividend-adjusted prices
+    break a few flips.
+  - closed bars only
+  - at least 150-250 bars of history
+- The same parameters drive daily and weekly charts, for stocks and crypto alike.
+  Weekly bars are Monday-labelled (`to_weekly()`).
 
 ---
 
@@ -95,33 +116,55 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 | folder | contents | notes |
 |---|---|---|
 | `data/tv_full/` | BTC, ETH, SOL, BNB, ZEC `_1D`/`_1W` | **Primary crypto set.** Uploaded as COINBASE_BTCUSD/ETHUSD/SOLUSD, BINANCE_BNBUSD, BINANCE_ZECUSDT. Daily from BTC 2015-07, ETH 2016-05, BNB 2017-07, ZEC 2019-03, SOL 2021-06, to 2026-08-24. |
-| `data/tv_stocks/` | SPX, NDX, IWM, COIN, TSLA, HOOD, CRCL `_1D`/`_1W` | Daily capped at ~2010 by TradingView (~4,054 bars); weekly SPX from 1967, NDX 1985, IWM 2000. |
-| `data/tv_export/` | 300-bar crypto exports | Superseded (too short; misleading). |
-| `data/crypto2026/` | CoinGecko closes | Wrong-model work only; ZEC's first weeks are garbage. |
-| repo root `QQQ/SPY/IWM_historical_data.csv` | yfinance **OHLC**, dividend-adjusted | Only real highs/lows in the repo; used for wick calibration and indicator replication. |
+| `data/tv_stocks/` | SPX, NDX, IWM, COIN, TSLA, HOOD, CRCL `_1D`/`_1W` | Daily capped at ~2010 by TradingView (no 2000-02 or 2008 on daily). Weekly: SPX from 1967, NDX 1985, IWM 2000. |
+| `data/tv_export/` | 300-bar crypto exports | Superseded. |
+| `data/crypto2026/` | CoinGecko closes | Wrong-model work only. |
+| repo root `QQQ/SPY/IWM_historical_data.csv` | yfinance **OHLC**, dividend-adjusted | The only real highs and lows in the repo. |
 | repo root `btc-usd.csv`, `eth-usd.csv`, `sol-usd-max.csv`, `avax-usd-max.csv`, `BATS_COIN, 1D.csv` | early uploads | Wrong-model work only. |
 
-To get more data: ask the user to export from TradingView after scrolling the chart
-back. A **candle-mode export** (open/high/low/close) would allow exact replication
-checks on crypto and real intraday-stop tests.
+**Getting the current state.** `moneyline_ref.py` cannot run on the `data/tv_*`
+exports, because they have no highs or lows. Faking high = low = close matches only
+60-72% of bars. Instead:
+
+- Read the state straight from the export: `Up Trend` populated means GREEN, and its
+  value is the line.
+- The **last row of every export was still forming** when exported (2026-08-24; HOOD
+  and CRCL daily 2026-08-27). Drop it unless the export was taken after that bar closed.
+- Never report an export's last row as today's state.
+- For a current state, ask the user for a fresh **candle-mode** export (OHLC, so
+  `moneyline_ref.py` can also be checked), or run the signal job locally on Coinbase
+  candles (plan section 3.2 A).
 
 ---
 
-## 4. Conventions in valid results
+## 4. Conventions in the backtests
 
-- Long while GREEN, flat while RED; no shorting; no leverage (except the illustrative
-  model in `confirmation.py`).
-- Fills at the close: **same-bar** primary, **next-bar** as sensitivity. Results can
-  move a lot between the two — always check both.
-- Costs per side: crypto 0.1% + 5 bp (≈0.15%) unless noted; stocks 1 bp + 2 bp.
-  **Robinhood crypto is ~0.95%** — see 5.9.
-- Weekly state on daily bars: `shift(1)` then forward-fill (a week counts once closed).
-- If the series starts mid-green-run, engines buy on the first bar (not a flip). Because
-  `stops.py` drops a few more warmup bars than `run_full.py`, its baselines differ by up
-  to ~5 CAGR points (SOL 57.3 vs 62.7) — compare variants only within one engine.
-- Stocks "adjusted" view adds dividends to holders and T-bill interest when flat.
-- **pandas 3.0 trap:** `.shift()` on a bool Series yields object dtype and `~` becomes
-  integer negation (`~False == -1`). Use numpy bool arrays for flip logic.
+- Long while GREEN, flat while RED; no shorting. No leverage, except the illustrative
+  model in `confirmation.py`.
+- **Fills at the close.** Tables report same-bar fills with next-bar as a sensitivity
+  check, and results can move a lot between the two.
+  - Same-bar fills **cannot be executed** for stocks, ETFs or the spot-ETF route,
+    because the plan trades those in the next session.
+  - For those vehicles, judge by the next-session numbers (`gate.py` does).
+- **Costs per side:**
+
+  | where | cost |
+  |---|---|
+  | crypto (unless noted) | 0.1% + 5 bp |
+  | stocks | 1 bp + 2 bp |
+  | Robinhood crypto | ~0.95% |
+  | ETF route | 0.02% |
+
+- The weekly state is applied to daily bars with `shift(1)` then forward-fill, so a week
+  counts only once it has closed.
+- If a series starts mid-green-run, the engines buy on the first bar. `stops.py` drops a
+  few more warm-up bars than `run_full.py`, so its baselines differ by up to ~5 CAGR
+  points. Compare variants only within one engine.
+- The stocks "adjusted" view adds dividends to holders and T-bill interest while flat.
+- **pandas 3.0 traps:**
+  - `.shift()` on a bool Series yields object dtype, and `~` then means integer
+    negation (`~False == -1`).
+  - `.to_numpy()` can return read-only views; use `copy=True` before writing to it.
 
 ---
 
@@ -137,38 +180,50 @@ checks on crypto and real intraday-stop tests.
 | BNB | 805,945% | 596,293% | -59.8% | -80.3% | 1.5 | 47 | +8.8 |
 | ZEC | 1,139% | 1,379% | -87.8% | -94.3% | 0.8 | 54 | -3.4 |
 
-- Same-bar fills at 0.15%/side. **With next-bar fills BTC's return edge disappears**
-  (65.3% vs 66.4% CAGR) and ZEC's turns positive; drawdown advantages remain on all.
-- BTC's edge is mainly **risk reduction** (1.43× terminal wealth; 29 pts less drawdown).
-  ETH and SOL are the real return stories. Reconcile big % totals through CAGR.
-- **Recent eras are weaker.** Since 2022: beats B&H on ETH (+26% vs −33%), SOL (+249% vs
-  −46%), BNB (+38% vs +35%); roughly matches BTC (+60% vs +67%); trails ZEC. **Since
-  2024 it trails B&H on 4 of 5** (only ETH wins). The edge comes from deep bear markets.
-- Trades: ~7 per coin per year; win rate 39-53%. **Median losing trade −6% (BTC) to
-  −12% (ZEC)**; median of all trades −4% to +1%; worst −20% (ETH) to −43% (ZEC). The
-  trailing line is the stop — returns come from a few large winners.
+These use same-bar fills at 0.15%/side.
+
+- **With next-bar fills**, BTC's return edge disappears (65.3% vs 66.4% CAGR) and ZEC's
+  turns positive. The drawdown advantage remains on all five.
+- **BTC's edge is mainly risk reduction:** 1.43× terminal wealth, but 29 points less
+  drawdown. ETH and SOL are the real return stories. Reconcile big percentage totals
+  through CAGR before comparing.
+- **The edge is mostly bear-market avoidance.** ETH's sits in the 2017-19 block and
+  SOL's in 2022. Since 2022 at 0.15% the signal beats B&H on ETH (+26% vs −33%), SOL
+  (+249% vs −46%) and BNB (+38% vs +35%), roughly matches BTC (+60% vs +67%), and trails
+  ZEC.
+- **Since 2024 (~20 trades per coin) the answer depends on execution.** The same-bar
+  0.15% version trails B&H on 4 of 5. The weekend-aware ETF proxy beats B&H on BTC, ETH
+  and SOL and trails BNB and ZEC. This window cannot separate weakness from noise.
+- **Trades:** about 7 per coin per year, win rate 39-53%.
+  - Median **losing** trade: −6% (BTC) to −12% (ZEC).
+  - Median of all trades: −4% to +1%.
+  - Worst trade: −20% (ETH) to −43% (ZEC).
+  - Returns come from a few large winners.
 
 ### 5.2 Daily beats weekly (crypto)
 
-Weekly loses to B&H on 4 of 5 coins (BTC 8,206% vs 33,628%; ETH 10,873% vs 20,892%; BNB
-29,440% vs 89,665%; ZEC −3%); only SOL wins. Just 4-13 weekly trades per coin.
+Weekly loses to B&H on 4 of 5 coins (BTC 8,206% vs 33,628%; ETH 10,873% vs 20,892%;
+BNB 29,440% vs 89,665%; ZEC −3%). Only SOL wins, on just 4-13 weekly trades per coin.
 
-### 5.3 Confirmation filters — `confirmation.py`
+### 5.3 Confirmation filters — `confirmation.py`, `supplementary.py`
 
-- **Daily AND weekly green** gives up 86% (BTC), 83% (ETH), 98% (BNB), 45% (SOL), 30% (ZEC)
-  of terminal wealth; drawdown improves except on BNB. Not worth it.
-- Pooled over 287 entries: **breakout** and **weekly-green** confirmations raise hit rate
-  (46.7% → 51.8-53.6%) and per-trade geometric gain (9.7% → 12.7-12.9%), but fewer trades
-  means lower total return. **Squeeze** filters skip monster runs; **retest** is worst.
-  A filter helps only if it does not filter out the few huge runs.
-- Leverage (illustrative, close-based, frictionless): breakout confirmation cuts the worst
-  in-trade drawdown (−25.8% vs −42.7%), raising survivable leverage from 2.34× to 3.88×;
-  with fractional sizing the unfiltered signal still wins. Robinhood agentic accounts have
-  no leverage anyway.
+- **Daily AND weekly green** gives up a large share of terminal wealth: 86% (BTC),
+  83% (ETH), 98% (BNB), 45% (SOL), 30% (ZEC). Drawdown improves except on BNB.
+- Pooled over 287 entries, **breakout** and **weekly-green** confirmations raise the hit
+  rate (46.7% → 51.8-53.6%) and the per-trade geometric gain (9.7% → 12.7-12.9%). But
+  they take fewer trades, so total return falls.
+- **Squeeze** filters skip the monster runs, and **retest** is the worst filter tested.
+- Leverage (illustrative): breakout confirmation cuts the worst in-trade drawdown and
+  raises survivable leverage from 2.34× to 3.88×. Agentic accounts have no leverage, so
+  this is moot there.
+- `confirmation.py` has no `__main__`; drive it from a script to reproduce.
 
-### 5.4 Joining a green run late (corrected)
+### 5.4 Joining a green run late — `supplementary.py late_entry_geo()`
 
-Exit measured at the red-flip close (`supplementary.py`). Geometric mean per trade:
+Exits are measured at the red-flip close. Each cell is the geometric mean of the
+remaining return, pooled over every (run, entry-day) pair in the bucket. Entries
+overlap, so the effective sample is about the run count; only "at flip" is one trade
+per run.
 
 | | at flip | day 1-20 | day 21-50 | day 51+ (runs) |
 |---|---|---|---|---|
@@ -178,11 +233,15 @@ Exit measured at the red-flip close (`supplementary.py`). Geometric mean per tra
 | BNB | 21.0% | 23.7% | 26.5% | 20.1% (7) |
 | ZEC | 4.3% | 2.6% | 14.1% | 18.0% (4) |
 
-Entering within ~3 weeks of a flip earns about the same as entering on the flip.
-Later, the evidence is thin and mixed. **An earlier claim that late entry is *better*
-was wrong** (it measured exits one bar early).
+- Medians (`late_entry()`) are negative in most buckets, just as the median at-flip
+  trade is, because the gains come from a few large runs.
+- Entering within ~3 weeks of the flip earns about the same as entering on the flip.
+- **The earlier claim that late entry is *better* was wrong:** it measured exits one
+  bar early.
 
 ### 5.5 ATR stop-losses on top of the indicator — `stops.py`, `run_stops.py`
+
+Median CAGR edge vs indicator-only; (n/5) = coins improved.
 
 | variant | stop on daily close | resting order w=0.4 | w=0.6 | close, 2022+ |
 |---|---|---|---|---|
@@ -192,142 +251,212 @@ was wrong** (it measured exits one bar early).
 | fixed 1.5×weekly ATR | 0.0 | 0.0 | −1.1 | 0.0 |
 | trailing 1.5×weekly ATR | −20.7 | −12.8 | −28.2 | 0.0 |
 
-(Median CAGR edge vs indicator-only; (n/5) = coins improved.) The indicator is already an
-ATR stop (~2.4 daily ATR(14) below close at a flip), so a 1.5×ATR stop is a tighter copy.
-1.5×weekly ATR ≈ 4-5×daily — wider than the line, so it almost never fires (not
-"inconsistent", just pointless). Ivan's fixed stop wins small often but threw away BNB's
-Nov-2020 run (+885% → −17%). **Recommendation given: indicator alone.** If a stop is
-wanted: fixed 1.5×daily on the close with a buy-back rule (≈neutral), or a 2.5-3×daily
-disaster stop. Never trailing 1.5×. Wick calibration from ETF OHLC: w ≈ 0.40.
+- The line already sits ~2.4 daily ATR(14) below the close at a flip, so a 1.5×ATR stop
+  is just a tighter copy of it.
+- 1.5×weekly ATR is about 4-5×daily: wider than the line, so it almost never fires.
+- Ivan's fixed stop discarded BNB's Nov-2020 run (+885% → −17%).
+- **Recommendation: use the indicator alone.** The wick parameter w was calibrated on
+  ETF OHLC (≈0.40, no committed script).
 
-### 5.6 Stocks and indices — `run_stocks.py` (SPX, NDX, IWM, COIN, TSLA, HOOD, CRCL)
+### 5.6 Stocks and indices — `run_stocks.py`, `gate.py`
 
-| | daily signal | B&H | weekly signal (adj.) | B&H (adj.) |
+| | daily signal (raw) | B&H (raw) | weekly signal (adj.) | B&H (adj.) |
 |---|---|---|---|---|
 | SPX | 3.3% | 12.8% | 8.3% (DD −38.9%) | 10.0% (DD −55.0%) |
 | NDX | 8.7% | 18.7% | 13.1% (DD −52.2%) | 15.2% (DD −82.3%) |
 | IWM | 3.4% | 10.0% | 5.3% (DD −36.2%) | 8.6% (DD −57.7%) |
 | TSLA | 21.1% | 42.3% | 21.4% | 41.4% |
 
-(Daily columns raw CAGR; weekly columns include dividends and cash yield.)
+- **Daily on indices:** 32-45% of trades end within ±2%, and profit factor is 1.3-2.0
+  (vs 3.4-16 on crypto). Never trade it.
+- **Weekly INSURANCE** (`gate.py`), with dividends and cash yield counted, at same-week
+  and next-week fills:
 
-- Daily on indices: 40-46% of trades end within ±2%; profit factor 1.2-1.9 vs 3.4-16 on
-  crypto. **Do not trade the daily signal on indices.**
-- Weekly on indices = crash insurance: dot-com (NDX +28 pts) and GFC (SPX +29.5) helped;
-  Covid too fast; cost 10-20 pts in the 2025-26 rally.
-- **COIN** weekly: 15.1% vs −4.0% CAGR, but on **6 trades**, and next-bar fills cut it
-  to 4.7%. Fragile. **HOOD**: daily 18.2% vs 16.7%, but 5.6% with next-bar fills; edge is
-  2 trades. **CRCL**: 5 daily trades. All three: watch-only.
-- Daily stock history starts ~2010 (no 2000-02 or 2008 on daily).
+  | | CAGR given up / yr | drawdown saved | qualifies? |
+  |---|---|---|---|
+  | SPX | 1.7-1.9 pts | 16-21 pts | yes |
+  | NDX | 2.1-2.9 pts | 30-36 pts | yes |
+  | IWM | 3.3-4.1 pts | 16-21 pts | no |
+
+  It helped in dot-com and the GFC, was too slow for Covid, and cost 10-20 points in the
+  2025-26 rally.
+- **COIN weekly:** 15.1% vs −4.0% CAGR, but on 6 trades, and next-bar fills cut it to
+  4.7%.
+- **HOOD daily:** 18.2% vs 16.7%, but 5.6% with next-bar fills.
+- **CRCL:** 5 daily trades.
+- All of COIN, HOOD and CRCL fail the history test.
 
 ### 5.7 Which assets the signal suits
 
-It needs sustained multi-month trends and deep (−70% to −95%) drawdowns to pay for its
-whipsaws: crypto majors. It fails on assets that grind up and mean-revert quickly
-(indices) or make their returns in short bursts (TSLA). Survivorship caveat: every asset
-tested was chosen after the fact and is still around.
+The signal needs sustained multi-month trends and deep drawdowns (−70% to −95%) to pay
+for its whipsaws, which means crypto majors. It fails on assets that grind up and
+mean-revert quickly (indices) or make their returns in short bursts (TSLA).
 
-### 5.8 Position-sizing principle
+Survivorship caveat: every asset tested was chosen after the fact and is still around.
 
-When a personal stop and the indicator's line disagree, **don't move the stop — change the
-size**, so the loss to the line is one you can sit through.
+### 5.8 Sizing — `portfolio.py`
 
-### 5.9 Robinhood costs change the crypto answer — `costs.py`
+ETF route, pre-tax, total crypto capped at 60% (CAGR / max drawdown):
 
-CAGR edge vs B&H by cost per side (full history; B&H pays the cost once):
-
-| | 0.15% | 0.50% | 0.95% (RH default) | spot-ETF proxy, 1-day lag, 0.02% |
+| basket | buy & hold | signal, full | fixed 25% | 2.5% ÷ (1.5×distance) |
 |---|---|---|---|---|
-| BTC | +5.5 | −2.5 | **−12.2** | +1.8 (DD −61% vs −84%) |
-| ETH | +35.1 | +25.4 | +13.5 | +42.9 |
-| SOL | +37.0 | +28.6 | +18.4 | +40.3 |
-| BNB | +8.8 | −0.8 | **−12.7** | +4.1 |
-| ZEC | −3.4 | −10.4 | −18.9 | +3.6 (2-day lag −23.0) |
+| ETH+SOL 2021+ | 17.7 / −91 | 49.4 / −60 | 31.6 / −37 | 15.6 / −19 |
+| BTC+ETH 2016+ | 64.8 / −91 | 89.3 / −60 | 48.8 / −36 | 30.8 / −22 |
 
-Robinhood crypto costs ~0.95%/side on the default route; exchange routing is
-0.50-0.95% at small volume and only ~0.15% above $250K/month. Since 2022 at 0.95%, only
-SOL (+28.7) clearly survives. Spot-ETF route (commission-free; signal from the 24/7
-candle, executed next US session) is the practical fix; the proxy uses each coin's own
-history because real ETFs only exist since 2024-25.
+- Sizing changes how much risk you take, not how good the trade is.
+- Prefer a fixed fraction: distance-based sizing is no better.
+- Price sits a median **10-16% above the line at a flip** (6.6-10.5% later in a run).
+- **Exits fill past the line** (`supplementary.py entry_distance_and_overshoot()`):
+
+  | exit timing | median | worst |
+  |---|---|---|
+  | same-bar | 1.5-2.3% | 10-33% |
+  | ETF route (next session) | 1.0-2.9% | 21-40% |
+
+- When a personal stop and the line disagree, **don't move the stop, change the size**.
+
+### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
+
+CAGR edge vs B&H, full history; B&H pays the cost once.
+
+| | 0.15% | 0.95% (RH direct) | spot-ETF proxy, next / 2nd NYSE session, 0.02% | after tax (ETF, 35%/20%) |
+|---|---|---|---|---|
+| BTC | +5.5 | **−12.2** | −3.1 / −0.2 (DD −69% vs −84%) | **−14.3** |
+| ETH | +35.1 | +13.5 | +38.7 / +25.8 | +21.5 |
+| SOL | +37.0 | +18.4 | +42.4 / +35.7 | +26.6 |
+| BNB | +8.8 | **−12.7** | −0.4 / −2.7 | −25.2 |
+| ZEC | −3.4 | −18.9 | +2.3 / −28.3 | −8.0 |
+
+- At 0.95% since 2022, only SOL clearly survives: ETH is +1.4, and −2.7 since 2024.
+- An earlier ETF proxy that also traded on weekends (BTC +1.8, ETH +42.9) is superseded.
+- The ETF proxy uses each coin's own history, since real ETFs exist only from 2024-25.
 
 ---
 
 ## 6. Superseded — do not cite
 
-Everything on the Ichimoku/HMA/EMA model (baseline/filtered/hybrid, scaled entry,
-"daily+weekly keeps 8%", trailing-stop+re-entry, "15% stop", `reports/*`,
-`results_daily.csv`, `results_weekly.csv`, `coverage.csv`); the 300-bar weekly results;
-the interim "green = close > kijun" proxy (81-91% agreement); "don't chase a daily flip
-while weekly is red" (wrong model); "late entry is better" (exit bug); "median losing
-trade −1% to −4.5%" (was the median of all trades); FINDINGS' dated "current state"
-snapshots (stale and partly wrong).
+- Everything on the Ichimoku/HMA/EMA model.
+- The 300-bar weekly results.
+- The "green = close > kijun" proxy.
+- "Don't chase a daily flip while weekly is red."
+- "Late entry is better."
+- "Median losing trade −1% to −4.5%."
+- The calendar-lag spot-ETF numbers.
+- "BTC: trade the signal for drawdown control."
+- "Indices get weekly insurance" (IWM fails).
+- "6-12% typical distance → 20-40% positions."
+- FINDINGS' dated "current state" snapshots.
 
 ---
 
 ## 7. Bugs found and fixed
 
-- pandas 3.0 bool-shift negation (section 4) — silently broke two ad-hoc forward-return
-  studies before being caught.
-- Late-entry table exited at the last green close instead of the red-flip close.
-- Losing-trade median computed over all trades.
-- `stops.py`: wick proxy fired stops at prices that never traded (now clipped to the
-  recovered-TR low floor); `run_attribution` paired runs across different windows;
-  exposure omitted the open final position.
-- Verification practice that caught real problems: independent reimplementation from a
-  spec, adversarial code review with refute-or-reproduce, repo-vs-claims audit,
-  concentration tests (drop the top 1-2 runs), next-bar fills, era splits.
+- **pandas 3.0 bool-shift negation.** It silently broke two ad-hoc studies before it was
+  caught.
+- **Late-entry table** exited at the last green close; it now exits at the red-flip
+  close.
+- **Losing-trade median** had been computed over all trades.
+- **Spot-ETF proxy** traded on weekends.
+- **"Unadjusted prices" instruction** would have broken stock splits; corrected to
+  split-adjusted.
+- **`stops.py`:**
+  - the wick proxy fired stops at prices that never traded
+  - `run_attribution` misaligned windows
+  - exposure ignored the open final position
+- **What caught them:**
+  - independent reimplementation
+  - adversarial review with refute-or-reproduce
+  - a repo-vs-claims audit
+  - a newcomer test
+  - concentration, timing and era tests
 
 ---
 
-## 8. Automated trading (summary — full design in `AGENTIC_TRADING_PLAN.md`)
+## 8. Automated trading (summary of `AGENTIC_TRADING_PLAN.md`)
 
-- Robinhood Agentic Trading: separate agentic account, MCP server
-  `https://agent.robinhood.com/mcp/trading`, approvals **off by default** for Claude
-  (turn them on), no margin, no paper trading, no crypto price history in the MCP, ~0.95%
-  crypto cost, OAuth re-login every few days.
-- Design: deterministic Python computes signals with `moneyline_ref.py` on closed daily
-  bars (stocks/ETFs from Robinhood's historicals; crypto from Coinbase candles), sizes by
-  distance to the line, and writes an order plan + digest; Claude previews and places the
-  orders through the MCP with approvals on; reconcile and alert.
-- Every asset must pass a backtest gate (history, after-cost edge, profit factor ≥ 2,
-  concentration, fill robustness, era stability, whipsaw) before it is traded.
-- Current verdicts: ETH and SOL **trade** (daily, ideally via spot ETFs); BTC trade for
-  drawdown control or hold; BNB watch; ZEC exclude; indices hold (optional weekly
-  insurance); TSLA hold; COIN/HOOD/CRCL watch.
+- **Robinhood Agentic Trading:** a separate taxable account, reached through the MCP
+  server `https://agent.robinhood.com/mcp/trading`.
+  - Approvals are **off by default** for Claude; turn them on.
+  - No margin and no paper trading.
+  - The MCP has no crypto price history.
+  - Crypto costs ~0.95%.
+  - OAuth re-login every few days.
+- **Phase 1 (cron, no Robinhood access):** Python computes signals with
+  `moneyline_ref.py` on closed bars from public data (Coinbase candles for crypto;
+  split-adjusted daily OHLC for stocks/ETFs) and writes `signals.json` and a digest to a
+  private store.
+- **Phase 2 (interactive Claude Code):**
+  1. Claude saves raw Robinhood MCP JSON (positions, equity, quotes, open orders).
+  2. Python validates it and writes `plan.json`.
+  3. Claude previews and places only those orders. A PreToolUse hook blocks anything
+     that doesn't match exactly, and a STOP file cancels the agent's open orders.
+  4. With approvals on, the user approves in the app.
+- **Gate verdicts:**
+  - ETH: TRADE via spot ETF.
+  - SOL: PROBATION (≤10%).
+  - BTC, BNB, ZEC: hold or skip.
+  - SPY/QQQ: hold, with optional weekly insurance.
+  - IWM and TSLA: hold.
+  - COIN, HOOD, CRCL: watch.
 
 ---
 
-## 9. Open questions and next steps
+## 9. Next steps (single to-do list; plan section 8 is the deployment order)
 
-1. Live checks with the Robinhood MCP: crypto order route and fee; whether
-   `get_equity_historicals` returns ≥250 unadjusted daily bars; spot-ETF tradability.
-2. Backtest the spot-ETF route on real ETF histories (short) to complement the proxy.
-3. Candle-mode TradingView exports for crypto (exact replication check, intraday stops).
-4. Walk-forward / out-of-sample testing and a survivorship-aware candidate universe.
-5. Portfolio level: correlation-aware sizing across the crypto cluster.
-6. README.md still documents the wrong indicator (banner added; full rewrite pending).
-7. Some older interactive numbers (crash-window table, HOOD concentration, 20%-sizing
-   leverage) have no committed script; recompute before relying on them.
+**Doable now in a sandbox:**
+
+1. Build the phase-1 signal job (`signal_job.py`):
+   - fetch adapters (Coinbase, a stock OHLC source)
+   - `moneyline_ref` on closed bars
+   - fixed-fraction sizing with caps
+   - data checks
+   - digest
+   - the `plan.json` writer
+
+   Then add the PreToolUse hook script and a journal/reconcile module, with tests.
+2. Add a `__main__` to `confirmation.py`, and commit scripts for the remaining
+   interactive numbers: the crash-window table, HOOD concentration, 20%-sizing
+   leverage, wick calibration.
+3. Walk-forward / out-of-sample testing, and a survivorship-aware candidate universe for
+   the gate.
+
+**Needs the user or live access:**
+
+4. Fresh **candle-mode** TradingView exports, so `moneyline_ref.py` can be checked on
+   crypto.
+5. The user's tax rates and risk budget; open the Agentic account; turn approvals on.
+6. Live MCP checks:
+   - the crypto order route and fee
+   - `get_equity_historicals` with `adjustment_type='split'` returns ≥250 bars
+   - spot-ETF tradability and spreads
+   - proposal statuses and expiry
+7. Locally: Coinbase-candle backfill vs `data/tv_full` (plan section 8 step 2), then
+   shadow mode.
 
 ## 10. Environment notes
 
-- `python3` (3.11); install with `python3 -m pip install pandas numpy` (plain `pip`
-  targets another interpreter). pandas is unpinned → mind the bool-shift trap.
-- Market-data and robinhood.com hosts are blocked here (403) — don't retry; WebSearch
-  works. Commit and push; containers are ephemeral.
+- Use `python3` (3.11) and install with `python3 -m pip install pandas numpy` (plain
+  `pip` targets another interpreter). pandas is unpinned.
+- Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
+  works.
+- Commit code and backtest results only; logs and digests go to a private store.
+  Containers are ephemeral.
 
 ## 11. File map (valid code)
 
 | file | purpose |
 |---|---|
 | `AGENTIC_TRADING_PLAN.md` | Robinhood + Claude automated-trading design. |
-| `analysis_2026/FINDINGS.md` | Chronological log of every result (see audit corrections at the end). |
-| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). |
+| `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
+| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
+| `analysis_2026/replicate.py` | IWM replication and hl2-consistency evidence. |
+| `analysis_2026/gate.py` | Per-asset, per-vehicle validation gate (after tax) and index INSURANCE test. |
+| `analysis_2026/costs.py` | Robinhood cost sensitivity; weekend-aware spot-ETF proxy (`etf_want`, `etf_proxy`). |
+| `analysis_2026/portfolio.py` | Portfolio sizing comparison. |
+| `analysis_2026/supplementary.py` | Losing trades, late entry (medians and pooled geometric means), entry distance and exit overshoot, era split, daily-AND-weekly, fill convention. |
 | `analysis_2026/run_full.py` | Real-signal crypto backtests (daily/weekly); `load()`, `bt()`. |
 | `analysis_2026/run_stocks.py` | Stocks/indices incl. TSLA/HOOD/CRCL; dividend/cash-yield view. |
-| `analysis_2026/supplementary.py` | Losing trades, late entry (corrected), era split, daily-AND-weekly, fill convention. |
-| `analysis_2026/costs.py` | Robinhood cost sensitivity. |
 | `analysis_2026/confirmation.py` | Confirmation-filter decomposition and leverage model. |
 | `analysis_2026/stops.py`, `run_stops.py` | ATR stop-loss study. |
 | `analysis_2026/run_tv.py`, `tv.py` | Real signal vs old models on the 300-bar exports (agreement % only). |
-| `analysis_2026/results_full.csv`, `results_stocks.csv`, `results_stops.csv`, `results_costs.csv` | Current result tables. |
+| `analysis_2026/results_*.csv` | Current tables: full, stocks, stops, costs, etf_proxy, gate, insurance, portfolio. |

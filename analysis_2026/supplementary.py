@@ -6,7 +6,8 @@ corrections found in the 2026-10-13 audit:
      trades, not of losing trades)
   2. entering late into a green run - exit at the RED-FLIP close c[b+1], which is
      where the strategy actually exits (the old table exited at the last green
-     close c[b], which flattered it)
+     close c[b], which flattered it); medians (late_entry) and pooled geometric
+     means (late_entry_geo)
   3. era split vs buy & hold
   4. Daily AND Weekly confirmation: how much return it gives up per asset
   5. same-bar vs next-bar fill: does "beats B&H on 4 of 5" survive?
@@ -71,6 +72,62 @@ def late_entry():
     return pd.DataFrame(rows)
 
 
+def late_entry_geo():
+    """
+    Geometric mean of the remaining return, exp(mean(log(1+r)))-1, pooled over every
+    (run, entry-day) pair in the bucket (exit at the red-flip close). Entries overlap:
+    a long run contributes one observation per day, so the effective sample size is
+    about the run count. Only 'at flip' is one trade per run.
+    """
+    rows = []
+    for s in ASSETS:
+        d = load(s, "1D"); c = d.close.to_numpy(float); runs = closed_runs(d.green)
+        for lo, hi, lbl in ((0, 0, "at flip"), (1, 20, "day 1-20"), (21, 50, "day 21-50"), (51, 10_000, "day 51+")):
+            rem, nr = [], set()
+            for k, (a, b, x) in enumerate(runs):
+                for day in range(lo, min(hi, b - a) + 1):
+                    rem.append(c[x] / c[a + day] - 1); nr.add(k)
+            if rem:
+                rem = np.array(rem)
+                rows.append({"asset": s, "enter": lbl, "obs": len(rem), "runs": len(nr),
+                             "geo_mean_%": (np.exp(np.mean(np.log1p(rem))) - 1) * 100,
+                             "median_%": float(np.median(rem)) * 100, "win_%": float((rem > 0).mean()) * 100})
+    return pd.DataFrame(rows)
+
+
+def entry_distance_and_overshoot():
+    """
+    Distance from price to the line at a green flip (what sizing sees at entry) vs on
+    all green bars, and how far past the line exits actually fill: on a red-flip bar,
+    (exit close / previous bar's line - 1). Same-bar exit, and next-NYSE-session exit
+    (spot-ETF route; weekend signals wait), both as % of the previous line.
+    """
+    from analysis_2026.costs import etf_want
+    rows = []
+    for s in ASSETS:
+        d = load(s, "1D"); c = d.close.to_numpy(float); ln = d.line.to_numpy(float)
+        g = d.green.to_numpy(bool)
+        dist = (c - ln) / c
+        flips_up = np.r_[False, g[1:] & ~g[:-1]]
+        flips_dn = np.r_[False, ~g[1:] & g[:-1]]
+        same = [(c[i] / ln[i - 1] - 1) * 100 for i in np.where(flips_dn)[0]]
+        w = etf_want(d.index, g, 1)
+        etf_exit = np.where(np.r_[False, ~w[1:] & w[:-1]])[0]
+        etf = []
+        for e in etf_exit:                      # previous green line before the signal bar
+            k = e - 1
+            while k > 0 and not flips_dn[k]:
+                k -= 1
+            if k > 0:
+                etf.append((c[e] / ln[k - 1] - 1) * 100)
+        rows.append({"asset": s, "dist_at_flip_med_%": np.median(dist[flips_up]) * 100,
+                     "dist_green_bars_med_%": np.median(dist[g]) * 100,
+                     "exit_vs_line_same_med_%": np.median(same), "same_p10_%": np.quantile(same, .10),
+                     "same_worst_%": min(same), "exit_vs_line_etf_med_%": np.median(etf),
+                     "etf_p10_%": np.quantile(etf, .10), "etf_worst_%": min(etf)})
+    return pd.DataFrame(rows)
+
+
 def era_split():
     rows = []
     for s in ASSETS:
@@ -113,6 +170,8 @@ if __name__ == "__main__":
     pd.set_option("display.width", 200)
     f = lambda x: f"{x:,.1f}"  # noqa: E731
     for title, fn in (("1) Losing trades", losing_trades), ("2) Late entry (exit at red-flip close)", late_entry),
+                      ("2b) Late entry, pooled geometric mean", late_entry_geo),
+                      ("2c) Entry distance and exit overshoot", entry_distance_and_overshoot),
                       ("3) Era split", era_split), ("4) Daily AND Weekly", daily_and_weekly),
                       ("5) Same-bar vs next-bar fill", fill_convention)):
         print(f"\n{'=' * 100}\n  {title}\n{'=' * 100}")
