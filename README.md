@@ -1,3 +1,11 @@
+> **⚠️ Read [HANDOFF.md](HANDOFF.md) first.** This README documents the project's
+> original model of the "Moneyline" indicator (an Ichimoku HMA/EMA crossover), which
+> turned out to be **wrong**. The real indicator is an ATR trailing stop (Wilder ATR(10)
+> x 2.0 around hl2, reset-on-flip), replicated exactly in
+> `analysis_2026/moneyline_ref.py`. Results from `src/`, `run_backtest.py`,
+> `scanner.py` and `reports/` are superseded. Current results: `analysis_2026/`.
+> Automated-trading design: [AGENTIC_TRADING_PLAN.md](AGENTIC_TRADING_PLAN.md).
+
 # Moneyline Backtesting Framework
 
 A Python backtesting framework for evaluating the Moneyline trend-following system with contraction/breakout overlays.

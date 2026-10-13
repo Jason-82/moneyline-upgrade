@@ -1,5 +1,5 @@
 """
-Same analysis as the crypto run, applied to SPX / NDX / IWM / COIN.
+Same analysis as the crypto run, applied to SPX / NDX / IWM / COIN / TSLA / HOOD / CRCL.
 
 Two things differ from crypto and both matter:
 
@@ -22,13 +22,13 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 DIR = Path(__file__).resolve().parent.parent / "data" / "tv_stocks"
-TICKERS = ["SPX", "NDX", "IWM", "COIN"]
+TICKERS = ["SPX", "NDX", "IWM", "COIN", "TSLA", "HOOD", "CRCL"]
 
 FEE, SLIP = 0.0001, 0.0002          # 1bp + 2bp — liquid ETF execution
 
 # Rough long-run annual yields used only for the sensitivity view.
-DIV_YIELD = {"SPX": 0.020, "NDX": 0.008, "IWM": 0.013, "COIN": 0.0}
-CASH_YIELD = {"SPX": 0.040, "NDX": 0.030, "IWM": 0.020, "COIN": 0.020}
+DIV_YIELD = {"SPX": 0.020, "NDX": 0.008, "IWM": 0.013, "COIN": 0.0, "TSLA": 0.0, "HOOD": 0.0, "CRCL": 0.0}
+CASH_YIELD = {"SPX": 0.040, "NDX": 0.030, "IWM": 0.020, "COIN": 0.020, "TSLA": 0.020, "HOOD": 0.020, "CRCL": 0.020}
 
 
 def load(sym, tf):

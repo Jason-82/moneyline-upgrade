@@ -446,3 +446,53 @@ wick assumptions and eras. The daily indicator alone is the defensible default.
 * Crypto OHLC could not be fetched: Binance, Kraken, Coinbase and CoinGecko are
   blocked by the session's egress policy (403). A TradingView export in candle
   mode (open/high/low/close) would remove the wick-proxy uncertainty entirely.
+
+---
+
+# 2026-10-13 — indicator replicated, Robinhood costs, and audit corrections
+
+## The indicator is replicated exactly from OHLC
+
+Reset-on-flip SuperTrend: Wilder ATR(10) x 2.0 around hl2 (`moneyline_ref.py`).
+IWM daily (yfinance OHLC rescaled to TradingView's unadjusted closes): 100.000% state
+agreement over 3,790 bars, 213/213 flips same day, line error median 0.0004%; weekly
+100%, 39/39 flips. Verified independently with a different rescaling method.
+Neighbours: ATR14x2 98.2%, ATR10x2.5 87.8%, ATR10x3 78.9%, ta.supertrend(2,10) 99.97%.
+All 23 crypto/stock exports pass a hl2-consistency test for (10, 2.0) and fail it for
+alternatives. Requires real highs/lows (close-only = 72.2%), unadjusted prices and closed
+bars. The exported ATR column is RMA(14) — a separate plot, not the line's ATR. The
+earlier note "multiplier ~3" in this file was wrong.
+
+## Robinhood crypto costs (`costs.py`)
+
+Robinhood charges ~0.95% per side on its default crypto route. At that cost the daily
+signal trails buy & hold on BTC (-12.2 CAGR pts) and BNB (-12.7); ETH (+13.5) and SOL
+(+18.4) survive. A spot-ETF proxy (signal from the crypto candle, executed 1-2 days later
+at 0.02%/side) keeps ETH +22..+43, SOL +38..+40, BTC +1.4..+1.8 (DD -61% vs -84%).
+
+## Audit corrections to earlier entries in this file
+
+* "Losing trades cluster tight: median -1.1% to -4.5%" — that was the median of ALL
+  trades. Median LOSING trade: BTC -6.4%, ETH -9.8%, SOL -11.1%, BNB -9.1%, ZEC -12.0%.
+* "Entering late is NOT penalised ... four of five pay MORE" — the table exited at the
+  last green close, not the red-flip close. Corrected (geometric mean per trade, at flip
+  vs day 1-20): BTC 8.3/7.6, ETH 10.2/8.1, SOL 6.3/7.0, BNB 21.0/23.7, ZEC 4.3/2.6. Late
+  entry is about as good in the first ~3 weeks; "better" is not supported; day-51+
+  buckets rest on 1-7 runs.
+* "Daily AND Weekly cuts ... 80-98%" — per asset it gives up BTC 86%, ETH 83%, BNB 98%,
+  SOL 45%, ZEC 30% of terminal wealth; BNB's drawdown gets worse.
+* "Beats buy & hold on BOTH return and drawdown on 4 of 5" holds with same-bar fills;
+  with next-bar fills BTC's return edge vanishes (65.3% vs 66.4% CAGR) while ZEC's turns
+  positive. Drawdown advantage holds on all five either way.
+* COIN weekly ("+20.6 pts") rests on 6 trades and drops from 15.1% to 4.7% CAGR with
+  next-bar fills — as fragile as HOOD. It is not a reliable reference class.
+* HOOD "weekly 0/1/2-bar lags 86.6/118.7/227.5%" were the weekly state executed on daily
+  bars; native weekly is 143/131/156%.
+* "Fixed stops >= 2.5x ATR are identical to indicator-only" — true for 4 of 5; SOL
+  differs by one trade.
+* stops.py baselines differ from run_full by up to ~5 CAGR pts (different warmup → the
+  first trade enters on a different already-green bar), not "slightly".
+* The dated "Current state" snapshots (2026-08-24/27) are stale and partly wrong (SPX/NDX
+  daily states; COIN weekly turned red 2025-07-28, not 2025-05-12). Recompute from fresh
+  exports.
+* Equity daily profit factor range is 1.2-1.9 (raw), not "1.2-1.4".
