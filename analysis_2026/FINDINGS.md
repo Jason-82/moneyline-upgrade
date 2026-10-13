@@ -358,3 +358,91 @@ trade so a wipeout is survivable, baseline wins at every leverage level -
 
 Retest is the worst filter tested: safest tail (max L 5.2x) and the lowest
 growth of any variant. Safe and unprofitable.
+
+---
+
+# 2026-10-13 — ATR stop-loss on top of the daily indicator ("whichever hits first")
+
+Question: Ivan on Tech pairs the indicator with a 1.5 x ATR stop and exits on
+whichever fires first. A 1.5 x daily ATR stop usually fires long before the
+indicator turns red; 1.5 x weekly ATR matches the indicator's drop better but
+feels inconsistent with a daily signal. Engine: analysis_2026/stops.py, sweep:
+analysis_2026/run_stops.py, results: analysis_2026/results_stops.csv.
+
+## The structural fact that answers most of it
+
+The indicator is itself a Wilder ATR(14) trailing stop. Its line sits a median
+2.3-2.5 daily ATR below close on a green flip and 1.6-1.8 ATR below during a run.
+Adding a k x ATR stop adds a second copy of the same exit.
+
+* fixed k >= 2.5 daily ATR sits at or below the line from day one: identical to
+  indicator-only when checked on the close.
+* weekly ATR / daily ATR = 2.7-3.4 (median), so 1.5 x weekly ~ 4-5 x daily ATR,
+  WIDER than the indicator's own line. ATR is a volatility ruler, so mixing
+  timeframes is not inconsistent; a 1.5 x weekly stop is just a 4-5 x daily stop.
+  The indicator actually exits ~2.4 daily ATR (~0.8-0.9 weekly ATR) below the
+  run's high close.
+
+## Results (CAGR edge vs indicator-only, points; 5 assets, full history unless noted)
+
+| variant | on close | resting w=0.4 | resting w=0.6 | close 2022+ |
+|---|---|---|---|---|
+| fixed 1.5 x daily, no re-entry (Ivan) | +2.1 (3/5) | -2.7 (2/5) | -4.9 (1/5) | +4.1 (5/5) |
+| fixed 1.5 x daily + buy back above entry | +1.8 (4/5) | +1.8 (4/5) | -4.5 (1/5) | +2.7 (5/5) |
+| trail 1.5 x daily | **-37.5** (1/5) | **-39.0** (0/5) | **-53.8** (0/5) | -3.3 (2/5) |
+| fixed 1.5 x weekly | 0.0 | 0.0 | -1.1 | 0.0 |
+| trail 1.5 x weekly | -20.7 (1/5) | -12.8 (0/5) | -28.2 (0/5) | 0.0 |
+| fixed 2.5 x daily (disaster stop) | 0.0 | +2.4 (5/5) | +0.1 (3/5) | 0.0 |
+
+Medians across assets; (n/5) = assets better than indicator-only.
+
+* **Trailing 1.5 x daily ATR is robustly destructive.** Exits 81-100% of trades
+  before the indicator; cuts 107-130 winning runs, losing ~5,200pp vs ~650-960pp
+  saved. BTC/ETH/BNB stay at -26/-28/-85 after removing each one's most
+  influential run. This is the "hits long before the indicator" behaviour.
+* **Fixed 1.5 x daily (Ivan's rule) is a failed-breakout filter with a fat left
+  tail.** 45 of its 51 close-based stop-outs were trades that never closed above
+  entry, a median ~4 days in. It cut 46 losing runs (avg 4pp saved, 185pp total)
+  and 5 winners (1,028pp lost), 88% of which is one run: BNB 2020-11-24, +885%
+  with the indicator, -17% stopped on day 2. Pooled log edge -1.34, 90% CI
+  [-6.3, +2.0]. Hurt 2015-2021, helped 2022+ (bear/chop regime; correlated
+  assets, so 5/5 is not five independent confirmations).
+* **Buy-back re-entry fixes the catastrophic miss** (BNB re-enters 2020-12-20 and
+  catches +875%) but the result is ~neutral: close-based pooled log +0.99, CI
+  [-0.19, +2.19], with ZEC contributing +0.84. Fails at w=0.6 and at k=1.25.
+* **Trailing weekly ATR fires rarely but at the worst time**: the lagged weekly
+  ATR shrinks relative to exploding daily volatility in parabolic legs (all 19
+  close-based stop-outs at weekly/daily ratio 0.4-1.8), cutting BNB Feb-2021,
+  ZEC Oct-2025, SOL Nov-2023.
+* **ZEC is the only asset where an initial stop helps robustly** (+12.7 after
+  removing its two best runs) - from many failed flips in 2021-2023 chop, the
+  same regime where the indicator itself was weakest.
+
+Conclusion: nothing tested beats indicator-only robustly across fill models,
+wick assumptions and eras. The daily indicator alone is the defensible default.
+
+## Verification (8 independent agents)
+
+* From-scratch reimplementation: 40/40 rows match exactly (max |CAGR diff| 0.0).
+* Code review: no lookahead; weekly ATR alignment correct (one week stale on
+  Sundays - conservative); same-bar relabel P&L-neutral; fees symmetric.
+* Confirmed bug F1, fixed: TradingView's ATR is exactly RMA(14), so
+  TR_t = 14*ATR_t - 13*ATR_{t-1} (0 violations of TR >= |dClose|; implied TR lands
+  on the 0.01 tick) and low_t >= max(close_t, close_{t-1}) - TR_t. The wick proxy
+  fired stops below that floor (10% of wick triggers at w=0.3, 36% at w=0.6). Now
+  clipped; patched results match the confirmer's independent patch to 1e-14.
+  Every correction moved in the stops' favour; close-based tables unaffected.
+* Confirmed bug F3, fixed: run_attribution numbered runs on different windows
+  when start/end were passed. Latent - no reported figure used it.
+* F4 fixed: exposure now includes the position still open on the last bar.
+* F2 (fill at stop price on bars closing below it) is the standard
+  min(open, stop) convention, valid here because no stop was ever above the prior
+  close; flatters stops on crash days. Documented, not changed.
+* Wick calibration on real QQQ/SPY/IWM OHLC: touch-matched w = 0.40 (0.37-0.44
+  across ETFs, k and ATR length; ~0.45 on P&L once gap fills are counted). 24/7
+  crypto with liquidation wicks plausibly sits at 0.4-0.6. A stop checked on the
+  daily close matched a real resting intraday stop on average P&L while avoiding
+  the ~9% of pure wick-outs.
+* Crypto OHLC could not be fetched: Binance, Kraken, Coinbase and CoinGecko are
+  blocked by the session's egress policy (403). A TradingView export in candle
+  mode (open/high/low/close) would remove the wick-proxy uncertainty entirely.

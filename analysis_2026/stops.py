@@ -19,10 +19,17 @@ ATR source:
 Stop detection (close-only data, so two conventions):
   wick = 0     "stop on daily close": exit when close <= stop, fill at that close
   wick = w>0   intraday stop-order proxy: assume the bar's low reaches
-               close - w*ATR; if that touches the stop, fill AT the stop price.
-               w=0.3-0.6 brackets a typical crypto lower wick. This triggers more
-               often than close-based stops (wicks that recover) - the realistic
-               cost of a resting stop order.
+               close - w*ATR (clipped to the floor implied by the recovered true
+               range); if that touches the stop, fill AT the stop price.
+               Calibrated on real QQQ/SPY/IWM highs and lows, the w whose stop-touch
+               rate matches real lows is ~0.40 (0.37-0.44 across ETFs, k and ATR
+               length). 24/7 crypto with liquidation wicks plausibly sits at
+               0.4-0.6. Fill-at-stop is the standard min(open, stop) convention
+               (crypto open == prior close and no stop here was ever above the
+               prior close) but it ignores crash-day slippage, so it flatters stops.
+
+Weekly ATR is NaN for the first ~80 daily bars of ETH/SOL/BNB/ZEC (weekly
+warmup); weekly-ATR variants run without a stop there. Verified negligible.
 
 Re-entry after a stop-out while the indicator is still green:
   none   stay flat until the next green flip (the rule as Ivan describes it)
@@ -60,6 +67,16 @@ def simulate(sym, mode="none", k=1.5, atr_src="daily", reentry="none", wick=0.0,
     """
     d = load(sym, "1D")
     d = d.assign(watr=weekly_atr_on_daily(sym, d.index))
+    # The exported ATR is exactly Wilder RMA(14) of true range, so each day's true
+    # range is recoverable: TR_t = 14*ATR_t - 13*ATR_{t-1}. Since
+    # min(low, prev_close) = max(high, prev_close) - TR, the bar's low can never be
+    # below max(close, prev_close) - TR. The wick proxy is clipped to that floor
+    # so it cannot trigger a stop at a price that never traded. Computed before
+    # slicing so the first bar of a window still sees its prior close.
+    tr_rec = 14 * d["atr"] - 13 * d["atr"].shift(1)
+    d["lo_floor"] = np.maximum(d["close"], d["close"].shift(1)) - tr_rec
+    if ((tr_rec + 1e-6) < d["close"].diff().abs()).any():
+        d["lo_floor"] = -np.inf   # ATR is not RMA(14) here; fall back to the raw proxy
     if start is not None:
         d = d[d.index >= start]
     if end is not None:
@@ -70,6 +87,7 @@ def simulate(sym, mode="none", k=1.5, atr_src="daily", reentry="none", wick=0.0,
     g = d["green"].to_numpy(bool)
     datr = d["atr"].to_numpy(float)
     watr = d["watr"].to_numpy(float)
+    lo_floor = d["lo_floor"].fillna(-np.inf).to_numpy(float)
     A = watr if atr_src == "weekly" else datr
     n = len(c)
 
@@ -129,7 +147,7 @@ def simulate(sym, mode="none", k=1.5, atr_src="daily", reentry="none", wick=0.0,
 
         if in_pos:
             # 1) stop, checked against the level set at the end of the prior bar
-            low_proxy = c[i] - wick * datr[i]
+            low_proxy = max(c[i] - wick * datr[i], lo_floor[i]) if wick > 0 else c[i]
             stop_hit = mode != "none" and low_proxy <= stop
             # A close-based stop that fires on the same close as the indicator flip
             # is redundant: same bar, same fill. Credit it to the indicator so the
@@ -178,12 +196,13 @@ def simulate(sym, mode="none", k=1.5, atr_src="daily", reentry="none", wick=0.0,
         "win_rate": len(wins) / len(tr) * 100 if len(tr) else np.nan,
         "avg_win": wins.ret.mean() if len(wins) else np.nan,
         "avg_loss": loss.ret.mean() if len(loss) else np.nan,
-        "exposure_pct": float(np.mean(np.diff(np.r_[0, curve]) != 0)) * 0 + 0,  # filled below
     }
     held = np.zeros(n, dtype=bool)
     for t in trades:
         a = d.index.get_loc(t["entry"]); b = d.index.get_loc(t["exit"])
         held[a:b] = True
+    if in_pos:                          # position still open on the last bar
+        held[entry_i:] = True
     m["exposure_pct"] = held.mean() * 100
     return m, tr, eq
 
@@ -194,7 +213,10 @@ def run_attribution(sym, **kw):
     Tells you whether the stop helped by cutting a loser or hurt by cutting a
     winner, and by how much.
     """
-    _, base, _ = simulate(sym, mode="none")
+    # Run ids are numbered within whatever window simulate() slices, so the
+    # baseline must use the same window or the join pairs unrelated runs.
+    window = {x: kw[x] for x in ("start", "end") if x in kw}
+    _, base, _ = simulate(sym, mode="none", **window)
     _, alt, _ = simulate(sym, **kw)
     if base.empty:
         return pd.DataFrame()
