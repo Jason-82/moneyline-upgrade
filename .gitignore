@@ -9,3 +9,6 @@ data/etf/
 data/ff/
 data/crypto_4h/
 data/crypto_funding/
+data/macro/
+data/raw_pit/
+data/crypto_binance_regime/
