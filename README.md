@@ -1,4 +1,88 @@
-> **⚠️ Read [HANDOFF.md](HANDOFF.md) first.** This README documents the project's
+# Moneyline stock research and shadow trading
+
+The active implementation tests one fixed daily strategy: the exact replicated
+ATR(10) × 2 reset-on-flip indicator, long while green and cash while red, with
+signals from completed sessions and executions at the following open.
+
+**Current status: research and offline shadow execution. No deployment-qualified
+stock basket and no live order placement.** Incomplete prices, dividends, security
+identities or terminal proceeds cannot silently produce an approved whitelist.
+
+## Start here
+
+- [HANDOFF.md](HANDOFF.md): current state and historical research context.
+- [Research workflow](docs/RESEARCH_SELECTION.md): causal formation, continuous
+  portfolio comparisons, frozen settings and guarded holdout.
+- [Data acquisition](docs/DATA_SOURCES.md): exact input contracts, public-data
+  limitations and licensed-data import.
+- [Shadow trading](docs/TRADING_SHADOW.md): signal, plan, journal, replay,
+  reconciliation and enforcement commands.
+- [Implementation results](docs/IMPLEMENTATION_RESULTS.md): checks and remaining
+  requirements from this implementation.
+
+## Install and verify
+
+```bash
+python3 -m pip install -r requirements.txt -r requirements-research.txt
+python3 -m pytest tests -q
+python3 -m trading.cli demo --output-dir .private_trading/shadow_demo
+```
+
+The demo uses invented stocks, prices, budget and account identifiers. Its JSON
+plans and SQLite journal stay in the gitignored private directory.
+
+## Run a stock-selection experiment
+
+Normalize a dataset into the contract in `research/data_contract.py`. Then:
+
+```bash
+python3 -m research.run development \
+  --dataset private/price_data/your_bundle \
+  --mode validated \
+  --config config/research_experiment.json \
+  --output private/research_runs/development
+```
+
+Use `--mode exploratory` for incomplete public data. Missing economic valuations
+produce `UNIDENTIFIED` comparisons; missing dividend accounting suppresses
+after-tax figures. Exploratory results never authorize deployment.
+
+The experiment compares top 5/10/20/30/40, skill above 10 and all eligible stocks,
+using five-year formation and subsequent three-year tests. It reports SPY held
+continuously, the same selected stocks held continuously between selections,
+and the indicator on all eligible stocks. Empty selections remain in cash.
+
+Each capital slot keeps its own cash while red. Selection changes, dividend
+reinvestment, costs, initial-green entry and taxes are declared in the config;
+the language model does not decide them.
+
+Freeze an explicit candidate and implementation before the fixed 2023–2025
+holdout. A candidate, complete calendar and matching provenance are required;
+the local one-attempt guard records success or failure without shortening the
+window. See the research workflow for the commands and guard limitations.
+
+Concurrent upstream results now overlap the historical reserved periods. The
+corrected runner has not evaluated them, but that period is not globally
+untouched. Future deployment evidence also needs a separately frozen prospective
+evaluation; see the implementation results for this disclosure.
+
+## Code map
+
+| Path | Role |
+| --- | --- |
+| `analysis_2026/moneyline_ref.py` | Exact existing indicator reference |
+| `research/` | Data contract, calendars, causal selection, continuous portfolio/tax engine and experiment CLI |
+| `trading/` | Deterministic offline signals, order plans, SQLite reconciliation, typed broker adapter and enforcement |
+| `screener/` | Hardened CSV/Robinhood ingestion and freshness checks; legacy research entry points route to corrected code |
+| `scripts/acquire_research_data.py` | Pinned development-only import and normalized licensed-input audit |
+| `config/` | Declared experiment and empty-whitelist shadow defaults |
+
+## Archived legacy documentation
+
+The material below describes an obsolete indicator and old command line. It is
+retained as history; use the workflows above for current research.
+
+> **⚠️ Read [HANDOFF.md](HANDOFF.md) first.** The material below documents the project's
 > original model of the "Moneyline" indicator (an Ichimoku HMA/EMA crossover), which
 > turned out to be **wrong**. The real indicator is an ATR trailing stop (Wilder ATR(10)
 > x 2.0 around hl2, reset-on-flip), replicated exactly in

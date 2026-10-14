@@ -1,3 +1,18 @@
+# Current implementation notice — 2026-10-14 UTC
+
+The active causal stock study is `research/`. The legacy `screener.selection`
+and `screener.strictness` entry points now route to that corrected continuous
+engine; use the repository [README](../README.md) and
+[research workflow](../docs/RESEARCH_SELECTION.md) for supported commands.
+
+The following documentation and upstream result tables are retained as history.
+Their approximate dividends, independent-window mechanics and outside holdout
+results do not qualify a basket under the corrected workflow. The historical
+reserved periods now have outside results; they are not globally untouched.
+See [implementation results](../docs/IMPLEMENTATION_RESULTS.md).
+
+---
+
 # Stock screener and selection study
 
 Runs the exact replicated indicator (`analysis_2026/moneyline_ref.py`: Wilder ATR(10) ×

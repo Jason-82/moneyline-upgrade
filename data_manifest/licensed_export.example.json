@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "mode": "validated",
+  "price_basis": "split_only",
+  "dividends_complete": false,
+  "terminal_complete": false,
+  "universe_complete": false,
+  "point_in_time_ids": false,
+  "price_source": "REPLACE with licensed provider/export description",
+  "dividend_source": "REPLACE with historical cash-distribution source and share-basis conversion",
+  "corporate_action_source": "REPLACE with documented event/terminal-proceeds source",
+  "calendar_source": "REPLACE with exchange calendar and exact version",
+  "source": "private licensed export; no data or license supplied by this template",
+  "version": "REPLACE with provider version/export timestamp",
+  "hash": "REPLACE with input checksum or aggregate manifest hash",
+  "start": "1999-12-31",
+  "cutoff": "2022-12-31",
+  "benchmark_security_id": "REPLACE with provider permanent ID for SPY",
+  "source_artifacts": [],
+  "normalization": {
+    "security_id": "Sharadar permaticker, Norgate assetid, CRSP PERMNO, or another verified immutable security ID",
+    "ohlc_basis": "split-only normalized shares",
+    "dividend_basis": "cash per same split-normalized share as price columns",
+    "dividend_date": "ex-date; accrue only to holders at preceding close",
+    "terminal_cash_basis": "cash per same split-normalized share as price columns",
+    "membership_interval": "effective-date start/end; known_at and end_known_at describe when facts became available"
+  },
+  "limitations": [
+    "This template intentionally fails qualification until every completeness flag is supported by the imported data and its audit.",
+    "Do not flip flags to true to suppress missing dividends, delisted histories, unknown recoveries, or unstable ticker identities."
+  ]
+}

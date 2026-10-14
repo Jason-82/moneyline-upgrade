@@ -4,3 +4,11 @@ __pycache__/
 data/universe/
 data/universe_*/
 private/
+.private_trading/
+.pytest_cache/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

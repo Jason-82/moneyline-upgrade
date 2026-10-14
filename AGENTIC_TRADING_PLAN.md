@@ -1,5 +1,12 @@
 # Agentic trading plan — running the indicator strategy through Robinhood + Claude
 
+> **Implementation update (2026-10-14 UTC):** the active stock prototype is
+> `trading/`, documented in `docs/TRADING_SHADOW.md`, and its research gate is
+> `research/`. The design below is historical context. The current implementation
+> has an offline planner, journal, reconciliation, schema-aligned read/review
+> adapter and enforcement checks; it has no live placement transport. Exact
+> opening fills and unattended approvals remain integration requirements.
+
 Status: **design, not yet built.** Written 2026-10-13, revised the same day after an
 adversarial review (35 of 37 high/medium findings confirmed and applied). Companion
 to `HANDOFF.md`. Not financial advice; the account owner is fully responsible for

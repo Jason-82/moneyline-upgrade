@@ -1,0 +1,12 @@
+{
+  "mode": "SHADOW",
+  "account_number": "SHADOW_UNCONFIGURED_NO_BROKER",
+  "budget_usd": null,
+  "cold_start": "enter_current_green",
+  "slot_policy": "fixed_equal_slots_no_redistribution",
+  "max_snapshot_age_seconds": 300,
+  "buy_price_buffer_fraction": "0.02",
+  "minimum_signal_bars": 100,
+  "manifest_file": "trading/examples/empty_manifest.json",
+  "inputs_file": ".private_trading/inputs.json"
+}

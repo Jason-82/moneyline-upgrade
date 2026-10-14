@@ -129,7 +129,7 @@ def _parse_timestamp(series: pd.Series) -> pd.Series:
 
     # Check if it's numeric (unix timestamp)
     try:
-        if isinstance(sample, (int, float)) or (isinstance(sample, str) and sample.isdigit()):
+        if isinstance(sample, (int, float, np.integer, np.floating)) or (isinstance(sample, str) and sample.isdigit()):
             numeric_val = float(sample)
             # Determine if seconds or milliseconds
             if numeric_val > 1e12:  # Milliseconds
