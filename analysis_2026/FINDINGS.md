@@ -719,3 +719,69 @@ the fit filter be?").
 - Smaller coins don't give a reliably larger edge, and as a group they lost money even with
   the signal.
 - Whether a crypto signal basket beats simply holding BTC depends on the period.
+
+
+---
+
+# 2026-10-14 (latest) — professional-style trend following as a portfolio sleeve
+
+`analysis_2026/trend_portfolio.py`; hypotheses H1-H3 pre-registered in commit cb734f8.
+Results in `analysis_2026/results_trend/`.
+
+**Setup:**
+
+- **Universe A** (2005-2026): 12 ETFs covering US/international/emerging stocks, Treasuries,
+  TIPS, corporate and high-yield bonds, gold, silver and REITs.
+- **Universe B** (to 2024-04): A plus commodities and currencies.
+- **Sleeves:**
+  - **S1** 12-month time-series momentum, long/short, sized by volatility to 10% annual
+    vol. This is the professional reference.
+  - **S2** the same, long-only and unlevered.
+  - **S3** the user's daily indicator per ETF, long-only, volatility-sized.
+- **Execution:** one-day lag, 0.05%/side.
+- **Audit:** two lenses. An independent engine rebuild matched every number with no
+  look-ahead, and a 324-variant sensitivity sweep tested robustness.
+
+**Universe A results, 2005-2026** (pre-tax CAGR / Sharpe / max drawdown; after-tax CAGR
+at the illustrative 35%/20% rates):
+
+| portfolio | pre-tax CAGR | Sharpe | max DD | after tax |
+|---|---|---|---|---|
+| 100% SPY | 10.95 | 0.55 | −55.2 | 9.69 |
+| 80/20 SPY + T-bills (baseline added after the first run) | 9.36 | 0.56 | −45.8 | 8.78 |
+| 80/20 SPY + IEF (baseline) | 9.70 | 0.59 | −43.2 | |
+| 80/20 + S1 | 10.29 | 0.61 | −42.9 | 8.94 |
+| 80/20 + S2 | 10.03 | 0.58 | −44.8 | 8.90 |
+| 80/20 + S3 | 9.53 | 0.56 | −46.8 | 8.81 |
+| 60/40 SPY/IEF | 8.26 | 0.65 | −29.8 | |
+| 60/20/20 SPY/IEF/S1 (exploratory) | 8.87 | 0.67 | −29.4 | |
+
+**S1 alone:** 5.97%/yr; +15.8% in 2008 and +11.7% in 2022; correlation with SPY 0.11.
+About 3%/yr since 2015, and rolling 5-year windows starting 2013-16 lost to T-bills.
+
+**Hypotheses:**
+
+- **H1 and H2 pass as written, but the bar was too lenient.** Both compared against
+  100% SPY, so any 80/20 mix "passes" by holding less stock.
+- **Against the fair cash baseline,** S1 beats T-bills in 91% of variants by typically
+  about +0.5 pt/yr (+0.4 to +0.9), with Sharpe +0.03 to +0.05.
+  - The Sharpe gain comes entirely from 2008 and 2022.
+  - The return gain came mostly from 2010-14, when it held leveraged trending bonds and
+    T-bills paid ~0%.
+- **Against an equal bond allocation,** S1 is a coin flip (median Sharpe gain 0.00).
+- **S2** adds a similar return over cash but almost no risk-adjusted benefit, and is worse
+  than bonds.
+- **S3 (the user's indicator done the professional way) adds nothing** in every variant.
+- **H3:** no 80/20 mix beats 100% SPY's return in the pre-registered setting or in any
+  one-day-lag variant.
+- **Real funds:** WTMF returned −1.1%/yr over 2011-21 vs S1's +2.9%. Correlation between
+  the ETF proxy and real funds is 0.3-0.55, so it is only a rough proxy.
+
+**Practical conclusion:**
+
+- Professional trend following is crash and inflation insurance, valuable mainly in
+  2008/2022-type years when bonds may also fail.
+- It isn't a way to beat stocks.
+- It needs shorting and leverage, so it can't run in the Robinhood agentic account.
+  Access it through a managed-futures ETF (about 0.85-0.95% fee, which trims ~0.2 pt),
+  ideally held in a tax-advantaged account.

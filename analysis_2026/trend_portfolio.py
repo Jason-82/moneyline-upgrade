@@ -30,7 +30,8 @@ cash and futures collateral earn the T-bill rate):
 Portfolios (rebalanced each January): 100% SPY; 60/40 SPY/IEF; 80% SPY + 20% sleeve;
 each sleeve alone.
 After tax (illustrative 35% short-term / 20% long-term): two separate accounts, never
-rebalanced. SPY is taxed once at the long-term rate at the end; the sleeve's yearly
+rebalanced. SPY's dividends are taxed yearly and its gain once at the end, both at the
+long-term rate; the sleeve's yearly
 net gains are taxed at 35% with losses carried forward. (Futures-based funds are
 taxed partly at long-term rates under section 1256, so this is conservative for S1.)
 
@@ -54,7 +55,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from analysis_2026.moneyline_ref import moneyline  # noqa: E402
-from screener.strictness import TBILL  # noqa: E402
+from screener.strictness import TBILL, SPY_DIV  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data" / "etf"
@@ -216,9 +217,20 @@ def after_tax_sleeve(r):
     return v
 
 
-def after_tax_hold(r):
-    m = (1 + r).prod()
-    return m - LT * (m - 1) if m > 1 else m
+def after_tax_hold(r, div_yield=None):
+    """Buy & hold taxed once at the long-term rate. With div_yield ({year: %}), the
+    dividends inside a total-return series are also taxed yearly at the long-term rate
+    and the net amount reinvested raises the cost basis."""
+    if div_yield is None:
+        m = (1 + r).prod()
+        return m - LT * (m - 1) if m > 1 else m
+    v, basis = 1.0, 1.0
+    for y, x in r.groupby(r.index.year):
+        d = v * div_yield.get(y, 1.8) / 100 * len(x) / 252
+        v = v * (1 + x).prod() - LT * d
+        basis += d * (1 - LT)
+    gain = v - basis
+    return v - LT * gain if gain > 0 else v
 
 
 def study(universe, start, end, label):
@@ -231,16 +243,23 @@ def study(universe, start, end, label):
     sleeves, grosses = {}, {}
     for k in ("S1", "S2", "S3"):
         sleeves[k], grosses[k] = run_sleeve(k, data, cal, start, end)
-    rows = {"100% SPY": spy, "60/40 SPY/IEF": portfolio([spy, ief], [0.6, 0.4])}
+    cash = rf.loc[start:end].reindex(spy.index).fillna(0.0)
+    rows = {"100% SPY": spy, "60/40 SPY/IEF": portfolio([spy, ief], [0.6, 0.4]),
+            # baselines added after the first run (not pre-registered): an 80/20 mix has a
+            # smaller drawdown than 100% SPY just because it holds less stock
+            "80/20 SPY + T-bills (baseline)": portfolio([spy, cash], [0.8, 0.2]),
+            "80/20 SPY + IEF (baseline)": portfolio([spy, ief], [0.8, 0.2])}
     for k, name in [("S1", "TSMOM long/short"), ("S2", "TSMOM long-only"), ("S3", "moneyline long-only")]:
         rows[f"80/20 SPY + {name}"] = portfolio([spy, sleeves[k]], [0.8, 0.2])
+    rows["60/20/20 SPY/IEF/TSMOM long/short (exploratory)"] = portfolio([spy, ief, sleeves["S1"]], [0.6, 0.2, 0.2])
     for k, name in [("S1", "TSMOM long/short"), ("S2", "TSMOM long-only"), ("S3", "moneyline long-only")]:
         rows[f"sleeve alone: {name}"] = sleeves[k]
     tab = pd.DataFrame({n: stats(r, rf, spy) for n, r in rows.items()}).T
     yrs = len(spy) / 252
-    at = {"100% SPY": after_tax_hold(spy)}
+    spy_at = after_tax_hold(spy, SPY_DIV)
+    at = {"100% SPY": spy_at, "80/20 SPY + T-bills (baseline)": 0.8 * spy_at + 0.2 * after_tax_sleeve(cash)}
     for k, name in [("S1", "TSMOM long/short"), ("S2", "TSMOM long-only"), ("S3", "moneyline long-only")]:
-        at[f"80/20 SPY + {name}"] = 0.8 * after_tax_hold(spy) + 0.2 * after_tax_sleeve(sleeves[k])
+        at[f"80/20 SPY + {name}"] = 0.8 * spy_at + 0.2 * after_tax_sleeve(sleeves[k])
         at[f"sleeve alone: {name}"] = after_tax_sleeve(sleeves[k])
     tab["after_tax_CAGR_%"] = pd.Series({n: (m ** (1 / yrs) - 1) * 100 for n, m in at.items()})
     tab["avg_gross"] = pd.Series({f"sleeve alone: {n}": grosses[k].mean() for k, n in

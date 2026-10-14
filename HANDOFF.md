@@ -384,6 +384,22 @@ Full tables and the pre-registration are in `screener/README.md`.
   - January-start windows ending 2022-24 had the large-coin signal baskets 20-60 pts/yr
     ahead of BTC.
 
+### 5.12 Professional-style trend sleeve — `analysis_2026/trend_portfolio.py`
+
+- **Setup:** 12-month time-series momentum on 12 diversified ETFs (2005-2026), sized by
+  volatility. Compared as a 20% sleeve next to 80% SPY.
+- **Long/short (needs futures or margin):** beat an equal T-bill allocation by about
+  +0.5 pt/yr (+0.4 to +0.9), with Sharpe +0.03 to +0.05.
+  - +15.8% in 2008 and +11.7% in 2022.
+  - About 3%/yr since 2015.
+  - Against an equal bond allocation it's a coin flip.
+- **Long-only:** a similar return gain, little risk benefit.
+- **The user's indicator, diversified and volatility-sized:** adds nothing.
+- **No 80/20 mix beats 100% SPY's return.**
+- **Best risk-adjusted mix:** 60/20/20 SPY/IEF/trend, Sharpe 0.67, max DD −29% (exploratory).
+- **Implementation:** a managed-futures ETF (DBMF, KMLM), ideally in a tax-advantaged
+  account. Not the Robinhood agentic account.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -518,6 +534,10 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
+- The user runs a Schwab robo-advisor, which already does tax-loss harvesting. Wash-sale
+  rules span all of the user's accounts, IRAs included, so any agentic-account plan must
+  avoid buying, within 30 days, securities that are substantially identical to ones the
+  robo just sold at a loss.
 - `git clone` of public GitHub repos works, and so do GitHub release downloads
   (github.com/…/releases/download/… redirects to release-assets.githubusercontent.com).
   raw.githubusercontent.com, PyPI, S3 and GCS work too.
@@ -538,6 +558,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `AGENTIC_TRADING_PLAN.md` | Robinhood + Claude automated-trading design. |
 | `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study (+ `--calibrate`), `strictness.py` basket strictness study vs SPY after tax, `data.py` loaders (CSV, Robinhood JSON, yfinance, qlib, long parquet, S&P membership, `quality_filter`), `rh_ingest.py`. See `screener/README.md` for the holdout, pre-registrations, survivorship and results. |
 | `analysis_2026/altcoins.py`, `analysis_2026/results_altcoins/` | Crypto size-tier study on the Binance archive incl. delisted coins (Q1/Q2 pre-registered), payoff profile crypto vs S&P stocks (section 5.11). Data: `data/crypto_binance/` (gitignored); rebuild from `https://s3-ap-northeast-1.amazonaws.com/data.binance.vision` (`data/spot/monthly/klines/<SYM>/1d/`). |
+| `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |

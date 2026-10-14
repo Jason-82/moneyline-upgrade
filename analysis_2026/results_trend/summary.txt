@@ -1,0 +1,87 @@
+
+=== Universe A (pre-registered): 2005-01-01 to 2026-10-12 (12 ETFs) ===
+                                                 CAGR_%  vol_%  Sharpe  maxDD_%  worst_year_%  2008_%  covid_crash_%  2022_%  corr_SPY  after_tax_CAGR_%  avg_gross
+100% SPY                                          10.95  18.87    0.55   -55.19        -36.79  -36.79         -33.72  -18.18      1.00              9.69        NaN
+60/40 SPY/IEF                                      8.26  10.27    0.65   -29.76        -16.97  -14.91         -17.87  -16.97      0.96               NaN        NaN
+80/20 SPY + T-bills (baseline)                     9.36  14.72    0.56   -45.75        -29.15  -29.15         -27.23  -14.13      1.00              8.78        NaN
+80/20 SPY + IEF (baseline)                         9.70  14.28    0.59   -43.20        -25.85  -25.85         -25.82  -17.57      0.99               NaN        NaN
+80/20 SPY + TSMOM long/short                      10.29  14.97    0.61   -42.90        -26.27  -26.27         -29.60  -12.20      0.98              8.94        NaN
+80/20 SPY + TSMOM long-only                       10.03  15.39    0.58   -44.75        -27.37  -27.37         -29.29  -16.85      0.99              8.90        NaN
+80/20 SPY + moneyline long-only                    9.53  15.23    0.56   -46.81        -29.53  -29.53         -27.73  -14.43      1.00              8.81        NaN
+60/20/20 SPY/IEF/TSMOM long/short (exploratory)    8.87  10.90    0.67   -29.44        -15.33  -15.33         -21.69  -11.60      0.96               NaN        NaN
+sleeve alone: TSMOM long/short                     5.97  11.07    0.42   -21.85        -13.36   15.83         -13.19   11.68      0.11              3.92       2.15
+sleeve alone: TSMOM long-only                      5.17   7.47    0.47   -21.06        -12.48   10.35         -11.13  -11.54      0.38              3.39       0.93
+sleeve alone: moneyline long-only                  2.78   6.05    0.19   -19.23        -11.78   -0.45          -2.94    0.53      0.30              1.82       0.72
+
+=== Universe A sub-period: 2005-01-01 to 2014-12-31 (12 ETFs) ===
+                                                 CAGR_%  vol_%  Sharpe  maxDD_%  worst_year_%  2008_%  covid_crash_%  2022_%  corr_SPY  after_tax_CAGR_%  avg_gross
+100% SPY                                           7.62  20.35    0.39   -55.19        -36.79  -36.79            NaN     NaN      1.00              6.30        NaN
+60/40 SPY/IEF                                      7.63  10.35    0.62   -29.76        -14.91  -14.91            NaN     NaN      0.96               NaN        NaN
+80/20 SPY + T-bills (baseline)                     6.72  15.70    0.40   -45.75        -29.15  -29.15            NaN     NaN      1.00              5.40        NaN
+80/20 SPY + IEF (baseline)                         7.79  14.98    0.48   -43.20        -25.85  -25.85            NaN     NaN      0.99               NaN        NaN
+80/20 SPY + TSMOM long/short                       8.43  15.61    0.51   -42.90        -26.27  -26.27            NaN     NaN      0.98              6.29        NaN
+80/20 SPY + TSMOM long-only                        8.07  16.07    0.47   -44.75        -27.37  -27.37            NaN     NaN      0.99              6.08        NaN
+80/20 SPY + moneyline long-only                    7.26  16.24    0.43   -46.81        -29.53  -29.53            NaN     NaN      1.00              5.67        NaN
+60/20/20 SPY/IEF/TSMOM long/short (exploratory)    8.33  11.04    0.65   -29.44        -15.33  -15.33            NaN     NaN      0.95               NaN        NaN
+sleeve alone: TSMOM long/short                     9.54  11.02    0.75   -11.35         -3.11   15.83            NaN     NaN      0.03              6.24       1.99
+sleeve alone: TSMOM long-only                      7.95   7.68    0.85   -11.12          0.83   10.35            NaN     NaN      0.20              5.18       0.95
+sleeve alone: moneyline long-only                  4.25   6.41    0.46   -19.23         -0.83   -0.45            NaN     NaN      0.26              2.78       0.74
+
+=== Universe A sub-period: 2015-01-01 to 2026-10-12 (12 ETFs) ===
+                                                 CAGR_%  vol_%  Sharpe  maxDD_%  worst_year_%  2008_%  covid_crash_%  2022_%  corr_SPY  after_tax_CAGR_%  avg_gross
+100% SPY                                          13.86  17.51    0.71   -33.72        -18.18     NaN         -33.72  -18.18      1.00             12.05        NaN
+60/40 SPY/IEF                                      8.79  10.19    0.67   -21.43        -16.97     NaN         -17.87  -16.97      0.96               NaN        NaN
+80/20 SPY + T-bills (baseline)                    11.66  13.83    0.71   -27.23        -14.13     NaN         -27.23  -14.13      1.00             10.64        NaN
+80/20 SPY + IEF (baseline)                        11.34  13.67    0.70   -25.82        -17.57     NaN         -25.82  -17.57      0.99               NaN        NaN
+80/20 SPY + TSMOM long/short                      11.79  14.43    0.70   -29.60        -12.20     NaN         -29.60  -12.20      0.99             10.66        NaN
+80/20 SPY + TSMOM long-only                       11.66  14.80    0.68   -29.29        -16.85     NaN         -29.29  -16.85      1.00             10.66        NaN
+80/20 SPY + moneyline long-only                   11.46  14.32    0.68   -27.73        -14.43     NaN         -27.73  -14.43      1.00             10.60        NaN
+60/20/20 SPY/IEF/TSMOM long/short (exploratory)    9.24  10.79    0.68   -21.69        -11.60     NaN         -21.69  -11.60      0.97               NaN        NaN
+sleeve alone: TSMOM long/short                     2.55  11.08    0.09   -21.85        -13.36     NaN         -13.19   11.68      0.19              1.68       2.27
+sleeve alone: TSMOM long-only                      2.59   7.28    0.10   -21.06        -12.48     NaN         -11.13  -11.54      0.56              1.70       0.90
+sleeve alone: moneyline long-only                  1.30   5.71   -0.11   -16.63        -14.20     NaN          -2.94    0.53      0.36              0.85       0.70
+
+=== Universe B (robustness: + commodities, currencies): 2005-01-01 to 2024-04-25 (20 ETFs) ===
+                                                 CAGR_%  vol_%  Sharpe  maxDD_%  worst_year_%  2008_%  covid_crash_%  2022_%  corr_SPY  after_tax_CAGR_%  avg_gross
+100% SPY                                           9.74  19.21    0.50   -55.19        -36.79  -36.79         -33.72  -18.18      1.00              8.48        NaN
+60/40 SPY/IEF                                      7.56  10.31    0.62   -29.76        -16.97  -14.91         -17.87  -16.97      0.96               NaN        NaN
+80/20 SPY + T-bills (baseline)                     8.36  14.96    0.51   -45.75        -29.15  -29.15         -27.23  -14.13      1.00              7.57        NaN
+80/20 SPY + IEF (baseline)                         8.76  14.46    0.55   -43.20        -25.85  -25.85         -25.82  -17.57      0.99               NaN        NaN
+80/20 SPY + TSMOM long/short                       9.26  14.83    0.57   -42.88        -26.74  -26.74         -27.07  -10.59      0.98              7.77        NaN
+80/20 SPY + TSMOM long-only                        8.72  15.41    0.52   -45.06        -28.03  -28.03         -28.57  -15.61      0.99              7.65        NaN
+80/20 SPY + moneyline long-only                    8.50  15.33    0.51   -44.98        -27.46  -27.46         -27.22  -15.65      1.00              7.59        NaN
+60/20/20 SPY/IEF/TSMOM long/short (exploratory)    8.09  10.62    0.65   -29.68        -15.80  -15.80         -19.14   -9.99      0.96               NaN        NaN
+sleeve alone: TSMOM long/short                     5.35  10.22    0.42   -22.34        -13.85   13.49          -0.39   19.73     -0.01              3.52       2.35
+sleeve alone: TSMOM long-only                      3.32   6.71    0.30   -16.65        -11.10    7.05          -7.22   -5.37      0.28              2.05       0.98
+sleeve alone: moneyline long-only                  2.11   5.93    0.13   -17.97        -11.89    9.86           0.01   -5.55      0.26              1.26       0.79
+
+Real managed-futures funds vs S1 (universe B), while the data is total return:
+fund       from         to  fund_CAGR_%  S1_CAGR_%  daily_corr  monthly_corr
+WTMF 2011-01-06 2021-09-16        -1.12       2.93        0.33          0.28
+DBMF 2019-05-09 2021-09-16        10.83       4.82        0.55          0.52
+
+Calendar-year returns, universe A sleeves vs SPY (%):
+        S1    S2    S3   SPY
+date                        
+2005   2.7   5.4   7.9   4.8
+2006  15.6  14.4   7.0  15.8
+2007   4.3   8.0   3.1   5.1
+2008  15.8  10.4  -0.4 -36.8
+2009  -3.1   0.8   1.1  26.4
+2010  19.1  13.6  12.4  15.1
+2011   4.9   6.5   3.1   1.9
+2012  15.2   9.3   4.2  16.0
+2013  17.6   6.7  -0.8  32.3
+2014   5.6   5.0   5.5  13.5
+2015   4.4  -1.3 -11.8   1.2
+2016 -13.4   2.3   1.0  12.0
+2017  13.4  10.7   6.4  21.7
+2018 -10.3 -12.5  -8.0  -4.6
+2019   8.0  10.5   8.5  31.2
+2020  -1.4   7.1   9.1  18.3
+2021   1.7   4.6  -2.8  28.7
+2022  11.7 -11.5   0.5 -18.2
+2023  -2.2  -0.7   4.7  26.2
+2024   7.0   9.4   1.1  24.9
+2025  14.2  16.9   7.0  17.7
+2026   6.7   2.5   4.6  15.0
