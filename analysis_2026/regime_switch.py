@@ -1001,5 +1001,28 @@ def main():
     log.close()
 
 
+def sensitivity():
+    """EXPLORATORY parameter grid on the named assets (+ COIN, HOOD). Never used to choose."""
+    pd.set_option("display.width", 250); pd.set_option("display.max_rows", 500)
+    frames = {"SPX_LONG": load_spx_long()}
+    for s in ("SPY", "QQQ", "IWM", "TSLA", "COIN", "HOOD"):
+        frames[s] = load_yahoo(s)
+    for s in TV_CRYPTO:
+        frames[s] = load_tv_crypto(s)
+    rows = []
+    for name, f in frames.items():
+        grid = ["ma100", "ma150", "ma200", "ma250", "mom6", "mom9", "mom12"]
+        grid += ["dd10", "dd15", "dd20", "dd30"] if f.attrs["kind"] == "us" else ["dd30", "dd40", "dd50", "dd60"]
+        rows.append(part_b_asset(f, grid))
+    g = pd.concat(rows, ignore_index=True)
+    g.to_csv(OUT / "sensitivity.csv", index=False)
+    cols = ["asset", "classifier", "bad_share_%", "BH_cagr", "IND_cagr", "REG_cagr", "SWITCH_cagr", "BH_cagr_tax",
+            "SWITCH_cagr_tax", "BH_maxdd", "SWITCH_maxdd"]
+    print(g[cols].to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
+
+
 if __name__ == "__main__":
-    main()
+    if "--sensitivity" in sys.argv:
+        sensitivity()
+    else:
+        main()
