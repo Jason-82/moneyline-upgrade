@@ -91,6 +91,48 @@ with columns symbol, start, end.
   (`data.py` default). With 2010+ data, every test window is a bull market, so the
   results mostly measure what the signal costs in bull markets.
 
+## How strict should the fit filter be? (`strictness.py`)
+
+The per-stock gate asks one stock's own history to prove the edge alone, through eight
+tests at once. With about 50–80 trades per stock that is hard even when an edge is real.
+A basket spreads the bet, so the evidence can be judged on the basket instead. Some picks
+can fail, as long as the basket beats SPY after tax.
+
+How strict to be is then an empirical question with a direct test:
+
+1. On each re-pick date, score every stock on its past 5 years.
+2. Build baskets from strict to loose: top 5, 10, 20 or 40 stocks; top 25% or 50%; skill
+   above 10, 5 or 0 %/yr; every stock.
+3. Trade each basket through the next 3 years exactly as live (next open, costs, cash at
+   T-bill when red, tax), and compare it with holding SPY.
+4. Re-pick and repeat, chaining the money forward.
+
+Reading the curve of out-of-sample result against strictness:
+
+- **Rising toward strict:** fit persists, so stricter is better, until the basket gets too
+  small and noisy.
+- **Flat:** fit doesn't carry forward, so strictness is irrelevant. All that matters then is
+  whether the signal on *any* stock beats SPY.
+- **Falling:** past winners were luck, so stricter is worse.
+
+### Pre-registered decision rule (fixed 2026-10-14, before any real-data run)
+
+- **Data and settings:** development uses test windows up to 2022-12-31. Primary settings
+  are criterion = skill, park = cash, and formation 5y → test 3y.
+- **Qualifying level:** its chained after-tax CAGR is ≥ SPY's, or ≥ SPY − 2 pts with its
+  worst window drawdown ≥ 15 pts shallower than SPY's. It must also beat SPY (same rule)
+  in at least two-thirds of test windows.
+- **Selection matters** only if the level also beats the all-stock basket with permutation
+  p < 0.05. Otherwise strictness doesn't matter, and the all-stock basket is the candidate.
+- **Choice:** the loosest qualifying level whose chained excess return is within 1 pt/yr of
+  the best qualifying level, to keep diversification.
+- **No qualifying level** means the verdict is that no basket built with this indicator beat
+  SPY after tax, so don't run the stock strategy.
+- **Holdout:** run the chosen level once on formation 2018–2022 → test 2023–2025 and report
+  it as it comes out. 2026 year-to-date is a forward look only.
+- **Exploratory only, never used to choose:** park = spy, criteria gate / edge / vol, and
+  pre-tax figures.
+
 ## How many stocks to expect (hypothesis, not a target)
 
 The whitelist size is an **output**, and it may be zero. Don't fix a number like "20+"

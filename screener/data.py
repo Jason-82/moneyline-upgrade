@@ -203,6 +203,18 @@ def sp500_symbols() -> list[str]:
     return pd.read_csv(url)["Symbol"].str.replace(".", "-", regex=False).tolist()
 
 
+def sp500_members(out: str | Path | None = None) -> pd.DataFrame:
+    """Point-in-time S&P 500 membership (symbol, start, end; end blank = still a member)
+    from github.com/fja05680/sp500, one row per membership spell. Prices for members
+    that were later delisted are still missing from Yahoo/Robinhood."""
+    url = "https://raw.githubusercontent.com/fja05680/sp500/master/sp500_ticker_start_end.csv"
+    m = pd.read_csv(url).rename(columns={"ticker": "symbol", "start_date": "start", "end_date": "end"})
+    m["symbol"] = m.symbol.str.upper().str.replace("-", ".", regex=False)
+    if out:
+        m.to_csv(out, index=False)
+    return m
+
+
 if __name__ == "__main__":
     # python -m screener.data --sp500 --out data/universe          (needs Yahoo access)
     # python -m screener.data --symbols NVDA,PLTR,MSTR --out data/universe
