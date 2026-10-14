@@ -151,14 +151,17 @@ from-scratch recomputation and an adversarial code review). No verdict changed.
   3. The market-regime cache keyed only by name, so the coin basket's BTC-market regimes
      reused TradingView BTC instead of Binance BTC. Now keyed by name and source.
   4. The still-forming last TradingView row is dropped (HANDOFF section 3).
-  5. A window starting flat lost its first spell (the "1e-15 identity" above held for ETH
-     but not for 13 of 23 assets). Now a leading spell is opened.
+  5. A window starting flat lost its first spell (14 of 23 assets start flat once the
+     window begins at bar 300/400, ETH included). Now a leading spell is opened.
   6. After tax: shares sold to pay tax now realise their gain (taxed the following year);
      the T-bill rate for 2025-12-22..31 carries the last daily value.
   Also: the pooled S&P stock set for H-A1 now keeps only spells that start during S&P 500
   membership (it had included non-member years and ETFs such as SPY), spells are tabulated
   by calendar-year buy & hold return as promised, and the two explanatory tables
   (spells by 200-day regime, GTT after publication) are produced by main().
+  A verification pass (6 lenses, each finding re-checked by a skeptic) then led to: crypto
+  50/200, weekly and 12-month switches also run on the next-bar and spot-ETF routes, and
+  three exploratory tables (all single assets, index insurance, crypto by route).
 
     python -m analysis_2026.regime_switch
 """
@@ -995,7 +998,8 @@ def main():
     say(f"H-A1: {verdict}")
     say("\nSpell P&L by the calendar-year buy & hold return of the exit year (log pts, whole window):")
     for label, sp in [("SPX_LONG", spd[spd.asset == "SPX_LONG"])] + list(pooled.items()):
-        say(f"--- {label}"); t = year_bucket_table(sp, 1.0); t.to_csv(OUT / f"partA_yearbuckets_{label.split()[0]}.csv")
+        tag = {"SPX_LONG": "SPX_LONG", "S&P 500 stocks": "stocks", "Binance coins": "crypto"}[label]
+        say(f"--- {label}"); t = year_bucket_table(sp, 1.0); t.to_csv(OUT / f"partA_yearbuckets_{tag}.csv")
         say(t.to_string(float_format=fmt))
     say("\nIND red spells split by the 200-day regime at the exit (pts/yr):")
     sr = spells_by_regime(frames, spd)
@@ -1012,8 +1016,8 @@ def main():
         kinds = kinds_us if f.attrs["kind"] == "us" else kinds_cr
         pb.append(part_b_asset(f, kinds))
         if f.attrs["kind"] == "crypto":
-            pb.append(part_b_asset(f, ["ma200", "dd", "oracle"], route="next"))
-            pb.append(part_b_asset(f, ["ma200", "dd", "oracle"], route="etf"))
+            pb.append(part_b_asset(f, ["ma200", "cross", "wk", "mom12", "dd", "oracle"], route="next"))
+            pb.append(part_b_asset(f, ["ma200", "cross", "wk", "mom12", "dd", "oracle"], route="etf"))
             if name != "BTC":
                 pb.append(part_b_asset(f, ["ma200_mkt", "dd_mkt", "hmm_mkt"], market=btc_tv))
         if f.attrs["kind"] == "us" and name != "SPX_LONG":
@@ -1101,6 +1105,18 @@ def main():
     n4 = sum(b2[k] for k in ("cross", "wk", "mom12", "dd", "vol", "hmm"))
     say(f"H-B4 other classifiers passing H-B2 on SPX_LONG: {n4}/6 -> {'PASS' if n4 >= 4 else 'FAIL'}")
     say(f"H-B5 SWITCH(unrate) on SPX_LONG full + halves: {'PASS' if b2['unrate'] else 'FAIL'}")
+
+    # ------------------------------------------------------------ exploratory summaries
+    say("\n" + "=" * 100); say("EXPLORATORY SUMMARIES"); say("=" * 100)
+    al = all_assets_table(pb); al.to_csv(OUT / "partB_all_assets_ma200.csv", index=False)
+    say("All single assets, 200-day classifier, primary timing (pre-tax CAGR, after-tax CAGR, max DD; T2 vs BH after tax):")
+    say(al.to_string(index=False, float_format=fmt))
+    ins = insurance_table(pb, ph, gp); ins.to_csv(OUT / "partB_insurance.csv", index=False)
+    say("\nIndex drawdown insurance: give-up vs BH (pre-tax / after tax, CAGR pts) and drawdown saved (pts):")
+    say(ins.to_string(index=False, float_format=fmt))
+    cr = crypto_routes(pb); cr.to_csv(OUT / "partB_crypto_routes.csv", index=False)
+    say("\nCrypto by execution route (after-tax CAGR; same-bar 0.15%, next bar 0.15%, spot ETF next NYSE session 0.02%):")
+    say(cr.to_string(index=False, float_format=fmt))
     log.close()
 
 
@@ -1124,7 +1140,62 @@ def sensitivity():
     print(g[cols].to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
 
 
+def all_assets_table(pb: pd.DataFrame) -> pd.DataFrame:
+    p = pb[(pb.route == "primary") & (pb.window == "full") & (pb.classifier == "ma200")]
+    rows = []
+    for _, r in p.iterrows():
+        rows.append({"asset": r.asset, "start": r.start, "years": r.years,
+                     "BH": r.BH_cagr, "BH_tax": r.BH_cagr_tax, "BH_dd": r.BH_maxdd,
+                     "IND": r.IND_cagr, "IND_tax": r.IND_cagr_tax,
+                     "REG": r.REG_cagr, "REG_tax": r.REG_cagr_tax, "REG_dd": r.REG_maxdd,
+                     "SWITCH": r.SWITCH_cagr, "SWITCH_tax": r.SWITCH_cagr_tax, "SWITCH_dd": r.SWITCH_maxdd,
+                     "SWITCH>IND": r.SWITCH_cagr > r.IND_cagr,
+                     "T2_SWITCH": t2(r.SWITCH_cagr_tax, r.SWITCH_maxdd, r.BH_cagr_tax, r.BH_maxdd),
+                     "T2_REG": t2(r.REG_cagr_tax, r.REG_maxdd, r.BH_cagr_tax, r.BH_maxdd)})
+    return pd.DataFrame(rows)
+
+
+def insurance_table(pb: pd.DataFrame, ph: pd.DataFrame, gp: pd.DataFrame) -> pd.DataFrame:
+    """EXPLORATORY: the weekly signal alone (REG wk, HANDOFF 5.6's insurance idea on daily bars,
+    next-session fills), the plain 200-day and 50/200 rules, and the switch, as drawdown
+    insurance on US indices."""
+    src = [("full", pb[(pb.route == "primary") & (pb.window == "full")]), ("half", ph), ("2016-07+", gp)]
+    rows = []
+    for tag, d in src:
+        for (asset, window), g in d.groupby(["asset", "window"]):
+            if asset not in ("SPX_LONG", "SPY", "QQQ", "IWM"):
+                continue
+            g = g.set_index("classifier")
+            for strat, k in (("REG", "wk"), ("REG", "ma200"), ("REG", "cross"), ("SWITCH", "ma200"), ("SWITCH", "cross")):
+                if k not in g.index:
+                    continue
+                r = g.loc[k]
+                rows.append({"asset": asset, "window": window, "rule": f"{strat}({k})",
+                             "giveup_pre": r.BH_cagr - r[f"{strat}_cagr"], "giveup_tax": r.BH_cagr_tax - r[f"{strat}_cagr_tax"],
+                             "dd_saved": r[f"{strat}_maxdd"] - r.BH_maxdd,
+                             "T2": t2(r[f"{strat}_cagr_tax"], r[f"{strat}_maxdd"], r.BH_cagr_tax, r.BH_maxdd)})
+    return pd.DataFrame(rows)
+
+
+def crypto_routes(pb: pd.DataFrame) -> pd.DataFrame:
+    d = pb[(pb.window == "full") & pb.asset.isin(TV_CRYPTO) & pb.classifier.isin(["ma200", "cross", "wk", "mom12", "dd"])]
+    rows = []
+    for (asset, k), g in d.groupby(["asset", "classifier"]):
+        g = g.set_index("route")
+        row = {"asset": asset, "classifier": k}
+        for route in ("primary", "next", "etf"):
+            if route in g.index:
+                r = g.loc[route]
+                row[f"{route}_BH"] = r.BH_cagr_tax; row[f"{route}_IND"] = r.IND_cagr_tax; row[f"{route}_SWITCH"] = r.SWITCH_cagr_tax
+                row[f"{route}_T2"] = t2(r.SWITCH_cagr_tax, r.SWITCH_maxdd, r.BH_cagr_tax, r.BH_maxdd)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 if __name__ == "__main__":
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print("python -m analysis_2026.regime_switch [--sensitivity]  (writes analysis_2026/results_regime/)")
+        sys.exit(0)
     if "--sensitivity" in sys.argv:
         sensitivity()
     else:

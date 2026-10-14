@@ -46,7 +46,8 @@ which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
    - **Scanner:** `screener/scan.py` matches TradingView on every IWM date 2012-2025. It is
      information only.
    - **Indices:** the weekly signal on SPY/QQQ qualifies only as optional crash insurance;
-     on IWM it does not.
+     on IWM it does not. Section 5.15 found cheaper insurance after tax: a 200-day or 50/200
+     rule, or the regime switch (exploratory).
    - **TSLA:** no.
    - **COIN, HOOD and CRCL:** too little history, and their results hinge on one or two
      trades and on fill timing.
@@ -140,9 +141,9 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 | `data/universe_qlib/` (gitignored, rebuild) | qlib US daily for every S&P 500 member since 1999 that qlib has (852 tickers), 2000 to 2024-04-25 | Download `https://github.com/SunsetWolf/qlib_dataset/releases/download/v0/qlib_data_us_1d_v3.zip` (615 MB), then `screener.data.from_qlib(root, symbols, out_folder)`. Total return until 2021-09-16, price-only after (`--prices qlib`). Survivorship-biased: 60-66% of 2005/2008 members usable. |
 | `data/universe_recent/` (gitignored, rebuild) | ~2,300 US stocks and ETFs, split-adjusted OHLC, 2024-08 to the latest close | `https://github.com/q100423gg-coder/us-stock-data/releases/download/data/prices.parquet` (refreshed daily), then `screener.data.from_long_parquet`. Needs pyarrow. Third-party and unofficial. |
 | `data/universe/members.csv` (gitignored, rebuild) | point-in-time S&P 500 membership spells | `screener.data.sp500_members(out)`, from fja05680/sp500 via raw.githubusercontent.com |
-| `data/macro/` (gitignored, rebuild) | S&P 500 daily OHLC 1950-2018 (real high/low from 1962), daily S&P total return and T-bill 1885-2025, UNRATE/VIX/T10Y2Y/PAYEMS, Shiller monthly, French factors | `git clone` github.com/vijinho/sp500 (`csv/sp500.csv` → `gspc_1950_2018.csv`), github.com/SteelCerberus/us-market-data (`data/us_market_data.csv`), github.com/cyby2000/fred-relay (`data/*.csv`, a daily FRED mirror; FRED itself is blocked here). Shiller: raw.githubusercontent.com/datasets/s-and-p-500. |
-| `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the next row |
-| `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). All three folders, plus `data/raw_pit/` and `data/universe_pit_all/`: `python -m analysis_2026.fetch_regime_data`. |
+| `data/macro/` (gitignored, rebuild) | S&P 500 daily OHLC 1950-2018 (real high/low from 1962), daily S&P total return and T-bill 1885-2025, UNRATE/VIX/T10Y2Y/PAYEMS | github.com/vijinho/sp500 (`csv/sp500.csv` → `gspc_1950_2018.csv`), github.com/SteelCerberus/us-market-data (`data/us_market_data.csv`), github.com/cyby2000/fred-relay (`data/*.csv`, a daily FRED mirror; FRED itself is blocked here). Built by `python3 -m analysis_2026.fetch_regime_data`. |
+| `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the `data/universe_pit_all/` row; built by `fetch_regime_data` |
+| `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). `python3 -m analysis_2026.fetch_regime_data` rebuilds this folder, `data/macro/`, `data/raw_pit/` and `data/universe_pit_all/` (`--skip-pit` keeps the last two). |
 | `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
 **Getting the current state.** `moneyline_ref.py` cannot run on the `data/tv_*`
@@ -302,7 +303,9 @@ Median CAGR edge vs indicator-only; (n/5) = coins improved.
   | IWM | 3.3-4.1 pts | 16-21 pts | no |
 
   It helped in dot-com and the GFC, was too slow for Covid, and cost 10-20 points in the
-  2025-26 rally.
+  2025-26 rally. Section 5.15 (exploratory) tested it on daily bars against a plain 200-day
+  or 50/200 rule and the regime switch: the weekly signal was dominated after tax in every
+  window.
 - **COIN weekly:** 15.1% vs −4.0% CAGR, but on 6 trades, and next-bar fills cut it to
   4.7%.
 - **HOOD daily:** 18.2% vs 16.7%, but 5.6% with next-bar fills.
@@ -436,39 +439,78 @@ Full tables and the pre-registration are in `screener/README.md`.
 
 ### 5.15 Why the indicator trails buy & hold; regime switching — `analysis_2026/regime_switch.py`
 
-Pre-registered H-A1 and H-B1 to H-B5, then audited twice (FINDINGS has the full entry).
+Pre-registered H-A1 and H-B1 to H-B5. Two audits and a 6-lens verification pass followed;
+FINDINGS has the full entry and `results_regime/summary.txt` every table.
 
-- **The up-market loss is false breakdowns (H-A1 confirmed).** Of the indicator's bull-phase
-  losses, 81% (S&P 500 1963-2026), 81% (S&P 500 members) and 87% (Binance coins) come from
-  red spells where price never closed more than 1 ATR below the exit.
-  - Each round trip costs about 5 ATR: it sells ~2.2 ATR below the peak and buys back ~2.5
-    ATR above the low.
-  - The median further decline after an exit is ~1 ATR, so only 27% (S&P) to 44% (coins) of
-    red spells save money.
-  - False breakdowns are a constant tax, about 75-85% of losses in down years too. Regimes
-    differ in the size of the saves.
+**Terms:**
+
+- **Red spell:** the flat period from an exit fill to the re-entry fill.
+- **Save:** a spell that re-entered below the exit, after T-bill interest.
+- **False breakdown:** a losing spell whose lowest close stayed within 1 ATR of the exit.
+  ATR is ATR(14) as a share of the close, used as a ruler, not the indicator's ATR(10).
+- **Bull/bear phase:** dated *with hindsight* (a 20% swing from the running extreme; crypto
+  50%). This is not the ex-ante regime of the switch.
+- **Timing skill:** the log return of the flat days relative to average days, before costs.
+  It is negative when the days sat out were better than average.
+- **SWITCH:** hold while the regime is good, follow the indicator while it is bad.
+- **REG:** the regime rule alone.
+- **T2:** gate.py's rule. After-tax CAGR ≥ buy & hold, or ≥ buy & hold − 2 pts with max
+  drawdown at least 15 pts shallower.
+- **Hypotheses:**
+  - H-B1: SWITCH(200-day) beats IND on ≥ 7 of 10 named assets and in both baskets.
+  - H-B2: it passes T2 on the S&P 1963-2026 and in both halves.
+  - H-B3: it is ≥ REG(200-day) on the S&P and on ≥ 6 of 10.
+  - H-B4: H-B2 also holds for ≥ 4 other price regimes.
+  - H-B5: H-B2 holds with an unemployment-trend regime.
+- **Units:** decompositions are in log pts/yr; everything else is CAGR points.
+
+**Findings:**
+
+- **The up-market loss is mostly false breakdowns (H-A1 confirmed).** False breakdowns cause
+  81% (S&P 500 1963-2026), 81% (S&P 500 members) and 87% (Binance coins) of bull-phase
+  losses.
+  - The indicator buys back 2.2-2.6 ATR above the low. After an exit, price falls only a
+    median 0.9-1.7 ATR further.
+  - So only 27% (S&P) to 44% (coins) of red spells save money.
+  - In bull phases about 80% of red spells lose; in bear phases about 40%. False breakdowns
+    are 67-87% of the losses in both.
 - **Why it fails overall:** S&P bull phases are 84% of the time.
-  - The indicator loses ~10 pts per bull-year and gains ~29 per bear-year, netting about −4
-    pts/yr.
-  - Its timing skill on the S&P is even negative (−1.7 pts/yr).
-  - On crypto, bear phases are 28-45% of the time with −70% to −95% crashes, and timing skill
-    is +31 to +41 (BTC/ETH/BNB).
-- **Regime switching (hold in good regimes, the indicator in bad ones) fails H-B1 to H-B5.**
-  - **S&P 500 1963-2026,** SWITCH(200-day):
-    - 10.3% vs buy & hold 10.8% pre-tax; 7.9% vs 9.8% after tax
-    - drawdown −36% vs −55%
-    - the plain 200-day rule makes 10.5% with drawdown −22%
-    - H-B2 fails by 0.10 pt in 1963-1993 and passes in the other two windows
-  - **Stock basket 1997-2026:** 9.1 vs 10.9. **Coin basket:** 57.8 vs the indicator's 61.7.
-  - **Crypto:** it lowers returns vs the indicator alone on all five TradingView coins with
-    the 200-day (ETH 67.3 → 51.7, ZEC 28.7 → −0.7). Crypto crashes start above the 200-day.
-  - **No ex-ante classifier beats buy & hold on the S&P after tax:** 200-day, 50/200,
-    weekly, 12-month momentum, drawdown, volatility, HMM, unemployment, and the sensitivity
-    grid.
-  - **Hindsight regimes would add ~4 pts/yr (S&P)**, so it fails on identification.
-- **Use:** on index money, the 200-day or 50/200 rule alone is the cheaper drawdown
-  insurance (~2 pts/yr after tax); don't add the daily indicator to it. On crypto, keep the
-  indicator alone and add no regime filter.
+  - The indicator loses about 10 log pts per bull-year and gains about 29 per bear-year,
+    netting about −4 pts/yr.
+  - Its S&P timing skill is −1.7 log pts/yr.
+  - On crypto, bear phases are 28-45% of the time with median −64% declines, and timing skill
+    is +27 to +41 (BTC, ETH, SOL, BNB).
+- **Regime switching fails H-B1 to H-B5,** several by tenths of a point (H-B2 by 0.10, H-B3
+  by 0.19).
+  - **S&P 500 1963-2026, SWITCH(200-day):** 10.3% pre-tax vs buy & hold 10.8%; 7.9% vs 9.8%
+    after tax; drawdown −36% vs −56%. The plain 200-day rule makes 10.5% with drawdown −22%.
+  - **SPY, QQQ, IWM 1996-2026, and the S&P since 1994:** the switch beats the plain 200-day
+    rule by 1.1-3.4 pts/yr after tax, but still trails buy & hold after tax (SPY 8.6 vs 9.3).
+  - **The switch beats the indicator** on all 14 ETFs, every index and HOOD. It never does
+    on the five coins (pre-tax, same-bar), TSLA or COIN.
+  - **Baskets:** S&P members 9.1 vs buy & hold 10.9; coins 57.8 vs the indicator's 61.7.
+  - **No ex-ante regime beats buy & hold after tax on the S&P 1963-2026.** That covers the
+    200-day, 50/200, weekly, 12-month momentum, drawdown, volatility, HMM and unemployment
+    regimes, and the whole sensitivity grid (best 8.7 vs 9.8). On SPY since 1996 the 50/200
+    and 12-month switches did, but not robustly.
+  - **Hindsight regimes would add about 4 pts/yr on the S&P.** The idea fails on
+    identifying the regime.
+- **Drawdown insurance for index money** (exploratory, `partB_insurance.csv`):
+  - The weekly-signal insurance of 5.6 is dominated in every window by a moving-average rule
+    or the switch.
+  - **The switch, either form:** cheapest since 1994 and on SPY and IWM, at about 0-2 pts/yr
+    after tax for 20-26 pts less drawdown.
+  - **The plain 200-day rule:** cheapest in 1963-1993, and the largest drawdown cut.
+  - Since 2013 every form cost 2-8 pts/yr.
+- **Crypto by execution route** (exploratory, after tax via spot ETF):
+  - On ETH every regime filter is far below the indicator alone (28-45 vs 60).
+  - On BTC filters beat the indicator but not robustly buy & hold.
+- **Use:**
+  - **Index money:** hold in a taxable account. If drawdown control is wanted, prefer the
+    switch or a plain 200-day / 50-200 rule over the weekly signal. Expect it to cost about
+    1-3 pts/yr after tax, more in strong bull markets.
+  - **Crypto:** where the gate says TRADE (ETH via ETF), keep the indicator alone and add no
+    regime filter.
 
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
@@ -550,7 +592,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - ETH: TRADE via spot ETF.
   - SOL: PROBATION (≤10%).
   - BTC, BNB, ZEC: hold or skip.
-  - SPY/QQQ: hold, with optional weekly insurance.
+  - SPY/QQQ: hold, with optional insurance: weekly signal, or the cheaper 200-day /
+    50-200 rule or regime switch (section 5.15).
   - IWM and TSLA: hold.
   - COIN, HOOD, CRCL: watch.
   - Stock baskets picked by past fit: don't run (section 5.10). Scanner for information
@@ -600,7 +643,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 
 ## 10. Environment notes
 
-- Use `python3` (3.11) and install with `python3 -m pip install pandas numpy` (plain
+- Use `python3` (3.11) and install with `python3 -m pip install pandas numpy pyarrow numba` (plain
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
@@ -631,10 +674,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
-| `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.15). `python -m analysis_2026.regime_switch` (about 15 min) and `--sensitivity`. Data: `data/macro/`, `data/raw_pit/`, `data/crypto_binance_regime/`, `data/universe_pit_all/` (gitignored; see section 3). Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
+| `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.15). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
+| `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
-| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
+| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Used by every OHLC-based study (screener, altcoins, trend_portfolio, leverage_breakout, regime_switch, replicate); the TradingView-export backtests read the exported state instead. Needs high/low. |
 | `analysis_2026/replicate.py` | IWM replication and hl2-consistency evidence. |
 | `analysis_2026/gate.py` | Per-asset, per-vehicle validation gate (after tax; vs own buy & hold and vs SPY), index INSURANCE test, `placebo()` false-pass estimate, `asof` for walk-forward use. |
 | `analysis_2026/costs.py` | Robinhood cost sensitivity; weekend-aware spot-ETF proxy (`etf_want`, `etf_proxy`). |

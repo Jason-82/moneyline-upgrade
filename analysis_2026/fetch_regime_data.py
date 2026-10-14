@@ -95,6 +95,8 @@ def fetch_binance(coins=COINS):
 
 
 if __name__ == "__main__":
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__); sys.exit(0)
     fetch_macro()
     if "--skip-pit" not in sys.argv:
         fetch_pit()

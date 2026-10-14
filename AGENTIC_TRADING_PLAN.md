@@ -158,7 +158,7 @@ routines); anthropic.com/legal/aup.
 | BTC | NO-SIGNAL: −14.3 after tax via ETF, −22.2 direct | **hold** (signal only in a tax-advantaged account, by explicit choice) | spot BTC ETF or coin |
 | BNB | NO-SIGNAL | hold or skip | no confirmed US spot ETF |
 | ZEC | NO-SIGNAL | hold or skip | — |
-| SPY / QQQ | daily NO-SIGNAL; weekly **INSURANCE** qualifies (SPX gives up 1.7-1.9 pts/yr for 16-21 pts less drawdown; NDX 2.1-2.9 for 30-36) | hold; optional weekly signal as crash insurance | ETF |
+| SPY / QQQ | daily NO-SIGNAL; weekly **INSURANCE** qualifies (SPX gives up 1.7-1.9 pts/yr for 16-21 pts less drawdown; NDX 2.1-2.9 for 30-36). HANDOFF 5.15 (exploratory): a 200-day or 50/200 rule, or holding above the 200-day and following the daily signal below it, cut drawdown as much for less after tax | hold; optional crash insurance (weekly signal, or the cheaper 200-day / 50-200 rule or regime switch) | ETF |
 | IWM | daily NO-SIGNAL; weekly fails INSURANCE (gives up 3.3-4.1 pts/yr) | hold | ETF |
 | TSLA | NO-SIGNAL (signal halves CAGR) | hold or skip | — |
 | COIN, HOOD, CRCL | NO-SIGNAL; also fail the history test | watch only | — |
@@ -176,8 +176,9 @@ Do **not** add these (all tested):
 - squeeze or retest filters
 - trailing 1.5×ATR stops (−37 CAGR points)
 - leverage (not available anyway)
-- a regime switch (hold in good regimes, the indicator in bad ones): on crypto it lowers returns; on
-  indices it is no better than a plain 200-day rule (HANDOFF section 5.15)
+- a regime switch on crypto (hold in good regimes, the indicator in bad ones): on ETH it is far
+  below the indicator alone on every route (HANDOFF section 5.15). On indices it is drawdown
+  insurance, not an edge: it does not beat holding after tax.
 
 ---
 
