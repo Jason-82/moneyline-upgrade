@@ -30,7 +30,10 @@ price. Both are less 1 tick of slippage (the per-side cost).
 Costs per side: perps 0.05% taker + 0.02% slippage (BTC/ETH), +0.05% more for other
 coins; spot 0.10% + slippage. Longs pay the actual funding rate on notional.
 Leverage: notional = L x sub-account equity at entry; liquidation price
-entry x (1 - 1/L + 0.5%); a liquidated sub-account is blown (equity 0) and stops.
+entry x (1 - 1/L + 0.5% + fees and funding paid so far); a liquidated sub-account is
+blown (equity 0) and stops. Funding is charged on the position's current value; idle
+cash earns T-bills; trades still open at the end are marked at the last close.
+(Audit fixes, applied after the first run; see FINDINGS.)
 
 Pre-registered hypotheses (written 2026-10-14, before any run):
   H1 BTC and ETH daily: ML at 3x and 5x has a LOWER Sharpe ratio than at 1x (perps),
@@ -95,8 +98,9 @@ def funding_per_bar(sym, index, hours):
     if p.exists():
         f = pd.read_csv(p, parse_dates=["time"]).set_index("time").rate.astype(float)
         if sym == "MATIC" and (ROOT / "data" / "crypto_funding" / "POL.csv").exists():
+            # MATIC's file keeps printing a flat 0.01% after the Sept 2024 rename; use POL's real prints
             pol = pd.read_csv(ROOT / "data" / "crypto_funding" / "POL.csv", parse_dates=["time"]).set_index("time").rate.astype(float)
-            f = pd.concat([f, pol[pol.index > f.index[-1]]])
+            f = pd.concat([f[f.index < pol.index[0]], pol])
         bins = pd.cut(f.index, bins=list(index) + [index[-1] + pd.Timedelta(hours=hours)], right=False, labels=False)
         s = pd.Series(f.to_numpy()).groupby(bins).sum()
         have = np.zeros(len(index), bool)
@@ -160,6 +164,10 @@ def run(d, system, lev=1.0, venue="perp", fund=None, extra_slip=0.0, start=None,
     if kind == "KL":
         lvl = key_levels(d, atr)
     idx = d.index
+    from screener.strictness import TBILL
+    bar_h = float(np.median(np.diff(idx.values).astype("timedelta64[m]").astype(float))) / 60
+    cash_rate = np.array([TBILL.get(t.year, 2.0) / 100 * bar_h / 8760 for t in idx]) if venue != "etf" else \
+        np.array([TBILL.get(t.year, 2.0) / 100 / 252 for t in idx])
     i0 = 0 if start is None else int(np.searchsorted(idx, pd.Timestamp(start)))
     i1 = n - 1 if end is None else int(np.searchsorted(idx, pd.Timestamp(end), side="right")) - 1
     eq = 1.0; pos = False; entry = stop = notional = eq_entry = 0.0; trail = 0.0; t_in = None
@@ -189,9 +197,12 @@ def run(d, system, lev=1.0, venue="perp", fund=None, extra_slip=0.0, start=None,
                 stop = init_stop; trail = init_stop; pos = True; t_in = t; pending_entry = False
         pending_entry = False
         # ---- intrabar: liquidation, stop
+        if not pos:
+            eq *= 1 + cash_rate[t]                      # idle cash earns T-bills
         if pos:
-            fund_paid += notional * fund[t]
-            liq = entry * (1 - 1 / lev + MM) if lev > 1 else -np.inf
+            fund_paid += notional * (o[t] / entry) * fund[t]      # on the position's current value
+            # isolated margin also absorbs the entry fee and the funding paid so far
+            liq = entry * (1 - 1 / lev + MM + cost + fund_paid / notional) if lev > 1 else -np.inf
             active_stop = max(stop, trail) if kind in ("BO", "KL") else -np.inf
             if lev > 1 and l[t] <= liq and liq >= active_stop:
                 eq = 0.0; blown = True
@@ -223,6 +234,10 @@ def run(d, system, lev=1.0, venue="perp", fund=None, extra_slip=0.0, start=None,
                 pending_entry = True
             elif kind == "KL" and np.isfinite(lvl[t]) and c[t] > lvl[t] + 0.1 * atr[t] and c[t - 1] <= lvl[t]:
                 pending_entry = True; kl_level = lvl[t]
+    if pos and not blown:                                # still open at the window end: mark at the close
+        px = c[i1]
+        trades.append((idx[t_in], idx[i1], entry, px, init_stop, (px / entry - 1) - cost - fund_paid / notional, "open",
+                       (eq_entry + notional * (px / entry - 1) - notional * cost - fund_paid) / eq_entry - 1))
     cols = ["entry_time", "exit_time", "entry", "exit", "init_stop", "net_ret", "exit_type", "acct_ret"]
     tr = pd.DataFrame(trades, columns=cols)
     if len(tr):
@@ -293,7 +308,7 @@ def universe_trades(systems=("BO20", "BO55", "ML", "BO20-k0.5", "KL"), years=ran
     return pd.concat(rows, ignore_index=True)
 
 
-def etf_trades(systems=("BO20", "BO55", "ML", "BO20-k0.5", "KL"), names=("SPY", "QQQ", "IWM", "EFA", "EEM", "GLD", "TLT")):
+def etf_trades(systems=("BO20", "BO55", "ML", "BO20-k0.5", "KL"), names=("SPY", "IWM", "EFA", "EEM", "GLD", "TLT", "VNQ")):
     rows, eqs = [], []
     for n in names:
         d = pd.read_csv(ROOT / "data" / "etf" / f"{n}.csv", parse_dates=["date"]).set_index("date").sort_index()
@@ -333,7 +348,8 @@ def main():
                         rows_tr.append({**key, **trade_stats(tr)})
                         tr = tr.assign(**key); all_trades.append(tr)
             # buy & hold reference
-            seg = d.loc[start:end]
+            i0 = int(np.searchsorted(d.index, pd.Timestamp(start))); first = d.index[max(i0, 60)]
+            seg = d.loc[first:end]
             bh = seg.close / seg.close.iloc[0]
             rows_eq.append({"tf": tf, "asset": s, "system": "BUY&HOLD", "lev": 1.0, "venue": "spot", **eq_stats(bh, bpy)})
     eqdf = pd.DataFrame(rows_eq); trdf = pd.DataFrame(rows_tr)
@@ -368,6 +384,23 @@ def main():
                                                    lost_money_share=("final_x", lambda x: (x < 1).mean() * 100))
     print(g.to_string(float_format=lambda x: f"{x:,.2f}"))
     g.to_csv(OUT / "leverage_summary_daily.csv")
+    print("\nDaily vs 4-hour bars, 1x perps, median across the 20 large coins (equity, not per trade):")
+    tfc = eqdf[(eqdf.lev == 1.0) & (eqdf.venue == "perp") & eqdf.system.isin(["ML", "BO20", "BO55", "BO20-k0.5", "BO55-k0.5", "KL"])]
+    print(tfc.groupby(["system", "tf"])[["CAGR_%", "maxDD_%", "Sharpe"]].median().unstack("tf").to_string(float_format=lambda x: f"{x:,.2f}"))
+    print("\nTotal-capital view, BTC and ETH daily 2018-2026: 20% of capital in a sub-account at Lx, 80% in T-bills,")
+    print("versus 100% at 1x spot (same market exposure as 20% at 5x) and 20% at 1x spot:")
+    yrs = (pd.Timestamp(end) - pd.Timestamp(start)).days / 365.25
+    cash = 1.03 ** yrs
+    tv = []
+    for a in ("BTC", "ETH"):
+        for sysn in ("ML", "BO20", "BO55"):
+            f = {(r.lev, r.venue): r.final_x for r in eqdf[(eqdf.tf == "1d") & (eqdf.asset == a) & (eqdf.system == sysn)].itertuples()}
+            row = {"asset": a, "system": sysn, "100% at 1x spot": f[(1.0, "spot")], "20% at 1x spot": 0.2 * f[(1.0, "spot")] + 0.8 * cash}
+            for L in (3.0, 5.0):
+                row[f"20% at {int(L)}x perp"] = 0.2 * f[(L, "perp")] + 0.8 * cash
+            tv.append(row)
+    tvd = pd.DataFrame(tv); tvd.to_csv(OUT / "total_capital_view.csv", index=False)
+    print(tvd.to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
     # ---- out-of-sample universe (H2b) and ETFs
     ut = universe_trades(); ut.to_csv(OUT / "universe_top20_trades.csv", index=False)
     print("\nH2b - survivorship-inclusive top-20 universe (daily, 1x perps), trades entered 2019-2026:")
