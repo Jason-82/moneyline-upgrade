@@ -1,0 +1,10 @@
+{
+  "input_prices_sha256": "424aaeb70549e32e03511863fbb483bd754e65502693c6e27d38516a0813dff2",
+  "source_stock_coverage_sha256": "c96b9a4af0fcbcc7554d24095fc4a9a986c9c956476d3d8ffeac6eed80e65275",
+  "method": "Monthly signal-date current PIT members [start,end), exclude recycled STI; positive finite close+adj_close counts; observed OHLC also requires positive finite open/high/low and source !=crsp; range-valid count separate. Compare to frozen 37-month eligibility from stock_coverage.csv. No fill or strategy change.",
+  "publication": "Market-derived aggregate coverage counts only; no raw prices or account data.",
+  "outputs": {
+    "stock_signal_price_coverage.csv": "ad3604cd2bfd9ee045896e6de1ea8ced1c59b5639c75055ae676122d613b75b0",
+    "stock_signal_coverage_yearly.csv": "dcbf56ecb118d0898e0c48bb4b45f22f65c7c3e592df0a1ed454179aac8ead4f"
+  }
+}

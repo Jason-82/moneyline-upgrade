@@ -1,0 +1,63 @@
+{
+  "signal_date": "2025-08-29",
+  "eligible_count": 497,
+  "fit_months": [
+    "2022-08",
+    "2025-07"
+  ],
+  "formation_months": [
+    "2024-08",
+    "2025-06"
+  ],
+  "regression_method": "independent_QR_decomposition_retains_fitted_intercept_in_score",
+  "production_module_imported": false,
+  "checks": [
+    {
+      "strategy": "residual_momentum",
+      "selected_count": 100,
+      "selection_matches": true,
+      "maximum_score_errors": {
+        "residual_score": 7.105427357601002e-15,
+        "raw_momentum": 1.3322676295501878e-15,
+        "information_discreteness": 9.71445146547012e-17
+      }
+    },
+    {
+      "strategy": "raw_momentum",
+      "selected_count": 100,
+      "selection_matches": true,
+      "maximum_score_errors": {
+        "residual_score": 7.105427357601002e-15,
+        "raw_momentum": 1.3322676295501878e-15,
+        "information_discreteness": 9.71445146547012e-17
+      }
+    },
+    {
+      "strategy": "continuous_information",
+      "selected_count": 50,
+      "selection_matches": true,
+      "maximum_score_errors": {
+        "residual_score": 4.440892098500626e-15,
+        "raw_momentum": 8.881784197001252e-16,
+        "information_discreteness": 8.326672684688674e-17
+      }
+    },
+    {
+      "strategy": "eligible_equal_weight",
+      "selected_count": 497,
+      "selection_matches": true,
+      "maximum_score_errors": {
+        "residual_score": 1.0658141036401503e-14,
+        "raw_momentum": 1.3322676295501878e-15,
+        "information_discreteness": 9.71445146547012e-17
+      }
+    }
+  ],
+  "input_sha256": {
+    "prices.parquet": "424aaeb70549e32e03511863fbb483bd754e65502693c6e27d38516a0813dff2",
+    "raw/membership_intervals.parquet": "8550ccbde3ae82b7a3f07057d6dd30078ccccf103dc7343fa1fd8187e7c90838",
+    "ff3_monthly.csv": "301c912d1df4227e769edfb2e7c10e7510906067e56ce8d95b32db110f0c2308",
+    "total_return/SPY.csv": "313381b08e80fb1f70254b14ac232253111b7f9b2c5a836e373bf160c3beb695"
+  },
+  "audit_implementation_sha256": "b279ef71b9cc2a2ee490f5ec73d7614010556fae2be170a754e3180ba81217dd"
+}

@@ -1,0 +1,37 @@
+{
+  "input_sha256": {
+    "prices.parquet": "424aaeb70549e32e03511863fbb483bd754e65502693c6e27d38516a0813dff2",
+    "raw/membership_intervals.parquet": "8550ccbde3ae82b7a3f07057d6dd30078ccccf103dc7343fa1fd8187e7c90838",
+    "ff3_monthly.csv": "301c912d1df4227e769edfb2e7c10e7510906067e56ce8d95b32db110f0c2308",
+    "total_return/SPY.csv": "313381b08e80fb1f70254b14ac232253111b7f9b2c5a836e373bf160c3beb695"
+  },
+  "implementation_sha256": "cd720b49b7461809fb9d676bf6d13091c91e4c8e2d08816c37ae319f33029b10",
+  "cutoff": "2026-09-30",
+  "factor_latest_month": "2026-08",
+  "factor_vintage": "final_vintage_with_one_month_lag_proxy_not_pit_vintages",
+  "total_return_prices": true,
+  "tax_model": "annual_portfolio_gain_levy_with_loss_carry_not_tax_lots",
+  "membership_end_exclusive": true,
+  "excluded_tickers": [
+    "STI"
+  ],
+  "strategies": [
+    "residual_momentum",
+    "continuous_information",
+    "raw_momentum",
+    "eligible_equal_weight"
+  ],
+  "status_counts": {
+    "identified": 272,
+    "unidentified": 240
+  },
+  "output_sha256": {
+    "stock_coverage.csv": "c96b9a4af0fcbcc7554d24095fc4a9a986c9c956476d3d8ffeac6eed80e65275",
+    "stock_equity.csv": "55f6401a6b02359d38e68cfc3782bcbb51a1371ff94623f344f801c1f93346c0",
+    "stock_selections.csv": "9634a7ea89780f5e60b6201fae4711aee6914a88d50c488be76dd037626d4081",
+    "stock_metrics.csv": "49efaaf6a4f00841c77cf1146f20ab0de786f2e6a15fcfd0262e47ccace0ed9f",
+    "stock_monthly.csv": "e2bbc714bd9ae84e7116e65b7844738784f3204c6b545c9c2cb3d4986c9f6194",
+    "stock_events.csv": "3adbaf3dc52fa5f8de8aeda43a5859d28771cf5b70ca6ec3435b5b677fd6fb9f",
+    "stock_calendar_years.csv": "61f5170669efea8e1314b36be87991a9e8db28dab0aff9cc0f7347b5f6158d17"
+  }
+}

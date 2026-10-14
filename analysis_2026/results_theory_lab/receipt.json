@@ -1,0 +1,92 @@
+{
+  "inputs": [
+    {
+      "source": "etf",
+      "name": "EEM.csv",
+      "sha256": "36b270506a0705afe0d9916dbf7439b2581d5a4b88ddf02191a925ed0cbb7f06"
+    },
+    {
+      "source": "etf",
+      "name": "EFA.csv",
+      "sha256": "67ab1eee9c4c75c0c32ebff0c788e1144157c50c42214de9a244d5142e50e2c0"
+    },
+    {
+      "source": "etf",
+      "name": "GLD.csv",
+      "sha256": "79e08952a7d2f576cb3797c153f3069768d90065ee24cb3070054edc6d6e0fef"
+    },
+    {
+      "source": "etf",
+      "name": "IEF.csv",
+      "sha256": "1a0c997c3834ed7d6ab8e6c5585708ddafc91d920a66ff48a946ff7df5f566ec"
+    },
+    {
+      "source": "etf",
+      "name": "IWM.csv",
+      "sha256": "242f70cfe2ee6da6fa1a4d50701f25d491f8f38d9028cc7ab31891bb5668b8d9"
+    },
+    {
+      "source": "etf",
+      "name": "SPY.csv",
+      "sha256": "313381b08e80fb1f70254b14ac232253111b7f9b2c5a836e373bf160c3beb695"
+    },
+    {
+      "source": "etf",
+      "name": "SSO.csv",
+      "sha256": "07bb3e50bf65330b354cfaed6ee17806fb1f3d95902cdb6f284393925b641c82"
+    },
+    {
+      "source": "etf",
+      "name": "TLT.csv",
+      "sha256": "3ba0e6bf8ce6050486fa86b4aed75b0debff10ba71c27f4a9b5de2828bc2f580"
+    },
+    {
+      "source": "etf",
+      "name": "VNQ.csv",
+      "sha256": "53a888a3df606f7938a76e6a1e5122ddd15ae3bba369742a104c791b628fedcf"
+    },
+    {
+      "source": "crypto",
+      "name": "BTCUSDT.csv",
+      "sha256": "1d0e41ffd5d7dee267b02340ddb122e607ca9854756410c77e2c3376bfea2019"
+    },
+    {
+      "source": "crypto",
+      "name": "ETHUSDT.csv",
+      "sha256": "ef90d76d5ab592b40af8b94731300bb1983b9aad54522656ceb0ea44813f938e"
+    }
+  ],
+  "implementation": {
+    "theory_lab/run.py": "10735d4c6fac16a593c586a561379adbdca74d1ca83e3fc647a663f0076796b7",
+    "theory_lab/engine.py": "574ff4f0d30dd044ae836899ed7a415b9d12478b16c5a3aaaac1b25391b5632a",
+    "theory_lab/schedules.py": "54901cb87831f033f498652b9854c05f9d582ef89c52ab03399a78fc532dc974",
+    "moneyline_ref.py": "6908773872576da6687791783bee125df5fac1bd5dd34e84b507aec35e12d6f7",
+    "THEORY_LAB_PREREG.md": "7f393e46cfd2d332840e7bb7e1867a2789f2b45bf0da0642f46a9fc9dde7695a"
+  },
+  "pandas": "2.2.3",
+  "numpy": "2.3.5",
+  "prereg_local_commit": "f496b9d",
+  "scope": "Simulated research only, no account data or orders; retrospective history",
+  "outputs": {
+    "metrics.csv": "b77316f6ff2486fe620a566256f9acdb60f0a0f988778e6cc7fa1edbef44602b",
+    "monthly_paths.csv": "ebc6cca817b4150a7cf138b1b002a1a79e816dbee75a8e85e4b935313c6c5857",
+    "calendar_years.csv": "8e05870454e2be4acec6e6bc23b615225cdfd9310915151c27b12d135a76426c",
+    "exposures.csv": "92422eb36fc8917fed99ce63ab6f8a6836e47cebee240bd0ae2912bc5af67459",
+    "primary_tests_unadjusted.csv": "7407afb7236b8a80f77636b2fd1a2bd7e6602ffe15a0622b2bef7619f400e661",
+    "schedules/crypto_rank84.csv": "8c4bd4638e53cedc5dd80a4840445431c470a02844c11c8d9560baaa76bcaba5",
+    "schedules/global_top4.csv": "54bb162736a7913c6c303cb797fc22dba3597602debb8bfa46f362ae38be6fab",
+    "schedules/C4_sso_gold.csv": "aa894ca24e4e2ace0d557488a9ac395e14c9f01449b38381278286f2497f2551",
+    "schedules/global_top2.csv": "7da787f000c01db477ae3bd9c00f938d632f358405533432b94ab099a2db0c1f",
+    "schedules/spy_gold50.csv": "f61459bd95935aa7ad7b93416feac3144fa5bf3e488ca825e41005c6aaa4a14d",
+    "schedules/sso_gold40.csv": "f4d3fea027d5475a3c2a0df1833ee98d01e2c8b517760130db7fcea6e70fbb4d",
+    "schedules/C3_global.csv": "68ef7b64aefd2abc48f5df6ca1cda419ae82b5a93df03f58b112ee367cd119c4",
+    "schedules/crypto_equal.csv": "38de23d37f9aefda29c5fbb6bebf0d0f6e1385a55d146021b569718eeefbe21f",
+    "schedules/sso_gold60.csv": "120fb7263eed8f6f433019d6ccf1660cc77d511acc481fd4e7e846a3a8f5ad10",
+    "schedules/C5_crypto.csv": "29650e00acdb6b0b2accdb8ab0d3b8a358aa1c92f817eb213c0c145d8979e2ca",
+    "schedules/crypto_rank42.csv": "e8139766456f4f6002b8c56391fa0f03495c8efd7d31c98b5e8a462a8807b26d",
+    "schedules/global_equal.csv": "cd301ae706c1eeb49267f2507dd14c5525334ef0844b49d6d6ad6c82973dc2bd"
+  },
+  "run_count": 244,
+  "failures": 0,
+  "daily_ledger_location": "private/theory_lab; reconstruct from recorded inputs"
+}

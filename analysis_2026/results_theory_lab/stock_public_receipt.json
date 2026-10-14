@@ -1,0 +1,18 @@
+{
+  "prereg_commit": "f496b9d",
+  "implementation_sha256": "cd720b49b7461809fb9d676bf6d13091c91e4c8e2d08816c37ae319f33029b10",
+  "source_receipt_sha256": "49ac3e5e62a346d168a4bfeb906bc93062d85a3cab2aa28463aafcf49ad50f4e",
+  "publication_transform": {
+    "stock_monthly_primary.csv": "cost_per_side_bps approximately3,delay_sessions1,annual_gain_levy_rate0,terminal_gain_levy_rate0,cash_yield0; both policies; status column retained; unidentified partial histories not evidence",
+    "stock_unknown_events.csv": "unpriced_exposure or selected_allocation_zero_writeoff; unique date,event,ticker,gap_type,period,strategy,delay_sessions,missing_policy, combining fees/tax/cash stress"
+  },
+  "published_sha256": {
+    "stock_coverage.csv": "c96b9a4af0fcbcc7554d24095fc4a9a986c9c956476d3d8ffeac6eed80e65275",
+    "stock_metrics.csv": "49efaaf6a4f00841c77cf1146f20ab0de786f2e6a15fcfd0262e47ccace0ed9f",
+    "stock_monthly_primary.csv": "094e91b4eb702d055ff6ad33332a44d2e5802a4573e5e55876712a84b1003421",
+    "stock_receipt.json": "49ac3e5e62a346d168a4bfeb906bc93062d85a3cab2aa28463aafcf49ad50f4e",
+    "stock_unknown_events.csv": "b4987b52a1bb9ab8417ea137f4bafa86bf3f23439a8f17f100590eb42dbcc6b1",
+    "stock_calendar_years.csv": "61f5170669efea8e1314b36be87991a9e8db28dab0aff9cc0f7347b5f6158d17"
+  },
+  "qualification": "C1 and C2 full/later strict histories UNIDENTIFIED; no significance calculation is valid for primary hypotheses"
+}

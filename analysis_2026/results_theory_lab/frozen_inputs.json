@@ -1,0 +1,70 @@
+{
+  "inputs": [
+    {
+      "source": "etf",
+      "name": "EEM.csv",
+      "sha256": "36b270506a0705afe0d9916dbf7439b2581d5a4b88ddf02191a925ed0cbb7f06"
+    },
+    {
+      "source": "etf",
+      "name": "EFA.csv",
+      "sha256": "67ab1eee9c4c75c0c32ebff0c788e1144157c50c42214de9a244d5142e50e2c0"
+    },
+    {
+      "source": "etf",
+      "name": "GLD.csv",
+      "sha256": "79e08952a7d2f576cb3797c153f3069768d90065ee24cb3070054edc6d6e0fef"
+    },
+    {
+      "source": "etf",
+      "name": "IEF.csv",
+      "sha256": "1a0c997c3834ed7d6ab8e6c5585708ddafc91d920a66ff48a946ff7df5f566ec"
+    },
+    {
+      "source": "etf",
+      "name": "IWM.csv",
+      "sha256": "242f70cfe2ee6da6fa1a4d50701f25d491f8f38d9028cc7ab31891bb5668b8d9"
+    },
+    {
+      "source": "etf",
+      "name": "SPY.csv",
+      "sha256": "313381b08e80fb1f70254b14ac232253111b7f9b2c5a836e373bf160c3beb695"
+    },
+    {
+      "source": "etf",
+      "name": "SSO.csv",
+      "sha256": "07bb3e50bf65330b354cfaed6ee17806fb1f3d95902cdb6f284393925b641c82"
+    },
+    {
+      "source": "etf",
+      "name": "TLT.csv",
+      "sha256": "3ba0e6bf8ce6050486fa86b4aed75b0debff10ba71c27f4a9b5de2828bc2f580"
+    },
+    {
+      "source": "etf",
+      "name": "VNQ.csv",
+      "sha256": "53a888a3df606f7938a76e6a1e5122ddd15ae3bba369742a104c791b628fedcf"
+    },
+    {
+      "source": "crypto",
+      "name": "BTCUSDT.csv",
+      "sha256": "1d0e41ffd5d7dee267b02340ddb122e607ca9854756410c77e2c3376bfea2019"
+    },
+    {
+      "source": "crypto",
+      "name": "ETHUSDT.csv",
+      "sha256": "ef90d76d5ab592b40af8b94731300bb1983b9aad54522656ceb0ea44813f938e"
+    }
+  ],
+  "implementation": {
+    "theory_lab/run.py": "10735d4c6fac16a593c586a561379adbdca74d1ca83e3fc647a663f0076796b7",
+    "theory_lab/engine.py": "574ff4f0d30dd044ae836899ed7a415b9d12478b16c5a3aaaac1b25391b5632a",
+    "theory_lab/schedules.py": "54901cb87831f033f498652b9854c05f9d582ef89c52ab03399a78fc532dc974",
+    "moneyline_ref.py": "6908773872576da6687791783bee125df5fac1bd5dd34e84b507aec35e12d6f7",
+    "THEORY_LAB_PREREG.md": "7f393e46cfd2d332840e7bb7e1867a2789f2b45bf0da0642f46a9fc9dde7695a"
+  },
+  "pandas": "2.2.3",
+  "numpy": "2.3.5",
+  "prereg_local_commit": "f496b9d",
+  "scope": "Simulated research only, no account data or orders; retrospective history"
+}

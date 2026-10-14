@@ -1,0 +1,22 @@
+{
+  "family": "C4",
+  "scope": "Methodological check of declared noncircular moving-block test; not a new return hypothesis or rescue analysis",
+  "months": 228,
+  "block_months": 12,
+  "draws": 2000,
+  "seed": 20261014,
+  "null_centering": "Original paired active return array minus its observed mean; contiguous resampling. Algebraically identical to resampling then subtracting observed mean.",
+  "null_center_before_after_max_error": 1.734723475976807e-18,
+  "observed_annual_log_active_pct": 3.2864982501286777,
+  "bootstrap_resampled_annual_mean_pct": 2.8791334438029765,
+  "finite_edge_weighting_annual_mean_bias_pct": -0.40736480632570116,
+  "declared_one_sided_p": 0.015492253873063468,
+  "five_test_Holm_p": 0.07746126936531735,
+  "declared_percentile95CI_annual_pct": [
+    -0.4724002543646577,
+    6.254731115819593
+  ],
+  "interpretation": "Centering arithmetic is correct. Noncircular blocks downweight endpoint months, producing finite-sample bootstrap bias. Percentile intervals and null-centered tests therefore need not be dual. Preserve both reported outputs; five-test-adjusted significance fails. No changed block length, circular bootstrap, or neighbor selection used to rescue the candidate.",
+  "source_monthly_sha256": "ebc6cca817b4150a7cf138b1b002a1a79e816dbee75a8e85e4b935313c6c5857",
+  "source_primary_test_sha256": "7407afb7236b8a80f77636b2fd1a2bd7e6602ffe15a0622b2bef7619f400e661"
+}
