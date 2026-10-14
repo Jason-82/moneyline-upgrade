@@ -52,13 +52,16 @@ from analysis_2026.moneyline_ref import moneyline  # noqa: E402
 from screener.data import from_csv_folder  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
+# left out by name on top of the download filter: newer stablecoins and a staked SOL copy
+# (tokenized stocks such as AAPLB are too young to pass the 200-bar minimum; exclude them
+# by name once they do)
+EXCLUDE = {"U", "KGST", "BNSOL"}
 TIERS = [("1-10", 1, 10), ("11-30", 11, 30), ("31-100", 31, 100), ("101+", 101, 10**6)]
 COSTS = {"retail": {"1-10": 0.0030, "11-30": 0.0035, "31-100": 0.0050, "101+": 0.0075},
          "low": {"1-10": 0.0012, "11-30": 0.0015, "31-100": 0.0022, "101+": 0.0035},
          "robinhood": {"1-10": 0.0095, "11-30": 0.0095, "31-100": 0.0095, "101+": 0.0095}}
 ST, LT = 0.35, 0.20
-TBILL = {2017: 0.93, 2018: 1.94, 2019: 2.06, 2020: 0.36, 2021: 0.05, 2022: 2.02, 2023: 5.07,
-         2024: 4.97, 2025: 4.2, 2026: 3.7}
+from screener.strictness import TBILL  # noqa: E402  (approximate 3-month T-bill, % per year, 1999-2026)
 
 
 def load_crypto(folder=ROOT / "data" / "crypto_binance", min_bars=200):
@@ -78,6 +81,8 @@ def load_crypto(folder=ROOT / "data" / "crypto_binance", min_bars=200):
         jump = (np.log(d.open / d.close.shift(1)).abs() > np.log(1.5)).fillna(False)
         seg = (gap | jump).cumsum().to_numpy()
         base = f.stem[:-4]
+        if base in EXCLUDE:
+            continue
         for k in np.unique(seg):
             part = d[seg == k]
             if len(part) >= min_bars:
@@ -98,9 +103,11 @@ def signal_year(df, green, start, end, cost, late=False):
     idx = range(pos, pos + len(w))
     held_prev = False
     v = 1.0; path = []; trades = 0; expo = 0; lr_s = 0.0; lr_b = 0.0
+    dates = w.index
     for k, i in enumerate(idx):
         want = bool(g[i - lag]) if i - lag >= 0 else False
-        tb = TBILL.get(w.index[k].year, 2.0) / 100 / 365
+        days = 1 if k == 0 else (dates[k] - dates[k - 1]).days      # cash accrues per calendar day
+        tb = (1 + TBILL.get(dates[k].year, 2.0) / 100 / 365) ** days - 1
         if want and held_prev:
             r = c[i] / c[i - 1]
         elif want and not held_prev:
@@ -122,9 +129,8 @@ def signal_year(df, green, start, end, cost, late=False):
     full = (pd.Timestamp(end) - pd.Timestamp(start)).days + 1
     delisted = len(w) < full - 3 and w.index[-1] < pd.Timestamp(end) - pd.Timedelta(days=3)
     if delisted:                                       # cash for the rest of the window
-        rest = full - len(w)
-        tb = TBILL.get(w.index[-1].year, 2.0) / 100 / 365
-        v *= (1 + tb) ** rest
+        rest = (pd.Timestamp(end) - w.index[-1]).days
+        v *= (1 + TBILL.get(w.index[-1].year, 2.0) / 100 / 365) ** rest
     return {"sig": v, "bh": bh, "exposure": exp, "trades": trades, "delisted": delisted,
             "skill": (lr_s - exp * lr_b) / max(yrs, 1e-9) * 100, "days": len(w),
             "path": pd.Series(path, index=w.index)}
@@ -249,6 +255,36 @@ def stock_coin_rows(years=range(2001, 2026), folder=ROOT / "data" / "universe_pi
     return pd.DataFrame(rows)
 
 
+def period_table(baskets, data, years, spy=None):
+    """Signal vs hold by tier over a common set of years, plus BTC/ETH signal and held,
+    and SPY held. Tiers are compared only on years where all of them are populated."""
+    n = len(years); rows = []
+    for tier in [t[0] for t in TIERS]:
+        g = baskets[(baskets.tier == tier) & baskets.year.isin(years)].sort_values("year")
+        if len(g) < n:
+            continue
+        for col, lab in [("sig_mult", "signal"), ("bh_mult", "hold")]:
+            rows.append({"what": f"tier {tier} {lab}", "avg_coins": g.n.mean(),
+                         "pre_tax": (g[col].prod() ** (1 / n) - 1) * 100,
+                         "after_tax": (after_tax_chain(g[col]) ** (1 / n) - 1) * 100,
+                         "worst_year": (g[col].min() - 1) * 100})
+    s0, s1 = f"{years[0]}-01-01", f"{years[-1]}-12-31"
+    for name in ["BTC", "ETH"]:
+        d = data[name]; gr = moneyline(d).green
+        ms = [signal_year(d, gr, f"{y}-01-01", f"{y}-12-31", 0.003)["sig"] for y in years]
+        yr = [d.loc[f"{y}-12-31"].close / d.loc[f"{y}-01-01"].open for y in years]
+        at, pre = hold_after_tax(d, s0, s1)
+        rows += [{"what": f"{name} signal", "avg_coins": 1, "pre_tax": (np.prod(ms) ** (1 / n) - 1) * 100,
+                  "after_tax": (after_tax_chain(ms) ** (1 / n) - 1) * 100, "worst_year": (min(ms) - 1) * 100},
+                 {"what": f"{name} held", "avg_coins": 1, "pre_tax": (pre ** (1 / n) - 1) * 100,
+                  "after_tax": (at ** (1 / n) - 1) * 100, "worst_year": (min(yr) - 1) * 100}]
+    if spy is not None:
+        at, pre = hold_after_tax(spy, s0, s1, cost=0.0003)
+        rows.append({"what": "SPY held", "avg_coins": 1, "pre_tax": (pre ** (1 / n) - 1) * 100,
+                     "after_tax": (at ** (1 / n) - 1) * 100, "worst_year": np.nan})
+    return pd.DataFrame(rows)
+
+
 def main():
     pd.set_option("display.width", 220)
     data = load_crypto()
@@ -275,6 +311,15 @@ def main():
         cst = 0.0003 if name == "SPY" else 0.003
         at, pre = hold_after_tax(s, "2019-01-01", "2025-12-31", cost=cst)
         print(f"{name} held 2019-2025: {(pre ** (1 / 7) - 1) * 100:.1f}%/yr pre-tax, {(at ** (1 / 7) - 1) * 100:.1f}%/yr after tax")
+    retail_b = pd.read_csv(out / "baskets_retail.csv")
+    for yrs in (list(range(2021, 2026)), list(range(2022, 2026))):
+        print(f"\nCommon period {yrs[0]}-{yrs[-1]}, retail costs (tier 101+ holds only 5 coins in 2021; every tier is well populated from 2022):")
+        pt = period_table(retail_b, data, yrs, spy)
+        print(pt.to_string(index=False, float_format=lambda x: f"{x:,.1f}"))
+        pt.to_csv(out / f"period_{yrs[0]}_{yrs[-1]}.csv", index=False)
+    top = retail_coins[retail_coins.year.isin(dev)].assign(gain=lambda x: x.sig - 1).sort_values("gain", ascending=False)
+    print("\nLargest single coin-year signal gains (concentration check):")
+    print(top.head(8)[["year", "tier", "coin", "sig", "bh"]].to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
     print("\nPayoff profile, crypto coin-years 2019-2025 (retail costs):")
     pc = payoff(retail_coins[retail_coins.year.isin(dev)])
     print(pc.to_string(float_format=lambda x: f"{x:,.1f}"))

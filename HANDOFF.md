@@ -364,6 +364,26 @@ Full tables and the pre-registration are in `screener/README.md`.
   - 2026 to date is uninformative: random baskets also beat SPY by ~18 pts.
 - **The average S&P 500 stock** loses about 2.2%/yr of timing skill to the indicator.
 
+### 5.11 Why crypto and not stocks; small coins — `analysis_2026/altcoins.py`
+
+- **Data:** 581 Binance USDT coins 2019-2026, delisted ones included, ranked into volume
+  tiers each year. Results in `analysis_2026/results_altcoins/`.
+- **Mechanism:** the signal beats holding in ~97% of asset-years that fall more than 60%,
+  but only in 22-41% of rising crypto years and 6-23% of rising stock-years.
+  - **Crypto:** 37% of coin-years fell more than 60%.
+  - **S&P stocks:** 1.8% did, and 89% of stock-years sit between −30% and +100%, where the
+    signal lags.
+  - So it is crash insurance plus partial trend capture, and taxes and whipsaw dominate
+    when crashes are rare.
+- **Small coins:** the signal beats holding the same coins in every tier (72/72 variants),
+  but the edge comes from the 2022 and 2025 crash years. There is no consistent size
+  gradient. Small coins lost money even with the signal over 2022-25 (−7.6%/yr after tax).
+  The positive 2019-25 small-coin figure rests on one coin (DENT 2021) and January starts.
+- **Absolute returns:** BTC held vs a signal basket of altcoins depends on the window.
+  - BTC wins after tax for 2022-25 (14.3 vs 5.5 / 11.0 for the top-10 / 11-30 baskets).
+  - January-start windows ending 2022-24 had the large-coin signal baskets 20-60 pts/yr
+    ahead of BTC.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -502,6 +522,10 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   (github.com/…/releases/download/… redirects to release-assets.githubusercontent.com).
   raw.githubusercontent.com, PyPI, S3 and GCS work too.
 - Most api.github.com paths and GitHub search are blocked.
+- Binance's public data archive is reachable through its S3 bucket
+  (`s3-ap-northeast-1.amazonaws.com/data.binance.vision`), though not via
+  data.binance.vision itself. It has daily klines for all spot pairs, delisted ones
+  included.
 - The Robinhood connector's large results land in
   `~/.claude/projects/<session>/tool-results/*.txt`; parse them with `screener/rh_ingest.py`.
 - Commit code and backtest results only; logs and digests go to a private store.
@@ -513,6 +537,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 |---|---|
 | `AGENTIC_TRADING_PLAN.md` | Robinhood + Claude automated-trading design. |
 | `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study (+ `--calibrate`), `strictness.py` basket strictness study vs SPY after tax, `data.py` loaders (CSV, Robinhood JSON, yfinance, qlib, long parquet, S&P membership, `quality_filter`), `rh_ingest.py`. See `screener/README.md` for the holdout, pre-registrations, survivorship and results. |
+| `analysis_2026/altcoins.py`, `analysis_2026/results_altcoins/` | Crypto size-tier study on the Binance archive incl. delisted coins (Q1/Q2 pre-registered), payoff profile crypto vs S&P stocks (section 5.11). Data: `data/crypto_binance/` (gitignored); rebuild from `https://s3-ap-northeast-1.amazonaws.com/data.binance.vision` (`data/spot/monthly/klines/<SYM>/1d/`). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |

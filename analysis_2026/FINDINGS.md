@@ -654,3 +654,68 @@ the fit filter be?").
 - **Calibration slope** 0.143; selection study test skill +2.3 vs −1.9.
 - **Conclusion unchanged and strengthened.** Results are in
   `analysis_2026/results_strictness/pit/`.
+
+
+---
+
+# 2026-10-14 (later) — why the signal beats holding on crypto but not on stocks; does it suit small coins?
+
+**Data and code:**
+
+- Binance's public archive, read through its S3 bucket (reachable from the sandbox): daily
+  klines for 676 USDT pairs including delisted ones.
+- `analysis_2026/altcoins.py` splits files at reused tickers or redenominations (LUNA vs
+  Terra 2.0), leaving 581 coins with ≥ 200 bars.
+- Each year, coins are ranked by 90-day USDT volume into tiers 1-10 / 11-30 / 31-100 / 101+.
+- Each coin is traded on the exact indicator from the next open, at retail costs of
+  0.30-0.75%/side, and compared with holding the same coins. Delisted coins are sold at
+  their last price.
+- Q1/Q2 were pre-registered in commit a915787. A 3-lens adversarial audit (data, accounting,
+  72-variant robustness) reproduced every number to ~1e-14.
+
+**Results:**
+
+- **Payoff profile, the mechanism** (`payoff_crypto.csv`, `payoff_stocks.csv`). The signal
+  beats holding in 97% of asset-years that fell more than 60%, but only in 22-41% of
+  rising crypto years and 6-23% of rising S&P stock-years.
+
+  | | crypto coin-years | S&P 500 stock-years (2001-25) |
+  |---|---|---|
+  | fell more than 60% | 37% | 1.8% |
+  | fell more than 30% | 48% | 9% |
+  | between −30% and +100% | | 89% |
+
+  **The indicator is crash insurance with partial trend capture.** Crypto crashes often;
+  stocks rarely do.
+- **Q1 (edge grows as coins get smaller): NO.** The signal beats holding the same coins in
+  every tier, in every one of 72 variants (2019-25 edges +28 / +47 / +35 / +41 pts/yr).
+  But there is no consistent size gradient, and the edge comes from the two crash years:
+  2022 and 2025 had 79-90% of coin-years down more than 60%. Excluding them, the edge is
+  about zero or negative in 3 of 4 tiers.
+- **Q2 (small-coin signal basket beats large coins and BTC after tax): NO, in effect.**
+  Over 2019-25 it looks positive, but only with January starts and because of one coin:
+  2021's small tier held 5 coins, DENT 50×. Over 2022-25, with every tier full, the small
+  coins lost 7.6%/yr after tax with the signal (negative in 72/72 variants) against −30%/yr
+  held.
+- **2022-25 after tax** (January 2022 start, two months after the cycle top):
+
+  | | signal | held |
+  |---|---|---|
+  | top-10 basket | +5.5 | −12.6 |
+  | 11-30 basket | +11.0 | −24.9 |
+  | BTC | | +14.3 |
+  | SPY | | +9.0 |
+
+  "BTC beat every tier" holds only for windows starting near the 2021 top and only after
+  tax. January-start windows ending 2022-24 had the large-coin signal baskets 20-60 pts/yr
+  ahead of BTC.
+- **Costs barely matter for the sign** (break-even 2-4%/side). Taxes matter for the
+  absolute comparisons.
+
+**Conclusion:**
+
+- The signal's edge comes from sidestepping deep crashes, not from catching more of the
+  upside.
+- Smaller coins don't give a reliably larger edge, and as a group they lost money even with
+  the signal.
+- Whether a crypto signal basket beats simply holding BTC depends on the period.
