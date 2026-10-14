@@ -1007,3 +1007,132 @@ decomposition.
   half the drawdown at about buy & hold's risk-adjusted return. It still earns less than
   buy & hold.
 - **Crypto:** keep the immediate flip (or at most a short exit-only delay).
+
+# 2026-10-14 (latest) — ten strategies chosen for theory, not tested ideas (S1-S10)
+
+`analysis_2026/theory_strategies.py`. S1-S10 were pre-registered in 93bff74
+(`analysis_2026/THEORY_PREREG.md`). Results are in `analysis_2026/results_theory/`
+(`summary.txt`, `verdicts.csv`, `results.json`).
+
+**Why these:** each has an economic or behavioural mechanism and a peer-reviewed record,
+and an individual can run it with ETFs, a few trades a year, or crypto.
+
+**Primary test:** the Sharpe gain over a stated benchmark, using a stationary block
+bootstrap (mean block 250 days, 2,000 draws, one-sided), Holm-adjusted across the ten.
+
+**Pass rule:** Holm p < 0.05, AND the Sharpe gain is positive in the pre-registered later or
+post-publication sub-period, AND both hold after costs.
+
+**Audit:** three lenses (US market, equity, crypto) each rebuilt their strategies
+independently and reproduced every headline number. A confirm stage then re-checked each
+serious claim. Three small fixes were applied:
+
+- annualising by actual rows per year, since the Ken French data have Saturday sessions
+  before 1953
+- S3's signal no longer waits for IEF history, so it is no longer in cash for the first 7
+  months of 2003
+- stock crashes across trading halts are no longer dropped
+
+None changed a verdict.
+
+| | strategy (benchmark) | Sharpe gain | p | Holm | later sub-period | verdict |
+|---|---|---|---|---|---|---|
+| S1 | volatility-managed US market 1927-2026 (B&H) | +0.059 | 0.040 | 0.32 | +0.049 (1976+) | FAIL |
+| S2 | 10-month SMA filter 1927-2026 (B&H) | +0.082 | 0.19 | 1 | +0.014 / +0.063 (2008+) | FAIL |
+| S3 | dual momentum SPY/EFA/IEF 2003-2026 (SPY) | −0.061 | 0.66 | 1 | −0.33 (2015+) | FAIL |
+| S4 | low-vol fifth of point-in-time S&P 500 (equal weight) | +0.054 | 0.24 | 1 | +0.022 (2014+) | FAIL |
+| S5 | 12-1 momentum fifth of S&P 500 (equal weight) | −0.001 | 0.55 | 1 | +0.052 | FAIL |
+| S6 | turn of the month 1927-2026 (B&H) | +0.31 | 0.0035 | 0.032 | −0.09 (1989+), −0.42 (2009+) | FAIL (decayed) |
+| S7 | Halloween Nov-Apr 1927-2026 (B&H) | +0.020 | 0.41 | 1 | −0.13 (2003+) | FAIL |
+| S8 | crypto indicator × vol target (plain indicator) | +0.007 | 0.38 | 1 | −0.004 (2022+) | FAIL |
+| S9 | BTC/ETH cash-and-carry 2019-10..2026-09 (T-bills) | excess +6.5%/yr, NW(20) t 4.59 | 2e-6 | 2e-5 | +0.79%/yr (2023+) | PASS, but see below |
+| S10 | crypto 4-week momentum, top 6 of 30 (equal weight 30) | +0.167 | 0.11 | 0.78 | −0.11 (2023+) | FAIL |
+
+**What each fail means:**
+
+- **S1, S2, S4 (risk reducers):** they cut volatility and drawdown as the literature says,
+  but they do not raise the Sharpe ratio reliably.
+  - Max drawdown: S1 −70 vs −84%, S2 −48 vs −84%, S4 −41 vs −58%.
+  - CAGR is 0.5-1.3 points lower pre-tax (S1 9.8 vs 10.2%, S2 9.5 vs 10.2%, S4 9.4 vs
+    10.7%).
+  - Under the conservative yearly-tax model S1 and S2 trail buy & hold by about 3.5
+    points after tax (S1 6.5 vs 10.0%, S2 6.3 vs 9.9%). That model is a bound for the
+    strategies, not an estimate. S4's benchmark is taxed the same way, so its gap stays
+    0.8.
+  - Every S1 variant (21/63-day volatility, monthly/daily updates, lag 0/1) has raw
+    p ≥ 0.022. Every S2 variant (8/10/12-month, price or total-return index) has
+    p 0.11-0.33. S4 variants land at +0.04 to +0.07, p 0.19-0.31.
+  - S1's average exposure is 0.90, not about 1 as the pre-registration's rationale said,
+    because the cap is 1.
+  - The exploratory S1 with a 1.5 cap: +0.081, p 0.051.
+  - The SPY replications are weaker (S1 +0.037, S2 +0.087, both p ≥ 0.30).
+- **S3 (dual momentum):** its only gain is 2003-2014, from holding bonds Feb 2008 - Nov
+  2009. Every variant and every 2015+ sub-period is negative.
+- **S5 (momentum):** zero. Ken French UMD's Sharpe is only 0.15 over 2001-2026.
+- **S6 (turn of the month): the textbook decay case.** Significant over the full history,
+  but the gain is gone after publication. TOM-day minus other-day return, %/day:
+  - +0.156 (t 7.7) in 1927-88
+  - +0.087 (t 2.2) in 1989-2008
+  - +0.015 (t 0.35) in 2009-26
+
+  2009+ is negative in every window tested (−1..+3, −2..+3, −1..+2, −1..+4, 0..+3), and
+  at zero cost too. The SPY replication over 1995-2026 is −0.14. The pre-registration's
+  wording reads as both −1..+3 and −2..+3; the code uses −1..+3, and the verdict is the
+  same either way.
+- **S7 (Halloween):** −0.09 in 1927-59, +0.27 in 1960-2002, −0.13 in 2003-26. The effect
+  sits in the sample it was published on.
+- **S8:** the vol-targeting overlay barely moves the position. It adds nothing to the
+  crypto trend signal, or to crypto buy & hold.
+- **S10:** the positive full-period point estimate rests on a few weeks, and its sign
+  depends on the lookback. 2023+ is negative; after tax it is −0.3% CAGR with a −98%
+  drawdown.
+
+**S9 cash-and-carry passes the pre-registered rule, but the result is marginal and
+historical, not investable now.**
+
+- **Mechanics:** long spot plus short perpetual, 1.25× capital. 9.8% CAGR, 1.0% vol, max
+  DD −0.7%.
+- **Excess over T-bills by year:**
+
+  | 2019 (Q4) | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 YTD |
+  |---|---|---|---|---|---|---|---|
+  | −3.0% | +17.0 | +26.7 | −0.5 | +0.9 | +4.5 | −0.7 | −2.4 |
+
+  96% of the cumulative excess came from 2020-21.
+- **Since 2023:** +0.79%/yr, NW t 1.2, not significant. It turns negative with 1.5×
+  capital (−0.10) or 3× costs (−0.23).
+- **Since 2025:** −1.40%/yr, NW t −3.4, significantly negative. 2026 gross funding: BTC
+  2.9%/yr and ETH 1.9%/yr, with 26-30% of 8-hour prints negative.
+- **How significant depends on the HAC bandwidth.** Daily excess is persistent:
+  autocorrelation 0.83 at lag 1, 0.43 at 30 days, 0.25 at 90.
+  - Still passes Holm:
+    - every fixed Newey-West lag up to 102 (90 lags: t 2.65)
+    - both automatic bandwidths: Andrews 47 lags, t 3.33; Newey-West 1994, 39 lags, t 3.60
+    - the pre-registration's own stationary bootstrap (block 250): Holm 0.025-0.040
+  - Fails from 103 lags on (180: t 2.16; 365: t 1.76), and on yearly or monthly means
+    (t 1.4-1.7).
+  - The audit lens's "Andrews 493 lags, t 1.64" was a formula error, refuted in the
+    confirm stage.
+- **Margin:** the 25% short margin is liquidated at about +24.5%.
+  - With a daily check and a top-up at +10%: 0 liquidations on BTC and 2 on ETH (both
+    2021). That costs about 0.06%/yr, inside the cost allowance.
+  - With only a monthly reset: 16 BTC and about 32 ETH liquidations, which turns 2023+
+    negative (FAIL).
+  - So the result needs daily, or at least weekly, margin monitoring.
+- **Counterparty risk:** the backtest trades on Binance, an exchange that survived. An
+  expected exchange loss of more than about 0.8%/yr of capital wipes out the 2023+ edge.
+  It does not erase the full-period edge at any plausible failure rate.
+- **Positive-funding-only variant (exploratory):** NW t 4.28 over the full period, but
+  2023+ +0.46%/yr and 2025+ −1.78%/yr.
+
+**Interpretation:** we expected 2-4 passes and got 1, and that one has decayed to about
+zero. The pattern matches the earlier studies:
+
+- Anomalies with a behavioural or calendar story have weakened or vanished since
+  publication (S6, S7).
+- Risk-reduction rules (S1, S2, S4) do what they claim, lower drawdowns, but pay for it
+  in return, and in taxes when held taxably.
+- Structural carry (S9) paid while leveraged-long demand was extreme (2020-21) and has
+  been competed away since.
+
+No candidate is a reason to change the user's core holdings.

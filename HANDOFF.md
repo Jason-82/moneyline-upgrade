@@ -10,9 +10,13 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-14. Added the stock-basket strictness study (section 5.10),
-which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
-2026-10-13.
+**Last updated:** 2026-10-14. Most recent additions:
+
+- the ten theory-driven strategies (section 5.16)
+- a pointer to the other instance's regime-switch study (section 5.17)
+
+Earlier the same day: sections 5.10-5.15, each adversarially audited. The rest was
+reviewed by 41 agents on 2026-10-13.
 
 ---
 
@@ -444,6 +448,53 @@ Full tables and the pre-registration are in `screener/README.md`.
 - **Versus buy & hold:** even delayed, the indicator matches B&H's risk-adjusted return on
   stocks/ETFs at half the drawdown, but with lower CAGR (S&P basket 6.6% vs 10.9%).
 
+### 5.16 Ten theory-driven strategies (S1-S10) — `analysis_2026/theory_strategies.py`
+
+Pre-registered in `analysis_2026/THEORY_PREREG.md`. Each has a published mechanism and suits
+an individual. The test is the Sharpe gain vs a benchmark (block bootstrap, Holm across
+ten) that must also be positive in a later or post-publication sub-period. A three-lens
+audit plus a confirm stage reproduced everything.
+
+- **9 of 10 fail:**
+  - vol-managed equity, 10-month SMA, dual momentum, low-vol stocks
+  - 12-1 momentum, turn of the month, Halloween
+  - crypto trend × vol target, crypto 4-week momentum
+- **Risk reducers (S1, S2, S4)** cut max drawdown (e.g. −48% vs −84% for the 10-month
+  SMA) but do not raise the Sharpe reliably, and cost CAGR, especially after tax.
+- **Turn of the month** is the decay case: highly significant 1927-88, zero since 2009.
+  Halloween is similar.
+- **S9, BTC/ETH cash-and-carry** (long spot, short perpetual), passes the pre-registered
+  rule: 6.5%/yr over T-bills at 1% vol since 2019-10.
+  - 96% of that came in 2020-21. Since 2023: +0.8%/yr, not significant. Since 2025:
+    −1.4%/yr, significantly negative.
+  - Significance holds up to about 100 Newey-West lags and under the pre-registered
+    bootstrap, but not at longer bandwidths.
+  - It needs daily margin top-ups and carries exchange-failure risk.
+  - **Do not trade it at current funding.**
+- **Takeaway:** no candidate beats its benchmark reliably now. That matches every earlier
+  study: published edges decay, and risk reduction costs return.
+
+### 5.17 Regime switching (other instance) — branch `claude/youthful-goldberg-31vs8h`
+
+Another Claude instance ran this study and audited it with a 6-lens verification. It is
+**not merged** into this branch. Its full section (numbered 5.15 there, so renumber on
+merge), FINDINGS entry, `analysis_2026/regime_switch.py` and `results_regime/` live on
+that branch.
+
+- **Why the indicator trails buy & hold on stocks (H-A1 confirmed):** about 81% of
+  bull-phase losses are false breakdowns. The indicator re-enters 2.2-2.6 ATR above the
+  low, while price falls only a median 0.9-1.7 ATR after an exit. Bull phases are 84% of
+  S&P time.
+- **Switching** (hold while the regime is good, indicator while bad) **fails H-B1 to H-B5,**
+  some narrowly.
+  - S&P 1963-2026: 7.9% after tax vs buy & hold 9.8%.
+  - It beats the indicator on every ETF and index, but never on the coins.
+  - No ex-ante regime beats S&P buy & hold after tax. Hindsight regimes would add about
+    4 pts/yr, so the failure is in identifying the regime.
+- **Use:** index money, hold. For drawdown control, a plain 200-day / 50-200 rule or the
+  switch is cheaper insurance than the weekly signal, at about 1-3 pts/yr after tax.
+  Crypto: no regime filter on top of the indicator.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -578,9 +629,12 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
-- Other agents work in parallel on separate branches: `claude/youthful-goldberg-31vs8h`
-  (regime-switch study) and `codex/*` (crypto regime, crypto trend comparison, stock
-  shadow trading). Fetch and rebase before pushing.
+- Other agents work in parallel on separate branches:
+  - `claude/youthful-goldberg-31vs8h`: the regime-switch study. It is audited as of
+    44952ae, not merged, and summarised in section 5.17.
+  - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading.
+
+  Fetch and rebase before pushing.
 - The user runs a Schwab robo-advisor, which already does tax-loss harvesting. Wash-sale
   rules span all of the user's accounts, IRAs included, so any agentic-account plan must
   avoid buying, within 30 days, securities that are substantially identical to ones the
@@ -609,6 +663,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
+| `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |

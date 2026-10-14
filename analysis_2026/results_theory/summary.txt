@@ -1,99 +1,99 @@
 
 [S1] Volatility-managed US market (cap 1.0) vs buy & hold, 1927-2026
-  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(9.365129650752113), 'vol_%': np.float64(13.289946226143154), 'Sharpe': np.float64(0.5134203228825769), 'maxDD_%': -69.727832628251, 'worst_year_%': -34.52838363840386, 'CAGR_after_tax_%': np.float64(6.204980801030513)}
-  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(9.807221740934358), 'vol_%': np.float64(17.132957239451933), 'Sharpe': np.float64(0.4559213452447185), 'maxDD_%': -84.0739947686021, 'worst_year_%': -44.347141200010476, 'CAGR_after_tax_%': np.float64(9.571518293020853)}
-  bootstrap {'dSharpe': 0.057498977637858405, 'ci_lo': -0.0054340695435730795, 'ci_hi': 0.12722862621186307, 'p_one_sided': 0.04}
-  sub-periods {'1976-01-01..end': 0.048794430872120424}
+  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 9.7765, 'vol_%': 13.5658, 'Sharpe': 0.5241, 'maxDD_%': -69.7278, 'worst_year_%': -34.5284, 'CAGR_after_tax_%': 6.4735}
+  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 10.2389, 'vol_%': 17.4885, 'Sharpe': 0.4654, 'maxDD_%': -84.074, 'worst_year_%': -44.3471, 'CAGR_after_tax_%': 9.9924}
+  bootstrap {'dSharpe': 0.0587, 'ci_lo': -0.0055, 'ci_hi': 0.1299, 'p_one_sided': 0.04}
+  sub-periods {'1976-01-01..end': 0.0488}
 
 [S1_cap1.5] Volatility-managed, cap 1.5 (exploratory)
-  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(10.866850763291925), 'vol_%': np.float64(16.072326078517214), 'Sharpe': np.float64(0.5350354534826135), 'maxDD_%': -69.96699264702274, 'worst_year_%': -34.670594898685636, 'CAGR_after_tax_%': np.float64(7.2537417491956635)}
-  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(9.807221740934358), 'vol_%': np.float64(17.132957239451933), 'Sharpe': np.float64(0.4559213452447185), 'maxDD_%': -84.0739947686021, 'worst_year_%': -44.347141200010476, 'CAGR_after_tax_%': np.float64(9.571518293020853)}
-  bootstrap {'dSharpe': 0.07911410823789493, 'ci_lo': -0.016717606501282192, 'ci_hi': 0.17905587902397044, 'p_one_sided': 0.051}
-  sub-periods {'1976-01-01..end': 0.05470069436977737}
+  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 11.3475, 'vol_%': 16.4059, 'Sharpe': 0.5461, 'maxDD_%': -69.967, 'worst_year_%': -34.6706, 'CAGR_after_tax_%': 7.5692}
+  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 10.2389, 'vol_%': 17.4885, 'Sharpe': 0.4654, 'maxDD_%': -84.074, 'worst_year_%': -44.3471, 'CAGR_after_tax_%': 9.9924}
+  bootstrap {'dSharpe': 0.0808, 'ci_lo': -0.0171, 'ci_hi': 0.1828, 'p_one_sided': 0.051}
+  sub-periods {'1976-01-01..end': 0.0547}
 
 [S1_SPY] Volatility-managed SPY 1995-2026 (replication)
-  strategy  {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(9.507357602204202), 'vol_%': np.float64(14.868308986789913), 'Sharpe': np.float64(0.5283122864816909), 'maxDD_%': -43.35675567179397, 'worst_year_%': -21.933032508881723, 'CAGR_after_tax_%': np.float64(6.268608529724551)}
-  benchmark {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(10.431971186788068), 'vol_%': np.float64(19.170244762595335), 'Sharpe': np.float64(0.4917797964626318), 'maxDD_%': -55.18929769515248, 'worst_year_%': -36.79475948904053, 'CAGR_after_tax_%': np.float64(9.674446362021104)}
-  bootstrap {'dSharpe': 0.03653249001905915, 'ci_lo': -0.06505598895835549, 'ci_hi': 0.1396952236279018, 'p_one_sided': 0.297}
-  sub-periods {'2011-01-01..end': 0.02300089278925471}
+  strategy  {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': 9.4941, 'vol_%': 14.8584, 'Sharpe': 0.528, 'maxDD_%': -43.3568, 'worst_year_%': -21.933, 'CAGR_after_tax_%': 6.26}
+  benchmark {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': 10.4174, 'vol_%': 19.1575, 'Sharpe': 0.4915, 'maxDD_%': -55.1893, 'worst_year_%': -36.7948, 'CAGR_after_tax_%': 9.661}
+  bootstrap {'dSharpe': 0.0365, 'ci_lo': -0.065, 'ci_hi': 0.1396, 'p_one_sided': 0.297}
+  sub-periods {'2011-01-01..end': 0.023}
 
 [S2] 10-month SMA trend filter on the US market vs buy & hold, 1927-2026
-  strategy  {'start': '1927-06-01', 'end': '2026-08-31', 'CAGR_%': np.float64(9.099857474175987), 'vol_%': np.float64(12.08478895797561), 'Sharpe': np.float64(0.5318236898275479), 'maxDD_%': -47.50627623648541, 'worst_year_%': -22.035264751965766, 'CAGR_after_tax_%': np.float64(6.031153189598415)}
-  benchmark {'start': '1927-06-01', 'end': '2026-08-31', 'CAGR_%': np.float64(9.736963213193949), 'vol_%': np.float64(17.167043295080695), 'Sharpe': np.float64(0.45149048211337445), 'maxDD_%': -84.0739947686021, 'worst_year_%': -44.347141200010476, 'CAGR_after_tax_%': np.float64(9.500292136097578)}
-  bootstrap {'dSharpe': 0.08033320771417342, 'ci_lo': -0.09517598170784505, 'ci_hi': 0.2614239876188192, 'p_one_sided': 0.1935}
-  sub-periods {'1976-01-01..end': 0.014166363662504467, '2008-01-01..end': 0.06300037286018774}
+  strategy  {'start': '1927-06-01', 'end': '2026-08-31', 'CAGR_%': 9.4926, 'vol_%': 12.3316, 'Sharpe': 0.5427, 'maxDD_%': -47.5063, 'worst_year_%': -22.0353, 'CAGR_after_tax_%': 6.2877}
+  benchmark {'start': '1927-06-01', 'end': '2026-08-31', 'CAGR_%': 10.1585, 'vol_%': 17.5177, 'Sharpe': 0.4607, 'maxDD_%': -84.074, 'worst_year_%': -44.3471, 'CAGR_after_tax_%': 9.9111}
+  bootstrap {'dSharpe': 0.082, 'ci_lo': -0.0971, 'ci_hi': 0.2668, 'p_one_sided': 0.1935}
+  sub-periods {'1976-01-01..end': 0.0142, '2008-01-01..end': 0.0629}
 
 [S2_SPY] 10-month SMA on SPY 1996-2026 (replication)
-  strategy  {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(9.477887607077529), 'vol_%': np.float64(13.108877830889684), 'Sharpe': np.float64(0.5784673090084168), 'maxDD_%': -26.59057888237333, 'worst_year_%': -21.24269775383868, 'CAGR_after_tax_%': np.float64(6.255365688446024)}
-  benchmark {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(10.431971186788068), 'vol_%': np.float64(19.170244762595335), 'Sharpe': np.float64(0.4917797964626318), 'maxDD_%': -55.18929769515248, 'worst_year_%': -36.79475948904053, 'CAGR_after_tax_%': np.float64(9.674446362021104)}
-  bootstrap {'dSharpe': 0.08668751254578504, 'ci_lo': -0.186118959850476, 'ci_hi': 0.35349130626496494, 'p_one_sided': 0.3135}
-  sub-periods {'2008-01-01..end': 0.006904481636749463}
+  strategy  {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': 9.4647, 'vol_%': 13.1001, 'Sharpe': 0.5781, 'maxDD_%': -26.5906, 'worst_year_%': -21.2427, 'CAGR_after_tax_%': 6.2468}
+  benchmark {'start': '1996-01-02', 'end': '2026-09-30', 'CAGR_%': 10.4174, 'vol_%': 19.1575, 'Sharpe': 0.4915, 'maxDD_%': -55.1893, 'worst_year_%': -36.7948, 'CAGR_after_tax_%': 9.661}
+  bootstrap {'dSharpe': 0.0866, 'ci_lo': -0.186, 'ci_hi': 0.3533, 'p_one_sided': 0.3135}
+  sub-periods {'2008-01-01..end': 0.0069}
 
 [S3] Dual momentum (SPY/EFA/IEF) vs SPY, 2003-2026
-  strategy  {'start': '2003-01-02', 'end': '2026-10-12', 'CAGR_%': np.float64(9.176025187596192), 'vol_%': np.float64(15.454602285566232), 'Sharpe': np.float64(0.5366940774183494), 'maxDD_%': -33.71733194643092, 'worst_year_%': -16.582314231120755, 'CAGR_after_tax_%': np.float64(6.031314555346445)}
-  benchmark {'start': '2003-01-02', 'end': '2026-10-12', 'CAGR_%': np.float64(11.612417635154792), 'vol_%': np.float64(18.51422629497651), 'Sharpe': np.float64(0.5951603369054765), 'maxDD_%': -55.18929769515248, 'worst_year_%': -36.79475948904053, 'CAGR_after_tax_%': np.float64(10.653209484881865)}
-  bootstrap {'dSharpe': -0.05846625948712704, 'ci_lo': -0.3876084553941847, 'ci_hi': 0.3229380486554117, 'p_one_sided': 0.6555}
-  sub-periods {'2015-01-01..end': -0.33131395637455785}
+  strategy  {'start': '2003-01-02', 'end': '2026-10-12', 'CAGR_%': 9.1348, 'vol_%': 15.4841, 'Sharpe': 0.5337, 'maxDD_%': -33.7173, 'worst_year_%': -16.5823, 'CAGR_after_tax_%': 6.0041}
+  benchmark {'start': '2003-01-02', 'end': '2026-10-12', 'CAGR_%': 11.5931, 'vol_%': 18.4997, 'Sharpe': 0.5947, 'maxDD_%': -55.1893, 'worst_year_%': -36.7948, 'CAGR_after_tax_%': 10.6356}
+  bootstrap {'dSharpe': -0.061, 'ci_lo': -0.3886, 'ci_hi': 0.3194, 'p_one_sided': 0.661}
+  sub-periods {'2015-01-01..end': -0.331}
 skip members.csv: missing OHLC columns: ['open', 'high', 'low', 'close']
 
 [S4] Low-volatility quintile of point-in-time S&P 500 vs equal weight, 2001-2026
-  strategy  {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(9.395206460278228), 'vol_%': np.float64(14.76290454750828), 'Sharpe': np.float64(0.5609390361022611), 'maxDD_%': -41.075693933787306, 'worst_year_%': -23.549370860748063, 'CAGR_after_tax_%': np.float64(6.180375209991795)}
-  benchmark {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(10.707536131010853), 'vol_%': np.float64(20.71703841133558), 'Sharpe': np.float64(0.5083652061687286), 'maxDD_%': -58.20054658359785, 'worst_year_%': -36.87042632940339, 'CAGR_after_tax_%': np.float64(7.045790199270585)}
-  bootstrap {'dSharpe': 0.052573829933532594, 'ci_lo': -0.09924870793097147, 'ci_hi': 0.22417477536354352, 'p_one_sided': 0.2455}
-  sub-periods {'2014-01-01..end': 0.0202537690435768}
+  strategy  {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': 9.3754, 'vol_%': 14.748, 'Sharpe': 0.5604, 'maxDD_%': -41.0757, 'worst_year_%': -23.5494, 'CAGR_after_tax_%': 6.1675}
+  benchmark {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': 10.651, 'vol_%': 20.6973, 'Sharpe': 0.5064, 'maxDD_%': -58.2005, 'worst_year_%': -36.8704, 'CAGR_after_tax_%': 7.0092}
+  bootstrap {'dSharpe': 0.054, 'ci_lo': -0.0972, 'ci_hi': 0.2252, 'p_one_sided': 0.236}
+  sub-periods {'2014-01-01..end': 0.022}
 
 [S5] 12-1 momentum quintile of point-in-time S&P 500 vs equal weight, 2001-2026
-  strategy  {'start': '2001-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(10.49175565155911), 'vol_%': np.float64(20.631215224787194), 'Sharpe': np.float64(0.5002453376777588), 'maxDD_%': -55.17958322468748, 'worst_year_%': -41.198576912215955, 'CAGR_after_tax_%': np.float64(6.908877618410725)}
-  benchmark {'start': '2001-01-02', 'end': '2026-09-30', 'CAGR_%': np.float64(10.579555764140558), 'vol_%': np.float64(20.713003839497336), 'Sharpe': np.float64(0.502854249105275), 'maxDD_%': -58.44704102812936, 'worst_year_%': -37.202809094944286, 'CAGR_after_tax_%': np.float64(6.963375309190423)}
-  bootstrap {'dSharpe': -0.0026089114275161863, 'ci_lo': -0.1467801782787955, 'ci_hi': 0.13449624022235682, 'p_one_sided': 0.557}
-  sub-periods {'2014-01-01..end': 0.050184454935817}
+  strategy  {'start': '2001-01-02', 'end': '2026-09-30', 'CAGR_%': 10.47, 'vol_%': 20.6108, 'Sharpe': 0.4998, 'maxDD_%': -55.1796, 'worst_year_%': -41.1986, 'CAGR_after_tax_%': 6.8948}
+  benchmark {'start': '2001-01-02', 'end': '2026-09-30', 'CAGR_%': 10.5319, 'vol_%': 20.6928, 'Sharpe': 0.5012, 'maxDD_%': -58.447, 'worst_year_%': -37.2028, 'CAGR_after_tax_%': 6.9326}
+  bootstrap {'dSharpe': -0.0015, 'ci_lo': -0.1455, 'ci_hi': 0.1368, 'p_one_sided': 0.5505}
+  sub-periods {'2014-01-01..end': 0.0519}
 
 [S5_quarterly] 12-1 momentum, quarterly rebalance (exploratory)
-  strategy  {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(9.92170744778964), 'vol_%': np.float64(21.206100349322583), 'Sharpe': np.float64(0.46800076288061937), 'maxDD_%': -55.06853771079877, 'worst_year_%': -41.79595446165318, 'CAGR_after_tax_%': np.float64(6.541615633171594)}
-  benchmark {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(10.707536131010853), 'vol_%': np.float64(20.71703841133558), 'Sharpe': np.float64(0.5083652061687286), 'maxDD_%': -58.20054658359785, 'worst_year_%': -36.87042632940339, 'CAGR_after_tax_%': np.float64(7.045790199270585)}
-  bootstrap {'dSharpe': -0.0403644432881092, 'ci_lo': -0.18569193326504407, 'ci_hi': 0.1004767909571383, 'p_one_sided': 0.745}
-  sub-periods {'2014-01-01..end': 0.032235787346583465}
+  strategy  {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': 9.9007, 'vol_%': 21.1847, 'Sharpe': 0.4675, 'maxDD_%': -55.0685, 'worst_year_%': -41.796, 'CAGR_after_tax_%': 6.528}
+  benchmark {'start': '2001-01-03', 'end': '2026-09-30', 'CAGR_%': 10.651, 'vol_%': 20.6973, 'Sharpe': 0.5064, 'maxDD_%': -58.2005, 'worst_year_%': -36.8704, 'CAGR_after_tax_%': 7.0092}
+  bootstrap {'dSharpe': -0.0388, 'ci_lo': -0.1851, 'ci_hi': 0.1027, 'p_one_sided': 0.739}
+  sub-periods {'2014-01-01..end': 0.034}
 
 [S6] Turn of the month on the US market vs buy & hold, 1927-2026
-  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(8.47936177095383), 'vol_%': np.float64(7.078369721731789), 'Sharpe': np.float64(0.7595095596579047), 'maxDD_%': -23.180930579439128, 'worst_year_%': -13.105087824883165, 'CAGR_after_tax_%': np.float64(5.557041536727403)}
-  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(9.807221740934358), 'vol_%': np.float64(17.132957239451933), 'Sharpe': np.float64(0.4559213452447185), 'maxDD_%': -84.0739947686021, 'worst_year_%': -44.347141200010476, 'CAGR_after_tax_%': np.float64(9.571518293020853)}
-  bootstrap {'dSharpe': 0.3035882144131861, 'ci_lo': 0.10799943893470794, 'ci_hi': 0.5159675351720497, 'p_one_sided': 0.0035}
-  sub-periods {'1989-01-01..end': -0.0911039021592866, '2009-01-01..end': -0.4192456954440482}
+  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 8.8503, 'vol_%': 7.2253, 'Sharpe': 0.7753, 'maxDD_%': -23.1809, 'worst_year_%': -13.1051, 'CAGR_after_tax_%': 5.7967}
+  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 10.2389, 'vol_%': 17.4885, 'Sharpe': 0.4654, 'maxDD_%': -84.074, 'worst_year_%': -44.3471, 'CAGR_after_tax_%': 9.9924}
+  bootstrap {'dSharpe': 0.3099, 'ci_lo': 0.1102, 'ci_hi': 0.5267, 'p_one_sided': 0.0035}
+  sub-periods {'1989-01-01..end': -0.0911, '2009-01-01..end': -0.4189}
 
 [S6_SPY] Turn of the month on SPY 1995-2026 (replication)
-  strategy  {'start': '1995-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(5.3469363847688856), 'vol_%': np.float64(8.050599239280034), 'Sharpe': np.float64(0.3868761109934761), 'maxDD_%': -17.700075671411053, 'worst_year_%': -11.540608614515124, 'CAGR_after_tax_%': np.float64(3.5139506073898152)}
-  benchmark {'start': '1995-01-03', 'end': '2026-09-30', 'CAGR_%': np.float64(11.195441282048325), 'vol_%': np.float64(18.927345211493712), 'Sharpe': np.float64(0.5275625198297766), 'maxDD_%': -55.18929769515255, 'worst_year_%': -36.79475948904053, 'CAGR_after_tax_%': np.float64(10.445509531186769)}
-  bootstrap {'dSharpe': -0.14068640883630057, 'ci_lo': -0.48725721370420816, 'ci_hi': 0.15125764108768902, 'p_one_sided': 0.8145}
-  sub-periods {'2009-01-01..end': -0.42074161413837463}
+  strategy  {'start': '1995-01-03', 'end': '2026-09-30', 'CAGR_%': 5.3404, 'vol_%': 8.0458, 'Sharpe': 0.3866, 'maxDD_%': -17.7001, 'worst_year_%': -11.5406, 'CAGR_after_tax_%': 3.5097}
+  benchmark {'start': '1995-01-03', 'end': '2026-09-30', 'CAGR_%': 11.1815, 'vol_%': 18.9162, 'Sharpe': 0.5273, 'maxDD_%': -55.1893, 'worst_year_%': -36.7948, 'CAGR_after_tax_%': 10.4325}
+  bootstrap {'dSharpe': -0.1406, 'ci_lo': -0.487, 'ci_hi': 0.1512, 'p_one_sided': 0.8145}
+  sub-periods {'2009-01-01..end': -0.4204}
 
 [S7] Halloween (Nov-Apr) on the US market vs buy & hold, 1927-2026
-  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(8.172935336650934), 'vol_%': np.float64(11.600180770643039), 'Sharpe': np.float64(0.4753651794180482), 'maxDD_%': -58.86391229086091, 'worst_year_%': -25.223882559483112, 'CAGR_after_tax_%': np.float64(5.394101250022132)}
-  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': np.float64(9.807221740934358), 'vol_%': np.float64(17.132957239451933), 'Sharpe': np.float64(0.4559213452447185), 'maxDD_%': -84.0739947686021, 'worst_year_%': -44.347141200010476, 'CAGR_after_tax_%': np.float64(9.571518293020853)}
-  bootstrap {'dSharpe': 0.01944383417332968, 'ci_lo': -0.1215480792570406, 'ci_hi': 0.17080653196255052, 'p_one_sided': 0.406}
-  sub-periods {'2003-01-01..end': -0.13124362480014662}
+  strategy  {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 8.5299, 'vol_%': 11.8409, 'Sharpe': 0.4852, 'maxDD_%': -58.8639, 'worst_year_%': -25.2239, 'CAGR_after_tax_%': 5.6266}
+  benchmark {'start': '1927-01-03', 'end': '2026-08-31', 'CAGR_%': 10.2389, 'vol_%': 17.4885, 'Sharpe': 0.4654, 'maxDD_%': -84.074, 'worst_year_%': -44.3471, 'CAGR_after_tax_%': 9.9924}
+  bootstrap {'dSharpe': 0.0198, 'ci_lo': -0.1241, 'ci_hi': 0.1744, 'p_one_sided': 0.406}
+  sub-periods {'2003-01-01..end': -0.1311}
 
 [S8] Crypto indicator + vol targeting vs plain indicator (BTC/ETH 50/50), 2018-2026
-  strategy  {'start': '2018-01-01', 'end': '2026-09-30', 'CAGR_%': np.float64(39.87691150901544), 'vol_%': np.float64(40.109208292492134), 'Sharpe': np.float64(0.9704155250284843), 'maxDD_%': -46.31202569258907, 'worst_year_%': -33.22324145085608, 'CAGR_after_tax_%': np.float64(28.0104356447352)}
-  benchmark {'start': '2018-01-01', 'end': '2026-09-30', 'CAGR_%': np.float64(41.274227252222964), 'vol_%': np.float64(42.39996125391903), 'Sharpe': np.float64(0.9637330181215398), 'maxDD_%': -48.59482134019838, 'worst_year_%': -33.58126405786405, 'CAGR_after_tax_%': np.float64(37.90840904031923)}
-  bootstrap {'dSharpe': 0.006682506906944497, 'ci_lo': -0.05146780328692552, 'ci_hi': 0.0683076516770847, 'p_one_sided': 0.3825}
-  sub-periods {'2022-01-01..end': -0.0035721196597803557}
+  strategy  {'start': '2018-01-01', 'end': '2026-09-30', 'CAGR_%': 39.9238, 'vol_%': 40.1292, 'Sharpe': 0.9709, 'maxDD_%': -46.312, 'worst_year_%': -33.2232, 'CAGR_after_tax_%': 28.042}
+  benchmark {'start': '2018-01-01', 'end': '2026-09-30', 'CAGR_%': 41.323, 'vol_%': 42.4211, 'Sharpe': 0.9642, 'maxDD_%': -48.5948, 'worst_year_%': -33.5813, 'CAGR_after_tax_%': 37.9527}
+  bootstrap {'dSharpe': 0.0067, 'ci_lo': -0.0515, 'ci_hi': 0.0683, 'p_one_sided': 0.3825}
+  sub-periods {'2022-01-01..end': -0.0036}
 
-[S9] {'label': 'Crypto cash-and-carry (long spot, short perp; BTC/ETH), 2019-10..2026-09', 'strategy': {'start': '2019-10-01', 'end': '2026-09-30', 'CAGR_%': np.float64(9.785073045417114), 'vol_%': np.float64(0.9797373100271746), 'Sharpe': np.float64(6.3852724284309685), 'maxDD_%': -0.6772414223531364, 'worst_year_%': -0.23985602559999375, 'CAGR_after_tax_%': np.float64(6.450158109100657)}, 'excess_mean_%/yr': 6.490621324990224, 'NW_t': 4.588655997413735, 'plain_t': 16.900453677169285, 'p_one_sided': 2.230544361325748e-06, 'excess_mean_2023+_%/yr': 0.7916206121256394}
-[S9 positive-only] {'strategy': {'start': '2019-10-01', 'end': '2026-09-30', 'CAGR_%': np.float64(9.365588926932777), 'vol_%': np.float64(0.9988234602727106), 'Sharpe': np.float64(5.905429486812757), 'maxDD_%': -0.742964169710969, 'worst_year_%': 0.5205684987077852, 'CAGR_after_tax_%': np.float64(6.1740197063549385)}, 'NW_t': 4.278256470959188}
+[S9] {'label': 'Crypto cash-and-carry (long spot, short perp; BTC/ETH), 2019-10..2026-09', 'strategy': {'start': '2019-10-01', 'end': '2026-09-30', 'CAGR_%': 9.7961, 'vol_%': 0.9803, 'Sharpe': 6.3887, 'maxDD_%': -0.6772, 'worst_year_%': -0.2399, 'CAGR_after_tax_%': 6.4573}, 'excess_mean_%/yr': 6.4906, 'NW_t': 4.5887, 'plain_t': 16.9005, 'p_one_sided': 0.0, 'excess_mean_2023+_%/yr': 0.7916}
+[S9 positive-only] {'strategy': {'start': '2019-10-01', 'end': '2026-09-30', 'CAGR_%': 9.3761, 'vol_%': 0.9994, 'Sharpe': 5.9086, 'maxDD_%': -0.743, 'worst_year_%': 0.5206, 'CAGR_after_tax_%': 6.1809}, 'NW_t': 4.2783}
 
 [S10] Crypto 4-week momentum, top 6 of 30 vs equal-weight 30, 2019-2026
-  strategy  {'start': '2019-01-07', 'end': '2026-09-30', 'CAGR_%': np.float64(9.991576882721054), 'vol_%': np.float64(97.40224927078324), 'Sharpe': np.float64(0.5646388848869183), 'maxDD_%': -97.65434080040423, 'worst_year_%': -86.29856628577161, 'CAGR_after_tax_%': np.float64(-0.27512714675486105)}
-  benchmark {'start': '2019-01-07', 'end': '2026-09-30', 'CAGR_%': np.float64(-0.30888503349999485), 'vol_%': np.float64(84.19354276594817), 'Sharpe': np.float64(0.39756469370796715), 'maxDD_%': -95.70898620963936, 'worst_year_%': -85.68796327782523, 'CAGR_after_tax_%': np.float64(-7.075197486954887)}
-  bootstrap {'dSharpe': 0.1670741911789511, 'ci_lo': -0.09805287037241743, 'ci_hi': 0.42538753319423844, 'p_one_sided': 0.112}
-  sub-periods {'2023-01-01..end': -0.10966747159850858}
+  strategy  {'start': '2019-01-07', 'end': '2026-09-30', 'CAGR_%': 10.0025, 'vol_%': 97.4529, 'Sharpe': 0.5649, 'maxDD_%': -97.6543, 'worst_year_%': -86.2986, 'CAGR_after_tax_%': -0.2754}
+  benchmark {'start': '2019-01-07', 'end': '2026-09-30', 'CAGR_%': -0.3092, 'vol_%': 84.2373, 'Sharpe': 0.3978, 'maxDD_%': -95.709, 'worst_year_%': -85.688, 'CAGR_after_tax_%': -7.0823}
+  bootstrap {'dSharpe': 0.1672, 'ci_lo': -0.0981, 'ci_hi': 0.4256, 'p_one_sided': 0.112}
+  sub-periods {'2023-01-01..end': -0.1097}
 
 PRE-REGISTERED VERDICTS (Holm across ten):
 strategy  p_one_sided  p_holm  subperiod_positive  PASS
       S1       0.0400  0.3200                True False
       S2       0.1935  1.0000                True False
-      S3       0.6555  1.0000               False False
-      S4       0.2455  1.0000                True False
-      S5       0.5570  1.0000                True False
+      S3       0.6610  1.0000               False False
+      S4       0.2360  1.0000                True False
+      S5       0.5505  1.0000                True False
       S6       0.0035  0.0315               False False
       S7       0.4060  1.0000               False False
       S8       0.3825  1.0000               False False

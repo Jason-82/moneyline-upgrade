@@ -75,8 +75,16 @@ def run_calendar(w_eff, r, rf, cost):
     return w_eff * r + (1 - w_eff) * rf - cost * turn
 
 
+def periods_per_year(index):
+    """Actual bars per calendar year (Ken French data has Saturday sessions before 1953,
+    so a fixed 252 would understate annualised figures - audit fix)."""
+    yrs = (index[-1] - index[0]).days / 365.25
+    return len(index) / yrs if yrs > 0 else 252
+
+
 def metrics(r, rf, ppy=252, active=True):
     r = r.dropna(); rf = rf.reindex(r.index).fillna(0)
+    ppy = periods_per_year(r.index)
     eq = (1 + r).cumprod(); yrs = len(r) / ppy
     ex = r - rf
     out = {"start": str(r.index[0].date()), "end": str(r.index[-1].date()),
@@ -95,6 +103,12 @@ def metrics(r, rf, ppy=252, active=True):
     return out
 
 
+def fmt(d):
+    """Dict for the printed summary, floats rounded (np.float64 reprs are noisy)."""
+    return {k: (fmt(v) if isinstance(v, dict) else round(float(v), 4) if isinstance(v, (float, np.floating)) else v)
+            for k, v in d.items()}
+
+
 def sharpe(x, rf):
     e = x - rf
     return e.mean() / e.std()
@@ -104,6 +118,7 @@ def boot_sharpe_diff(rs, rb, rf, ppy=252, block=250, n=2000, seed=0):
     """Stationary block bootstrap of the annualised Sharpe gain (strategy - benchmark).
     One-sided p = share of draws with gain <= 0."""
     j = pd.concat([rs, rb, rf], axis=1, sort=True).dropna()
+    ppy = periods_per_year(j.index)
     a, b, f = (j.iloc[:, k].to_numpy() for k in range(3))
     T = len(a); rng = np.random.default_rng(seed)
     obs = (sharpe(pd.Series(a), pd.Series(f)) - sharpe(pd.Series(b), pd.Series(f))) * np.sqrt(ppy)
@@ -127,6 +142,7 @@ def boot_sharpe_diff(rs, rb, rf, ppy=252, block=250, n=2000, seed=0):
 
 def sub_dsharpe(rs, rb, rf, start, end=None, ppy=252):
     x = pd.concat([rs, rb, rf], axis=1, sort=True).dropna().loc[start:end]
+    ppy = periods_per_year(x.index)
     return float((sharpe(x.iloc[:, 0], x.iloc[:, 2]) - sharpe(x.iloc[:, 1], x.iloc[:, 2])) * np.sqrt(ppy))
 
 
@@ -167,8 +183,11 @@ def s2_trend_sma(r, rf, cost=0.0002, lag=1, months=10):
 
 
 def s3_dual_momentum(cost=0.0002, lag=1):
-    px = pd.DataFrame({k: etf(k).close for k in ("SPY", "EFA", "IEF")}).dropna()
-    r = px.pct_change().fillna(0); rf = rf_for(px.index)
+    # signals need only SPY and EFA history; IEF only has to exist to be held (audit fix:
+    # the first version waited for 12 months of IEF and sat in cash until Aug 2003)
+    px = pd.DataFrame({k: etf(k).close for k in ("SPY", "EFA", "IEF")})
+    px = px[px[["SPY", "EFA"]].notna().all(axis=1)]
+    r = px.pct_change(fill_method=None).fillna(0); rf = rf_for(px.index)
     me = month_end_mask(px.index)
     rf_idx = (1 + rf).cumprod()
     W = pd.DataFrame(np.nan, index=px.index, columns=px.columns)
@@ -179,7 +198,7 @@ def s3_dual_momentum(cost=0.0002, lag=1):
         if len(back) == 0:
             continue
         b = back[-1]
-        r12 = px.loc[d] / px.loc[b] - 1
+        r12 = px.loc[d, ["SPY", "EFA"]] / px.loc[b, ["SPY", "EFA"]] - 1
         rf12 = rf_idx.loc[d] / rf_idx.loc[b] - 1
         w = pd.Series(0.0, index=px.columns)
         if r12["SPY"] > rf12:
@@ -201,7 +220,11 @@ def load_sp_universe():
     mem["symbol"] = mem.symbol.str.upper()
     close = pd.DataFrame({k: v.close for k, v in sp.items() if k != "SPY"}).sort_index()
     close = close.loc["1999-01-01":"2026-09-30"]
-    return close.pct_change(fill_method=None), mem
+    # returns across trading halts are kept (audit fix: SIVB/SBNY 2023, HealthSouth 2003):
+    # compare with the last available close; days without a print stay NaN
+    rets = close.ffill().pct_change(fill_method=None)
+    rets[close.isna()] = np.nan
+    return rets, mem
 
 
 def xs_portfolio(rets, mem, score_fn, pick, freq, cost=0.0003, lag=1, start="2001-01-01"):
@@ -383,7 +406,7 @@ def main():
         bt = boot_sharpe_diff(rs, rb, rf, ppy)
         sub = {f"{a}..{b or 'end'}": sub_dsharpe(rs, rb, rf, a, b, ppy) for a, b in subs}
         results[key] = {"label": label, "strategy": ms, "benchmark": mb, "bootstrap": bt, "sub_dSharpe": sub, **(extra or {})}
-        print(f"\n[{key}] {label}\n  strategy  {ms}\n  benchmark {mb}\n  bootstrap {bt}\n  sub-periods {sub}")
+        print(f"\n[{key}] {label}\n  strategy  {fmt(ms)}\n  benchmark {fmt(mb)}\n  bootstrap {fmt(bt)}\n  sub-periods {fmt(sub)}")
         return bt["p_one_sided"], sub
 
     # S1
@@ -438,11 +461,11 @@ def main():
     results["S9"] = {"label": "Crypto cash-and-carry (long spot, short perp; BTC/ETH), 2019-10..2026-09", "strategy": m9,
                      "excess_mean_%/yr": float(ex.mean() * 365 * 100), "NW_t": t9, "plain_t": tplain, "p_one_sided": p9,
                      "excess_mean_2023+_%/yr": late * 365 * 100}
-    print(f"\n[S9] {results['S9']}")
+    print(f"\n[S9] {fmt(results['S9'])}")
     primary.append(("S9", p9, late > 0))
     r9b, _ = s9_funding_carry(positive_only=True)
     results["S9_positive_only"] = {"strategy": metrics(r9b, rf9, 365), "NW_t": nw_t((r9b - rf9).to_numpy())}
-    print("[S9 positive-only]", results["S9_positive_only"])
+    print("[S9 positive-only]", fmt(results["S9_positive_only"]))
     # S10
     rs, rb, rf10 = s10_crypto_xs_momentum()
     p, sub = record("S10", "Crypto 4-week momentum, top 6 of 30 vs equal-weight 30, 2019-2026", rs, rb, rf10, 365, [("2023-01-01", None)], bench_active=True)
