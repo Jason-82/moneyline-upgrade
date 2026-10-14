@@ -4,3 +4,4 @@ __pycache__/
 data/universe/
 data/universe_*/
 private/
+data/crypto_binance/
