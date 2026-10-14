@@ -1,0 +1,8 @@
+-r requirements.txt
+# Numerical versions used for the frozen theory study; other versions may alter hashes.
+numpy==2.3.5
+pandas==2.2.3
+pyarrow==26.0.0
+# Read-only public acquisition and complete-session audit.
+requests>=2.31,<3
+exchange_calendars>=4.11,<5

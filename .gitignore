@@ -9,3 +9,9 @@ data/etf/
 data/ff/
 data/crypto_4h/
 data/crypto_funding/
+
+# The complete monthly export is tracked as a lossless transport gzip.
+analysis_2026/results_theory_lab/monthly_paths.csv
+analysis_2026/results_theory_lab/monthly_paths.csv.gz
+analysis_2026/results_theory_lab/stock_calendar_years.csv
+analysis_2026/results_theory_lab/stock_monthly_primary.csv

@@ -1,0 +1,76 @@
+{
+  "scope": "Transport packaging only; no rows, values, strategies or tests changed",
+  "gzip_filename": "monthly_paths.csv.gz",
+  "uncompressed_filename": "monthly_paths.csv",
+  "uncompressed_bytes": 2748909,
+  "compressed_bytes": 515571,
+  "uncompressed_sha256": "ebc6cca817b4150a7cf138b1b002a1a79e816dbee75a8e85e4b935313c6c5857",
+  "compressed_sha256": "01120c83517c8f907e78fffcbb574317f636bdbede838d08724c74b65d0350d3",
+  "exact_decompression_passed": true,
+  "restore_command": "python3 -m analysis_2026.theory_lab.restore_exports",
+  "note": "Concatenate ordered gzip parts; uncompressed SHA is identical to original run receipt. Packaging only.",
+  "parts": [
+    {
+      "path": "monthly_paths_parts/part000.gzbin",
+      "bytes": 98304,
+      "sha256": "a2958619b96a0c4e26b3319e593e9a8b753ebea40fd48f153b39f3846bf91e06"
+    },
+    {
+      "path": "monthly_paths_parts/part001.gzbin",
+      "bytes": 98304,
+      "sha256": "0953207eaee7ed262a6ded77040adfc7e8292fce1bfaaee09a3a4219193f4e8f"
+    },
+    {
+      "path": "monthly_paths_parts/part002.gzbin",
+      "bytes": 98304,
+      "sha256": "7a45277905e1b9a70c17fc8d2d922fe96f9be5110fc44cf1de4269a960c5f6cf"
+    },
+    {
+      "path": "monthly_paths_parts/part003.gzbin",
+      "bytes": 98304,
+      "sha256": "818ddf85443e616b493270327aa1157f0df5caf2d49cb91a9865e87dc863c8ea"
+    },
+    {
+      "path": "monthly_paths_parts/part004.gzbin",
+      "bytes": 98304,
+      "sha256": "0a41e88b577dbca220776b55564ffa170e2e70a74f47d3f4511c3c96a797d493"
+    },
+    {
+      "path": "monthly_paths_parts/part005.gzbin",
+      "bytes": 24051,
+      "sha256": "1a0a796fb94d22cc152ee1e658e1973528458008df813e7da0eb1cc991214665"
+    }
+  ],
+  "additional_exports": [
+    {
+      "uncompressed_filename": "stock_calendar_years.csv",
+      "uncompressed_bytes": 424760,
+      "compressed_bytes": 42747,
+      "uncompressed_sha256": "61f5170669efea8e1314b36be87991a9e8db28dab0aff9cc0f7347b5f6158d17",
+      "compressed_sha256": "c1f5103ad317dfa6a29ce3f25bab0a9d8f562c660ca5f675757b57d31dc2cbf1",
+      "exact_decompression_passed": true,
+      "parts": [
+        {
+          "path": "stock_calendar_years_parts/part000.gzbin",
+          "bytes": 42747,
+          "sha256": "c1f5103ad317dfa6a29ce3f25bab0a9d8f562c660ca5f675757b57d31dc2cbf1"
+        }
+      ]
+    },
+    {
+      "uncompressed_filename": "stock_monthly_primary.csv",
+      "uncompressed_bytes": 287126,
+      "compressed_bytes": 42844,
+      "uncompressed_sha256": "094e91b4eb702d055ff6ad33332a44d2e5802a4573e5e55876712a84b1003421",
+      "compressed_sha256": "3f4e31a685bf12cc2540ce0f82e13f42dca4a6987460ef81814f6e64ce710dbc",
+      "exact_decompression_passed": true,
+      "parts": [
+        {
+          "path": "stock_monthly_primary_parts/part000.gzbin",
+          "bytes": 42844,
+          "sha256": "3f4e31a685bf12cc2540ce0f82e13f42dca4a6987460ef81814f6e64ce710dbc"
+        }
+      ]
+    }
+  ]
+}
