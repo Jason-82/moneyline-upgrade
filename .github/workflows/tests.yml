@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - codex/stock-research-and-shadow
+      - codex/crypto-trend-comparison
 
 permissions:
   contents: read

@@ -1,0 +1,219 @@
+{
+  "status": "RESEARCH_ONLY",
+  "deployment_blocked": true,
+  "qualified_candidates": [],
+  "experiment": {
+    "attribution_cost_bps": 10.0,
+    "benchmark_quote_assumption": "USDT_equals_USD_depeg_risk_not_modelled",
+    "candidates": [
+      "moneyline",
+      "confirm2",
+      "breakout20",
+      "wider_exit3",
+      "donchianensemble_fixed",
+      "donchianensemble_vol25"
+    ],
+    "cash_daily_return": 0.0,
+    "cost_95bps_role": "routing_sensitivity_proxy_not_verified_future_fee",
+    "costs_bps_per_side": [
+      0,
+      10,
+      50,
+      95
+    ],
+    "diagnostic_symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT"
+    ],
+    "execution": "next_utc_daily_open",
+    "family_selection": "report_all_no_qualified_winner",
+    "formation_frequency": "fixed_three_year_baskets",
+    "groups": [
+      "liquid_top20",
+      "liquidity_next20"
+    ],
+    "historical_validation_is_independent_holdout": false,
+    "initial_capital": 100000.0,
+    "leverage_cap": 1.0,
+    "liquidity_days": 30,
+    "long_term_tax_rate": 0.2,
+    "min_listing_days": 365,
+    "min_median_quote_volume": 2000000.0,
+    "min_warmup_bars": 360,
+    "run_illustrative_tax": true,
+    "sample_status": "historically_informed_not_globally_untouched",
+    "schema_version": 1,
+    "short_term_tax_rate": 0.35,
+    "slot_capacity": 20,
+    "spy_cost_bps_per_side": 3.0,
+    "tax_policy": "pretax_only",
+    "volatility_days": 90,
+    "volatility_rebalance_relative_threshold": 0.2,
+    "volatility_standard_deviation": "sample_simple_returns_sqrt365",
+    "volatility_target": 0.25,
+    "windows": [
+      {
+        "end": "2022-12-31",
+        "formation_date": "2019-12-31",
+        "name": "development",
+        "start": "2020-01-01"
+      },
+      {
+        "end": "2025-12-31",
+        "formation_date": "2022-12-31",
+        "name": "later_historical_validation",
+        "start": "2023-01-01"
+      }
+    ]
+  },
+  "formations": [
+    {
+      "count": 10,
+      "fixed_cash_slots": 10,
+      "formation_date": "2019-12-31",
+      "group": "liquid_top20",
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "BNBUSDT",
+        "TRXUSDT",
+        "XRPUSDT",
+        "EOSUSDT",
+        "LTCUSDT",
+        "VETUSDT",
+        "ETCUSDT",
+        "ADAUSDT"
+      ],
+      "window": "development"
+    },
+    {
+      "count": 0,
+      "fixed_cash_slots": 20,
+      "formation_date": "2019-12-31",
+      "group": "liquidity_next20",
+      "symbols": [],
+      "window": "development"
+    },
+    {
+      "count": 20,
+      "fixed_cash_slots": 0,
+      "formation_date": "2022-12-31",
+      "group": "liquid_top20",
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "XRPUSDT",
+        "DOGEUSDT",
+        "BNBUSDT",
+        "LTCUSDT",
+        "MATICUSDT",
+        "SOLUSDT",
+        "LINKUSDT",
+        "ADAUSDT",
+        "TWTUSDT",
+        "TRXUSDT",
+        "CHZUSDT",
+        "SHIBUSDT",
+        "MASKUSDT",
+        "DOTUSDT",
+        "FTMUSDT",
+        "ATOMUSDT",
+        "FILUSDT",
+        "SANDUSDT"
+      ],
+      "window": "later_historical_validation"
+    },
+    {
+      "count": 20,
+      "fixed_cash_slots": 0,
+      "formation_date": "2022-12-31",
+      "group": "liquidity_next20",
+      "symbols": [
+        "AVAXUSDT",
+        "NEARUSDT",
+        "XMRUSDT",
+        "DYDXUSDT",
+        "ETCUSDT",
+        "AXSUSDT",
+        "ALGOUSDT",
+        "GALAUSDT",
+        "UNIUSDT",
+        "SUSHIUSDT",
+        "WAVESUSDT",
+        "EOSUSDT",
+        "JASMYUSDT",
+        "PEOPLEUSDT",
+        "CRVUSDT",
+        "FETUSDT",
+        "AAVEUSDT",
+        "DASHUSDT",
+        "QNTUSDT",
+        "LUNAUSDT"
+      ],
+      "window": "later_historical_validation"
+    }
+  ],
+  "sample_status": "historically_informed_not_globally_untouched",
+  "independent_holdout": false,
+  "comparison_rows": 519,
+  "identified_rows": 267,
+  "unidentified_rows": 252,
+  "blocking_flags": [
+    "venue_only_historical_universe_not_global_market_cap",
+    "historically_informed_sample_not_independent_holdout",
+    "USDT_USD_depeg_and_counterparty_risk_not_modelled",
+    "generic_cost_scenarios_not_verified_executable_broker_quotes",
+    "no_actual_taxpayer_tax_approval"
+  ],
+  "tax_assumption": "Primary pretax; optional stocklike FIFO illustrative sensitivity, not actual crypto tax law or personal liability",
+  "paper_adaptations": [
+    "cash-only cap 100% versus paper 200% cap",
+    "next UTC daily open",
+    "fixed three-year baskets versus paper monthly liquidity formation",
+    "sample simple return SD sqrt365 and relative 20% volatility rebalance threshold"
+  ],
+  "metric_policy": "Missing selected economic outcomes retain full candidate rows with null metrics; no stale fills or shortened horizons",
+  "trade_statistics_definition": "Completed entry FIFO lots including fees, not independent signal episodes; volatility additions create additional lots",
+  "schema_version": 1,
+  "generated_at_utc": "2026-10-14",
+  "report_sha256": "4338d8a37d996764e5a66b7c2077616aa0680babfcd6a3366834e95c461a6076",
+  "report_file_sha256": "36d63edd750cc4269b251bf8bac130fbbc529cb85c4bd4021f3c66518a9eb0b2",
+  "frozen_sha256": "1a1479ecb944f033d3afb76ed9f689b0dc3ce889bfede120f067bae8da6a0c5a",
+  "dataset_sha256": "8b1a39606343d59db92f7d992c1720ab70abd9da84b2c12d2a62b413c1a6091a",
+  "implementation_sha256": "40718e6ab84d209548f7262978b81e320ace8c6a2b31079b83ce3b78d16c409e",
+  "input_manifest_file_sha256": "2755f7aa66b98b0a07950988fb17715c1e449b52caa2dad4d48bb9981d4ca010",
+  "coverage": {
+    "historical_catalog_symbols": 757,
+    "normalized_price_files": 41,
+    "accepted_full_day_bars": 89020,
+    "dated_memberships": 50,
+    "source_receipts": 1032,
+    "known_truncated_symbols": [
+      "EOSUSDT",
+      "FTMUSDT",
+      "MATICUSDT",
+      "WAVESUSDT",
+      "XMRUSDT"
+    ],
+    "known_LUNA_gap_days": 18
+  },
+  "verification": {
+    "tests_passed": 265,
+    "compileall_passed": true,
+    "pretax_results_exactly_unchanged_by_accounting_fixes": true,
+    "unresolved_implementation_errors": 0,
+    "real_account_accessed": false,
+    "broker_orders_placed": 0
+  },
+  "source_documents": [
+    "https://github.com/binance/binance-public-data",
+    "https://developers.binance.com/en/docs/products/spot/faqs/market_data_only",
+    "https://concretumgroup.com/wp-content/uploads/2026/02/Catching-Crypto-Trends.pdf"
+  ],
+  "output_files_sha256": {
+    "crypto_coin_comparisons.csv": "69de3f0f689833434dce4f67515fc4838cb446a2eb05e690158f5c5cf522564c",
+    "crypto_comparison_summary.csv": "e3e996fc6d1518beba86da96e5aebcc6fecc4445df7fb4903d5aca76cd3f6314",
+    "crypto_paired_variants.csv": "4aa88a1b6aaec2cea51fcda805bdd7a30a3f04dd2646a932bb6a5b8ec906d350"
+  }
+}

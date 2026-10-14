@@ -127,8 +127,19 @@ class TaxLedger:
     a tax payment or a position sale. Calls must arrive chronologically.
     """
 
-    def __init__(self, rates: TaxRates = TaxRates()):
+    def __init__(self, rates: TaxRates = TaxRates(), *, canonical_quantities: bool = False):
+        """Optionally make FIFO lots the authoritative fractional quantity.
+
+        ``canonical_quantities`` is for the crypto research integration, where
+        low prices can produce billions of units and repeated partial trades.
+        It sums lots accurately, requires caller quantities never exceed that
+        exact represented position, and consumes all lots on an exact full
+        liquidation. Stock callers retain the existing default behavior.
+        """
+        if not isinstance(canonical_quantities, bool):
+            raise ValueError("canonical_quantities must be boolean")
         self.rates = rates
+        self.canonical_quantities = canonical_quantities
         self.lots: dict[str, list[TaxLot]] = {}
         self.transactions: list[dict] = []
         self.settlements: list[TaxSettlement] = []
@@ -157,7 +168,8 @@ class TaxLedger:
         return lot
 
     def position(self, security_id: str) -> float:
-        return sum(lot.shares for lot in self.lots.get(str(security_id), []))
+        quantities = [lot.shares for lot in self.lots.get(str(security_id), [])]
+        return math.fsum(quantities) if self.canonical_quantities else sum(quantities)
 
     @staticmethod
     def _refresh(record: dict):
@@ -236,8 +248,10 @@ class TaxLedger:
         shares = _amount(shares, "shares", positive=True)
         total_proceeds = _amount(total_proceeds, "total_proceeds")
         security_id = str(security_id)
-        if shares > self.position(security_id) + _EPS:
+        position = self.position(security_id)
+        if shares > position + (0.0 if self.canonical_quantities else _EPS):
             raise ValueError(f"sale exceeds position in {security_id}")
+        full_liquidation = self.canonical_quantities and shares == position
         date = self._advance(date)
         record = {"type": "sell", "date": date, "security_id": security_id,
                   "shares": shares, "total_proceeds": total_proceeds,
@@ -246,12 +260,21 @@ class TaxLedger:
         remaining = shares
         losses = []
         entries = self.lots.get(security_id, [])
-        for lot in list(entries):
-            if remaining <= _EPS:
+        available = list(entries)
+        assigned_proceeds = 0.0
+        for i, lot in enumerate(available):
+            if remaining <= _EPS and not full_liquidation:
                 break
-            quantity = min(lot.shares, remaining)
-            basis = lot.total_cost * quantity / lot.shares
-            gain = total_proceeds * quantity / shares - basis
+            quantity = lot.shares if full_liquidation else min(lot.shares, remaining)
+            basis = lot.total_cost if full_liquidation else lot.total_cost * quantity / lot.shares
+            # An exact full sale closes every lot even if subtracting many
+            # quantities leaves a floating residue. Assign its last proceeds
+            # fragment by remainder so actual sale cash is conserved exactly.
+            proceeds = (total_proceeds - assigned_proceeds
+                        if full_liquidation and i == len(available) - 1
+                        else total_proceeds * quantity / shares)
+            assigned_proceeds += proceeds
+            gain = proceeds - basis
             holding_days = int((date - lot.acquired).days) + lot.holding_credit_days
             realization = _Realization(date, security_id, quantity, gain, gain,
                                        lot.is_long_term(date), holding_days, record)

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "windows": [
+    {
+      "formation_date": "2019-12-31",
+      "start": "2020-01-01",
+      "end": "2022-12-31"
+    },
+    {
+      "formation_date": "2022-12-31",
+      "start": "2023-01-01",
+      "end": "2025-12-31"
+    }
+  ],
+  "groups": ["liquid_top20", "liquidity_next20"],
+  "candidates": [
+    "moneyline",
+    "confirm2",
+    "breakout20",
+    "wider_exit3",
+    "donchianensemble_fixed",
+    "donchianensemble_vol25"
+  ],
+  "costs_bps_per_side": [0, 10, 50, 95],
+  "initial_capital": 100000.0,
+  "slot_capacity": 20,
+  "min_warmup_bars": 360,
+  "cash_daily_return": 0.0,
+  "max_exposure": 1.0,
+  "volatility_target": 0.25,
+  "volatility_lookback": 90,
+  "volatility_rebalance_threshold": 0.20,
+  "short_term_tax_rate": 0.35,
+  "long_term_tax_rate": 0.20,
+  "run_illustrative_tax": true,
+  "spy_cost_bps_per_side": 3.0,
+  "diagnostic_symbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "historical_validation_is_independent_holdout": false
+}

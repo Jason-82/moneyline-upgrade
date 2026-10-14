@@ -1,4 +1,4 @@
-# Moneyline stock research and shadow trading
+# Moneyline trend research and shadow trading
 
 The active implementation tests one fixed daily strategy: the exact replicated
 ATR(10) × 2 reset-on-flip indicator, long while green and cash while red, with
@@ -19,6 +19,10 @@ identities or terminal proceeds cannot silently produce an approved whitelist.
   reconciliation and enforcement commands.
 - [Implementation results](docs/IMPLEMENTATION_RESULTS.md): checks and remaining
   requirements from this implementation.
+- [Crypto signal comparison](docs/CRYPTO_EXPERIMENT.md): six fixed entry, exit and
+  Donchian candidates, causal historical liquidity baskets and matched benchmarks.
+- [Crypto results](docs/CRYPTO_RESULTS.md): actual comparisons and the hypotheses
+  worth advancing to prospective testing.
 
 ## Install and verify
 
@@ -76,6 +80,7 @@ evaluation; see the implementation results for this disclosure.
 | `screener/` | Hardened CSV/Robinhood ingestion and freshness checks; legacy research entry points route to corrected code |
 | `scripts/acquire_research_data.py` | Pinned development-only import and normalized licensed-input audit |
 | `config/` | Declared experiment and empty-whitelist shadow defaults |
+| `crypto_research/` | Research-only crypto signal variants, fractional cash-slot portfolios, passive SPY benchmark and frozen comparison CLI |
 
 ## Archived legacy documentation
 
