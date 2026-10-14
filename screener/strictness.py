@@ -52,7 +52,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from analysis_2026.moneyline_ref import moneyline  # noqa: E402
-from screener.data import from_csv_folder  # noqa: E402
+from screener.data import from_csv_folder, quality_filter  # noqa: E402
 from screener.selection import daily_returns, window_metrics, splits, synthetic, HOLDOUT_START  # noqa: E402
 
 COST = 0.0003
@@ -121,9 +121,11 @@ def _settle(gst, glt, carry, st, lt):
     return tax, (min(nst, 0.0), min(nlt, 0.0))
 
 
-def simulate_basket(P: Panel, picks, start, end, park="cash", tax=True, carry=(0.0, 0.0), per_slot=False):
+def simulate_basket(P: Panel, picks, start, end, park="cash", tax=True, carry=(0.0, 0.0), per_slot=False,
+                    always_in=False):
     """Equal-weight basket of signal slots over [start, end]. Returns a dict with the
-    final multiple, daily value path, exposure, trades and the loss carry left over."""
+    final multiple, daily value path, exposure, trades and the loss carry left over.
+    always_in=True ignores the signal: equal-weight buy & hold of the same stocks."""
     a, b = P.idx(start, end)
     a = max(a, 1)                             # need the previous close
     n = len(picks)
@@ -142,7 +144,7 @@ def simulate_basket(P: Panel, picks, start, end, park="cash", tax=True, carry=(0
     path = np.empty(b - a + 1); expo = 0; trades = 0
     for k in range(1, b - a + 2):
         d = cal[k]
-        want = G[:, k - 1] & A[:, k]          # green at the previous close and still listed
+        want = (A[:, k - 1] if always_in else G[:, k - 1]) & A[:, k]   # green at the previous close, still listed
         new = want.astype(int)
         # ---- sales at the open
         sell_stock = (state == 1) & (new == 0)
@@ -267,8 +269,8 @@ def pick(scores: pd.Series, level: str) -> list:
     raise ValueError(level)
 
 
-def eligible_at(series, members, fs, fe, ts, te, min_trades):
-    pool = list(series)
+def eligible_at(series, test_series, members, fs, fe, ts, te, min_trades):
+    pool = [s for s in series if s in test_series]
     if members is not None:                        # index membership on the re-pick date
         on = members[(members.start <= pd.Timestamp(ts)) & (members.end.isna() | (members.end >= pd.Timestamp(ts)))]
         pool = [s for s in pool if s in set(on.symbol)]
@@ -278,19 +280,27 @@ def eligible_at(series, members, fs, fe, ts, te, min_trades):
     for s in pool:
         m = fm[s]
         if m and m["trades"] >= min_trades and series[s].index[-1] >= listed:
-            w = series[s].loc[ts:te]
+            w = test_series[s].loc[ts:te]
             if len(w) and (w.index[0] - pd.Timestamp(ts)).days <= 7:
                 out[s] = m
     return out
 
 
 def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park="cash",
-        prices="split", min_trades=8, n_perm=1000, seed=0, criteria=CRITERIA, levels=LEVELS):
+        prices="split", min_trades=8, n_perm=1000, seed=0, criteria=CRITERIA, levels=LEVELS,
+        windows=None, form_data=None):
+    """windows: explicit [(form_start, form_end, test_start, test_end)] instead of the
+    rolling splits. form_data: score the formation window on this data instead (e.g. a
+    longer history when the test data is a recent download)."""
     data = {s: df for s, df in data.items() if s not in ETFS and s not in SHARE_CLASS_DUPES}
-    series = {s: daily_returns(df) for s, df in data.items() if len(df) > 400}
+    test_series = {s: daily_returns(df) for s, df in data.items() if len(df) > 120}
+    fdata = data if form_data is None else {s: df for s, df in form_data.items() if s in data}
+    series = {s: daily_returns(df) for s, df in fdata.items() if len(df) > 400}
     P = Panel(data, spy, prices)
     first = spy.index[0]; last = spy.index[-1]
-    if holdout:
+    if windows:
+        sp = windows
+    elif holdout:
         y0 = pd.Timestamp(HOLDOUT_START).year
         sp = [(f"{y0 - form}-01-01", f"{y0 - 1}-12-31", f"{y0}-01-01", f"{y0 + test - 1}-12-31")]
     else:
@@ -299,13 +309,15 @@ def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park
     rows, slot_mults, scores_kept = [], [], []
     for fs, fe, ts, te in sp:
         te = min(pd.Timestamp(te), last).strftime("%Y-%m-%d")
-        fm = eligible_at(series, members, fs, fe, ts, te, min_trades)
+        fm = eligible_at(series, test_series, members, fs, fe, ts, te, min_trades)
         elig = [s for s in fm if s in P.c]
         if len(elig) < 30:
             continue
         spy_tax = spy_bh(P, ts, te, tax=True); spy_pre = spy_bh(P, ts, te, tax=False)
         allpre = simulate_basket(P, elig, ts, te, park, tax=False, per_slot=True)
         slot_mults.append(allpre["slot_mult"])
+        ew_tax = simulate_basket(P, elig, ts, te, "cash", tax=True, always_in=True)
+        ew_pre = simulate_basket(P, elig, ts, te, "cash", tax=False, always_in=True)
         sc_by = {}
         for crit in criteria:
             sc = pd.Series({s: score_of(fm[s], crit, rng) for s in elig}, dtype=float)
@@ -319,6 +331,7 @@ def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park
                     continue
                 post = simulate_basket(P, picks, ts, te, park, tax=True)
                 pre = simulate_basket(P, picks, ts, te, park, tax=False)
+                pbh = simulate_basket(P, picks, ts, te, "cash", tax=True, always_in=True)
                 rows.append({
                     "test": f"{ts[:4]}-{te[:4]}", "start": ts, "end": te, "criterion": crit, "level": lev,
                     "eligible": len(elig), "n": len(picks),
@@ -330,9 +343,17 @@ def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park
                     max((pd.Timestamp(te) - pd.Timestamp(ts)).days / 365.25, 1e-9),
                     "mult_pre": pre["mult"], "mult_tax": post["mult"], "spy_mult_tax": spy_tax["mult"],
                     "spy_mult_pre": spy_pre["mult"],
+                    "picks_bh_mult_tax": pbh["mult"], "ew_all_mult_tax": ew_tax["mult"],
+                    "ew_all_mult_pre": ew_pre["mult"], "ew_all_dd": maxdd(ew_pre["path"]),
+                    "picks": " ".join(sorted(picks)) if len(picks) <= 40 else "",
                 })
         scores_kept.append(sc_by)
     res = pd.DataFrame(rows)
+    if not res.empty:                              # SPY held through every test window, taxed once
+        t0, t1 = res.start.min(), res.end.max()
+        res.attrs["spy_hold"] = {"tax": cagr(spy_bh(P, t0, t1, tax=True)["mult"], t0, t1),
+                                 "pre": cagr(spy_bh(P, t0, t1, tax=False)["mult"], t0, t1),
+                                 "dd": maxdd(spy_bh(P, t0, t1, tax=False)["path"])}
     if not res.empty and n_perm:
         res.attrs["p"] = perm_test(scores_kept, slot_mults, criteria, levels, n_perm, seed)
     return res
@@ -381,16 +402,28 @@ def chain(res: pd.DataFrame) -> pd.DataFrame:
         g = g.sort_values("start")
         yrs = sum((pd.Timestamp(e) - pd.Timestamp(s)).days / 365.25 for s, e in zip(g.start, g.end))
         m, ms = g.mult_tax.prod(), g.spy_mult_tax.prod()
+        mb, me = g.picks_bh_mult_tax.prod(), g.ew_all_mult_tax.prod()
         mp, msp = g.mult_pre.prod(), g.spy_mult_pre.prod()
         beat = [(r.cagr_tax >= r.spy_tax) or (r.cagr_tax >= r.spy_tax - 2 and r.dd >= r.spy_dd + 15)
                 for r in g.itertuples()]
+        beat_pre = [(r.cagr_pre >= r.spy_pre) or (r.cagr_pre >= r.spy_pre - 2 and r.dd >= r.spy_dd + 15)
+                    for r in g.itertuples()]
+        me_pre = g.ew_all_mult_pre.prod()
         out.append({"criterion": crit, "level": lev, "windows": len(g), "avg_n": g.n.mean(),
                     "cagr_tax": (m ** (1 / yrs) - 1) * 100, "spy_tax": (ms ** (1 / yrs) - 1) * 100,
                     "excess_tax": (m ** (1 / yrs) - ms ** (1 / yrs)) * 100,
                     "cagr_pre": (mp ** (1 / yrs) - 1) * 100, "spy_pre": (msp ** (1 / yrs) - 1) * 100,
+                    "picks_bh_tax": (mb ** (1 / yrs) - 1) * 100, "ew_all_bh_tax": (me ** (1 / yrs) - 1) * 100,
                     "worst_dd": g.dd.min(), "spy_worst_dd": g.spy_dd.min(),
-                    "windows_beating_spy": f"{sum(beat)}/{len(g)}", "exposure": g.exposure.mean()})
-    return pd.DataFrame(out)
+                    "ew_all_bh_pre": (me_pre ** (1 / yrs) - 1) * 100,
+                    "windows_beating_spy": f"{sum(beat)}/{len(g)}", "windows_beating_spy_pre": f"{sum(beat_pre)}/{len(g)}",
+                    "exposure": g.exposure.mean()})
+    out = pd.DataFrame(out)
+    hold = res.attrs.get("spy_hold")
+    if hold and len(out):
+        out["spy_hold_tax"] = hold["tax"]
+        out["excess_vs_spy_hold_tax"] = out.cagr_tax - hold["tax"]
+    return out
 
 
 def main():
@@ -406,10 +439,16 @@ def main():
     ap.add_argument("--test", type=int, default=3)
     ap.add_argument("--perm", type=int, default=1000)
     ap.add_argument("--until", default="2022-12-31", help="'holdout' for the one final run")
+    ap.add_argument("--window", help="explicit form_start,form_end,test_start,test_end (overrides --until)")
+    ap.add_argument("--form-folder", help="score formation windows on this folder's data (e.g. a longer history)")
+    ap.add_argument("--levels", help="comma-separated subset of levels")
+    ap.add_argument("--criteria", help="comma-separated subset of criteria")
     ap.add_argument("--out")
     a = ap.parse_args()
     if a.csv_folder:
-        data = from_csv_folder(a.csv_folder)
+        data, dropped = quality_filter(from_csv_folder(a.csv_folder))
+        if dropped:
+            print(f"dropped {len(dropped)} broken/spliced series: " + ", ".join(f"{k} ({v})" for k, v in sorted(dropped.items())) + "\n")
         spy = data[a.spy.upper()]
     else:
         data = synthetic(a.synthetic)
@@ -419,10 +458,22 @@ def main():
         members = pd.read_csv(a.members, parse_dates=["start", "end"])
         members["symbol"] = members.symbol.str.upper()
     holdout = a.until == "holdout"
-    if not holdout:
+    windows = [tuple(a.window.split(","))] if a.window else None
+    form_data = None
+    if a.form_folder:
+        form_data, _ = quality_filter(from_csv_folder(a.form_folder))
+    if not holdout and not windows:
         data = {s: df.loc[:a.until] for s, df in data.items()}
         spy = spy.loc[:a.until]
-    res = run(data, spy, members, a.form, a.test, holdout=holdout, park=a.park, prices=a.prices, n_perm=a.perm)
+    if holdout or windows:
+        print("OUT-OF-SAMPLE RUN: report the result whatever it is; do not re-tune and re-run.\n")
+    kw = {}
+    if a.levels:
+        kw["levels"] = [x.strip() for x in a.levels.split(",")]
+    if a.criteria:
+        kw["criteria"] = [x.strip() for x in a.criteria.split(",")]
+    res = run(data, spy, members, a.form, a.test, holdout=holdout, park=a.park, prices=a.prices, n_perm=a.perm,
+              windows=windows, form_data=form_data, **kw)
     if res.empty:
         print("no usable windows"); return
     ch = chain(res)

@@ -133,6 +133,47 @@ Reading the curve of out-of-sample result against strictness:
 - **Exploratory only, never used to choose:** park = spy, criteria gate / edge / vol, and
   pre-tax figures.
 
+### Development result (2005–2022, six 3-year test windows; run 2026-10-14)
+
+Data: qlib US daily for every stock in the S&P 500 at any time since 1999, with
+point-in-time membership. 36 broken or recycled-ticker series were dropped. Survivorship:
+62% of members have data at 2005, 85% at 2014 and 99% at 2020. The bias favours the
+baskets.
+
+**Under the pre-registered rule, no level qualifies** (park = cash). The best levels were
+skill top 5 (7.32%/yr after tax) and skill > 10 (7.34%/yr), against SPY held and taxed
+once at 7.52%/yr. Each beat SPY in only 3 of 6 windows.
+
+- **Selection does matter:** the curve rises toward strict, and top 5, top 10 and > 10 beat
+  the all-stock basket with p ≤ 0.001.
+- **On the average S&P 500 stock** the indicator's timing *loses* 2–4%/yr of skill.
+- **The strict "amazing fit" gate is worse than useless.** About 6 names pass it, and they
+  made 1.2%/yr after tax (p = 0.63 against all stocks).
+- **The strategy loses most of its edge to tax.** Before tax, skill top 5 made 11.5%/yr
+  against SPY's 8.4%.
+
+Exploratory variant, park = spy (hold SPY while a stock is red): skill top 5 made
+9.44%/yr and skill > 10 made 9.04%/yr after tax, against 7.52% for SPY. Both beat SPY in 4
+of 6 windows, but the worst drawdowns were 58–61% against SPY's 52%.
+
+### Follow-up hypothesis H2 (pre-registered 2026-10-14, before any 2023+ data was run)
+
+- **Formed from:** the development results above.
+- **Design:** each slot holds SPY while its stock is red. Criterion = skill (5-year
+  formation). Level = "> 10": every eligible S&P 500 member whose formation-window skill
+  exceeds 10%/yr. That level was chosen by the original rule (the loosest qualifying level
+  within 1 pt/yr of the best) applied to park = spy.
+- **Holdout A:** formation 2018–2022, test 2023-01-03 → 2024-04-25. The qlib data ends
+  there, so this is shorter than the planned 2023–2025.
+- **Forward B:** formation 2019-04-26 → 2024-04-25 (qlib), test 2025-01-02 → 2026-10-13.
+  The test uses split-adjusted data from github.com/q100423gg-coder/us-stock-data, with
+  the indicator warmed up from 2024-08. Stock dividends are not credited (conservative),
+  while SPY's are.
+- **Pass:** after-tax CAGR ≥ SPY held over the same dates, or ≥ SPY − 2 pts with max
+  drawdown ≥ 15 pts shallower, in **both** A and B.
+- **Reported for information only:** park = cash, levels top 5 / top 10 / all, and the
+  random criterion.
+
 ## How many stocks to expect (hypothesis, not a target)
 
 The whitelist size is an **output**, and it may be zero. Don't fix a number like "20+"

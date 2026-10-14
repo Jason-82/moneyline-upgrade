@@ -203,6 +203,84 @@ def sp500_symbols() -> list[str]:
     return pd.read_csv(url)["Symbol"].str.replace(".", "-", regex=False).tolist()
 
 
+def from_qlib(root: str | Path, symbols=None, out_folder: str | Path | None = None) -> dict[str, pd.DataFrame]:
+    """
+    Read Microsoft qlib's US daily dataset (qlib_data_us_1d, a GitHub release download).
+    Layout: calendars/day.txt plus features/<symbol>/<field>.day.bin, each a little-endian
+    float32 array whose first value is the start index into the calendar.
+
+    The prices are split- AND dividend-adjusted (total return) and rescaled. That's fine
+    for research: the indicator is scale-free and dividend adjustment moves only a few
+    borderline flips. Live scans still need split-only data (see the top of this file).
+    Coverage stops at the dataset's last update. Names delisted before its first
+    collection (~2020) are absent, so it is survivorship-biased like Yahoo.
+    """
+    root = Path(root)
+    cal = pd.DatetimeIndex(pd.to_datetime((root / "calendars" / "day.txt").read_text().split()))
+    want = None if symbols is None else {s.lower().replace(".", "-") for s in symbols}
+    out = {}
+    for d in sorted((root / "features").iterdir()):
+        if want is not None and d.name not in want:
+            continue
+        cols = {}
+        for f in ("open", "high", "low", "close"):
+            p = d / f"{f}.day.bin"
+            if not p.exists():
+                break
+            a = np.fromfile(p, dtype="<f4")
+            if len(a) < 2:
+                break
+            s = int(a[0]); v = a[1:][:max(0, len(cal) - s)]
+            cols[f] = pd.Series(v.astype(float), index=cal[s:s + len(v)])
+        if len(cols) < 4:
+            continue
+        df = pd.DataFrame(cols).dropna()
+        df = df[(df > 0).all(axis=1)]
+        if len(df) < 50:
+            continue
+        sym = d.name.upper().replace("-", ".")
+        df.index.name = "date"
+        out[sym] = df
+        if out_folder:
+            Path(out_folder).mkdir(parents=True, exist_ok=True)
+            df.to_csv(Path(out_folder) / f"{sym}.csv", float_format="%.6g")
+    return out
+
+
+def from_long_parquet(path: str | Path, symbols=None, out_folder: str | Path | None = None) -> dict[str, pd.DataFrame]:
+    """A long table (date, ticker, open, high, low, close, ...) in one parquet file, e.g.
+    the daily-updated github.com/q100423gg-coder/us-stock-data release (split-adjusted
+    OHLC for ~2,300 US stocks and ETFs, rolling ~2 years). Needs pyarrow."""
+    d = pd.read_parquet(path)
+    if symbols is not None:
+        d = d[d.ticker.isin(set(symbols))]
+    out = {}
+    for sym, g in d.groupby("ticker"):
+        df = normalise(g.drop(columns=["ticker"]))
+        sym = str(sym).upper().replace("-", ".")
+        out[sym] = df
+        if out_folder:
+            Path(out_folder).mkdir(parents=True, exist_ok=True)
+            df.to_csv(Path(out_folder) / f"{sym}.csv", float_format="%.6g")
+    return out
+
+
+def quality_filter(data: dict[str, pd.DataFrame], max_bad_ohlc=0.01, jump=0.6, max_jumps=3):
+    """Drop series that look broken or spliced from two companies (recycled tickers):
+    more than 1% of bars with high/low outside open/close, or more than 3 one-day
+    moves above 60%. Single extreme days (AIG 2008, GME 2021) are real and stay."""
+    keep, dropped = {}, {}
+    for s, d in data.items():
+        lo, hi = d[["open", "close"]].min(axis=1), d[["open", "close"]].max(axis=1)
+        bad = ((d.high < hi * 0.999) | (d.low > lo * 1.001)).mean()
+        n_jump = int((d.close.pct_change().abs() > jump).sum())
+        if bad > max_bad_ohlc or n_jump > max_jumps:
+            dropped[s] = f"{bad:.1%} bad bars, {n_jump} jumps"
+        else:
+            keep[s] = d
+    return keep, dropped
+
+
 def sp500_members(out: str | Path | None = None) -> pd.DataFrame:
     """Point-in-time S&P 500 membership (symbol, start, end; end blank = still a member)
     from github.com/fja05680/sp500, one row per membership spell. Prices for members
