@@ -38,7 +38,8 @@ Pre-registered hypotheses (written 2026-10-14, before any run):
   R1 FF style 9, annual (December) rebalance: REV 12-60 beats EW by >= 1.0%/yr
      (mean of monthly active returns, annualised) with Newey-West t >= 2, 1955-2017.
   R2 The same for FF 12 industries.
-  R3 PAIR beats the static 50/50 small value / large growth mix with t >= 2, 1959-2017.
+  R3 PAIR beats the static 50/50 small value / large growth mix with t >= 2, 1959-2017
+     (the rule needs 60 + 120 months of history, so it actually starts in 1964).
   Out-of-sample checks with the same primary rule on the ETF sets (2001/2006-2021,
   2016-2026), and a robustness grid over formation windows, rebalance frequency, tilt
   strength and momentum. The grid is exploratory: with ~100 variants, a few will
@@ -101,6 +102,10 @@ def load_etf_sets():
     o = pd.read_csv(DATA / "obensalah_etf_month_end_adjclose.csv", parse_dates=[0], index_col=0).loc[:"2026-09-30"]
     rq = q.pct_change(fill_method=None)
     ro = o.pct_change(fill_method=None)
+    # audit fixes: qlib's IWS stops after 2020-11 (cut the iShares set there, in main), and
+    # XLF's Sep-2016 XLRE spin-off is booked as a +26.5% gain; use the Johnbrick XLF month
+    jb = pd.read_csv(DATA / "jb_etf_month_end_adjclose.csv", parse_dates=[0], index_col=0).pct_change(fill_method=None)
+    rq.loc["2016-09-30", "XLF"] = jb.loc["2016-09-30", "XLF"]
     return rq, ro
 
 
@@ -164,6 +169,8 @@ def backtest(R, rule, params=None, rebalance="annual", start=None, cost=COST):
         if w is not None:
             r = R.iloc[pos].to_numpy()
             if np.isnan(r).any():
+                if (w[np.isnan(r)] > 1e-9).any():          # a held asset has no return: count it
+                    backtest.nan_held = getattr(backtest, "nan_held", 0) + 1
                 r = np.nan_to_num(r)
             pr = float(w @ r)
             out.append(pr); dates.append(idx[pos])
@@ -463,7 +470,7 @@ def main():
         s.insert(0, "set", name); subs.append(s)
     rq, ro = load_etf_sets()
     rf_q, rf_o = rf_monthly(rq.index), rf_monthly(ro.index)
-    for name, R, rfx, pair, start in [("iShares style 6", rq[ISHARES6], rf_q, ("IWN", "IWF"), "2006-12-31"),
+    for name, R, rfx, pair, start in [("iShares style 6", rq[ISHARES6].loc[:"2020-11-30"], rf_q, ("IWN", "IWF"), "2006-12-31"),
                                       ("SPDR sectors 9", rq[SPDR9], rf_q, None, "2004-12-31"),
                                       ("Vanguard style 4", ro[VANG4], rf_o, ("VTWV", "VONG"), "2015-12-31"),
                                       ("SmallCap sectors 9", ro[PSC9], rf_o, None, "2015-12-31")]:

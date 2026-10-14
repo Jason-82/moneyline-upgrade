@@ -785,3 +785,74 @@ About 3%/yr since 2015, and rolling 5-year windows starting 2013-16 lost to T-bi
 - It needs shorting and leverage, so it can't run in the Robinhood agentic account.
   Access it through a managed-futures ETF (about 0.85-0.95% fee, which trims ~0.2 pt),
   ideally held in a tax-advantaged account.
+
+
+---
+
+# 2026-10-14 (latest) — mean reversion across styles and sectors
+
+`analysis_2026/style_rotation.py`. R1-R3 were pre-registered in adaa1c9 and extension E1-E3
+in 99b8d9d. Results are in `analysis_2026/results_style/`.
+
+**Data:**
+
+- **Ken French portfolios.** 1949-2017 from the linearmodels bundle. 1926-2026 from GitHub
+  mirrors (202606 vintage): 25 size x book-to-market portfolios with monthly BE/ME, plus
+  10 and 49 industries.
+- **ETFs with dividends:** iShares and S&P style ETFs and sector SPDRs (2000-2026), Vanguard
+  Russell style ETFs and Invesco small-cap sector ETFs (2010-2026).
+
+**Rules:**
+
+- **Contrarian:** hold the bottom third by the months t-60..t-13 return, rebalanced each
+  December (FF long-term reversal convention).
+- **Benchmark:** equal weight of the same set.
+- **Also tested:** gentle tilts, winners, 12-1 momentum, and small value vs large growth
+  pairs.
+- **New hypothesis:** timing by the price-updated valuation spread.
+
+**Audit:** four lenses. Independent engines matched to ~1e-16 with no look-ahead. Bootstrap
+and iid-month nulls, multiple-testing corrections, and an 'extreme lag' episode study
+were added.
+
+**Results:**
+
+- **R1 FAIL** (style boxes 1955-2017): −1.2%/yr CAGR vs equal weight. On the unseen data
+  it was +2.3 in 1932-48, carried by the 1932 rebound and not significant, and −1.2 in
+  2017-26. Full 1932-2026: about 0.
+- **R3 FAIL** (small value vs large growth, tilting toward whichever lagged over 5 years):
+  −0.4 to −1.7%/yr in every period and variant.
+- **R2 not significant** (industries): +1.0%/yr, t 1.5. That is just value and size
+  exposure (alpha about 0) and comes mostly from 1975-84. On 49 industries over 1932-2026
+  it is +1.3 (t 2.05), from the 1932-35 rebound; it does not survive multiple-testing
+  correction.
+- **E3 FAIL** (valuation-spread timing of small value vs large growth): −0.9%/yr, t −1.4
+  over 1947-2026; about 0 across 48 variants.
+  - Before 1987 it kept the strategy underweight small value through its best decades
+    (the spread trended down).
+  - Since 1987 timing added about +1%/yr, not significant.
+  - December 2025 z = +1.0, a wide spread; 2020 was the widest since the 1940s.
+- **The user's exact idea** (tilt to small value after an extreme 5-year lag) has 4
+  independent episodes since 1963, with mixed outcomes. Its apparent gain is the small-value
+  premium, not timing (placebo p 0.19-0.49). The 2020 episode was +21% in year 1 and −29%
+  for December-2020 entrants after 5 years.
+- **Why contrarian fails:** there is mild 3-5 year reversal (90th percentile against a
+  no-predictability null), but the losers it buys are often chronically weak boxes. It
+  held small growth, about 8%/yr vs 17.6% for small value, in 76% of years.
+- **Momentum (12-1, quarterly):**
+  - 49 industries: +2.6%/yr, t 3.6 over 1932-2026, surviving correction, but driven by
+    1949-2016.
+  - Not confirmed in 1932-48 or 2017-26. Its edge would also be heavily taxed (quarterly
+    turnover).
+- **ETFs 2006-2026:** no contrarian benefit; every |t| ≤ 1.2.
+- **Equal-weighting styles or sectors vs the market:**
+  - Ahead over 1932-2026 (+2.2%/yr, t 2.8: the static small/value tilt).
+  - Behind in 2017-2026 (−1.0 to −2.3%/yr) and in ETFs 2006-2026 (−0.4 to −1.3%/yr).
+- **ETF data fixes:** qlib IWS stops after 2020-11, so the set is cut there. The XLF
+  Sep-2016 XLRE spin-off booked as +26.5% is replaced with the correct month.
+
+**Conclusion:**
+
+- Rotating toward long-run laggard styles or sectors has no reliable edge over 95 years.
+- A permanent value/small tilt is the cleaner way to own that premium, but it has lagged
+  for about 20 years.

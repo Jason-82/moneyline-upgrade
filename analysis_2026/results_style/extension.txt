@@ -1,0 +1,105 @@
+                       set                                        rule                    period  months  CAGR_%  bench_CAGR_%  CAGR_diff  active_mean_%/yr  NW_t  Sharpe  bench_Sharpe  maxDD_%  bench_maxDD_%  win_10y_%
+              FF corners 9                         REV 12-60 (primary)        1932-1948 (unseen)     204   18.79         16.47       2.31              5.49  1.71    0.55          0.54   -55.97         -62.96      92.94
+              FF corners 9                                  TILT 12-60        1932-1948 (unseen)     204   17.05         16.47       0.58              1.67  1.37    0.54          0.54   -59.65         -62.96      56.47
+              FF corners 9                          MOM 1-12 quarterly        1932-1948 (unseen)     204   18.28         17.00       1.28              1.42  0.54    0.58          0.55   -67.48         -63.09      36.47
+              FF corners 9                                EW vs market        1932-1948 (unseen)     204   16.47          9.94       6.53             10.73  2.37    0.54          0.47   -62.96         -49.46     100.00
+              FF corners 9                         REV 12-60 (primary) 1949-2016 (first-run era)     816   11.29         12.83      -1.55             -1.04 -1.25    0.45          0.56   -58.58         -52.42      18.36
+              FF corners 9                                  TILT 12-60 1949-2016 (first-run era)     816   12.23         12.83      -0.60             -0.47 -1.57    0.52          0.56   -51.25         -52.42      21.38
+              FF corners 9                          MOM 1-12 quarterly 1949-2016 (first-run era)     816   14.26         12.71       1.54              1.58  2.43    0.60          0.55   -51.27         -52.67      88.09
+              FF corners 9                                EW vs market 1949-2016 (first-run era)     816   12.83         11.31       1.53              1.71  1.97    0.56          0.52   -52.42         -50.31      71.45
+              FF corners 9                         REV 12-60 (primary)        2017-2026 (unseen)     114   12.92         14.11      -1.19             -0.24 -0.14    0.53          0.64   -45.11         -30.44        NaN
+              FF corners 9                                  TILT 12-60        2017-2026 (unseen)     114   14.17         14.11       0.06              0.38  0.39    0.61          0.64   -36.57         -30.44        NaN
+              FF corners 9                          MOM 1-12 quarterly        2017-2026 (unseen)     114   16.68         14.01       2.67              2.29  0.90    0.75          0.63   -25.31         -30.37        NaN
+              FF corners 9                                EW vs market        2017-2026 (unseen)     114   14.11         15.15      -1.04             -0.20 -0.07    0.64          0.81   -30.44         -24.84        NaN
+              FF corners 9                         REV 12-60 (primary)          1932-2026 (full)    1134   12.76         13.61      -0.84              0.22  0.25    0.44          0.51   -58.58         -62.96      24.93
+              FF corners 9                                  TILT 12-60          1932-2026 (full)    1134   13.28         13.61      -0.33              0.00  0.01    0.48          0.51   -59.65         -62.96      31.23
+              FF corners 9                          MOM 1-12 quarterly          1932-2026 (full)    1134   15.21         13.60       1.61              1.62  2.26    0.56          0.51   -67.48         -63.09      81.48
+              FF corners 9                                EW vs market          1932-2026 (full)    1134   13.61         11.44       2.17              3.14  2.76    0.51          0.52   -62.96         -50.31      65.02
+                 FF all 25                         REV 12-60 (primary)        1932-1948 (unseen)     204   16.93         15.89       1.03              2.78  1.19    0.53          0.54   -60.32         -62.18      20.00
+                 FF all 25                                  TILT 12-60        1932-1948 (unseen)     204   15.90         15.89       0.01              0.58  0.71    0.53          0.54   -60.60         -62.18       3.53
+                 FF all 25                          MOM 1-12 quarterly        1932-1948 (unseen)     204   15.47         16.26      -0.79             -0.95 -0.40    0.55          0.55   -64.61         -62.34      60.00
+                 FF all 25                                EW vs market        1932-1948 (unseen)     204   15.89          9.94       5.96              9.27  2.26    0.54          0.47   -62.18         -49.46     100.00
+                 FF all 25                         REV 12-60 (primary) 1949-2016 (first-run era)     816   12.22         13.34      -1.12             -0.80 -1.35    0.51          0.59   -55.91         -53.56      18.36
+                 FF all 25                                  TILT 12-60 1949-2016 (first-run era)     816   12.89         13.34      -0.45             -0.35 -1.60    0.56          0.59   -53.42         -53.56      16.93
+                 FF all 25                          MOM 1-12 quarterly 1949-2016 (first-run era)     816   14.58         13.27       1.31              1.32  2.47    0.63          0.58   -53.04         -53.77      86.80
+                 FF all 25                                EW vs market 1949-2016 (first-run era)     816   13.34         11.31       2.03              2.15  2.45    0.59          0.52   -53.56         -50.31      77.47
+                 FF all 25                         REV 12-60 (primary)        2017-2026 (unseen)     114   13.42         12.87       0.55              0.96  0.54    0.58          0.60   -39.09         -30.58        NaN
+                 FF all 25                                  TILT 12-60        2017-2026 (unseen)     114   13.21         12.87       0.34              0.50  0.66    0.59          0.60   -34.32         -30.58        NaN
+                 FF all 25                          MOM 1-12 quarterly        2017-2026 (unseen)     114   14.39         12.85       1.55              1.26  0.69    0.67          0.59   -24.93         -30.59        NaN
+                 FF all 25                                EW vs market        2017-2026 (unseen)     114   12.87         15.15      -2.28             -1.38 -0.51    0.60          0.81   -30.58         -24.84        NaN
+                 FF all 25                         REV 12-60 (primary)          1932-2026 (full)    1134   13.17         13.75      -0.57              0.02  0.03    0.47          0.53   -60.32         -62.18      24.33
+                 FF all 25                                  TILT 12-60          1932-2026 (full)    1134   13.46         13.75      -0.29             -0.10 -0.43    0.50          0.53   -60.60         -62.18      19.51
+                 FF all 25                          MOM 1-12 quarterly          1932-2026 (full)    1134   14.72         13.76       0.96              0.91  1.48    0.57          0.53   -64.61         -62.34      82.76
+                 FF all 25                                EW vs market          1932-2026 (full)    1134   13.75         11.44       2.31              3.08  2.90    0.53          0.52   -62.18         -50.31      70.94
+          FF industries 10                         REV 12-60 (primary)        1932-1948 (unseen)     204   14.60         10.40       4.20              4.38  2.00    0.59          0.49   -40.17         -46.81      98.82
+          FF industries 10                                  TILT 12-60        1932-1948 (unseen)     204   11.98         10.40       1.57              1.53  2.06    0.53          0.49   -44.84         -46.81     100.00
+          FF industries 10                          MOM 1-12 quarterly        1932-1948 (unseen)     204   11.07         10.38       0.69              0.05  0.03    0.54          0.48   -44.07         -46.80      71.76
+          FF industries 10                                EW vs market        1932-1948 (unseen)     204   10.40          9.94       0.47              0.33  0.59    0.49          0.47   -46.81         -49.46     100.00
+          FF industries 10                         REV 12-60 (primary) 1949-2016 (first-run era)     816   12.73         12.30       0.43              0.48  0.61    0.61          0.61   -47.01         -47.54      66.71
+          FF industries 10                                  TILT 12-60 1949-2016 (first-run era)     816   12.64         12.30       0.34              0.30  0.91    0.64          0.61   -48.26         -47.54      72.45
+          FF industries 10                          MOM 1-12 quarterly 1949-2016 (first-run era)     816   13.51         12.18       1.32              1.37  1.77    0.64          0.60   -42.06         -47.80      80.49
+          FF industries 10                                EW vs market 1949-2016 (first-run era)     816   12.30         11.31       1.00              0.78  2.05    0.61          0.52   -47.54         -50.31      91.97
+          FF industries 10                         REV 12-60 (primary)        2017-2026 (unseen)     115   16.42         13.84       2.59              3.15  0.71    0.72          0.75   -31.35         -22.51        NaN
+          FF industries 10                                  TILT 12-60        2017-2026 (unseen)     115   13.30         13.84      -0.53             -0.26 -0.15    0.68          0.75   -26.69         -22.51        NaN
+          FF industries 10                          MOM 1-12 quarterly        2017-2026 (unseen)     115   18.71         13.56       5.15              5.07  1.92    0.87          0.74   -22.28         -22.52        NaN
+          FF industries 10                                EW vs market        2017-2026 (unseen)     114   13.99         15.15      -1.16             -1.07 -0.60    0.75          0.81   -22.51         -24.84        NaN
+          FF industries 10                         REV 12-60 (primary)          1932-2026 (full)    1135   13.43         12.11       1.32              1.45  1.74    0.59          0.56   -47.01         -47.54      63.19
+          FF industries 10                                  TILT 12-60          1932-2026 (full)    1135   12.59         12.11       0.47              0.46  1.43    0.58          0.56   -48.26         -47.54      69.39
+          FF industries 10                          MOM 1-12 quarterly          1932-2026 (full)    1135   13.58         12.00       1.58              1.51  2.18    0.63          0.56   -44.07         -47.80      83.17
+          FF industries 10                                EW vs market          1932-2026 (full)    1134   12.13         11.44       0.69              0.51  1.48    0.57          0.52   -47.54         -50.31      78.62
+          FF industries 49                         REV 12-60 (primary)        1932-1948 (unseen)     204   16.48         12.58       3.90              4.20  2.17    0.61          0.52   -55.82         -52.38     100.00
+          FF industries 49                                  TILT 12-60        1932-1948 (unseen)     204   14.07         12.58       1.48              1.52  1.97    0.56          0.52   -53.46         -52.38     100.00
+          FF industries 49                          MOM 1-12 quarterly        1932-1948 (unseen)     204   14.09         13.06       1.03              0.19  0.09    0.60          0.53   -56.09         -52.38      88.24
+          FF industries 49                                EW vs market        1932-1948 (unseen)     204   12.58          9.94       2.64              3.31  2.29    0.52          0.47   -52.38         -49.46     100.00
+          FF industries 49                         REV 12-60 (primary) 1949-2016 (first-run era)     816   13.11         12.45       0.66              0.66  1.00    0.59          0.56   -49.50         -52.37      53.95
+          FF industries 49                                  TILT 12-60 1949-2016 (first-run era)     816   12.74         12.45       0.29              0.26  0.79    0.58          0.56   -51.70         -52.37      55.09
+          FF industries 49                          MOM 1-12 quarterly 1949-2016 (first-run era)     816   15.24         12.19       3.05              2.85  4.20    0.69          0.55   -51.54         -52.01      87.52
+          FF industries 49                                EW vs market 1949-2016 (first-run era)     816   12.45         11.31       1.14              1.22  1.72    0.56          0.52   -52.37         -50.31      79.34
+          FF industries 49                         REV 12-60 (primary)        2017-2026 (unseen)     116   14.17         13.33       0.84              1.16  0.44    0.67          0.69   -33.09         -25.64        NaN
+          FF industries 49                                  TILT 12-60        2017-2026 (unseen)     116   13.10         13.33      -0.23             -0.11 -0.09    0.66          0.69   -29.23         -25.64        NaN
+          FF industries 49                          MOM 1-12 quarterly        2017-2026 (unseen)     116   15.75         13.36       2.39              2.35  1.92    0.77          0.69   -25.50         -25.65        NaN
+          FF industries 49                                EW vs market        2017-2026 (unseen)     114   13.57         15.15      -1.58             -1.24 -0.73    0.69          0.81   -25.64         -24.84        NaN
+          FF industries 49                         REV 12-60 (primary)          1932-2026 (full)    1136   13.82         12.56       1.25              1.34  2.05    0.57          0.54   -55.82         -52.38      61.85
+          FF industries 49                                  TILT 12-60          1932-2026 (full)    1136   13.01         12.56       0.45              0.45  1.46    0.55          0.54   -53.46         -52.38      61.36
+          FF industries 49                          MOM 1-12 quarterly          1932-2026 (full)    1136   15.09         12.47       2.62              2.32  3.60    0.66          0.53   -56.09         -52.38      87.81
+          FF industries 49                                EW vs market          1932-2026 (full)    1134   12.59         11.44       1.15              1.35  2.21    0.54          0.52   -52.38         -50.31      72.22
+small value / large growth      PAIR z-tilt on 5y relative return (R3)        1932-1948 (unseen)      84   20.75         25.29      -4.54             -4.07 -1.20    1.02          1.15   -22.71         -31.82        NaN
+small value / large growth                     PAIR switch to 5y loser        1932-1948 (unseen)     204   16.39         17.66      -1.27              2.09  0.36    0.49          0.57   -54.80         -61.79      18.82
+small value / large growth      PAIR z-tilt on 5y relative return (R3) 1949-2016 (first-run era)     816   14.40         14.47      -0.06              0.02  0.04    0.65          0.67   -53.48         -53.87      61.55
+small value / large growth                     PAIR switch to 5y loser 1949-2016 (first-run era)     816   12.94         14.47      -1.52             -1.16 -0.96    0.55          0.67   -53.84         -53.87      29.99
+small value / large growth      PAIR z-tilt on 5y relative return (R3)        2017-2026 (unseen)     114   17.58         17.99      -0.42              0.38  0.14    0.72          0.85   -38.60         -26.20        NaN
+small value / large growth                     PAIR switch to 5y loser        2017-2026 (unseen)     114   18.80         17.99       0.81              2.08  0.47    0.70          0.85   -46.96         -26.20        NaN
+small value / large growth      PAIR z-tilt on 5y relative return (R3)          1932-2026 (full)    1014   15.27         15.72      -0.45             -0.28 -0.45    0.69          0.74   -53.48         -53.87      59.11
+small value / large growth                     PAIR switch to 5y loser          1932-2026 (full)    1134   14.13         15.39      -1.25             -0.25 -0.17    0.48          0.59   -54.80         -61.79      35.86
+small value / large growth                  E3 VALUATION-SPREAD timing    1947-2026 (E3 primary)     954   13.71         14.61      -0.90             -0.80 -1.39    0.63          0.68   -50.30         -53.87      42.99
+                 FF all 25 valuation tilt vs own history (exploratory)    1947-2026 (E3 primary)     954   12.86         12.89      -0.03             -0.01 -0.06    0.57          0.57   -53.86         -53.56      26.95
+small value / large growth                  E3 VALUATION-SPREAD timing                 1947-1986     480   12.43         14.89      -2.46             -2.32 -2.68    0.54          0.66   -43.54         -43.69       4.43
+                 FF all 25 valuation tilt vs own history (exploratory)                 1947-1986     480   13.52         13.87      -0.35             -0.34 -2.74    0.58          0.59   -47.49         -47.08       1.66
+small value / large growth                  E3 VALUATION-SPREAD timing                 1987-2026     474   15.03         14.34       0.69              0.74  1.11    0.72          0.71   -50.30         -53.87      81.13
+                 FF all 25 valuation tilt vs own history (exploratory)                 1987-2026     474   12.20         11.92       0.29              0.32  0.63    0.57          0.56   -53.86         -53.56      47.89
+small value / large growth                  E3 VALUATION-SPREAD timing                 2007-2026     234   13.62         12.54       1.08              1.25  1.04    0.67          0.66   -50.30         -53.87      89.57
+                 FF all 25 valuation tilt vs own history (exploratory)                 2007-2026     234   10.01         10.15      -0.14             -0.01 -0.01    0.51          0.52   -53.86         -53.56      11.30
+      Russell style 4 ETFs                         REV 12-60 (primary)                 2006-2026     249    9.47          9.83      -0.36              0.02  0.01    0.48          0.53   -48.00         -51.35      38.46
+      Russell style 4 ETFs                                   EW vs SPY                 2006-2026     249    9.83         11.14      -1.30             -0.83 -0.89    0.53          0.67   -51.35         -50.78      16.15
+      Russell style 4 ETFs      PAIR switch to 5y loser ('IWN', 'IWF')                 2006-2026     249    9.07         10.60      -1.52             -1.03 -0.64    0.46          0.58   -48.00         -49.89      23.08
+          S&P style 4 ETFs                         REV 12-60 (primary)                 2006-2026     249    8.23         10.09      -1.86             -1.45 -1.20    0.43          0.56   -45.40         -51.04       3.08
+          S&P style 4 ETFs                                   EW vs SPY                 2006-2026     249   10.09         11.14      -1.05             -0.67 -0.74    0.56          0.67   -51.04         -50.78      33.08
+          S&P style 4 ETFs      PAIR switch to 5y loser ('IJS', 'IVW')                 2006-2026     249   10.56         10.95      -0.39             -0.01 -0.00    0.54          0.60   -45.40         -48.50      67.69
+       SPDR sectors 9 ETFs                         REV 12-60 (primary)                 2006-2026     249   10.03         10.40      -0.38             -0.10 -0.07    0.56          0.64   -46.69         -48.74      15.38
+       SPDR sectors 9 ETFs                                   EW vs SPY                 2006-2026     249   10.40         11.14      -0.73             -0.73 -0.77    0.64          0.67   -48.74         -50.78      19.23
+
+Valuation spread z (December) and small-value weight, last 12 years:
+               z  w_small_value
+date                           
+2014-12-31 -0.13           0.47
+2015-12-31  0.18           0.55
+2016-12-31 -0.14           0.47
+2017-12-31  0.26           0.57
+2018-12-31  0.58           0.64
+2019-12-31  0.93           0.73
+2020-12-31  1.45           0.86
+2021-12-31  0.76           0.69
+2022-12-31  0.52           0.63
+2023-12-31  1.19           0.80
+2024-12-31  1.09           0.77
+2025-12-31  1.02           0.75

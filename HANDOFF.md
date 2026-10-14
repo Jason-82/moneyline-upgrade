@@ -400,6 +400,21 @@ Full tables and the pre-registration are in `screener/README.md`.
 - **Implementation:** a managed-futures ETF (DBMF, KMLM), ideally in a tax-advantaged
   account. Not the Robinhood agentic account.
 
+### 5.13 Style and sector mean reversion — `analysis_2026/style_rotation.py`
+
+- **Tested:** contrarian rotation toward 3-5-year laggards, rebalanced each December
+  against equal weight. On Ken French style boxes and industries 1926-2026 (the 25 size x
+  BM portfolios with BE/ME, 10 and 49 industries) and on ETFs 2006-2026.
+- **No reliable edge.** Pre-registered R1, R3 and E3 fail, and R2 is not significant.
+  - Small value vs large growth timed by relative return lost in every period.
+  - Timed by the valuation spread: about 0 overall.
+- **Mechanism:** mild long-term reversal exists, but the losers are often chronically weak
+  boxes (small growth), and what industry reversal exists is just value and size exposure.
+- **Momentum (12-1):** strong on 49 industries over 1932-2026, but not confirmed in the
+  unseen 1932-48 / 2017-26 slices.
+- **Practical:** a static value/small tilt (if any) beats any timing rule. It lagged for
+  ~20 years (2006-2026).
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -559,6 +574,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study (+ `--calibrate`), `strictness.py` basket strictness study vs SPY after tax, `data.py` loaders (CSV, Robinhood JSON, yfinance, qlib, long parquet, S&P membership, `quality_filter`), `rh_ingest.py`. See `screener/README.md` for the holdout, pre-registrations, survivorship and results. |
 | `analysis_2026/altcoins.py`, `analysis_2026/results_altcoins/` | Crypto size-tier study on the Binance archive incl. delisted coins (Q1/Q2 pre-registered), payoff profile crypto vs S&P stocks (section 5.11). Data: `data/crypto_binance/` (gitignored); rebuild from `https://s3-ap-northeast-1.amazonaws.com/data.binance.vision` (`data/spot/monthly/klines/<SYM>/1d/`). |
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
+| `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
