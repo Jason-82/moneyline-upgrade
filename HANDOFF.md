@@ -10,8 +10,9 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-13, after a 41-agent adversarial review of this file and the
-plan.
+**Last updated:** 2026-10-14. Added the stock-basket strictness study (section 5.10),
+which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
+2026-10-13.
 
 ---
 
@@ -36,20 +37,30 @@ plan.
      after short-term tax.
    - Gate verdicts (`gate.py`): **ETH = TRADE (via ETF), SOL = PROBATION** (too little
      history), BTC/BNB/ZEC = no signal (hold or skip).
-4. **Stocks: the daily signal never passes** (0 of 7 tested). To open up the universe,
-   `screener/` provides a daily scanner (exact indicator, matches TradingView on every
-   IWM date 2012-2025) and a walk-forward selection study. The study tests whether
-   "trade only stocks where it worked before" persists; its real-data run is pending
-   survivorship-free stock data. Otherwise: The weekly signal on SPY/QQQ qualifies
-   only as optional crash insurance; on IWM it does not. TSLA: no. COIN, HOOD and CRCL:
-   too little history, and their results hinge on one or two trades and on fill timing.
-5. **No market data reaches this cloud environment.** Yahoo, Alpha Vantage, Binance,
-   Kraken, Coinbase, CoinGecko and robinhood.com are all blocked (403). All data came
-   from the user's TradingView CSV exports, which are **close-only**.
-   - Every backtest therefore reads the exported Up/Down Trend state; none of them uses
+4. **Stocks: the daily signal never passes, singly or as a basket.**
+   - **Single stocks:** 0 of 7 tested pass the gate.
+   - **Baskets** (section 5.10): picked by past indicator fit at any strictness, walk-forward
+     on S&P 500 history 2005–2026. None beat SPY after tax out of sample. Fit carries forward
+     only ~7%, and "decent fit" baskets lose clearly.
+   - **Scanner:** `screener/scan.py` matches TradingView on every IWM date 2012-2025. It is
+     information only.
+   - **Indices:** the weekly signal on SPY/QQQ qualifies only as optional crash insurance;
+     on IWM it does not.
+   - **TSLA:** no.
+   - **COIN, HOOD and CRCL:** too little history, and their results hinge on one or two
+     trades and on fill timing.
+5. **Market data in this cloud environment:**
+   - **Blocked (403):** Yahoo, Alpha Vantage, Binance, Kraken, Coinbase, CoinGecko and
+     robinhood.com.
+   - **Reachable for stocks** (section 3): qlib's US dataset (GitHub release; 2000 to
+     2024-04), a daily-updated split-adjusted parquet (2024-08 to today), point-in-time
+     S&P 500 membership, and the Robinhood connector's historicals. Large results are saved
+     to a file, and history starts 1999-09.
+   - **Crypto and the TradingView-based backtests** still rely on the user's close-only
+     exports. Those backtests read the exported Up/Down Trend state, not
      `moneyline_ref.py`.
-   - The latest state available here is the 2026-08-24 bar, which was still forming
-     when exported (see section 3).
+   - **Latest crypto/TV state:** the 2026-08-24 bar, which was still forming when exported
+     (see section 3).
 
 ---
 
@@ -125,6 +136,9 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 | `data/crypto2026/` | CoinGecko closes | Wrong-model work only. |
 | repo root `QQQ/SPY/IWM_historical_data.csv` | yfinance **OHLC**, dividend-adjusted | The only real highs and lows in the repo. |
 | repo root `btc-usd.csv`, `eth-usd.csv`, `sol-usd-max.csv`, `avax-usd-max.csv`, `BATS_COIN, 1D.csv` | early uploads | Wrong-model work only. |
+| `data/universe_qlib/` (gitignored, rebuild) | qlib US daily for every S&P 500 member since 1999 that qlib has (852 tickers), 2000 to 2024-04-25 | Download `https://github.com/SunsetWolf/qlib_dataset/releases/download/v0/qlib_data_us_1d_v3.zip` (615 MB), then `screener.data.from_qlib(root, symbols, out_folder)`. Total return until 2021-09-16, price-only after (`--prices qlib`). Survivorship-biased: 60-66% of 2005/2008 members usable. |
+| `data/universe_recent/` (gitignored, rebuild) | ~2,300 US stocks and ETFs, split-adjusted OHLC, 2024-08 to the latest close | `https://github.com/q100423gg-coder/us-stock-data/releases/download/data/prices.parquet` (refreshed daily), then `screener.data.from_long_parquet`. Needs pyarrow. Third-party and unofficial. |
+| `data/universe/members.csv` (gitignored, rebuild) | point-in-time S&P 500 membership spells | `screener.data.sp500_members(out)`, from fja05680/sp500 via raw.githubusercontent.com |
 
 **Getting the current state.** `moneyline_ref.py` cannot run on the `data/tv_*`
 exports, because they have no highs or lows. Faking high = low = close matches only
@@ -319,6 +333,30 @@ ETF route, pre-tax, total crypto capped at 60% (CAGR / max drawdown):
 
 - When a personal stop and the line disagree, **don't move the stop, change the size**.
 
+### 5.10 Stock baskets: how strict a fit? — `screener/strictness.py`, `screener/selection.py`
+
+Full tables and the pre-registration are in `screener/README.md`.
+
+- **Universe and method:** S&P 500 members at each re-pick date. Each is scored on 5 years
+  of past indicator "skill" (drift-neutral timing value), then baskets from top 5 to all
+  stocks are traded for the next 3 years: next-open fills, 0.03%, cash at T-bill (or SPY)
+  while red, tax at 35%/20%.
+- **Development 2005–2022:** SPY held 7.45%/yr after tax. Skill top 5 made 7.63 and skill
+  > 10 made 7.41, each beating SPY in only 3 of 6 windows. Top 20 made 4.6, all stocks 3.2,
+  "decent fit" (skill > 0 / > 5) 3.7, strict-gate style 1.6, random 2.2-3.6.
+- **Pre-registered rule:** no level qualifies.
+- **H2 (SPY when red, skill > 10):** passed development (+1.8) and holdout 2023-01 to
+  2024-04 (+0.5), then failed forward 2025-01 to 2026-10 (−4.6).
+- **Selection is real but small and fragile:**
+  - p ≈ 0.001-0.002 vs all stocks, but 0.005-0.009 against a volatility-matched null.
+  - About one big winner per window carries the top-5 lead.
+  - Only 7% of past skill persists.
+  - The pre-registered top-20 selection study gave test skill +1.75 vs −1.91 for all.
+  - High-volatility and deep-drawdown selectors with no backtest did as well.
+- **Biases:** survivorship flatters the baskets vs SPY by an estimated 0.3-1 pt/yr, so the
+  ties are upper bounds. Taxes take most of the edge (top 5: 11.5% pre-tax vs 8.5%).
+- **The average S&P 500 stock** loses about 2.2%/yr of timing skill to the indicator.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -402,6 +440,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - SPY/QQQ: hold, with optional weekly insurance.
   - IWM and TSLA: hold.
   - COIN, HOOD, CRCL: watch.
+  - Stock baskets picked by past fit: don't run (section 5.10). Scanner for information
+    only.
 
 ---
 
@@ -409,10 +449,13 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 
 **Doable now in a sandbox:**
 
-0. Stock universe: get a survivorship-free daily OHLC universe from 1993 (point-in-time
-   members plus delisted names). Run `screener/selection.py` on data up to 2022, freeze
-   the rule, run the 2023-25 holdout once, then gate the picks. Until then, the scanner
-   is information only.
+0. Stock universe: **done** (section 5.10). The verdict is no stock basket. Only two things
+   could change it:
+   - a survivorship-free dataset with delisted names (Norgate, Sharadar or CRSP, all
+     paid), which would most likely make the baskets look *worse*
+   - a tax-advantaged account, though out-of-sample results were mixed even before tax
+   Optional: a nightly cloud scan of ~2,300 stocks from the daily parquet, as
+   information.
 
 1. Build the phase-1 signal job (`signal_job.py`):
    - fetch adapters (Coinbase, a stock OHLC source)
@@ -448,6 +491,12 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
+- `git clone` of public GitHub repos works, and so do GitHub release downloads
+  (github.com/…/releases/download/… redirects to release-assets.githubusercontent.com).
+  raw.githubusercontent.com, PyPI, S3 and GCS work too.
+- Most api.github.com paths and GitHub search are blocked.
+- The Robinhood connector's large results land in
+  `~/.claude/projects/<session>/tool-results/*.txt`; parse them with `screener/rh_ingest.py`.
 - Commit code and backtest results only; logs and digests go to a private store.
   Containers are ephemeral.
 
@@ -456,7 +505,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | file | purpose |
 |---|---|
 | `AGENTIC_TRADING_PLAN.md` | Robinhood + Claude automated-trading design. |
-| `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study, `data.py` loaders (CSV / Robinhood JSON / yfinance). See `screener/README.md` for the holdout, survivorship and expected-pass-rate rules. |
+| `screener/` | `scan.py` daily screener, `selection.py` walk-forward selection study (+ `--calibrate`), `strictness.py` basket strictness study vs SPY after tax, `data.py` loaders (CSV, Robinhood JSON, yfinance, qlib, long parquet, S&P membership, `quality_filter`), `rh_ingest.py`. See `screener/README.md` for the holdout, pre-registrations, survivorship and results. |
+| `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
 | `analysis_2026/replicate.py` | IWM replication and hl2-consistency evidence. |

@@ -18,15 +18,19 @@ Basket mechanics (per test window):
     close, trade at the next open, 0.03% per side. While red the slot holds cash
     earning T-bills (park=cash), or SPY (park=spy).
   - Tax (illustrative 35% short-term / 20% long-term, same as gate.py): realised
-    gains netted across the whole basket each calendar year, losses carried forward,
-    T-bill interest taxed as short-term, dividends at the long-term rate. The basket
-    is liquidated and taxed at the end of each window (conservative: in reality a
-    re-picked stock would be kept).
+    gains netted across the whole basket each calendar year, losses carried forward
+    (also from one window to the next), T-bill interest taxed as short-term,
+    dividends at the long-term rate. The basket is liquidated and taxed at the end of
+    each window (conservative: in reality a re-picked stock would be kept).
   - SPY benchmark: buy at the first open, dividends reinvested and taxed yearly,
     sold and taxed at the end of the window.
   - Prices: --prices split (Robinhood/TradingView style; dividends added from the
     approximate SPY yield table for SPY only, none for stocks: conservative for the
-    strategy) or --prices total (dividend-adjusted data; nothing added).
+    strategy) or --prices total (dividend-adjusted data; nothing added, but the yearly
+    dividend tax is charged on every equity position using the SPY yield as a proxy),
+    or --prices qlib (qlib's US data: total return until 2021-09-16, price-only after).
+  - Data cut-offs: when many series end on the same date well before the rest (qlib's
+    2020-11-10 collection), those series are not tested past that date.
 
 Strictness levels (score = formation-window metric, higher = better fit):
   top5/top10/top20/top40   the N best-scoring eligible stocks
@@ -68,6 +72,7 @@ SPY_DIV = {1999: 1.1, 2000: 1.1, 2001: 1.2, 2002: 1.6, 2003: 1.7, 2004: 1.6, 200
            2015: 2.1, 2016: 2.1, 2017: 1.9, 2018: 1.9, 2019: 1.9, 2020: 1.7, 2021: 1.3, 2022: 1.6,
            2023: 1.5, 2024: 1.3, 2025: 1.2, 2026: 1.1}
 CRITERIA = ["skill", "gate", "edge", "vol", "random"]
+QLIB_TOTAL_RETURN_UNTIL = pd.Timestamp("2021-09-16")   # qlib US prices are price-only afterwards
 PRIMARY = "skill"
 LEVELS = ["top5", "top10", "top20", "top40", "top25%", "top50%", "all", ">0", ">5", ">10"]
 ETFS = {"SPY", "QQQ", "IWM", "DIA", "VOO", "IVV"}
@@ -87,7 +92,16 @@ class Panel:
         self.cal = spy.index
         self.spy_o = spy.open.to_numpy(float); self.spy_c = spy.close.to_numpy(float)
         self.tb = _year_rate(self.cal, TBILL, 2.0)
-        self.spy_div = _year_rate(self.cal, SPY_DIV, 1.8) if prices == "split" else np.zeros(len(self.cal))
+        # Days whose prices already include dividends: none (split), all (total), or up to
+        # 2021-09-16 for qlib's US data, which is price-only after that date.
+        embedded = {"split": np.zeros(len(self.cal), bool), "total": np.ones(len(self.cal), bool),
+                    "qlib": np.asarray(self.cal <= QLIB_TOTAL_RETURN_UNTIL)}[prices]
+        y = _year_rate(self.cal, SPY_DIV, 1.8)
+        self.spy_div = np.where(embedded, 0.0, y)   # SPY dividends added where prices lack them
+        # embedded dividends are still taxed yearly; the SPY yield is the proxy for every
+        # equity position (SPY, stocks, buy & hold alike). Stocks get no dividends where
+        # prices lack them (conservative for the strategy).
+        self.div_tax = np.where(embedded, y, 0.0)
         self.o, self.c, self.g, self.alive = {}, {}, {}, {}
         for s, df in data.items():
             df = df[(df.index >= self.cal[0]) & (df.index <= self.cal[-1])]
@@ -135,7 +149,7 @@ def simulate_basket(P: Panel, picks, start, end, park="cash", tax=True, carry=(0
     O = np.array([P.o[s][a - 1:b + 1] for s in picks]); C = np.array([P.c[s][a - 1:b + 1] for s in picks])
     G = np.array([P.g[s][a - 1:b + 1] for s in picks]); A = np.array([P.alive[s][a - 1:b + 1] for s in picks])
     so, sc = P.spy_o[a - 1:b + 1], P.spy_c[a - 1:b + 1]
-    tb, dv = P.tb[a - 1:b + 1], P.spy_div[a - 1:b + 1]
+    tb, dv, dtax = P.tb[a - 1:b + 1], P.spy_div[a - 1:b + 1], P.div_tax[a - 1:b + 1]
     cal = P.cal[a - 1:b + 1].values
     v = np.full(n, 1.0 / n)
     state = np.full(n, -1)                    # -1 initial cash, 0 park, 1 stock
@@ -184,6 +198,10 @@ def simulate_basket(P: Panel, picks, start, end, park="cash", tax=True, carry=(0
         src = np.where(sell_park, proceeds, v)
         basis[buy_stock] = src[buy_stock]; entry_day[buy_stock] = d
         nv[buy_stock] = src[buy_stock] * (1 - COST) * C[buy_stock, k] / O[buy_stock, k]
+        if dtax[k] > 0:                       # dividends inside total-return prices: taxed, added to basis
+            eq = (new == 1) | ((new == 0) & (park == "spy"))
+            inc = nv[eq] * dtax[k]
+            glt += inc.sum(); basis[eq] += inc
         v = nv; state = new
         expo += int(state.sum())
         # ---- year end or window end: liquidate at the window end, settle tax
@@ -214,11 +232,13 @@ def spy_bh(P: Panel, start, end, tax=True):
     year at the long-term rate), sell at the last close and pay tax on the gain."""
     a, b = P.idx(start, end)
     st, lt = (ST, LT) if tax else (0.0, 0.0)
-    c, o, dv = P.spy_c, P.spy_o, P.spy_div
+    c, o, dv, dtax = P.spy_c, P.spy_o, P.spy_div, P.div_tax
     v = (1 - COST) * c[a] / o[a]; basis = 1.0; year_div = 0.0; path = [v]
     for k in range(a + 1, b + 1):
         div = v * c[k] / c[k - 1] * dv[k]
-        v = v * c[k] / c[k - 1] + div; basis += div; year_div += div
+        v = v * c[k] / c[k - 1] + div
+        div += v * dtax[k]                          # total-return prices: dividend already in v
+        basis += div; year_div += div
         if k == b:
             fin = v * (1 - COST)
             gain = fin - basis
@@ -269,8 +289,11 @@ def pick(scores: pd.Series, level: str) -> list:
     raise ValueError(level)
 
 
-def eligible_at(series, test_series, members, fs, fe, ts, te, min_trades):
-    pool = [s for s in series if s in test_series]
+def eligible_at(series, test_series, members, fs, fe, ts, te, min_trades, censor=()):
+    """censor: data cut-off dates (many series end together well before the data's end);
+    a series ending on one is unknown afterwards, not delisted, so it can't be tested past it."""
+    pool = [s for s in series if s in test_series
+            and not (test_series[s].index[-1] in censor and pd.Timestamp(te) > test_series[s].index[-1])]
     if members is not None:                        # index membership on the re-pick date
         on = members[(members.start <= pd.Timestamp(ts)) & (members.end.isna() | (members.end >= pd.Timestamp(ts)))]
         pool = [s for s in pool if s in set(on.symbol)]
@@ -305,18 +328,25 @@ def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park
         sp = [(f"{y0 - form}-01-01", f"{y0 - 1}-12-31", f"{y0}-01-01", f"{y0 + test - 1}-12-31")]
     else:
         sp = splits(first, until or last, form, test)
+    ends = pd.Series({s: v.index[-1] for s, v in test_series.items()})
+    censor = {d for d, n in ends.value_counts().items() if n >= 20 and d < ends.max() - pd.Timedelta(days=30)}
+    if censor:
+        print("data cut-off dates (series ending there are not tested past them): "
+              + ", ".join(f"{d.date()} ({int((ends == d).sum())})" for d in sorted(censor)))
     rng = np.random.default_rng(seed)
     rows, slot_mults, scores_kept = [], [], []
+    carry_state = {}                               # tax-loss carryforward chained across windows
     for fs, fe, ts, te in sp:
         te = min(pd.Timestamp(te), last).strftime("%Y-%m-%d")
-        fm = eligible_at(series, test_series, members, fs, fe, ts, te, min_trades)
+        fm = eligible_at(series, test_series, members, fs, fe, ts, te, min_trades, censor)
         elig = [s for s in fm if s in P.c]
         if len(elig) < 30:
             continue
         spy_tax = spy_bh(P, ts, te, tax=True); spy_pre = spy_bh(P, ts, te, tax=False)
         allpre = simulate_basket(P, elig, ts, te, park, tax=False, per_slot=True)
         slot_mults.append(allpre["slot_mult"])
-        ew_tax = simulate_basket(P, elig, ts, te, "cash", tax=True, always_in=True)
+        ew_tax = simulate_basket(P, elig, ts, te, "cash", tax=True, always_in=True, carry=carry_state.get("ew", (0.0, 0.0)))
+        carry_state["ew"] = ew_tax["carry"]
         ew_pre = simulate_basket(P, elig, ts, te, "cash", tax=False, always_in=True)
         sc_by = {}
         for crit in criteria:
@@ -329,9 +359,11 @@ def run(data, spy, members=None, form=5, test=3, until=None, holdout=False, park
                 if not picks:
                     rows.append({"test": f"{ts[:4]}-{te[:4]}", "criterion": crit, "level": lev, "n": 0})
                     continue
-                post = simulate_basket(P, picks, ts, te, park, tax=True)
+                post = simulate_basket(P, picks, ts, te, park, tax=True, carry=carry_state.get((crit, lev), (0.0, 0.0)))
                 pre = simulate_basket(P, picks, ts, te, park, tax=False)
-                pbh = simulate_basket(P, picks, ts, te, "cash", tax=True, always_in=True)
+                pbh = simulate_basket(P, picks, ts, te, "cash", tax=True, always_in=True,
+                                      carry=carry_state.get((crit, lev, "bh"), (0.0, 0.0)))
+                carry_state[(crit, lev)], carry_state[(crit, lev, "bh")] = post["carry"], pbh["carry"]
                 rows.append({
                     "test": f"{ts[:4]}-{te[:4]}", "start": ts, "end": te, "criterion": crit, "level": lev,
                     "eligible": len(elig), "n": len(picks),
@@ -434,7 +466,8 @@ def main():
     ap.add_argument("--members", help="CSV symbol,start,end (point-in-time index membership)")
     ap.add_argument("--spy", default="SPY", help="benchmark symbol in the folder")
     ap.add_argument("--park", choices=["cash", "spy"], default="cash")
-    ap.add_argument("--prices", choices=["split", "total"], default="split")
+    ap.add_argument("--prices", choices=["split", "total", "qlib"], default="split",
+                    help="qlib = total return until 2021-09-16, price-only after (qlib US data)")
     ap.add_argument("--form", type=int, default=5)
     ap.add_argument("--test", type=int, default=3)
     ap.add_argument("--perm", type=int, default=1000)

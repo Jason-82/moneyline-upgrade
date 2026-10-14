@@ -181,23 +181,27 @@ Do **not** add these (all tested):
 
 ## 4b. Opening up the stock universe (`screener/`)
 
-- **Scan broadly, trade narrowly.** `screener/scan.py` runs the exact indicator on any
-  list of stocks and reports state, flipped today, days since flip, % since flip and
-  distance to line, like Ivan on Tech's screener. Scanning is information only.
-- **Only a whitelist is traded.** It comes from a selection rule that has itself passed
-  the walk-forward test in `screener/selection.py`. That test uses drift-neutral timing
-  skill, non-overlapping windows, a permutation test with Holm correction, and a
-  2023-25 holdout. Each pick must then pass `gate.py`, including the SPY hurdle.
-- **Picking the stocks with the best past backtests is not evidence.** On no-skill
-  synthetic stocks, the top 20 showed +28 CAGR points in-sample and nothing afterwards.
-- **Expect a small list, possibly empty.** 0 of 7 real stocks pass so far, and noise
-  passes the gate ~2% of the time at 7-8 years of history.
-- **Data for the real study:** a survivorship-free universe (point-in-time members plus
-  delisted histories) from 1993 on, so that 2000-02 and 2008 fall inside test windows.
-  Not reachable from the research sandbox.
-- **Daily monitoring of a small whitelist** can run inside a Claude Code session using
-  Robinhood's historicals (10 symbols per call) with a local bar store. No local cron is
-  needed for that.
+**Result (2026-10-14): don't run a stock basket on this indicator in the taxable account.**
+
+- **The test:** `screener/strictness.py` traded baskets from strict to loose, picked by
+  past indicator fit, walk-forward on S&P 500 history 2005–2026 (point-in-time membership,
+  next-open execution, costs, tax).
+- **Development:** no level beat SPY after tax consistently. The best levels tied it and
+  beat it in only half the 3-year windows.
+- **Out of sample:** the one variant that looked better (hold SPY while a stock is red)
+  failed in 2025–26.
+- **Fit carries forward only weakly:** about 7%.
+- **"Decent fit" baskets lost clearly**, and the per-stock gate's strict filter did worse
+  than random picks.
+- **Scan broadly, for information only.** `screener/scan.py` matches TradingView on every
+  IWM date. A free daily-updated source of split-adjusted OHLC for about 2,300 US stocks
+  (`data.from_long_parquet`, see `screener/README.md`) makes a nightly cloud scan possible
+  with no Yahoo access and no local machine.
+- **If the user still wants a stock sleeve:** treat it as an experiment with small money
+  and a forward log. Use SPY as the default holding and swap a slot into a top-10
+  past-skill stock while it is green. It was slightly ahead of SPY in all three periods
+  (+1.4, −0.1 and +1.0 pts/yr). That is post hoc, it depends on single big winners, and it
+  ran deeper drawdowns (−61% in 2008 vs −52%). It is not validated.
 
 ## 5. Validation gate (`analysis_2026/gate.py` is authoritative)
 

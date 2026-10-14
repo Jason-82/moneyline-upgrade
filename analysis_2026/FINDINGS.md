@@ -564,3 +564,79 @@ for flips or by picking a basket where the indicator "worked best historically".
   7-8 years of history); and `asof`/`recent_years` for walk-forward use.
 * Not run: the real-data selection study. No stock data is reachable from the sandbox,
   and a current-S&P-500 yfinance universe would be survivorship-biased anyway.
+
+
+---
+
+# 2026-10-14 — how strict should the stock fit filter be? (real S&P 500 data)
+
+The user asked whether the gates are too strict: maybe a "decent fit" stock basket beats
+SPY even if no single stock passes the per-stock gate. That calls for a basket test that
+varies the strictness. Full method and tables: `screener/README.md` ("How strict should
+the fit filter be?").
+
+**Data, now reachable from the sandbox:**
+
+- qlib US daily (GitHub release download), 2000 to 2024-04: 852 of 1,128 tickers that were
+  S&P 500 members since 1999. 36 broken or spliced series were dropped.
+- Point-in-time membership from fja05680/sp500.
+- A daily-updated split-adjusted parquet (q100423gg-coder/us-stock-data), 2024-08 to
+  2026-10, for the forward test.
+- Robinhood MCP historicals also work, because large results are saved to a file; history
+  from 1999-09.
+
+**Process:**
+
+1. Pre-registered the decision rule (commit 6b6908c).
+2. Ran development windows 2005–2022.
+3. No level qualified, so pre-registered follow-up H2 (eea8dac) before any 2023+ run.
+4. Ran holdout A (2023-01 to 2024-04) and forward B (2025-01 to 2026-10).
+5. A 4-lens adversarial audit (leakage, accounting, data, independent recomputation)
+   reproduced every headline number. It led to four fixes: tax-loss carry across windows,
+   dividend tax under total-return prices, qlib being price-only after 2021-09-16, and
+   qlib's 2020-11-10 collection cut-off. Verdicts are unchanged; numbers moved by
+   ≤ 0.3 pt.
+
+**Results** (after tax, 35%/20% illustrative rates; audited v3):
+
+- **Development 2005–2022, SPY held 7.45%/yr, park = cash:**
+
+  | level | after tax | windows beating SPY |
+  |---|---|---|
+  | skill top 5 | 7.63 | 3/6 |
+  | skill > 10 | 7.41 | 3/6 |
+  | top 10 | 6.67 | |
+  | top 20 | 4.58 | |
+  | all stocks | 3.16 | |
+  | "decent fit" (skill > 0 / > 5) | 3.7 | |
+  | strict per-stock-gate style | 1.6 | |
+  | random 5 / 10 | 2.3 / 2.2 | |
+
+  **No level qualifies.**
+- **Selection carries information:** top 5, top 10 and > 10 beat all stocks, p ≈ 0.001–0.002
+  (0.005–0.009 against a volatility-matched null). But the edge rests on about one big
+  winner per window, and survivorship (60–66% of 2005/2008 members usable, the failures
+  missing) flatters the baskets by an estimated 0.3–1 pt/yr.
+- **H2** (park = spy, skill > 10):
+  - development +1.8 pts/yr
+  - holdout A +0.5, inside the dividend uncertainty
+  - forward B **−4.6**
+  - **FAIL**
+- **Calibration:** only 7% of past fit carries into the next 3 years (slope 0.074 over 2,318
+  stock-windows). In every past-fit bin the median stock did better held than traded.
+- **Pre-registered selection study** (top 20 by skill): test skill +1.75 vs −1.91 for all
+  (p < 0.002, Holm 0.01). High-volatility and deep-drawdown selectors did as well with no
+  backtest.
+- **The average S&P 500 stock** loses about 2.2%/yr of timing skill to the indicator,
+  negative in 5 of 6 windows.
+
+**Conclusion:**
+
+- In a taxable account, no strictness level makes the daily indicator on S&P 500 stocks
+  beat holding SPY.
+- The per-stock gate isn't merely too strict: its "amazing fit" filter picks the wrong
+  stocks.
+- Looser filters add stocks and lose more.
+- The stock scanner stays information only.
+- **Bug found and fixed in passing:** `selection.py` read broken series because it lacked
+  the quality filter (CHK's broken series returned 5,306× in 2008-10). It now uses it.

@@ -56,7 +56,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from analysis_2026.moneyline_ref import moneyline  # noqa: E402
-from screener.data import from_csv_folder  # noqa: E402
+from screener.data import from_csv_folder, quality_filter  # noqa: E402
 
 COST = 0.0003
 PRIMARY = "skill"
@@ -239,6 +239,38 @@ def run(data, top_n=20, form=5, test=3, step=None, min_trades=8, seed=0, n_perm=
     return res
 
 
+def calibration(data, form=5, test=3, min_trades=8, members=None, bins=(-np.inf, -10, -5, 0, 5, 10, 15, 20, np.inf)):
+    """How much past fit carries forward: every eligible stock-window, binned by
+    formation-window skill, with the mean test-window skill and returns."""
+    series = {s: daily_returns(df) for s, df in data.items() if len(df) > 400}
+    first = min(v.index[0] for v in series.values()); last = max(v.index[-1] for v in series.values())
+    rows = []
+    for fs, fe, ts, te in splits(first, last, form, test):
+        pool = list(series)
+        if members is not None:
+            on = members[(members.start <= pd.Timestamp(ts)) & (members.end.isna() | (members.end >= pd.Timestamp(ts)))]
+            pool = [s for s in pool if s in set(on.symbol)]
+        listed = pd.Timestamp(fe) - pd.Timedelta(days=7)
+        for s in pool:
+            f = window_metrics(series[s], fs, fe)
+            if not f or f["trades"] < min_trades or series[s].index[-1] < listed:
+                continue
+            t = window_metrics(series[s], ts, te, test=True)
+            if t:
+                rows.append({"test": f"{ts[:4]}-{te[:4]}", "symbol": s, "form_skill": f["skill"], "form_vol": f["vol"],
+                             "test_skill": t["skill"], "test_sig_cagr": t["sig_cagr"], "test_bh_cagr": t["bh_cagr"],
+                             "test_edge": t["edge"], "test_pf": t["pf"]})
+    r = pd.DataFrame(rows)
+    r["bin"] = pd.cut(r.form_skill, bins)
+    g = r.groupby("bin", observed=True)
+    out = pd.DataFrame({"stock_windows": g.size(), "form_skill": g.form_skill.mean(), "test_skill": g.test_skill.mean(),
+                        "test_skill_pos_%": g.test_skill.apply(lambda x: (x > 0).mean() * 100),
+                        "test_signal_cagr_median": g.test_sig_cagr.median(), "test_bh_cagr_median": g.test_bh_cagr.median(),
+                        "form_vol": g.form_vol.mean()})
+    slope = np.polyfit(r.form_skill.clip(-50, 50), r.test_skill.clip(-50, 50), 1)[0]
+    return out, r, slope
+
+
 def summarise(res: pd.DataFrame) -> pd.DataFrame:
     if res.empty:
         return res
@@ -307,8 +339,15 @@ def main():
     ap.add_argument("--until", default="2022-12-31",
                     help="last date used; 2023+ is the holdout. Pass 'holdout' for the one final run.")
     ap.add_argument("--out")
+    ap.add_argument("--calibrate", action="store_true", help="table: formation skill bins -> next-window skill")
     a = ap.parse_args()
-    data = from_csv_folder(a.csv_folder) if a.csv_folder else synthetic(a.synthetic)
+    if a.csv_folder:
+        data, dropped = quality_filter(from_csv_folder(a.csv_folder))
+        data = {s: df for s, df in data.items() if s not in {"SPY", "QQQ", "IWM", "DIA", "VOO", "IVV"}}
+        if dropped:
+            print(f"dropped {len(dropped)} broken/spliced series: {', '.join(sorted(dropped))}\n")
+    else:
+        data = synthetic(a.synthetic)
     if a.until != "holdout":
         data = {s: df.loc[:a.until] for s, df in data.items()}
     else:
@@ -320,6 +359,14 @@ def main():
     elif a.csv_folder:
         print("WARNING: no --members file. If this folder holds today's index members with yfinance "
               "history, the universe is survivorship-biased; treat results as illustrative.\n")
+    if a.calibrate:
+        tab, rows, slope = calibration(data, a.form, a.test, members=members)
+        pd.set_option("display.width", 200)
+        print(tab.to_string(float_format=lambda x: f"{x:,.2f}"))
+        print(f"\nslope of test skill on formation skill: {slope:.3f} (1 = fully persistent, 0 = none)")
+        if a.out:
+            rows.to_csv(a.out, index=False)
+        return
     if a.step and a.step < a.test:
         print("WARNING: test windows overlap; '% of splits' is not a count of independent results.\n")
     res = run(data, top_n=a.top, form=a.form, test=a.test, step=a.step, n_perm=a.perm, members=members)
