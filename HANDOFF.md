@@ -430,6 +430,20 @@ Full tables and the pre-registration are in `screener/README.md`.
   lost money on 16-19 of 20 coins. Lottery, not edge.
 - **ETF breakouts lag buy & hold.**
 
+### 5.15 Flip-confirmation delay (Ivan's hourglass N/5) — `analysis_2026/flip_delay.py`
+
+- **Rule:** flip only after N consecutive closes beyond the line. N=1 is the original.
+- **Stocks: helps robustly.** S&P 500 point-in-time basket at N=5: Sharpe 0.53 → 0.70,
+  CAGR 5.0 → 6.6%, max DD −34 → −22% (bootstrap p ≤ 0.009; every definition, both halves).
+- **ETFs: helps in direction** (10/13), but statistically fragile.
+- **Crypto: no help.** The top-20 basket is worse at every N; keep the immediate flip, or a
+  short exit-only delay at most.
+- **Mechanism:** immediate flips are false about twice as often in stocks/ETFs (10-13%
+  reversed within 4 bars) as in crypto (5-6%), and crypto breakouts tend to run right
+  after the flip.
+- **Versus buy & hold:** even delayed, the indicator matches B&H's risk-adjusted return on
+  stocks/ETFs at half the drawdown, but with lower CAGR (S&P basket 6.6% vs 10.9%).
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -564,6 +578,9 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
+- Other agents work in parallel on separate branches: `claude/youthful-goldberg-31vs8h`
+  (regime-switch study) and `codex/*` (crypto regime, crypto trend comparison, stock
+  shadow trading). Fetch and rebase before pushing.
 - The user runs a Schwab robo-advisor, which already does tax-loss harvesting. Wash-sale
   rules span all of the user's accounts, IRAs included, so any agentic-account plan must
   avoid buying, within 30 days, securities that are substantially identical to ones the
@@ -591,6 +608,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
+| `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |

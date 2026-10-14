@@ -1,0 +1,40 @@
+Delayed indicator vs buy & hold (B&H after-tax figure taxes the whole gain yearly - conservative for B&H):
+      class N  median_CAGR  median_BH_CAGR beats_BH_CAGR  median_Sharpe  median_BH_Sharpe beats_BH_Sharpe  median_CAGR_tax  median_BH_CAGR_tax
+   crypto20 1        33.70           18.01         17/21           0.77              0.68           13/21            23.44               11.38
+   crypto20 3        37.67           18.01         14/21           0.85              0.68           15/21            26.81               11.38
+   crypto20 5        31.17           18.01         14/21           0.74              0.68           11/21            21.47               11.38
+   crypto20 7        39.54           18.01         15/21           0.80              0.68           11/21            28.58               11.38
+      etf13 1         3.92            6.97          1/13           0.41              0.47            3/13             2.49                4.53
+      etf13 3         4.22            6.97          1/13           0.51              0.47            8/13             2.78                4.53
+      etf13 5         3.90            6.97          3/13           0.46              0.47            9/13             2.57                4.53
+      etf13 7         4.20            6.97          1/13           0.40              0.47            7/13             2.69                4.53
+user_stocks 1        21.24           38.73           2/7           0.68              0.86             2/7            14.65               27.00
+user_stocks 3        23.36           38.73           3/7           0.68              0.86             3/7            15.27               27.00
+user_stocks 5        26.30           38.73           3/7           0.85              0.86             5/7            17.92               27.00
+user_stocks 7        25.74           38.73           2/7           0.78              0.86             4/7            17.77               27.00
+     weekly 1        10.15           15.42           0/5           0.68              0.79             0/5             6.73               10.17
+     weekly 3        10.48           15.42           0/5           0.75              0.79             1/5             6.94               10.17
+     weekly 5         9.62           15.42           1/5           0.67              0.79             2/5             6.36               10.17
+     weekly 7         9.30           15.42           1/5           0.63              0.79             2/5             6.14               10.17
+
+Sub-periods, delay vs N=1 (median Sharpe change):
+   class    period  N  assets  median_dSharpe improved
+   etf13 2005-2015  3       9           0.133      8/9
+   etf13 2005-2015  5       9           0.214      7/9
+   etf13 2016-2026  3      13           0.130     9/13
+   etf13 2016-2026  5      13           0.073    11/13
+crypto20 2018-2021  3       2           0.244      2/2
+crypto20 2018-2021  5       2          -0.029      1/2
+crypto20 2022-2026  3      21          -0.049     9/21
+crypto20 2022-2026  5      21          -0.029     9/21
+
+Crypto at 0.95%/side (Robinhood-like): median Sharpe / CAGR by N, and assets improved vs N=1:
+1 0.609 18.68 0/21
+3 0.756 26.21 12/21
+5 0.648 22.13 11/21
+7 0.732 31.43 9/21
+10 0.671 25.02 10/21
+skip members.csv: missing OHLC columns: ['open', 'high', 'low', 'close']
+
+S&P basket buy & hold (equal weight, same members): {'CAGR_%': np.float64(10.89), 'Sharpe': np.float64(0.6), 'maxDD_%': -58.24, 'years': 25.69, 'CAGR_tax_%': np.float64(7.17)}
+SPY buy & hold: {'CAGR_%': np.float64(9.02), 'Sharpe': np.float64(0.55), 'maxDD_%': -55.19, 'years': 25.69, 'CAGR_tax_%': np.float64(5.97)}

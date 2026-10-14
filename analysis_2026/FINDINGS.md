@@ -934,3 +934,76 @@ rows; a truncation test found no look-ahead. Fixes applied before the final numb
   5-15% per trade.
 - **ETFs 2005-2026:** breakout and indicator CAGR 2.3-2.9% vs buy & hold 7.3%. Sharpe is
   about equal; drawdowns about −25% vs −59%.
+
+
+---
+
+# 2026-10-14 (latest) — Ivan's flip-confirmation delay (hourglass "N/5")
+
+`analysis_2026/flip_delay.py`. D1-D3 were pre-registered in b3900d6. Results are in
+`analysis_2026/results_delay/`.
+
+**Rule:** the exact indicator, but a flip needs N consecutive closes beyond the still-trailing
+line; a close back inside resets the count. N = 1 equals moneyline_ref (asserted).
+
+**Assets:**
+
+- 21 coins
+- the crypto top-20 universe incl. dead coins
+- 13 ETFs
+- the user's names (TSLA HOOD COIN CRCL MSTR NVDA PLTR)
+- the point-in-time S&P 500 basket incl. failed companies (2001-2026)
+- weekly SPY/QQQ/IWM/BTC/ETH
+
+**Audit:** two lenses. Independent rebuilds reproduced all 3,864 per-asset values and both
+baskets exactly, with no look-ahead. Robustness covered alternative delay definitions,
+costs, sub-periods, block bootstraps, a reality check over N, and an entry/exit
+decomposition.
+
+**Results:**
+
+- **D1 (trades fall with N):** confirmed. SPY flips: 457 at N=1, 201 at N=5, 125 at N=10.
+- **D2 (N=5 vs N=1): passes 2 of 3 classes, leaning mainly on stocks.**
+  - **S&P 500 basket, robust.** Sharpe 0.53 → 0.70 (0.72 at N=6), CAGR 5.0 → 6.6%, max DD
+    −34 → −22%.
+    - Bootstrap 95% CI for the Sharpe gain [+0.03, +0.31], p ≤ 0.009; reality check over
+      N, p 0.004-0.03.
+    - Every definition and every N ≥ 2 helps; both halves; 19 of 26 years; 61% of 969
+      stocks improve.
+  - **ETFs: PASS but fragile.** Median +0.11 Sharpe, 10/13 improve (sign p 0.046). A joint
+    bootstrap keeping ETF correlation gives p 0.06-0.10; Bonferroni over N gives 0.42.
+    Direction holds for every N, every definition and both halves.
+  - **Crypto: FAIL.** 6/21 coins improve at N=5. The top-20 basket is worse at every N, in
+    7 of 8 years and under every definition (Sharpe 1.14 → 0.87 at N=5). Bootstrap p ≈ 0.10,
+    so "doesn't help" is robust and "hurts" is likely but not established.
+- **D3:** confirmed within each class. Delays cut whipsaws and deepen average losses (crypto
+  −11.3 → −14.9%). The fixed 2% whipsaw band exaggerates the gap between classes; the
+  volatility-free measure is below.
+- **Mechanism:**
+  - Immediate flips reverse within 4 bars 10-13% of the time in stocks and ETFs vs 5-6% in
+    crypto, so the delay filters more false flips in stocks.
+  - A late signal costs about the same in volatility units for both.
+  - Crypto entries are followed by right-skewed continuation, so delaying entries is the
+    damaging leg there. An exit-only delay is roughly neutral for crypto.
+  - ETFs: the entry delay helps. S&P: both legs together are best.
+- **Versus buy & hold:**
+  - The delay brings the indicator's Sharpe up to about buy & hold's (S&P basket, excess
+    over T-bills: 0.515 vs 0.515). On ETFs, N=5 beats B&H Sharpe on only 4/13 on that
+    measure.
+  - CAGR stays well below: S&P basket 6.6% vs equal-weight B&H 10.9%; ETFs median 3.9% vs
+    7.0%.
+  - Crypto: the indicator beats B&H at any N; N=1 or 3 is best.
+- **Not supported:**
+  - "A 3-day delay helps crypto at 0.95%/side" was an N=3 quirk; the basket at 0.95% is
+    worse at every N ≥ 2.
+  - The 'frozen flip point' check is uninformative: it is identical to the trailing rule
+    on all but 20 of ~30M bars.
+- **Data caveat:** about a third of early S&P member-days (2001) are close-only
+  approximations. Restricting to clean members gives the same improvement (+0.168).
+
+**Practical reading:**
+
+- **Stocks/ETFs:** Ivan's delay (about N=4-6) makes the indicator a better risk reducer:
+  half the drawdown at about buy & hold's risk-adjusted return. It still earns less than
+  buy & hold.
+- **Crypto:** keep the immediate flip (or at most a short exit-only delay).
