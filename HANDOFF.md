@@ -10,7 +10,8 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-14. Added the stock-basket strictness study (section 5.10),
+**Last updated:** 2026-10-14. Added the regime-switch study (section 5.15). Earlier the
+same day: the stock-basket strictness study (section 5.10),
 which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
 2026-10-13.
 
@@ -139,6 +140,9 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 | `data/universe_qlib/` (gitignored, rebuild) | qlib US daily for every S&P 500 member since 1999 that qlib has (852 tickers), 2000 to 2024-04-25 | Download `https://github.com/SunsetWolf/qlib_dataset/releases/download/v0/qlib_data_us_1d_v3.zip` (615 MB), then `screener.data.from_qlib(root, symbols, out_folder)`. Total return until 2021-09-16, price-only after (`--prices qlib`). Survivorship-biased: 60-66% of 2005/2008 members usable. |
 | `data/universe_recent/` (gitignored, rebuild) | ~2,300 US stocks and ETFs, split-adjusted OHLC, 2024-08 to the latest close | `https://github.com/q100423gg-coder/us-stock-data/releases/download/data/prices.parquet` (refreshed daily), then `screener.data.from_long_parquet`. Needs pyarrow. Third-party and unofficial. |
 | `data/universe/members.csv` (gitignored, rebuild) | point-in-time S&P 500 membership spells | `screener.data.sp500_members(out)`, from fja05680/sp500 via raw.githubusercontent.com |
+| `data/macro/` (gitignored, rebuild) | S&P 500 daily OHLC 1950-2018 (real high/low from 1962), daily S&P total return and T-bill 1885-2025, UNRATE/VIX/T10Y2Y/PAYEMS, Shiller monthly, French factors | `git clone` github.com/vijinho/sp500 (`csv/sp500.csv` → `gspc_1950_2018.csv`), github.com/SteelCerberus/us-market-data (`data/us_market_data.csv`), github.com/cyby2000/fred-relay (`data/*.csv`, a daily FRED mirror; FRED itself is blocked here). Shiller: raw.githubusercontent.com/datasets/s-and-p-500. |
+| `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the next row |
+| `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). All three folders, plus `data/raw_pit/` and `data/universe_pit_all/`: `python -m analysis_2026.fetch_regime_data`. |
 | `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
 **Getting the current state.** `moneyline_ref.py` cannot run on the `data/tv_*`
@@ -430,6 +434,42 @@ Full tables and the pre-registration are in `screener/README.md`.
   lost money on 16-19 of 20 coins. Lottery, not edge.
 - **ETF breakouts lag buy & hold.**
 
+### 5.15 Why the indicator trails buy & hold; regime switching — `analysis_2026/regime_switch.py`
+
+Pre-registered H-A1 and H-B1 to H-B5, then audited twice (FINDINGS has the full entry).
+
+- **The up-market loss is false breakdowns (H-A1 confirmed).** Of the indicator's bull-phase
+  losses, 81% (S&P 500 1963-2026), 81% (S&P 500 members) and 87% (Binance coins) come from
+  red spells where price never closed more than 1 ATR below the exit.
+  - Each round trip costs about 5 ATR: it sells ~2.2 ATR below the peak and buys back ~2.5
+    ATR above the low.
+  - The median further decline after an exit is ~1 ATR, so only 27% (S&P) to 44% (coins) of
+    red spells save money.
+  - False breakdowns are a constant tax, about 75-85% of losses in down years too. Regimes
+    differ in the size of the saves.
+- **Why it fails overall:** S&P bull phases are 84% of the time.
+  - The indicator loses ~10 pts per bull-year and gains ~29 per bear-year, netting about −4
+    pts/yr.
+  - Its timing skill on the S&P is even negative (−1.7 pts/yr).
+  - On crypto, bear phases are 28-45% of the time with −70% to −95% crashes, and timing skill
+    is +31 to +41 (BTC/ETH/BNB).
+- **Regime switching (hold in good regimes, the indicator in bad ones) fails H-B1 to H-B5.**
+  - **S&P 500 1963-2026,** SWITCH(200-day):
+    - 10.3% vs buy & hold 10.8% pre-tax; 7.9% vs 9.8% after tax
+    - drawdown −36% vs −55%
+    - the plain 200-day rule makes 10.5% with drawdown −22%
+    - H-B2 fails by 0.10 pt in 1963-1993 and passes in the other two windows
+  - **Stock basket 1997-2026:** 9.1 vs 10.9. **Coin basket:** 57.8 vs the indicator's 61.7.
+  - **Crypto:** it lowers returns vs the indicator alone on all five TradingView coins with
+    the 200-day (ETH 67.3 → 51.7, ZEC 28.7 → −0.7). Crypto crashes start above the 200-day.
+  - **No ex-ante classifier beats buy & hold on the S&P after tax:** 200-day, 50/200,
+    weekly, 12-month momentum, drawdown, volatility, HMM, unemployment, and the sensitivity
+    grid.
+  - **Hindsight regimes would add ~4 pts/yr (S&P)**, so it fails on identification.
+- **Use:** on index money, the 200-day or 50/200 rule alone is the cheaper drawdown
+  insurance (~2 pts/yr after tax); don't add the daily indicator to it. On crypto, keep the
+  indicator alone and add no regime filter.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -591,6 +631,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
+| `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.15). `python -m analysis_2026.regime_switch` (about 15 min) and `--sensitivity`. Data: `data/macro/`, `data/raw_pit/`, `data/crypto_binance_regime/`, `data/universe_pit_all/` (gitignored; see section 3). Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |

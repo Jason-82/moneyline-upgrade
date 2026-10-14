@@ -176,6 +176,8 @@ Do **not** add these (all tested):
 - squeeze or retest filters
 - trailing 1.5×ATR stops (−37 CAGR points)
 - leverage (not available anyway)
+- a regime switch (hold in good regimes, the indicator in bad ones): on crypto it lowers returns; on
+  indices it is no better than a plain 200-day rule (HANDOFF section 5.15)
 
 ---
 

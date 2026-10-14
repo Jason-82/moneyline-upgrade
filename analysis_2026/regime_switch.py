@@ -15,15 +15,20 @@ reset-on-flip) or, for crypto, the TradingView export's own state. GREEN = long.
 (all gitignored; rebuild steps in HANDOFF section 3 and in load_* below)
   SPX_LONG  S&P 500 1962-01 .. 2026-10. ^GSPC daily OHLC 1962-2018-12-21
             (github.com/vijinho/sp500, Yahoo; real highs/lows from 1962), then SPY's
-            split-adjusted OHLC (Johnbrick123/sp500-data) rescaled at the splice. Total
-            return and the risk-free rate: github.com/SteelCerberus/us-market-data
-            (S&P with dividends, SPY-like 0.0945% fee; 3-month T-bill), then SPY adj_close.
+            split-adjusted OHLC (Johnbrick123/sp500-data) rescaled at the splice. That one
+            close series drives the indicator, the regimes and the price return; dividends
+            are added as a daily factor from github.com/SteelCerberus/us-market-data
+            (Adjusted Close / Close; that pair is SPY itself from 1993), then SPY adj_close /
+            close. Risk-free rate: SteelCerberus 3-month T-bill to 2025-12-19, then the TBILL
+            table. 38 ^GSPC bars in 1962-1983 have no real high/low (O=H=L=C); kept as is.
   ETFs      SPY QQQ IWM DIA EFA EEM TLT IEF TIP LQD HYG GLD SLV VNQ and TSLA COIN HOOD:
             Johnbrick123 parquet (Yahoo, split-adjusted OHLC for the indicator, adj_close
             for total return).
   crypto    BTC ETH SOL BNB ZEC: data/tv_full TradingView exports (exact state,
-            close-only). Breadth: 40 large Binance USDT pairs incl. dead LUNA and FTT
-            (data/crypto_binance_regime, from the Binance S3 archive), MATIC spliced into POL.
+            close-only; the still-forming 2026-08-24 row is dropped). Breadth: 40 large
+            Binance USDT pairs incl. dead LUNA and FTT (data/crypto_binance_regime, from the
+            Binance S3 archive), MATIC spliced into POL; 41 series, because altcoins.load_crypto
+            splits FTT at a 311-day archive gap and LUNA into old LUNA and Terra 2.0.
   stocks    S&P 500 point-in-time members 1995-2026 incl. ~400 dead companies
             (data/universe_pit_all, screener.data.from_sp500_pit, total-return OHLC).
   macro     UNRATE (1948+), from github.com/cyby2000/fred-relay (a daily FRED mirror;
@@ -62,8 +67,10 @@ the indicator. Fixed conventional parameters, chosen before any run:
            US assets primary, crypto exploratory. This is the user's idea with a non-price
            regime signal (cf. "Growth-Trend Timing", Philosophical Economics 2016); the
            original GTT rule (cash only if unrate bad AND close < 200-SMA) is reported too.
-  market variants: stocks also use SPX_LONG's ma200 / dd / hmm / vol / wk; altcoins
-           use BTC's.
+  market variants (exploratory): single US ETFs/stocks also use SPX_LONG's ma200 / dd /
+           hmm / oracle; the stock basket SPX_LONG's ma200 / dd / hmm / vol / oracle;
+           single coins BTC's (TradingView) ma200 / dd / hmm; the coin basket Binance BTC's
+           ma200 / dd / hmm / vol.
   oracle   EX-POST bull/bear phases (peak-to-trough >= 20%, crypto 50%; a phase turns when
            price moves that far from the running extreme). Uses the future: a ceiling, not
            a strategy.
@@ -87,7 +94,8 @@ x_t = ln(1 + asset return) - ln(1 + T-bill). Two decompositions:
                                   the exit but rebounded above P_x before the re-entry:
                                   a real pullback, too shallow to pay for the indicator's lag
                 drop = ln(P_x / P_min), rebound = ln(P_e / P_min), exit lag =
-                ln(peak since entry / P_x); all also in ATR units.
+                ln(peak since entry / P_x), all on total-return closes; also in ATR units.
+                A window that starts flat opens a 'leading' spell at its first bar.
 Spells are grouped by the ex-post phase at the exit (oracle) and by calendar-year buy &
 hold return.
 
@@ -133,6 +141,25 @@ printed Part A output for ETH (TV) - bull-phase FALSE BREAKDOWN share 91.5%, med
 trip 4.4 ATR - and a BH/IND-only Binance basket smoke test for 2019-2022. ETH is not one of
 the H-A1 judgment sets and nothing was changed after seeing them.
 
+AUDIT CORRECTIONS (after the first run, commit b04aad9; two independent audits - a
+from-scratch recomputation and an adversarial code review). No verdict changed.
+  1. SPX_LONG used SteelCerberus' Close/Adjusted Close for regimes and returns, which is
+     SPY (price, fee, bad prints such as 2000-01-06/07) from 1993, while the indicator ran
+     on ^GSPC. Now one series (index close x dividend factor) drives everything.
+  2. Baskets skipped each year's first session (formed at the first close). Now formed at
+     the prior session's close.
+  3. The market-regime cache keyed only by name, so the coin basket's BTC-market regimes
+     reused TradingView BTC instead of Binance BTC. Now keyed by name and source.
+  4. The still-forming last TradingView row is dropped (HANDOFF section 3).
+  5. A window starting flat lost its first spell (the "1e-15 identity" above held for ETH
+     but not for 13 of 23 assets). Now a leading spell is opened.
+  6. After tax: shares sold to pay tax now realise their gain (taxed the following year);
+     the T-bill rate for 2025-12-22..31 carries the last daily value.
+  Also: the pooled S&P stock set for H-A1 now keeps only spells that start during S&P 500
+  membership (it had included non-member years and ETFs such as SPY), spells are tabulated
+  by calendar-year buy & hold return as promised, and the two explanatory tables
+  (spells by 200-day regime, GTT after publication) are produced by main().
+
     python -m analysis_2026.regime_switch
 """
 from __future__ import annotations
@@ -175,7 +202,7 @@ def rf_annual_pct(index: pd.DatetimeIndex) -> np.ndarray:
     s = _RF_CACHE["rf"]
     out = s.reindex(index, method="ffill").to_numpy(dtype=float, copy=True)
     late = index > s.index[-1]
-    out[late] = [TBILL.get(d.year, 3.7) for d in index[late]]
+    out[late] = [s.iloc[-1] if d.year == s.index[-1].year else TBILL.get(d.year, 3.7) for d in index[late]]
     return np.nan_to_num(out, nan=3.0)
 
 
@@ -223,12 +250,17 @@ def load_spx_long() -> pd.DataFrame:
     k = g.close.iloc[-1] / spy.close.loc[splice]
     post = spy.loc[spy.index > splice]
     ohlc = pd.concat([g, post[["open", "high", "low", "close"]] * k])
-    px_pre = m["Close"].reindex(g.index)
-    tr_pre = m["Adjusted Close"].reindex(g.index)
-    px = pd.concat([px_pre, px_pre.iloc[-1] * post.close / spy.close.loc[splice]])
-    tr = pd.concat([tr_pre, tr_pre.iloc[-1] * post.adj_close / spy.adj_close.loc[splice]])
+    # One price series drives the indicator, the regimes and the returns: the index close
+    # (SPY's close x k after the splice). Dividends enter as a per-day factor taken from the
+    # SteelCerberus pair (Adjusted Close / Close; that pair is SPY itself from 1993) and from
+    # SPY's adj_close / close after the splice.
+    dm = (m["Adjusted Close"] / m["Adjusted Close"].shift(1)) / (m["Close"] / m["Close"].shift(1))
+    dp = (spy.adj_close / spy.adj_close.shift(1)) / (spy.close / spy.close.shift(1))
+    div = pd.concat([dm.reindex(g.index), dp.reindex(post.index)]).fillna(1.0)
+    px = ohlc.close
+    tr = px * div.cumprod()
     f = frame_from_ohlc(ohlc, px, tr, 252)
-    f.attrs.update(name="SPX_LONG", kind="us", cost=0.0003, lag=1, theta=0.20)
+    f.attrs.update(name="SPX_LONG", kind="us", cost=0.0003, lag=1, theta=0.20, source="index")
     return f
 
 
@@ -250,14 +282,15 @@ def _yahoo_raw(sym: str) -> pd.DataFrame:
 def load_yahoo(sym: str) -> pd.DataFrame:
     d = _yahoo_raw(sym)
     f = frame_from_ohlc(d, d.close, d.adj_close, 252)
-    f.attrs.update(name=sym, kind="us", cost=0.0003, lag=1, theta=0.20)
+    f.attrs.update(name=sym, kind="us", cost=0.0003, lag=1, theta=0.20, source="yahoo")
     return f
 
 
 def load_tv_crypto(sym: str) -> pd.DataFrame:
-    """TradingView export: exact state, close only. ATR column is RMA(14)."""
+    """TradingView export: exact state, close only. ATR column is RMA(14). The last row
+    (2026-08-24) was still forming when exported (HANDOFF section 3) and is dropped."""
     from analysis_2026.run_full import load, weekly_on_daily
-    d = load(sym, "1D")
+    d = load(sym, "1D").iloc[:-1]
     f = pd.DataFrame(index=d.index)
     f["close"] = d.close.astype(float)
     f["px"] = f.close; f["tr"] = f.close
@@ -266,7 +299,7 @@ def load_tv_crypto(sym: str) -> pd.DataFrame:
     f["green"] = d.green.to_numpy(bool); f["valid"] = True
     f["wk_green"] = weekly_on_daily(sym, d.index).to_numpy(bool)
     f["atr_pct"] = (d.atr / d.close).to_numpy(float)
-    f.attrs.update(name=sym, kind="crypto", cost=0.0015, lag=0, theta=0.50, ppy=365)
+    f.attrs.update(name=sym, kind="crypto", cost=0.0015, lag=0, theta=0.50, ppy=365, source="tradingview")
     return f
 
 
@@ -279,7 +312,7 @@ def load_binance(folder=DATA / "crypto_binance_regime") -> dict:
     out = {}
     for s, d in data.items():
         f = frame_from_ohlc(d, d.close, d.close, 365)
-        f.attrs.update(name=s, kind="crypto", cost=0.003, lag=0, theta=0.50)
+        f.attrs.update(name=s, kind="crypto", cost=0.003, lag=0, theta=0.50, source="binance")
         out[s] = f
     return out
 
@@ -420,7 +453,7 @@ _MKT = {}
 def regime_bad(f: pd.DataFrame, kind: str, market: pd.DataFrame | None = None) -> np.ndarray:
     """1.0 = bad regime (use the indicator), 0.0 = good (hold), NaN = undefined."""
     if kind.endswith("_mkt"):
-        key = (market.attrs["name"], kind)
+        key = (market.attrs["name"], market.attrs.get("source"), kind)
         if key not in _MKT:
             _MKT[key] = pd.Series(regime_bad(market, kind[:-4]), index=market.index)
         return _MKT[key].reindex(f.index, method="ffill").to_numpy(dtype=float)
@@ -500,6 +533,7 @@ def _aftertax(r_px, r_div, rf, pos, year, day, cost, st, lt):
     n = len(pos)
     cash = 1.0; val = 0.0; basis = 0.0; entry_day = 0
     gst = 0.0; glt = 0.0; div_inc = 0.0; int_inc = 0.0; c_st = 0.0; c_lt = 0.0
+    pend_st = 0.0; pend_lt = 0.0
     if pos[0]:
         val = cash * (1 - cost); basis = cash; cash = 0.0; entry_day = day[0]
     for t in range(1, n):
@@ -533,14 +567,21 @@ def _aftertax(r_px, r_div, rf, pos, year, day, cost, st, lt):
                 nst += nlt; nlt = 0.0
             tax = st * max(nst, 0.0) + lt * max(nlt, 0.0) + lt * div_inc + st * int_inc
             c_st = min(nst, 0.0); c_lt = min(nlt, 0.0)
+            pend_st = 0.0; pend_lt = 0.0
             if tax <= cash:
                 cash -= tax
             else:
                 rest = tax - cash; cash = 0.0
                 if val > 0:
-                    basis *= max(val - rest, 0.0) / val
-                val = max(val - rest, 0.0)
-            gst = 0.0; glt = 0.0; div_inc = 0.0; int_inc = 0.0
+                    sold = min(rest, val)
+                    g_sold = sold * (1 - basis / val)        # gain realised by selling to pay tax
+                    if day[t] - entry_day > 365:
+                        pend_lt = g_sold
+                    else:
+                        pend_st = g_sold
+                    basis *= (val - sold) / val
+                    val -= sold
+            gst = pend_st; glt = pend_lt; div_inc = 0.0; int_inc = 0.0
     return cash + val
 
 
@@ -585,14 +626,16 @@ def t2(sig_c, sig_dd, bh_c, bh_dd):
 
 def spells(f: pd.DataFrame, pos: np.ndarray, i0: int, i1: int, bear: np.ndarray, lag: int) -> pd.DataFrame:
     """Every flat spell of the strategy inside [i0, i1]: exit fill at close x (pos[x]=0,
-    pos[x-1]=1), re-entry fill at close e (pos[e]=1) or the window end."""
+    pos[x-1]=1), re-entry fill at close e (pos[e]=1) or the window end. A window that starts
+    flat opens a 'leading' spell at i0, so the spells cover every flat day."""
     p = np.asarray(pos, dtype=bool); tr = f.tr.to_numpy(float); rf = f.rf.to_numpy(float)
     atrp = f.atr_pct.to_numpy(float); idx = f.index
+    ybh = year_buckets(f, i0, i1).to_dict()
     rows = []
-    t = i0 + 1; entry = i0 if p[i0] else None
+    t = i0; entry = None
     while t <= i1:
-        if p[t - 1] and not p[t]:                       # exit at close t
-            x = t; e = x + 1
+        if not p[t] and (t == i0 or p[t - 1]):          # exit at close t (or the window starts flat)
+            x = t; e = x + 1; leading = t == i0
             while e <= i1 and not p[e]:
                 e += 1
             closed = e <= i1
@@ -601,7 +644,7 @@ def spells(f: pd.DataFrame, pos: np.ndarray, i0: int, i1: int, bear: np.ndarray,
             pmin = tr[seg].min()
             cash = np.log1p(rf[x + 1:e_ + 1]).sum()
             contrib = cash - np.log(tr[e_] / tr[x])
-            peak = tr[(entry if entry is not None else i0):x + 1].max()
+            peak = tr[entry:x + 1].max() if entry is not None else tr[x]
             a = atrp[max(x - lag, 0)]
             drop = np.log(tr[x] / pmin); reb = np.log(tr[e_] / pmin)
             if contrib > 0:
@@ -615,14 +658,28 @@ def spells(f: pd.DataFrame, pos: np.ndarray, i0: int, i1: int, bear: np.ndarray,
                          "exit_lag": np.log(peak / tr[x]), "atr_pct": a, "class": cls,
                          "drop_atr": drop / a if a > 0 else np.nan, "rebound_atr": reb / a if a > 0 else np.nan,
                          "exit_lag_atr": np.log(peak / tr[x]) / a if a > 0 else np.nan,
-                         "phase": "bear" if bear[x] else "bull",
+                         "phase": "bear" if bear[x] else "bull", "leading": leading,
+                         "year_bh_ret_%": ybh.get(idx[x].year, np.nan),
                          "fb_half": contrib <= 0 and drop <= 0.5 * a, "fb_two": contrib <= 0 and drop <= 2 * a})
             t = e
             continue
-        if p[t] and not p[t - 1]:
+        if p[t] and (t == i0 or not p[t - 1]):
             entry = t
         t += 1
     return pd.DataFrame(rows)
+
+
+YEAR_BUCKETS = [-np.inf, -60, -30, 0, 30, 100, np.inf]
+
+
+def year_bucket_table(sp: pd.DataFrame, years: float) -> pd.DataFrame:
+    """Spell P&L grouped by the calendar-year buy & hold return of the exit year."""
+    b = pd.cut(sp["year_bh_ret_%"], YEAR_BUCKETS)
+    g = sp.groupby(b, observed=False)
+    loss = sp.contrib.where(sp.contrib <= 0, 0.0); fbl = sp.contrib.where(sp["class"] == "FALSE BREAKDOWN", 0.0)
+    return pd.DataFrame({"spells": g.size(), "net_log_pts": g.contrib.sum() * 100,
+                         "loss_log_pts": loss.groupby(b, observed=False).sum() * 100,
+                         "fb_share_of_loss_%": fbl.groupby(b, observed=False).sum() / loss.groupby(b, observed=False).sum() * 100})
 
 
 def year_buckets(f, i0, i1):
@@ -742,8 +799,12 @@ def basket(frames: dict, members_fn, years, kinds, market, cal: pd.DatetimeIndex
     # per-asset daily growth on the calendar, per strategy
     acc = {k: {} for k in keys}
     slot_rows = []
-    year_days = {y: np.where(cal.year == y)[0] for y in years}
-    mem = {y: set(members_fn(y, cal[year_days[y][0]])) for y in years if len(year_days[y])}
+    year_days = {}
+    for y in years:                       # formed at the previous session's close (prior year end)
+        d = np.where(cal.year == y)[0]
+        if len(d):
+            year_days[y] = np.r_[d[0] - 1, d] if d[0] > 0 else d
+    mem = {y: set(members_fn(y, cal[year_days[y][0]])) for y in year_days}
     wanted = set().union(*mem.values())
     for sym in sorted(wanted):
         f = frames.get(sym)
@@ -766,7 +827,7 @@ def basket(frames: dict, members_fn, years, kinds, market, cal: pd.DatetimeIndex
             series[(s, k)] = lagged(w, lag)
         pos_in_cal = np.searchsorted(cal, on_cal)
         first_bar = f.index[0]
-        for y in years:
+        for y in year_days:
             if sym not in mem.get(y, ()):
                 continue
             days = year_days[y]
@@ -816,7 +877,8 @@ def chain(yearly: pd.DataFrame) -> pd.DataFrame:
     out = []
     for (s, k), g in yearly.groupby(["strategy", "classifier"], sort=False):
         g = g.sort_values("year")
-        path = np.concatenate([p * np.prod(1 + g.ret.to_numpy()[:i]) for i, p in enumerate(g.path)])
+        # each year's path starts at its formation close (the prior session): drop that point
+        path = np.concatenate([p[1:] * np.prod(1 + g.ret.to_numpy()[:i]) for i, p in enumerate(g.path)])
         yrs = len(path) / (252 if len(path) / len(g) < 300 else 365)
         mult = float(np.prod(1 + g.ret))
         out.append({"strategy": s, "classifier": k, "years": len(g), "cagr": cagr(mult, yrs),
@@ -828,6 +890,34 @@ def chain(yearly: pd.DataFrame) -> pd.DataFrame:
         g = yearly[(yearly.strategy == r.strategy) & (yearly.classifier == r.classifier)].set_index("year").ret
         res.at[i, "years_beating_BH"] = f"{int((g > bh.reindex(g.index)).sum())}/{len(g)}"
     return res
+
+
+def in_membership(sp: pd.DataFrame, members: pd.DataFrame) -> pd.DataFrame:
+    """Keep spells whose exit falls inside one of the symbol's S&P 500 membership spells."""
+    m = members.assign(symbol=members.symbol.str.upper(), end=members.end.fillna(pd.Timestamp("2100-01-01")))
+    j = sp.reset_index().merge(m, left_on="asset", right_on="symbol", how="inner")
+    ex = pd.to_datetime(j["exit"])
+    keep = j.loc[(ex >= j.start) & (ex <= j.end), "index"].unique()
+    return sp.loc[np.sort(keep)].reset_index(drop=True)
+
+
+def spells_by_regime(frames: dict, spd: pd.DataFrame) -> pd.DataFrame:
+    """IND red spells split by whether price was above or below its 200-day average at the
+    exit (explanatory: the switch acts day by day, not spell by spell)."""
+    rows = []
+    for name in ["SPX_LONG", "SPY", "QQQ", "IWM", "TSLA", "BTC", "ETH", "SOL", "BNB", "ZEC"]:
+        f = frames[name]
+        bad = pd.Series(regime_bad(f, "ma200"), index=f.index)
+        s = spd[spd.asset == name].copy()
+        s["bad_at_exit"] = bad.reindex(pd.to_datetime(s.exit)).to_numpy() > 0.5
+        yrs = years_of(f, eval_start(f), len(f) - 1)
+        for reg, g in s.groupby("bad_at_exit"):
+            rows.append({"asset": name, "regime_at_exit": "below 200d" if reg else "above 200d", "spells": len(g),
+                         "net_pts_per_yr": g.contrib.sum() / yrs * 100,
+                         "saves_pts_per_yr": g[g.contrib > 0].contrib.sum() / yrs * 100,
+                         "losses_pts_per_yr": g[g.contrib <= 0].contrib.sum() / yrs * 100,
+                         "biggest_save_%": (np.exp(g.contrib.max()) - 1) * 100, "share_saves_%": (g.contrib > 0).mean() * 100})
+    return pd.DataFrame(rows)
 
 
 # ============================================================================ main
@@ -874,7 +964,7 @@ def main():
         if len(d) < 300:
             continue
         f = frame_from_ohlc(d, d.close, d.close, 252)
-        f.attrs.update(name=s, kind="us", cost=0.0003, lag=1, theta=0.20)
+        f.attrs.update(name=s, kind="us", cost=0.0003, lag=1, theta=0.20, source="pit")
         sframes[s] = f
     pooled = {}
     for label, src, tag in (("S&P 500 stocks", sframes, "stocks"), ("Binance coins", btc_bin, "crypto")):
@@ -884,8 +974,11 @@ def main():
                 continue
             _, sp = part_a_asset(f)
             sps.append(sp)
-        pooled[label] = pd.concat(sps, ignore_index=True)
-        pooled[label].to_csv(OUT / f"partA_spells_{tag}.csv", index=False)
+        sp = pd.concat(sps, ignore_index=True)
+        if tag == "stocks":               # S&P 500 members only, spells that start during membership
+            sp = in_membership(sp, members)
+        pooled[label] = sp
+        sp.to_csv(OUT / f"partA_spells_{tag}.csv", index=False)
     say("\nH-A1 pooled: share of bull-phase gross loss from FALSE BREAKDOWN spells (1 x ATR; 0.5 / 2 x ATR)")
     hrows = []
     for label, sp in [("SPX_LONG", spd[spd.asset == "SPX_LONG"])] + list(pooled.items()):
@@ -900,6 +993,14 @@ def main():
     share = ha["bull_fb_share_%"].to_numpy()
     verdict = "CONFIRMED" if (share > 50).all() else ("REJECTED" if (share < 50).all() else "MIXED")
     say(f"H-A1: {verdict}")
+    say("\nSpell P&L by the calendar-year buy & hold return of the exit year (log pts, whole window):")
+    for label, sp in [("SPX_LONG", spd[spd.asset == "SPX_LONG"])] + list(pooled.items()):
+        say(f"--- {label}"); t = year_bucket_table(sp, 1.0); t.to_csv(OUT / f"partA_yearbuckets_{label.split()[0]}.csv")
+        say(t.to_string(float_format=fmt))
+    say("\nIND red spells split by the 200-day regime at the exit (pts/yr):")
+    sr = spells_by_regime(frames, spd)
+    sr.to_csv(OUT / "partA_spells_by_ma200_regime.csv", index=False)
+    say(sr.to_string(index=False, float_format=fmt))
 
     # ------------------------------------------------------------ Part B, single assets
     say("\n" + "=" * 100); say("PART B - regime switch on single assets"); say("=" * 100)
@@ -919,6 +1020,8 @@ def main():
             pb.append(part_b_asset(f, ["ma200_mkt", "dd_mkt", "hmm_mkt", "oracle_mkt"], market=spx))
     pb = pd.concat(pb, ignore_index=True)
     pb.to_csv(OUT / "partB_assets.csv", index=False)
+    gp = part_b_asset(spx, ["gtt", "ma200", "unrate"], windows={"2016-07+": ("2016-07-01", None)})
+    gp.to_csv(OUT / "gtt_post_publication.csv", index=False)       # GTT was published in 2016
     show = ["asset", "route", "classifier", "start", "years", "bad_share_%", "BH_cagr", "IND_cagr", "REG_cagr",
             "SWITCH_cagr", "BH_cagr_tax", "IND_cagr_tax", "REG_cagr_tax", "SWITCH_cagr_tax", "BH_maxdd",
             "IND_maxdd", "REG_maxdd", "SWITCH_maxdd", "SWITCH_trades_yr", "switch_vs_ind_attrib", "switch_vs_bh_attrib"]
@@ -951,7 +1054,7 @@ def main():
     cs = chain(yearly_s); cs.to_csv(OUT / "basket_stocks.csv", index=False)
     yearly_s.drop(columns="path").to_csv(OUT / "basket_stocks_yearly.csv", index=False)
     slots_s.to_csv(OUT / "basket_stocks_slots.csv", index=False)
-    say("S&P 500 members, equal weight, re-formed each January 1997-2026 (pre-tax):")
+    say("S&P 500 members, equal weight, formed at each year's start 1997-2026 (pre-tax):")
     say(cs.to_string(index=False, float_format=fmt))
 
     bin_frames = btc_bin
@@ -965,7 +1068,7 @@ def main():
     cc = chain(yearly_c); cc.to_csv(OUT / "basket_crypto.csv", index=False)
     yearly_c.drop(columns="path").to_csv(OUT / "basket_crypto_yearly.csv", index=False)
     slots_c.to_csv(OUT / "basket_crypto_slots.csv", index=False)
-    say("\nBinance coins (40 large incl. LUNA, FTT), equal weight, re-formed each January 2019-2026 (pre-tax):")
+    say("\nBinance coins (40 large pairs, 41 series incl. dead LUNA, FTT), equal weight, formed at each year's start 2019-2026 (pre-tax):")
     say(cc.to_string(index=False, float_format=fmt))
 
     # ------------------------------------------------------------ verdicts

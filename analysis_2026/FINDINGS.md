@@ -934,3 +934,207 @@ rows; a truncation test found no look-ahead. Fixes applied before the final numb
   5-15% per trade.
 - **ETFs 2005-2026:** breakout and indicator CAGR 2.3-2.9% vs buy & hold 7.3%. Sharpe is
   about equal; drawdowns about −25% vs −59%.
+
+
+---
+
+# 2026-10-14 (regime switch) — why the indicator trails buy & hold, and switching by regime
+
+`analysis_2026/regime_switch.py`. Pre-registered in da40354 (H-A1, H-B1 to H-B5); first run
+b04aad9. Two audits (an independent recomputation and an adversarial code review) found six
+bugs that changed numbers by at most a few tenths of a point. All are fixed, and no verdict
+changed. Results are in `analysis_2026/results_regime/` (`summary.txt` has every table).
+
+**The user's questions:**
+
+- The daily indicator rarely beats buy & hold, yet it cuts drawdowns. Is the up-market loss
+  "false breakouts", i.e. selling on a red flip and having to buy back higher? If not, why
+  does it fail overall?
+- Then why not hold in good regimes and use the indicator only in bad ones?
+
+**Data:**
+
+- **S&P 500, 1962-2026 (64 years, about ten bear markets).** Real ^GSPC OHLC 1962-2018
+  (vijinho/sp500 on GitHub), then SPY. Dividends and T-bills come from
+  SteelCerberus/us-market-data. Over 2010-2018 the computed indicator matches TradingView's
+  SPX export on 100% of days, and on 98.6% after the SPY splice.
+- **Other markets:**
+  - 14 ETFs, plus TSLA, COIN and HOOD (Johnbrick123 parquet)
+  - the five TradingView crypto exports
+  - S&P 500 point-in-time members 1997-2026, including dead companies
+  - 40 Binance coins including LUNA and FTT
+- **Macro:** US unemployment (FRED mirror cyby2000/fred-relay; FRED itself is blocked).
+- **Execution:**
+  - Stocks and ETFs trade at the next session's close, 0.03%/side, with T-bills while flat.
+  - TradingView crypto trades same-bar at 0.15%/side.
+  - After tax: 35% short-term / 20% long-term, by holding period, with dividends and
+    interest taxed yearly.
+
+## Part A: the up-market loss is false breakdowns (H-A1 CONFIRMED)
+
+A red spell runs from the exit fill to the re-entry fill. A losing spell is a **false
+breakdown** if price never closed more than 1 ATR(14) below the exit. It is a **late round
+trip** if price did fall further but rebounded above the exit before the indicator bought
+back.
+
+Share of bull-phase gross loss from false breakdowns (bull/bear phases dated ex post with a
+20% rule, 50% for crypto):
+
+| set | 1 × ATR | 0.5 × ATR | 2 × ATR |
+|---|---|---|---|
+| S&P 500 1963-2026 | **81%** | 64% | 93% |
+| S&P 500 members, 106k spells | **81%** | 66% | 95% |
+| Binance coins, 1.6k spells | **87%** | 69% | 98% |
+
+**The mechanism is a fixed toll of about 5 ATR per round trip.** Over closed spells:
+
+- The indicator sells about 2.1-2.4 ATR below the peak close (median).
+- It buys back about 2.2-2.6 ATR above the low.
+- A spell only pays if price keeps falling past the exit by more than that rebound
+  distance.
+- The median further decline after an exit is just 0.9 ATR on the S&P (1.2 on stocks, 1.7 on
+  coins).
+
+| | spells that save | median false breakdown | median save | 90th-pct save |
+|---|---|---|---|---|
+| S&P 500 1963-2026 | 27% | −2.2%, 9 days | +2.5% | +10% |
+| S&P 500 members | 33% | −4.4%, 10 days | +4.4% | +21% |
+| BTC | 30% | −7.3%, 15 days | +17% | +54% |
+| ETH | 38% | −10.6%, 11 days | +23% | +98% |
+| Binance coins | 44% | −12.7%, 12 days | +19% | +70% |
+
+**The hypothesis is right but incomplete.** False breakdowns are a constant tax, not an
+up-market phenomenon:
+
+- They make up 75-86% of the losses in every calendar-year return bucket of the stock and
+  coin pools, including down years.
+- On the S&P index the range is 63-85%; the 63% bucket holds only 7 spells.
+- They make up 77% of bear-phase losses on the S&P.
+
+Regimes differ in the saves, not in how often the signal is wrong.
+
+## Why it fails overall: time in bull markets times the toll
+
+The indicator-minus-buy-&-hold gap splits exactly into three parts:
+
+- **drift:** being out of a rising asset, with no timing at all
+- **timing:** whether the flat days were worse than average
+- **costs**
+
+Columns: drift, timing and costs are in log pts/yr. The two "per year in" columns are the
+indicator's relative return per year spent in that phase. "FB share" is the share of
+bull-phase losses from false breakdowns.
+
+| asset | window | IND | BH | drift | timing | costs | time in bull | per year in bull | per year in bear | FB share |
+|---|---|---|---|---|---|---|---|---|---|---|
+| S&P 500 | 1963-2026 | 6.2 | 10.8 | −2.1 | −1.7 | −0.4 | 84% | −10.0 | +28.9 | 81% |
+| SPY | 1996-2026 | 6.8 | 10.4 | −2.7 | −0.2 | −0.4 | 85% | −10.9 | +44.0 | 74% |
+| QQQ | 2000-2026 | 7.4 | 9.0 | −2.7 | +1.6 | −0.4 | 85% | −17.2 | +90.4 | 75% |
+| IWM | 2001-2026 | 4.0 | 8.6 | −2.7 | −1.2 | −0.4 | 81% | −20.1 | +64.0 | 77% |
+| TSLA | 2011-2026 | 33.6 | 44.0 | −15.6 | +8.5 | −0.4 | 58% | −97 | +119 | 93% |
+| BTC | 2016-2026 | 72.1 | 63.1 | −23.3 | +30.8 | −2.1 | 63% | −59 | +122 | 83% |
+| ETH | 2017-2026 | 67.3 | 27.6 | −11.3 | +40.5 | −2.1 | 55% | −90 | +173 | 92% |
+| BNB | 2018-2026 | 84.8 | 67.8 | −22.7 | +33.9 | −1.6 | 72% | −54 | +177 | 91% |
+| ZEC | 2020-2026 | 28.7 | 59.5 | −23.7 | +4.5 | −2.3 | 60% | −163 | +192 | 74% |
+
+Every window starts after a 300-bar (crypto 400-bar) warm-up, so it begins later than in
+run_full.
+
+- **US stocks:**
+  - Bull phases are 80-85% of the time.
+  - The indicator loses 10-20 pts per bull-year and gains 29-90 per bear-year. Weighted by
+    time, that nets to about −4 pts/yr on the S&P.
+  - Even its timing skill is negative on the S&P (−1.7): the days it sits out are on
+    average *better* than the days it holds. On the average S&P stock it is −2.2 (strictness
+    study).
+- **Crypto:**
+  - Bear phases are 28-45% of the time and fall 70-95%, so a few saves of +50% to +130%
+    pay for the toll.
+  - Timing skill is +31 to +41 pts/yr on BTC, ETH and BNB.
+- **This is the payoff profile of section 5.11 seen from the inside.**
+
+## Part B: regime switching (H-B1 to H-B5 all FAIL)
+
+SWITCH = hold while the regime is good, follow the indicator while it is bad. REG = the
+regime rule alone (cash when bad).
+
+Pre-tax CAGR; after tax and max drawdown are shown for buy & hold and SWITCH(200-day):
+
+| asset | BH (tax, DD) | IND | REG 200d | SWITCH 200d (tax, DD) | SWITCH 50/200 | SWITCH 12-mo | SWITCH with hindsight |
+|---|---|---|---|---|---|---|---|
+| S&P 500 1963-2026 | 10.8 (9.8, −55) | 6.2 | 10.5 (DD −22) | 10.3 (7.9, −36) | 10.8 | 10.5 | 14.8 |
+| SPY 1996-2026 | 10.4 (9.3, −55) | 6.8 | 8.7 | 11.2 (8.6, −29) | 12.5 | 11.9 | 15.9 |
+| QQQ 2000-2026 | 9.0 (8.1, −80) | 7.4 | 10.1 | 11.8 (9.2, −51) | 12.9 | 12.1 | 20.9 |
+| IWM 2001-2026 | 8.6 (7.6, −59) | 4.0 | 5.4 | 10.1 (7.5, −36) | 7.1 | 10.5 | 18.9 |
+| TSLA 2011-2026 | 44.0 (41.9, −74) | 33.6 | 19.4 | 27.6 (24.0, −70) | 35.7 | 37.3 | 101 |
+| BTC 2016-2026 | 63.1 (59.5, −84) | 72.1 | 60.6 | 69.2 (56.3, −74) | 78.9 | 71.5 | 144 |
+| ETH 2017-2026 | 27.6 (24.8, −94) | 67.3 | 49.3 | 51.7 (40.3, −81) | 46.6 | 34.4 | 151 |
+| SOL 2022-2026 | 22.0 (18.5, −79) | 43.6 | 32.8 | 42.8 (33.2, −69) | 44.5 | 64.3 | 109 |
+| BNB 2018-2026 | 67.8 (63.3, −76) | 84.8 | 53.3 | 74.3 (62.7, −78) | 80.8 | 43.8 | 153 |
+| ZEC 2020-2026 | 59.5 (54.3, −94) | 28.7 | 3.7 | −0.7 (−3.3, −96) | 5.5 | 61.3 | 190 |
+
+**Baskets** (pre-tax, equal weight, formed each year):
+
+| strategy | S&P 500 members 1997-2026 | Binance coins 2019-2026 |
+|---|---|---|
+| BH | 10.9 (DD −58) | 53.7 (DD −83) |
+| IND | 5.3 (−29) | 61.7 (−50) |
+| SWITCH 200d / own regime | 9.1 (−34) | 57.8 (−65) |
+| best ex-ante SWITCH | 9.8 (unemployment) | 68.4 (drawdown ≥ 50%) |
+| SWITCH with hindsight | 15.2 | 195 |
+
+**Verdicts:**
+
+- **H-B1 FAIL.** SWITCH(200d) beats the indicator on 4 of 10 named assets (the four US
+  indices) and in the stock basket, but not on crypto, TSLA or the coin basket.
+- **H-B2 FAIL.** S&P 500 after tax:
+  - full period: 7.85 vs 9.82 with 20 pts less drawdown, which passes the rule
+  - 1994-2026: 8.48 vs 9.88, which passes
+  - 1963-1993: 7.18 vs 9.28, which **misses the 2-pt band by 0.10** and fails
+  - A knife-edge fail. The practical reading is "about 2 pts/yr after tax for about 20 pts
+    less drawdown".
+- **H-B3 FAIL.** The plain 200-day rule does as well on the S&P 500 (10.5 vs 10.3) with much
+  less drawdown (−22 vs −36). In 1963-1993 it beat the switch by 2 pts. Over 1994-2026 the
+  switch was better (11.0 vs 9.4), mainly by re-entering V-bottoms earlier.
+- **H-B4 FAIL.** No other price classifier passes H-B2.
+  - Volatility and HMM regimes are the worst (SWITCH 7.4 / 8.1).
+  - Every ex-ante classifier on the S&P 500 in the sensitivity grid trails buy & hold after
+    tax: MA 100-250, momentum 6-12 months, drawdown 10-30%.
+- **H-B5 FAIL.** Unemployment trend: 9.8 pre-tax, 7.6 after tax.
+  - The original Growth-Trend Timing rule (cash only if unemployment is rising AND price is
+    below the 200-day) made 11.7 vs 10.8 pre-tax over 1963-2026. That was exploratory.
+  - After its 2016 publication it made 12.9 vs 15.4 (10.3 vs 13.4 after tax), with no
+    drawdown benefit.
+
+**Why it fails:**
+
+1. **US stocks.** The switch removes most of the false-breakdown tax. Red spells that start
+   above the 200-day lose 4-6 pts/yr net, and dropping them adds 3.6-5.5 pts/yr over the
+   indicator.
+   - But below the 200-day the indicator's red days are only about break-even (S&P: −0.2
+     pts/yr vs holding). The whole residual benefit is drawdown, which the 200-day rule
+     alone delivers better.
+   - The indicator only earns its keep in the V-bottoms of 1994-2026.
+2. **Crypto.** The biggest saves start *above* the 200-day average: ETH +109% and ZEC +122%
+   from single spells. Crypto crashes begin from strength (May 2021, Nov 2021, FTX).
+   - Holding until the regime turns gives up exactly the trades that make the indicator
+     work: ETH −10.5 pts/yr vs the indicator, ZEC −25.5.
+3. **Every ex-ante regime is a slower trend signal.** The regime is known only after the
+   damage, and it is wrong at V-bottoms.
+   - The hindsight ceiling is large: +4 pts/yr on the S&P and roughly double the return on
+     crypto. So the idea fails on identification, not on the payoff.
+
+**Practical reading:**
+
+- **US index money.** Hold. If drawdown control is worth about 2 pts/yr after tax (less in
+  an IRA), the plain 200-day or 50/200 rule gives it. The daily indicator adds nothing to it.
+- **Crypto.** Keep the indicator alone where the gate says TRADE (ETH via ETF). Don't add a
+  regime filter.
+
+**Caveats:**
+
+- Unemployment is the current revised vintage, not real time.
+- The Binance list is today's large coins (survivorship, partly offset by LUNA and FTT).
+- SOL has 4.1 years after warm-up, yet it was among the 10 named assets.
+- 38 early ^GSPC bars have no real high/low.
+- H-B2's fail margin (0.10 pt) is smaller than the tax-model uncertainty.
