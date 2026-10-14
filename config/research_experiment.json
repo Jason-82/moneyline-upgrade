@@ -1,0 +1,106 @@
+{
+  "schema_version": 2,
+  "signal": {
+    "period": 10,
+    "factor": 2.0,
+    "atr_type": "rma",
+    "src": "hl2",
+    "variant": "reset"
+  },
+  "timeframe": "daily",
+  "execution": "next_open",
+  "initial_entry": "prior_close_green",
+  "parking": "cash",
+  "criteria": [
+    "skill"
+  ],
+  "levels": [
+    "top5",
+    "top10",
+    "top20",
+    "top30",
+    "top40",
+    ">10",
+    "all"
+  ],
+  "development_windows": [
+    {
+      "formation_start": "2000-01-01",
+      "formation_end": "2004-12-31",
+      "test_start": "2005-01-01",
+      "test_end": "2007-12-31"
+    },
+    {
+      "formation_start": "2003-01-01",
+      "formation_end": "2007-12-31",
+      "test_start": "2008-01-01",
+      "test_end": "2010-12-31"
+    },
+    {
+      "formation_start": "2006-01-01",
+      "formation_end": "2010-12-31",
+      "test_start": "2011-01-01",
+      "test_end": "2013-12-31"
+    },
+    {
+      "formation_start": "2009-01-01",
+      "formation_end": "2013-12-31",
+      "test_start": "2014-01-01",
+      "test_end": "2016-12-31"
+    },
+    {
+      "formation_start": "2012-01-01",
+      "formation_end": "2016-12-31",
+      "test_start": "2017-01-01",
+      "test_end": "2019-12-31"
+    },
+    {
+      "formation_start": "2015-01-01",
+      "formation_end": "2019-12-31",
+      "test_start": "2020-01-01",
+      "test_end": "2022-12-31"
+    }
+  ],
+  "holdout_window": {
+    "formation_start": "2018-01-01",
+    "formation_end": "2022-12-31",
+    "test_start": "2023-01-01",
+    "test_end": "2025-12-31"
+  },
+  "min_formation_bars": 200,
+  "min_formation_coverage": 0.8,
+  "min_closed_trades": 8,
+  "warmup_bars": 100,
+  "stale_formation_sessions": 0,
+  "cost_bps_per_side": 3.0,
+  "short_term_tax_rate": 0.35,
+  "long_term_tax_rate": 0.2,
+  "tax_enabled": true,
+  "qualified_dividend_fraction": 0.0,
+  "dividend_reinvestment": "next_open",
+  "cash_rate_policy": "zero_unless_observed_daily_series",
+  "cash_rates_sha256": null,
+  "initial_capital": 100000.0,
+  "membership_asof": "formation_end",
+  "excluded_symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "DIA",
+    "VOO",
+    "IVV"
+  ],
+  "sector_guard": false,
+  "correlation_guard": false,
+  "random_seed": 0,
+  "permutations": 1000,
+  "multiple_testing": "holm_across_all_criteria_and_levels",
+  "permutation_target": "future_timing_skill_not_portfolio_profit",
+  "qualifying_cagr_tolerance_pp": 2.0,
+  "qualifying_drawdown_improvement_pp": 15.0,
+  "qualifying_window_fraction": 0.6666666666666666,
+  "choice_within_best_pp": 1.0,
+  "chosen_criterion": null,
+  "chosen_level": null,
+  "candidate_role": "unselected"
+}

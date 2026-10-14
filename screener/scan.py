@@ -33,7 +33,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from analysis_2026.moneyline_ref import moneyline  # noqa: E402
-from screener.data import from_csv_folder, from_robinhood_json  # noqa: E402
+from screener.data import from_csv_folder, from_robinhood_json, drop_unclosed, last_closed_session  # noqa: E402
 
 
 MIN_BARS = 100     # state locks onto TradingView within ~10-45 bars, the line within ~60
@@ -61,10 +61,11 @@ def scan_one(sym: str, df: pd.DataFrame) -> dict | None:
     }
 
 
-def scan(data: dict[str, pd.DataFrame], whitelist: set[str] | None = None) -> pd.DataFrame:
+def scan(data: dict[str, pd.DataFrame], whitelist: set[str] | None = None, *, asof=None) -> pd.DataFrame:
+    expected = last_closed_session() if asof is None else pd.Timestamp(asof).normalize()
     rows, short = [], []
     for s, df in data.items():
-        r = scan_one(s, df)
+        r = scan_one(s, drop_unclosed(df, expected))
         (rows.append(r) if r else short.append(s))
     if short:
         print(f"{len(short)} symbols skipped (< {MIN_BARS} bars): {', '.join(short[:20])}{' ...' if len(short) > 20 else ''}")
@@ -72,9 +73,9 @@ def scan(data: dict[str, pd.DataFrame], whitelist: set[str] | None = None) -> pd
     if out.empty:
         return out
     out["validated"] = out.symbol.isin(whitelist) if whitelist else False
-    # a symbol whose last bar is older than the newest bar in the data (failed download,
-    # delisted, dropped from the index) is not "today"
-    out["stale"] = out["date"] < out["date"].max()
+    # Compare with the exchange, not the freshest file. An entirely stale store is stale.
+    out["expected_session"] = expected.date()
+    out["stale"] = out["date"] != expected.date()
     if whitelist:
         missing = sorted(set(whitelist) - set(out.symbol))
         if missing:
@@ -95,7 +96,7 @@ def main():
     ap.add_argument("--whitelist", help="file with one validated symbol per line")
     ap.add_argument("--only-validated", action="store_true")
     ap.add_argument("--out", help="write CSV here (keep it out of the public repo)")
-    ap.add_argument("--keep-stale", action="store_true", help="keep symbols whose last bar is older than the newest")
+    ap.add_argument("--keep-stale", action="store_true", help="show symbols missing the latest completed exchange session")
     a = ap.parse_args()
 
     data = from_csv_folder(a.csv_folder) if a.csv_folder else from_robinhood_json(a.robinhood_json)
@@ -107,7 +108,7 @@ def main():
         print(f"no symbols with >= {MIN_BARS} bars"); return
     stale = res[res.stale]
     if len(stale):
-        print(f"{len(stale)} symbols end before {res.date.max()}"
+        print(f"{len(stale)} symbols missing completed session {res.expected_session.iloc[0]}"
               f"{' (kept)' if a.keep_stale else ' (dropped; --keep-stale to show)'}: "
               + ", ".join(f"{r.symbol} {r.date}" for r in stale.itertuples()))
         if not a.keep_stale:

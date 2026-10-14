@@ -1,0 +1,22 @@
+{
+  "cadence": "daily",
+  "frozen_at": "2026-10-14T01:58:31Z",
+  "manifest_sha256": "9fafa6b81ab345a2d433cdcb7e9bfaf5b53284a6c5cd48443caa2dcdd3e9ca18",
+  "research_verdict": {
+    "limitations": [
+      "Complete point-in-time identities, dividends and terminal security returns unavailable; no deployment verdict certified"
+    ],
+    "report_sha256": null,
+    "status": "NOT_EVALUATED"
+  },
+  "selection_rule": "No stock-selection rule qualified for deployment",
+  "signal_params": {
+    "atr_type": "rma",
+    "factor": 2.0,
+    "period": 10,
+    "src": "hl2",
+    "variant": "reset"
+  },
+  "symbols": [],
+  "version": 1
+}

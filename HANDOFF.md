@@ -1,5 +1,49 @@
 # HANDOFF — trend-indicator research (read this first)
 
+## Implementation update — 2026-10-13 Chicago / 2026-10-14 UTC
+
+The active stock-research implementation is now `research/`, with deterministic
+offline trading support in `trading/`. Read `README.md`,
+`docs/RESEARCH_SELECTION.md`, `docs/DATA_SOURCES.md`,
+`docs/TRADING_SHADOW.md` and `docs/IMPLEMENTATION_RESULTS.md` before interpreting
+the historical sections below.
+
+- The exact ATR(10) × 2 reset reference is unchanged. Actual Robinhood IWM daily
+  split-adjusted OHLC matched all 1,159 tested states and 67 flips in 2018–2022
+  after 100 warmup bars.
+- Selection, quality and membership decisions use formation-date information.
+  One continuous engine handles next-open execution, capital slots, dividends,
+  FIFO taxes, wash-sale deferral and loss carry. Empty windows are retained.
+- Complete terminal proceeds and separate dividends are mandatory for validated
+  research. Missing executions never become sales at a stale price.
+- Incomplete public Qlib data is explicitly exploratory. Its total-adjusted
+  OHLC cannot establish exact split-only signals or an after-tax stock whitelist.
+  Historical after-tax figures from the older engine are diagnostic estimates
+  and are superseded for qualification by the corrected research workflow.
+- The protected holdout is fixed formation 2018–2022 → full test 2023–2025.
+  Access requires a frozen candidate/settings, implementation and provenance;
+  the corrected runner has not evaluated it. Concurrent upstream commit
+  `2e608fb4` adds outside results overlapping the reserved periods; this history
+  is preserved. The historical period is not globally untouched, so later
+  corrected results also require an independently frozen prospective evaluation.
+- The concurrent upstream audit reports a Qlib dividend-adjustment cutoff on
+  2021-09-16. This remains an unresolved hybrid-adjustment provenance gap. The
+  corrected run's Qlib paths are numeric diagnostics, not verified total returns
+  throughout the horizon; no proxy dividends or taxes are inferred.
+- Stock gate failure in older `gate.py` does **not** mean the stock strategy
+  never beat SPY; that gate also requires beating the stock's own holding return.
+  TSLA historically beat matched SPY but trailed holding TSLA and had deeper
+  drawdown. Older close-only engines' next-bar fills are next CLOSE proxies.
+- The current environment can obtain Robinhood OHLC through its connector.
+  Historical dividend/terminal/security-master coverage is still incomplete.
+  The earlier statement that no market data is accessible is environment history.
+- No funded strategy has been activated. The default shadow whitelist is empty,
+  the configured budget is unset, and live broker placement is absent.
+
+The remainder records the prior research snapshot and its historical conclusions.
+
+---
+
 This file lets a new AI instance, or a person, continue the work without re-deriving
 anything. It is the authoritative summary.
 
