@@ -947,10 +947,15 @@ b04aad9. Every table is in `analysis_2026/results_regime/summary.txt` and the CS
 
 - **Two audits** (an independent recomputation and an adversarial code review) found six
   bugs. Fixing them moved:
-  - the S&P 500 rows by at most 0.25 pts
-  - the crypto rows by about 0.5-1 pt (dropping the still-forming last bar; the tax fix)
-  - the coin basket by 2-7 pts (formed at the prior close; Binance BTC as its market)
-  - several exploratory market-variant rows by a few points
+  - **S&P 500 CAGRs:** up to about 0.35 pt over 1963-2026, and up to about 0.6 in the
+    1994-2026 half. On H-B2's 200-day leg that half moved 10.50 → 10.96, or 8.18 → 8.48 after
+    tax.
+  - **S&P drawdowns:** about 1.3 pts, and up to 5.9 for the HMM regime rule.
+  - **Part A shares:** up to 2.4 pts.
+  - **TradingView coin rows:** about 0.2-1 pt on the headline cells, and up to 2.7 on
+    half-window rows (from dropping the still-forming last bar, and the tax fix).
+  - **Coin basket:** 1.6-5.5 pts on its own-coin rows, 1-8 on market-variant rows and 11 on
+    the hindsight row (from forming at the prior close, and Binance BTC as its market).
 - **The pooled S&P stock set** for H-A1 now counts only membership years. It lost 42% of its
   spells.
 - **No verdict changed,** but the full-period leg of H-B2 went from fail to pass.
@@ -977,11 +982,13 @@ b04aad9. Every table is in `analysis_2026/results_regime/summary.txt` and the CS
   - S&P 500 point-in-time members 1997-2026, including dead companies
   - 40 Binance coins including LUNA and FTT
 - **Macro:** US unemployment (FRED mirror cyby2000/fred-relay; FRED itself is blocked).
-- **Rebuild everything:** `python -m analysis_2026.fetch_regime_data`.
+- **Rebuild everything:** `python3 -m analysis_2026.fetch_regime_data`.
 - **Execution:**
   - Stocks and ETFs trade at the next session's close, 0.03%/side, with T-bills while flat.
   - TradingView crypto trades same-bar at 0.15%/side, the pre-registered basis. The
     next-bar and spot-ETF routes are reported too.
+  - The Binance coin basket trades same-bar at 0.30%/side. The S&P member basket follows the
+    stock rule.
   - After tax: 35% short-term / 20% long-term, by holding period; dividends and interest
     taxed yearly.
 - **Units:**
@@ -1011,7 +1018,8 @@ Share of bull-phase gross loss from false breakdowns:
 | Binance coins, 1.6k spells | **87%** | 69% | 98% |
 
 **In bull phases the signal is wrong far more often.** False breakdowns are a similar share
-of the losses in both phases, but they are about 2.5 times as frequent in bull phases:
+of the losses in both phases, but they are 2.4-3 times as frequent in bull phases (2.5× on
+the S&P, 2.4× on its members, 3.0× on coins):
 
 | | spells that lose (bull / bear) | false breakdowns, share of all spells | false breakdowns, share of losses |
 |---|---|---|---|
@@ -1086,12 +1094,15 @@ run_full.
   (−12 to −23) outweighs any timing skill.
 - **Crypto:**
   - Bear phases are 28-45% of the time.
-  - The median bear-phase decline is −64% (range −42% to −90%), with single saves up to
-    +135%.
+  - The median bear-phase decline is −64% (range −50% to −90%; ETH's 2017 phase is left out
+    because the window starts inside it), with single saves up to +135%.
   - Timing skill is +27 to +41 log pts/yr on BTC, ETH, SOL and BNB, which pays for the toll.
     ZEC (+4.5) is the exception.
 - **Calendar-year view:**
-  - Spells exiting in down years net positive, and those in up years net negative.
+  - Spells exiting in down years net positive in all three pools.
+  - Spells exiting in up years net negative on the S&P and its stocks.
+  - For coins, only years up more than 30% are negative. Spells in years up 0-30% net +611
+    log pts.
   - False breakdowns are 75-86% of the losses in every bucket of the stock and coin pools.
 - **This is the payoff profile of section 5.11 seen from the inside.**
 
@@ -1127,14 +1138,18 @@ brackets:
   - SWITCH passes T2 on the S&P series, SPY, QQQ, IWM, DIA, EFA, TLT and VNQ, and on ETH and
     SOL.
   - It fails on EEM, IEF, TIP, LQD, HYG, GLD, SLV, BTC, BNB, ZEC, TSLA, COIN and HOOD.
-  - ETH and SOL pass only because their own buy & hold fell so far. The indicator alone is
-    far better there.
+  - ETH and SOL pass only because their own buy & hold fell so far.
+    - On ETH the indicator alone is far better (67.3 vs 51.7 pre-tax; 49.4 vs 40.3 after
+      tax).
+    - On SOL, same-bar, the two are about equal (43.6 vs 42.8 pre-tax; 31.5 vs 33.2 after
+      tax). The indicator is clearly better only via the spot ETF (38.1 vs 26.6 after
+      tax).
 - Other assets, pre-tax CAGR with after-tax CAGR and drawdown in brackets:
 
 | asset | BH | IND | REG 200d | SWITCH 200d |
 |---|---|---|---|---|
 | DIA 1999- | 8.4 (7.4, −52) | 5.9 | 4.3 (3.3, −42) | 8.5 (6.4, −30) |
-| EFA 2002- | 7.8 (6.7, −61) | 2.5 | 5.9 (4.6, −26) | 5.9 (4.7, −38) |
+| EFA 2002- | 7.8 (6.6, −61) | 2.5 | 5.9 (4.6, −26) | 5.9 (4.7, −38) |
 | EEM 2004- | 8.3 (7.2, −66) | 2.6 | 6.0 (4.6, −43) | 5.4 (4.2, −50) |
 | TLT 2003- | 3.1 (2.4, −48) | 1.3 | 2.5 (1.4, −27) | 2.7 (1.6, −33) |
 | IEF 2003- | 3.1 (2.5, −24) | 2.3 | 2.3 (1.5, −11) | 2.9 (1.9, −14) |
@@ -1146,7 +1161,7 @@ brackets:
 
 (TIP, LQD and HYG are in the CSV; same pattern as IEF.)
 
-**Baskets** (pre-tax, equal weight, formed at each year's start):
+**Baskets** (pre-tax, equal weight, formed at each year's start; coins same-bar at 0.30%/side):
 
 | strategy | S&P 500 members 1997-2026 | Binance coins 2019-2026 |
 |---|---|---|
@@ -1168,33 +1183,46 @@ brackets:
     clears the 15-pt bar by only 0.6.
   - Both the passes and the fail are within the tax-model uncertainty. Read it as about 1.4-2.1
     pts/yr after tax for 16-20 pts less drawdown.
-- **H-B3 FAIL by 0.19 pt.**
-  - SWITCH ≥ REG passed on 8 of 10 named assets. It failed only the S&P 1963-2026 leg (10.32
-    vs 10.51 pre-tax), which comes from 1963-1993 (9.7 vs 11.7).
+- **H-B3 FAIL by 0.19 pt** (pre-tax).
+  - SWITCH ≥ REG held on 8 of 10 named assets. The two misses are the S&P 1963-2026 (10.32 vs
+    10.51) and ZEC.
+  - The count leg passes, so the hypothesis failed only on its S&P leg. That shortfall comes
+    from 1963-1993 (9.7 vs 11.7).
   - Since 1994, and on SPY, QQQ and IWM, SWITCH beat the plain 200-day rule by 1.1-3.4 pts/yr
     after tax, at 5-25 pts deeper drawdown.
 - **H-B4 FAIL.**
   - No other price classifier passes H-B2 on the S&P 500.
-  - On the S&P 500 1963-2026 every ex-ante switch trails buy & hold after tax, including the
-    whole sensitivity grid (best 8.7 vs 9.8).
-  - On SPY 1996-2026 the 50/200 and 9-/12-month momentum switches did beat it after tax (10.1
-    / 9.5 / 9.6 vs 9.3). On the index the same switches trail in 1963-1993 (7.9 / 7.5 vs 9.3)
-    and narrowly in 1994-2026 (9.5 / 9.5 vs 9.9), so this is not robust.
-  - Volatility and HMM regimes are the worst (SWITCH 7.4 / 8.1).
+  - On the S&P 500 1963-2026 every pre-registered ex-ante switch trails buy & hold after tax.
+    The best is the 50/200 switch, 8.7 vs 9.8; the sensitivity grid's best is 8.5.
+  - On SPY 1996-2026 the 50/200, 9-month and 12-month switches did beat it after tax (10.1 /
+    9.5 / 9.6 vs 9.3).
+  - On the index, the 50/200 and 12-month switches trail in 1963-1993 (7.9 / 7.5 vs 9.3) and
+    narrowly in 1994-2026 (9.5 / 9.5 vs 9.9). The 9-month switch was run only on the full
+    window (8.3 vs 9.8). So this is not robust.
+  - Volatility and HMM regimes are the worst: SWITCH 5.2 / 5.8 after tax (7.4 / 8.1
+    pre-tax).
 - **H-B5 FAIL.** Unemployment trend: 9.8 pre-tax, 7.6 after tax.
   - The original Growth-Trend Timing rule (cash only if unemployment is rising AND price is
     below the 200-day) made 11.7 vs 10.8 pre-tax over 1963-2026 (exploratory).
   - After its 2016 publication it made 12.9 vs 15.4 (10.3 vs 13.4 after tax), with no
     drawdown benefit.
 
-**Why the switch doesn't beat holding:**
+**Why the switch doesn't beat holding** (after tax, and on the S&P 500 1963-2026):
 
-1. **US indices.** The switch removes most of the false-breakdown tax: red spells that start
-   above the 200-day lose 4-6 log pts/yr net, and the switch adds 3.6-5.5 pts/yr over the
-   indicator.
-   - Below the 200-day, the indicator's red days only roughly break even against holding
-     (S&P −0.2 log pts/yr).
-   - So what is left is a drawdown benefit with a return cost, i.e. insurance, not an edge.
+1. **US indices.** The switch removes most of the false-breakdown tax. Red spells that start
+   above the 200-day lose 4-6 log pts/yr net. The switch adds 3.6-5.5 log pts/yr over the
+   indicator (4.1-6.0 CAGR pts in the table).
+   - **S&P 500 1963-2026:** below the 200-day, the indicator's red days roughly break even
+     against holding.
+     - Day by day the switch is −0.2 log pts/yr vs holding (−0.7 in 1963-1993, +0.2 in
+       1994-2026).
+     - Spells that start below the 200-day net +0.15.
+     - What is left is a drawdown benefit with a return cost, i.e. insurance, not an edge.
+   - **SPY, QQQ and IWM** (1996 / 2000 / 2001-2026): the same days add +0.9 to +2.7 log
+     pts/yr, and the switch beats buy & hold pre-tax by 0.8-2.8 pts.
+     - Tax removes that edge on SPY (8.6 vs 9.3) and IWM (7.5 vs 7.6).
+     - QQQ stays ahead after tax (9.2 vs 8.1), largely because its window starts at the
+       dot-com top. Since 2013 the switch gave up 3.5 pts/yr there.
 2. **Crypto.** Saves from red spells that start *above* the 200-day are about as large in
    total as those below. Log pts/yr, above vs below:
    - BTC 20.4 vs 19.4
@@ -1225,16 +1253,25 @@ and drawdown saved (pts):
 | SWITCH 200d | 2.0 / 20 | 2.1 / 16 ✗ | 1.4 / 20 | 0.8 / 26 | **0.1 / 22** |
 | SWITCH 50/200 | **1.1 / 22** | 1.3 / 12 ✗ | **0.4 / 22** | **−0.7 / 21** | 2.0 / 6 ✗ |
 
-✗ = fails T2.
+✗ = fails T2: after tax, give-up ≤ 2 pts with at least 15 pts less drawdown, or no give-up
+at all. That is stricter than gate.py's INSURANCE rule in HANDOFF 5.6, which is pre-tax,
+give-up ≤ 3 pts and ≥ 15 pts saved, on weekly bars. Pre-tax, the weekly signal's give-ups
+here are 1.2, −0.6, 2.8, 3.3 and 2.5 pts.
 
-- The weekly signal is dominated in every window by at least one of the other rules.
-  - These tests use daily bars and next-session fills, not gate.py's weekly-fill INSURANCE
-    test or its windows.
-- No rule wins every window:
+- **The weekly signal is dominated in every window by at least one other rule,** except QQQ
+  2000-2012. There it is level with the 50/200 rule: −7.6 vs −7.5 after tax, with 54 vs 58
+  pts of drawdown saved.
+  - These tests use daily bars and next-session fills, not gate.py's weekly fills or its
+    windows.
+- **No rule wins every window:**
   - The 200-day rule is best in 1963-1993.
-  - The switches are best after 1994 and on SPY and IWM.
+  - The 50/200 switch is best on the S&P since 1994 and on SPY.
+  - The 200-day switch is best on IWM.
+  - The 50/200 forms cut little drawdown on IWM (and on SPY since 2013).
+  - On QQQ the switches cut much less drawdown (30-32 pts) than the weekly signal or the plain
+    rules (52-54).
 - Since 2013 every rule gave up 1.8-8 pts/yr after tax on SPY and QQQ, for 0-13 pts less
-  drawdown.
+  drawdown. On IWM the 200-day switch cost 0.9.
 - QQQ's full window starts at the dot-com top, so every rule looks free there.
 - All of this is post hoc.
 
@@ -1256,14 +1293,22 @@ After tax, ETF route = next NYSE session at 0.02%/side:
 - **US index money.**
   - Holding stays the default in a taxable account. No rule beat it after tax over
     1963-2026.
-  - If drawdown control is wanted, the user's switch is a reasonable form of it: hold above
-    the 200-day (or while the 50-day is above the 200-day), and follow the daily indicator
+  - **If drawdown control is wanted, the user's switch is a reasonable form of it.** Hold
+    above the 200-day, or while the 50-day is above the 200-day, and follow the daily indicator
     below.
-    - Since 1994 it cost about 0-2 pts/yr after tax for 20-26 pts less drawdown.
-    - That is cheaper than both the plain 200-day rule and the weekly-signal insurance.
-  - The plain 200-day rule cuts drawdown the most (about −22% max) at about 2-3.5 pts/yr.
-  - All of these costs rise sharply in a strong bull market (2013-2026: 2-8 pts/yr). In a
-    tax-advantaged account they fall by about 1.5 pts.
+    - Since 1994 (S&P 1994-2026, SPY, IWM) it cost about −0.7 to 1.4 pts/yr after tax for
+      20-26 pts less drawdown.
+    - The exception is the 50/200 form on IWM: 2.0 pts/yr for only 6 pts, failing T2. On IWM
+      use the 200-day form.
+    - It is cheaper than the plain 200-day rule and the weekly-signal insurance, but on QQQ it
+      cut much less drawdown.
+  - **The plain 200-day rule cuts drawdown the most.** Max drawdown is −22% on the S&P and
+    SPY, −26% on QQQ and −31% on IWM, at 0.8-3.5 pts/yr after tax (0.8 in 1963-1993; 2.5-3.5
+    since 1994).
+  - **On SPY and QQQ all these costs rise sharply in a strong bull market:** about 2-8 pts/yr
+    in 2013-2026. On IWM the 200-day switch cost 0.9.
+  - **In a tax-advantaged account** the costs fall by about 1.5 pts for the switch, and by
+    1 pt or less for the plain rules on SPY and IWM.
 - **Crypto.**
   - On ETH, the coin the gate trades, keep the indicator alone and add no regime filter.
   - On BTC (hold), the switch improves on the indicator, but no robust version beats
@@ -1275,6 +1320,8 @@ After tax, ETF route = next NYSE session at 0.02%/side:
 - The Binance list is today's large coins (survivorship, partly offset by LUNA and FTT).
 - SOL has 4.1 years after warm-up, yet it is among the 10 named assets.
 - 38 early ^GSPC bars have no real high/low.
-- The H-B2 and H-B3 margins (0.03-0.19 pt) are smaller than the tax-model uncertainty.
+- H-B2's margins (a 0.03-pt pass over the full period, a 0.10-pt miss in 1963-1993, both
+  after tax) are smaller than the tax-model uncertainty.
+- H-B3 is pre-tax, so the tax model can't move it, but its 0.19-pt miss is also knife-edge.
 - The insurance and route tables are exploratory and were chosen after seeing the
   pre-registered results.

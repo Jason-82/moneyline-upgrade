@@ -3,8 +3,8 @@
 This file lets a new AI instance, or a person, continue the work without re-deriving
 anything. It is the authoritative summary.
 
-- Detailed chronological log with every table: `analysis_2026/FINDINGS.md`. Read its
-  final "audit corrections" sections; several earlier entries there are wrong.
+- Detailed chronological log with every table: `analysis_2026/FINDINGS.md`. Read the
+  audit-correction sections in its 2026-10-13 entries; several earlier entries there are wrong.
 - Automated-trading design: `AGENTIC_TRADING_PLAN.md`.
 
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
@@ -46,8 +46,9 @@ which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
    - **Scanner:** `screener/scan.py` matches TradingView on every IWM date 2012-2025. It is
      information only.
    - **Indices:** the weekly signal on SPY/QQQ qualifies only as optional crash insurance;
-     on IWM it does not. Section 5.15 found cheaper insurance after tax: a 200-day or 50/200
-     rule, or the regime switch (exploratory).
+     on IWM it does not. Section 5.15 (exploratory) found cheaper insurance after tax. A plain
+     200-day rule cut drawdown at least as much for less in every SPY/QQQ/S&P window except
+     QQQ 2000-2012. The regime switch costs less still, but cuts less drawdown on QQQ.
    - **TSLA:** no.
    - **COIN, HOOD and CRCL:** too little history, and their results hinge on one or two
      trades and on fill timing.
@@ -304,8 +305,9 @@ Median CAGR edge vs indicator-only; (n/5) = coins improved.
 
   It helped in dot-com and the GFC, was too slow for Covid, and cost 10-20 points in the
   2025-26 rally. Section 5.15 (exploratory) tested it on daily bars against a plain 200-day
-  or 50/200 rule and the regime switch: the weekly signal was dominated after tax in every
-  window.
+  or 50/200 rule and the regime switch. Judged by T2 after tax, which is stricter than the
+  pre-tax INSURANCE bar used in this table, the weekly signal was dominated in every window
+  except QQQ 2000-2012, where it ties the 50/200 rule.
 - **COIN weekly:** 15.1% vs −4.0% CAGR, but on 6 trades, and next-bar fills cut it to
   4.7%.
 - **HOOD daily:** 18.2% vs 16.7%, but 5.6% with next-bar fills.
@@ -439,8 +441,11 @@ Full tables and the pre-registration are in `screener/README.md`.
 
 ### 5.15 Why the indicator trails buy & hold; regime switching — `analysis_2026/regime_switch.py`
 
-Pre-registered H-A1 and H-B1 to H-B5. Two audits and a 6-lens verification pass followed;
-FINDINGS has the full entry and `results_regime/summary.txt` every table.
+Pre-registered H-A1 and H-B1 to H-B5. Two audits and two verification passes followed.
+FINDINGS has the full entry. `analysis_2026/results_regime/summary.txt` has the main tables,
+and the CSVs beside it hold the rest: the sensitivity grid is only in `sensitivity.csv`
+(written by `--sensitivity`), and GTT after its 2016 publication only in
+`gtt_post_publication.csv`.
 
 **Terms:**
 
@@ -450,17 +455,23 @@ FINDINGS has the full entry and `results_regime/summary.txt` every table.
   ATR is ATR(14) as a share of the close, used as a ruler, not the indicator's ATR(10).
 - **Bull/bear phase:** dated *with hindsight* (a 20% swing from the running extreme; crypto
   50%). This is not the ex-ante regime of the switch.
-- **Timing skill:** the log return of the flat days relative to average days, before costs.
-  It is negative when the days sat out were better than average.
+- **Timing skill:** how much worse the flat days were than average days (log return vs
+  T-bills, before costs). Positive means the indicator sat out below-average days; negative
+  means it sat out better-than-average days.
 - **SWITCH:** hold while the regime is good, follow the indicator while it is bad.
 - **REG:** the regime rule alone.
+- **IND / BH:** the daily indicator alone / buy & hold.
+- **Named assets (10):** S&P 500 1963-2026, SPY, QQQ, IWM, TSLA, BTC, ETH, SOL, BNB, ZEC.
+- **Baskets:** equal-weight S&P 500 members 1997-2026 and Binance coins 2019-2026.
+- **Halves:** S&P 500 1963-1993 and 1994-2026.
 - **T2:** gate.py's rule. After-tax CAGR ≥ buy & hold, or ≥ buy & hold − 2 pts with max
   drawdown at least 15 pts shallower.
 - **Hypotheses:**
-  - H-B1: SWITCH(200-day) beats IND on ≥ 7 of 10 named assets and in both baskets.
-  - H-B2: it passes T2 on the S&P 1963-2026 and in both halves.
-  - H-B3: it is ≥ REG(200-day) on the S&P and on ≥ 6 of 10.
-  - H-B4: H-B2 also holds for ≥ 4 other price regimes.
+  - H-B1: SWITCH(200-day) beats IND on pre-tax CAGR on ≥ 7 of the 10 named assets and in
+    both baskets.
+  - H-B2: it passes T2 (after tax) on the S&P 1963-2026 and in both halves.
+  - H-B3: its pre-tax CAGR is ≥ REG(200-day) on the S&P and on ≥ 6 of the 10.
+  - H-B4: H-B2 also holds for ≥ 4 of the 6 other price regimes.
   - H-B5: H-B2 holds with an unemployment-trend regime.
 - **Units:** decompositions are in log pts/yr; everything else is CAGR points.
 
@@ -479,36 +490,51 @@ FINDINGS has the full entry and `results_regime/summary.txt` every table.
     netting about −4 pts/yr.
   - Its S&P timing skill is −1.7 log pts/yr.
   - On crypto, bear phases are 28-45% of the time with median −64% declines, and timing skill
-    is +27 to +41 (BTC, ETH, SOL, BNB).
+    is +27 to +41 log pts/yr (BTC, ETH, SOL, BNB).
 - **Regime switching fails H-B1 to H-B5,** several by tenths of a point (H-B2 by 0.10, H-B3
   by 0.19).
   - **S&P 500 1963-2026, SWITCH(200-day):** 10.3% pre-tax vs buy & hold 10.8%; 7.9% vs 9.8%
     after tax; drawdown −36% vs −56%. The plain 200-day rule makes 10.5% with drawdown −22%.
-  - **SPY, QQQ, IWM 1996-2026, and the S&P since 1994:** the switch beats the plain 200-day
-    rule by 1.1-3.4 pts/yr after tax, but still trails buy & hold after tax (SPY 8.6 vs 9.3).
+  - **SPY 1996-2026, QQQ 2000-2026, IWM 2001-2026 and the S&P since 1994:** the switch beats
+    the plain 200-day rule by 1.1-3.4 pts/yr after tax.
+    - It still trails buy & hold after tax on SPY (8.6 vs 9.3), IWM (7.5 vs 7.6) and the S&P
+      since 1994 (8.5 vs 9.9).
+    - It leads on QQQ (9.2 vs 8.1), largely because that window starts at the dot-com top.
+      Since 2013 it gave up 3.5 pts/yr there.
   - **The switch beats the indicator** on all 14 ETFs, every index and HOOD. It never does
     on the five coins (pre-tax, same-bar), TSLA or COIN.
-  - **Baskets:** S&P members 9.1 vs buy & hold 10.9; coins 57.8 vs the indicator's 61.7.
-  - **No ex-ante regime beats buy & hold after tax on the S&P 1963-2026.** That covers the
-    200-day, 50/200, weekly, 12-month momentum, drawdown, volatility, HMM and unemployment
-    regimes, and the whole sensitivity grid (best 8.7 vs 9.8). On SPY since 1996 the 50/200
-    and 12-month switches did, but not robustly.
+  - **Baskets** (pre-tax): S&P members 9.1 vs buy & hold 10.9; coins (same-bar,
+    0.30%/side) 57.8 vs the indicator's 61.7.
+  - **No ex-ante regime beats buy & hold after tax on the S&P 1963-2026.**
+    - That covers the 200-day, 50/200, weekly, 12-month momentum, drawdown, volatility, HMM
+      and unemployment regimes, and the whole sensitivity grid.
+    - The best is the 50/200 switch, 8.7 vs 9.8; the grid's best is 8.5.
+    - On SPY since 1996 the 50/200 and 12-month switches did beat it, but not robustly across
+      windows.
   - **Hindsight regimes would add about 4 pts/yr on the S&P.** The idea fails on
     identifying the regime.
 - **Drawdown insurance for index money** (exploratory, `partB_insurance.csv`):
-  - The weekly-signal insurance of 5.6 is dominated in every window by a moving-average rule
-    or the switch.
-  - **The switch, either form:** cheapest since 1994 and on SPY and IWM, at about 0-2 pts/yr
-    after tax for 20-26 pts less drawdown.
-  - **The plain 200-day rule:** cheapest in 1963-1993, and the largest drawdown cut.
-  - Since 2013 every form cost 2-8 pts/yr.
+  - **The weekly-signal insurance of 5.6 is dominated after tax** by a moving-average rule or
+    the switch in every window except QQQ 2000-2012, where it ties the 50/200 rule.
+    - This is judged by T2 after tax, a stricter bar than 5.6's pre-tax INSURANCE rule.
+  - **The switch:** cheapest since 1994 and on SPY and IWM, at about −0.7 to 1.4 pts/yr after
+    tax for 20-26 pts less drawdown.
+    - The 50/200 form is cheapest on the S&P since 1994 and on SPY; the 200-day form on IWM.
+    - The 50/200 switch on IWM saves only 6 pts (2.0 pts/yr) and fails T2.
+    - On QQQ the switches cut much less drawdown (30-32 pts vs 52-54).
+  - **The plain 200-day rule:** cheapest in 1963-1993, with the largest drawdown cut.
+  - **Since 2013** every form cost 1.8-8 pts/yr after tax on SPY and QQQ, for 0-13 pts less
+    drawdown.
 - **Crypto by execution route** (exploratory, after tax via spot ETF):
   - On ETH every regime filter is far below the indicator alone (28-45 vs 60).
   - On BTC filters beat the indicator but not robustly buy & hold.
 - **Use:**
   - **Index money:** hold in a taxable account. If drawdown control is wanted, prefer the
-    switch or a plain 200-day / 50-200 rule over the weekly signal. Expect it to cost about
-    1-3 pts/yr after tax, more in strong bull markets.
+    switch or a plain 200-day rule over the weekly signal. On IWM, use only the 200-day form
+    of the switch.
+    - Expect the switch to cost about 0-2 pts/yr after tax, and a plain 200-day rule about
+      2-3.5.
+    - Costs run higher in strong bull markets: 2-8 pts/yr on SPY and QQQ since 2013.
   - **Crypto:** where the gate says TRADE (ETH via ETF), keep the indicator alone and add no
     regime filter.
 
@@ -592,9 +618,10 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - ETH: TRADE via spot ETF.
   - SOL: PROBATION (≤10%).
   - BTC, BNB, ZEC: hold or skip.
-  - SPY/QQQ: hold, with optional insurance: weekly signal, or the cheaper 200-day /
-    50-200 rule or regime switch (section 5.15).
-  - IWM and TSLA: hold.
+  - SPY/QQQ: hold, with optional insurance: the weekly signal, or the cheaper plain 200-day
+    rule or regime switch (section 5.15; the switch cuts less drawdown on QQQ).
+  - IWM: hold (section 5.15, exploratory: only the 200-day regime switch was near-free
+    insurance, 2001-2026). TSLA: hold.
   - COIN, HOOD, CRCL: watch.
   - Stock baskets picked by past fit: don't run (section 5.10). Scanner for information
     only.
@@ -643,7 +670,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 
 ## 10. Environment notes
 
-- Use `python3` (3.11) and install with `python3 -m pip install pandas numpy pyarrow numba` (plain
+- Use `python3` (3.13 in the 2026-10-14 container; 3.11 earlier) and install with `python3 -m pip install pandas numpy pyarrow numba` (plain
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
@@ -677,8 +704,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.15). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
-| `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
-| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Used by every OHLC-based study (screener, altcoins, trend_portfolio, leverage_breakout, regime_switch, replicate); the TradingView-export backtests read the exported state instead. Needs high/low. |
+| `analysis_2026/FINDINGS.md` | Chronological log (audit-correction sections are in the 2026-10-13 entries; the latest entries are at the end). |
+| `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Used by every OHLC-based study (screener, altcoins, trend_portfolio, leverage_breakout, flip_delay, regime_switch, replicate); the TradingView-export backtests read the exported state instead. Needs high/low. |
 | `analysis_2026/replicate.py` | IWM replication and hl2-consistency evidence. |
 | `analysis_2026/gate.py` | Per-asset, per-vehicle validation gate (after tax; vs own buy & hold and vs SPY), index INSURANCE test, `placebo()` false-pass estimate, `asof` for walk-forward use. |
 | `analysis_2026/costs.py` | Robinhood cost sensitivity; weekend-aware spot-ETF proxy (`etf_want`, `etf_proxy`). |

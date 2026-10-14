@@ -2,8 +2,8 @@
 Rebuild the gitignored data used by analysis_2026/regime_switch.py, from hosts reachable in
 the Claude cloud sandbox (GitHub raw/releases and Binance's S3 archive).
 
-    python -m analysis_2026.fetch_regime_data            # everything (~200 MB, a few minutes)
-    python -m analysis_2026.fetch_regime_data --skip-pit # if data/raw_pit and data/universe_pit_all exist
+    python3 -m analysis_2026.fetch_regime_data            # everything (~200 MB, a few minutes)
+    python3 -m analysis_2026.fetch_regime_data --skip-pit # if data/raw_pit and data/universe_pit_all exist
 
 Writes:
   data/macro/gspc_1950_2018.csv   ^GSPC daily OHLC (github.com/vijinho/sp500, Yahoo)

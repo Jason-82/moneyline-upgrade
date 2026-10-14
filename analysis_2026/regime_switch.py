@@ -163,7 +163,8 @@ from-scratch recomputation and an adversarial code review). No verdict changed.
   50/200, weekly and 12-month switches also run on the next-bar and spot-ETF routes, and
   three exploratory tables (all single assets, index insurance, crypto by route).
 
-    python -m analysis_2026.regime_switch
+    python3 -m analysis_2026.regime_switch            (about 4 minutes)
+    python3 -m analysis_2026.regime_switch --sensitivity
 """
 from __future__ import annotations
 
@@ -1194,7 +1195,7 @@ def crypto_routes(pb: pd.DataFrame) -> pd.DataFrame:
 
 if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv:
-        print("python -m analysis_2026.regime_switch [--sensitivity]  (writes analysis_2026/results_regime/)")
+        print("python3 -m analysis_2026.regime_switch [--sensitivity]  (writes analysis_2026/results_regime/)")
         sys.exit(0)
     if "--sensitivity" in sys.argv:
         sensitivity()
