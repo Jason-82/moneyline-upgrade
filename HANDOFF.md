@@ -1,5 +1,23 @@
 # HANDOFF — trend-indicator research (read this first)
 
+## Crypto comparison extension — 2026-10-14
+
+`crypto_research/` now compares the unchanged Moneyline baseline, two-close entry
+confirmation, a prior-20-close breakout gate, a wider exit and two cash-only
+Donchian ensemble adaptations. Read `docs/CRYPTO_EXPERIMENT.md`,
+`docs/CRYPTO_DATA.md` and `docs/CRYPTO_RESULTS.md` for the declared hypotheses,
+historical formation, execution conventions, results and limitations.
+
+The input catalog retains historical venue listings; lower liquidity is not a
+verified small-cap classification. Broad later baskets remain unidentified until
+token migrations and delistings are reconciled. Individual and early-basket
+diagnostics are research evidence, not an approved whitelist. Stock-like tax
+sensitivities are not actual crypto tax liability. The original stock signal and
+shadow defaults are unchanged; no crypto trading transport was activated.
+
+The later historical window was already exposed to previous research. A
+prospective baseline-versus-breakout comparison is the next candidate test.
+
 ## Implementation update — 2026-10-13 Chicago / 2026-10-14 UTC
 
 The active stock-research implementation is now `research/`, with deterministic
