@@ -1,0 +1,8 @@
+{
+  "pretax_rows_rebuilt": 20790,
+  "max_terminal_relative_error": 1.3100631690576847e-14,
+  "attribution_groups_reconciled": 2835,
+  "published_payoff_reproduced": true,
+  "input_and_runner_hashes_verified": true,
+  "audit_source_sha256": "247753cee65b5af29b221e6b54e8273e3b40cff41edc21689a4dd18043aa0825"
+}
