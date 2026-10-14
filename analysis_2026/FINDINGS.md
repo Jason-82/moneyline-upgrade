@@ -856,3 +856,81 @@ were added.
 - Rotating toward long-run laggard styles or sectors has no reliable edge over 95 years.
 - A permanent value/small tilt is the cleaner way to own that premium, but it has lagged
   for about 20 years.
+
+
+---
+
+# 2026-10-14 (latest) — leverage, tight stops and "key level" breakouts
+
+`analysis_2026/leverage_breakout.py`. H1-H4 were pre-registered in 4cb2b28; an engine smoke
+test on BTC ran before that commit. Results are in `analysis_2026/results_leverage/`.
+
+**Data:** Binance spot 4h and daily bars for 20 large coins (2017/2020 to 2026-09), actual
+USDT-M funding rates, the survivorship-inclusive daily universe, and ETFs.
+
+**Systems:**
+
+- the user's indicator (ML)
+- Turtle/Donchian breakouts: BO20 (20-day high entry, 10-day low exit, 2xATR stop) and
+  BO55 (55-day high, 20-day low exit, 2xATR stop)
+- tight-stop versions (1 and 0.5 ATR, 2% fixed)
+- a "tested key level" breakout
+
+**Leverage model:** a sub-account at 1x/3x/5x of its equity, with liquidation and funding
+on perpetuals.
+
+**Audit:** two lenses. Independent engines reproduced all 4,800 trades and 400 equity
+rows; a truncation test found no look-ahead. Fixes applied before the final numbers:
+
+- funding charged on current position value
+- liquidation level includes fees and funding
+- MATIC funding taken from the POL file
+- idle cash earns T-bills
+- open trades marked at the end
+- buy & hold aligned to the strategies' start
+
+**Results (daily, 2018-2026, after audit fixes):**
+
+- **H1, leverage on the indicator, wealth destroyed:**
+
+  | | 1x spot | 1x perp | 3x perp | 5x perp |
+  |---|---|---|---|---|
+  | BTC final multiple | 12.4 | 7.0 | 1.9 (DD −97%) | liquidated |
+  | ETH final multiple | 20.1 | 9.4 | 1.9 (DD −98%) | liquidated |
+
+  - Across 20 coins, 3x blows up 85% of sub-accounts and 5x 100%.
+  - The Sharpe clause of H1 is NOT met for ETH at 3x (≈ equal to 1x). Sharpe barely
+    moves with leverage; the damage shows in wealth and blow-ups.
+  - Kelly-optimal leverage is ≤ 1.85 on every coin (median 0.77), so 3x exceeds full
+    Kelly everywhere.
+  - Volatility drag (L²σ²/2) is the mechanism.
+  - Perpetual funding averaged ~31%/yr on BTC in 2021; even 1x perp lags 1x spot by
+    ~8-12 pts/yr.
+- **H2, breakout expectancy, positive raw but fragile:**
+  - BTC+ETH fails t ≥ 2: BO20 t 1.96, BO55 t 1.58.
+  - Other 18 coins and the top-20 universe pass on naive t (BO20 3.7-4.1, BO55 2.2-2.3).
+  - Clustering by entry month: only BO20 stays ≈ 2.
+  - Excluding the top 5% of trades makes every crypto system negative; 2020-21 carries
+    everything.
+  - Random entries with the same exits earn half of BO20's expectancy and about all of
+    BO55's.
+  - **Breakouts are not better than the user's indicator:** BO20 − ML on BTC+ETH paired
+    monthly t = 0.07; 82-85% overlap in days held.
+- **H3, tight stops, confirmed:** on all 20 coins, BO20 at 0.5 ATR makes 2.7% per trade vs
+  10.3% at 2 ATR (89% stopped out); a 2% fixed stop makes 1.0%. Robust to costs and start
+  date.
+- **H4, 4-hour bars, worse than daily** for every system: median CAGR and Sharpe lower,
+  drawdowns deeper.
+- **The user's literal idea (BTC breakout, tight stop, 3-5x):** 430x in-sample at 5x
+  (BO20-k0.5), from 1-3 trades (Oct 2020 - Mar 2021).
+  - 5x beat 1x on 1 of 20 coins (BTC); 16-19 of 20 coins lost money at 5x.
+  - Random entries with the same rules lost money 64% of the time.
+  - Lottery-like; not an edge.
+- **Total-capital view:** 20% sub-account at 5x plus 80% T-bills vs 100% at 1x spot (the
+  same market exposure). BTC indicator: 1.04x vs 12.4x; ETH: 1.04x vs 20.1x. The
+  leveraged sub-account is liquidated by moves the unlevered position survives.
+- **Risk-based sizing** (risk 1-2% per trade) is not leverage (0.1-0.3x exposure). It halves
+  drawdowns but doesn't rescue leverage; getting 3-5x with tight stops means risking
+  5-15% per trade.
+- **ETFs 2005-2026:** breakout and indicator CAGR 2.3-2.9% vs buy & hold 7.3%. Sharpe is
+  about equal; drawdowns about −25% vs −59%.

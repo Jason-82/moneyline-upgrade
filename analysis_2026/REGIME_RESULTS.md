@@ -18,6 +18,15 @@ rotation results. Those studies broadly reject extra complexity as a reliable
 source of return. The latest leverage/breakout file declares another study but
 has no committed result outputs at this base, so no conclusion is inferred from it.
 
+During this investigation, the other instance published the completed leverage/
+breakout study at `4a61458`. Its updated engine, audit corrections, summary and
+result tables were also reviewed and incorporated into this branch without
+changing them. It reports severe wealth loss from 3x/5x perpetual leverage,
+frequent tight-stop exits, and no clear advantage of canonical breakouts over
+Moneyline. Daily beat 4-hour implementations in that study. These are its
+reported findings, not a fresh independent rerun here. The regime runner and
+reference Moneyline implementation were unaffected by that upstream update.
+
 The earlier Codex PR #2 used different historical windows, exchange data and
 accounting. Its 2023-2025 examples did not establish that crypto Moneyline always
 loses over complete cycles. The expanded repo contains substantial full-history

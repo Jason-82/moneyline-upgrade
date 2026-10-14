@@ -415,6 +415,21 @@ Full tables and the pre-registration are in `screener/README.md`.
 - **Practical:** a static value/small tilt (if any) beats any timing rule. It lagged for
   ~20 years (2006-2026).
 
+### 5.14 Leverage, tight stops, key-level breakouts — `analysis_2026/leverage_breakout.py`
+
+- **Leverage on the indicator destroys wealth.** At 3x, 85% of the 20 coins' sub-accounts
+  blow up; at 5x, 100%. BTC: 12.4x at 1x spot vs 1.9x at 3x vs liquidated at 5x.
+  - Kelly-optimal leverage is ≤ 1.85 on every coin.
+  - Funding on perpetuals costs ~8-12 pts/yr even at 1x.
+- **Tight stops lower expectancy:** 2.7% vs 10.3% per trade, 89% stopped out.
+- **4-hour bars are worse than daily.**
+- **Turtle/Donchian breakouts are about the same trend exposure as the indicator, not
+  better** (paired t 0.07). Their expectancy is positive but carried by the top 5% of
+  trades from 2020-21.
+- **The user's literal idea (BTC, tight stop, 5x):** 430x in-sample from 1-3 trades, but 5x
+  lost money on 16-19 of 20 coins. Lottery, not edge.
+- **ETF breakouts lag buy & hold.**
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -575,6 +590,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/altcoins.py`, `analysis_2026/results_altcoins/` | Crypto size-tier study on the Binance archive incl. delisted coins (Q1/Q2 pre-registered), payoff profile crypto vs S&P stocks (section 5.11). Data: `data/crypto_binance/` (gitignored); rebuild from `https://s3-ap-northeast-1.amazonaws.com/data.binance.vision` (`data/spot/monthly/klines/<SYM>/1d/`). |
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
+| `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Not used by the backtests; needs high/low. |
