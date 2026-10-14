@@ -475,14 +475,19 @@ def main():
     ap.add_argument("--window", help="explicit form_start,form_end,test_start,test_end (overrides --until)")
     ap.add_argument("--form-folder", help="score formation windows on this folder's data (e.g. a longer history)")
     ap.add_argument("--levels", help="comma-separated subset of levels")
+    ap.add_argument("--exclude", help="comma-separated symbols to leave out (e.g. known recycled tickers)")
+    ap.add_argument("--keep-collapsed", action="store_true",
+                    help="keep failed companies cut at their collapse instead of dropping them (data.quality_filter)")
     ap.add_argument("--criteria", help="comma-separated subset of criteria")
     ap.add_argument("--out")
     a = ap.parse_args()
     if a.csv_folder:
-        data, dropped = quality_filter(from_csv_folder(a.csv_folder))
+        data, dropped = quality_filter(from_csv_folder(a.csv_folder), keep_collapsed=a.keep_collapsed)
         if dropped:
             print(f"dropped {len(dropped)} broken/spliced series: " + ", ".join(f"{k} ({v})" for k, v in sorted(dropped.items())) + "\n")
         spy = data[a.spy.upper()]
+        if a.exclude:
+            data = {k: v for k, v in data.items() if k not in {x.strip().upper() for x in a.exclude.split(",")}}
     else:
         data = synthetic(a.synthetic)
         spy = data.pop("S000")

@@ -250,17 +250,56 @@ Results with the audited code (v3). H2 had to pass both tests.
   8.2%.
 - **Information only:**
   - Park = spy, top 10 was slightly ahead in all three periods (+1.4 dev, −0.1 A, +1.0 B,
-    the last helped by the MRNA day), with deeper drawdowns. This is post hoc, so it is
-    not validated.
+    the last helped by the MRNA day), with deeper drawdowns. This is post hoc, and on the
+    less biased point-in-time data it lost by 5.9 pts/yr over the full 2023–2025 holdout
+    (see Robustness).
   - Park = cash lost to SPY in both A and B at every skill level.
 - **First run:** before the audit fixes (tax-loss carry across windows, dividend tax under
   total-return prices, qlib's dividend cut-off, the 2020-11-10 data cut-off) the numbers
   were within about 0.3 pt of these, and the verdicts were identical.
 
+### Robustness: point-in-time data that includes dead companies
+
+Data: github.com/Johnbrick123/sp500-data (`data.from_sp500_pit`), point-in-time S&P 500
+members since 1995 including ~400 dead or acquired companies, through 2026-10-12. Close-only
+failures (Lehman, WaMu, Bear, Countrywide) get approximated bars.
+
+- **Coverage** at each re-pick date: 89–98% of members, against 60–66% for qlib in 2005
+  and 2008.
+- **Grid:** development windows 2001–2021 (7 windows, including the 2001-03 and 2007-09
+  bears), then the **full 2023–2025 holdout** as originally planned, then 2026 to date.
+- **Settings:** `--prices total`. Rerunning the holdout with failed banks cut at their
+  collapse instead of dropped (`--keep-collapsed`) changed nothing material.
+
+After tax. SPY held: 7.16 (2001–21), 18.76 (2023–25), 12.28 (2026 to Oct 12).
+
+| skill level | 2001–21 park = cash | 2001–21 park = spy | 2023–25 park = spy | 2023–25 park = cash | 2026 YTD park = spy |
+|---|---|---|---|---|---|
+| top 5 | 6.89 (3/7) | 9.43 (4/7) | 6.07 | −5.82 | 12.62 |
+| top 10 | 5.47 (4/7) | 7.96 (5/7) | 12.90 | 6.48 | 46.03 |
+| top 20 | 4.85 (2/7) | 7.57 (3/7) | 15.26 | 8.87 | 21.71 |
+| skill > 10 | 6.35 (3/7) | 8.89 (4/7) | **12.10 (H2)** | 5.20 | 11.98 |
+| all stocks | 3.38 (2/7) | 5.85 (2/7) | 10.80 | 4.63 | 10.50 |
+| random 10 | 3.92 | 6.05 | 8.14 | 1.80 | 29.98 |
+
+Windows beating SPY are in brackets.
+
+- **With dead companies included, no park = cash level beats SPY** over 2001–2021.
+- **Park = spy looked better in development again** (+0.8 to +2.3 pts/yr, with worst
+  drawdowns of 57–61% against SPY's 55%). It then **lost to SPY at every level in the full
+  2023–2025 holdout**; H2 lost by 6.7 pts/yr.
+- **2026 to date:** random 10-stock baskets beat SPY by about 18 pts. A single 9-month
+  window can't separate skill from luck.
+- **Calibration** on this data: slope 0.143. Only the top bin (past skill > 20, 32
+  stock-windows) had positive future skill (+4.1). The median stock was better held than
+  traded in every bin.
+- **Selection study** (top 20): test skill +2.3 vs −1.9 for all stocks (p < 0.002).
+
 ### What this means for "how strict?"
 
 - **No level of past fit makes this indicator beat SPY after tax** on S&P 500 stocks in a
-  taxable account.
+  taxable account. This holds on both datasets, in development and in the full 2023–2025
+  holdout.
 - **Stricter ranking helps relative to other stocks,** but the best levels only tie SPY,
   depend on one big winner per period, and are flattered by survivorship.
 - **Looser "decent fit" levels lose clearly.**

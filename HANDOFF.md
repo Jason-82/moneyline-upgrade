@@ -139,6 +139,7 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 | `data/universe_qlib/` (gitignored, rebuild) | qlib US daily for every S&P 500 member since 1999 that qlib has (852 tickers), 2000 to 2024-04-25 | Download `https://github.com/SunsetWolf/qlib_dataset/releases/download/v0/qlib_data_us_1d_v3.zip` (615 MB), then `screener.data.from_qlib(root, symbols, out_folder)`. Total return until 2021-09-16, price-only after (`--prices qlib`). Survivorship-biased: 60-66% of 2005/2008 members usable. |
 | `data/universe_recent/` (gitignored, rebuild) | ~2,300 US stocks and ETFs, split-adjusted OHLC, 2024-08 to the latest close | `https://github.com/q100423gg-coder/us-stock-data/releases/download/data/prices.parquet` (refreshed daily), then `screener.data.from_long_parquet`. Needs pyarrow. Third-party and unofficial. |
 | `data/universe/members.csv` (gitignored, rebuild) | point-in-time S&P 500 membership spells | `screener.data.sp500_members(out)`, from fja05680/sp500 via raw.githubusercontent.com |
+| `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
 **Getting the current state.** `moneyline_ref.py` cannot run on the `data/tv_*`
 exports, because they have no highs or lows. Faking high = low = close matches only
@@ -355,6 +356,12 @@ Full tables and the pre-registration are in `screener/README.md`.
   - High-volatility and deep-drawdown selectors with no backtest did as well.
 - **Biases:** survivorship flatters the baskets vs SPY by an estimated 0.3-1 pt/yr, so the
   ties are upper bounds. Taxes take most of the edge (top 5: 11.5% pre-tax vs 8.5%).
+- **Robustness on point-in-time data with dead companies** (Johnbrick123/sp500-data,
+  89-98% coverage):
+  - 2001-2021: no park = cash level beats SPY (best 6.89 vs 7.16).
+  - Park = spy is ahead in development (+0.8 to +2.3) but **loses at every level in the
+    full 2023-2025 holdout**; H2 made 12.1 vs 18.8.
+  - 2026 to date is uninformative: random baskets also beat SPY by ~18 pts.
 - **The average S&P 500 stock** loses about 2.2%/yr of timing skill to the indicator.
 
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`

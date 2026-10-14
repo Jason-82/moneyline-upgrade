@@ -640,3 +640,17 @@ the fit filter be?").
 - The stock scanner stays information only.
 - **Bug found and fixed in passing:** `selection.py` read broken series because it lacked
   the quality filter (CHK's broken series returned 5,306× in 2008-10). It now uses it.
+
+
+**Robustness on point-in-time data that includes dead companies** (added the same day):
+
+- **Data:** Johnbrick123/sp500-data (`data.from_sp500_pit`). Coverage is 89–98% of members
+  at every re-pick date.
+- **2001–2021 park = cash:** SPY held 7.16 after tax. Skill top 5 made 6.89, skill > 10
+  6.35, all stocks 3.38. No level beats SPY.
+- **Park = spy:** development +0.8 to +2.3 pts/yr, but **every level lost to SPY in the full
+  2023–2025 holdout**. H2 made 12.10 vs SPY's 18.76.
+- **2026 to date:** random baskets also beat SPY by ~18 pts (uninformative).
+- **Calibration slope** 0.143; selection study test skill +2.3 vs −1.9.
+- **Conclusion unchanged and strengthened.** Results are in
+  `analysis_2026/results_strictness/pit/`.

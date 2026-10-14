@@ -265,19 +265,86 @@ def from_long_parquet(path: str | Path, symbols=None, out_folder: str | Path | N
     return out
 
 
-def quality_filter(data: dict[str, pd.DataFrame], max_bad_ohlc=0.01, jump=0.6, max_jumps=3):
+def from_sp500_pit(prices_path: str | Path, members_path: str | Path | None = None,
+                   out_folder: str | Path | None = None, max_close_only: float = 1.0):
+    """
+    github.com/Johnbrick123/sp500-data release: point-in-time S&P 500 members since 1995,
+    including ~400 dead or acquired companies (IDs like 'LEHMQ-201203'), plus SPY.
+
+    Sources are mixed. Yahoo rows are split-adjusted; Tiingo, WIKI and CRSP rows are raw.
+    adj_close is split+dividend adjusted throughout, so O/H/L/C are scaled by
+    adj_close/close for one consistent total-return series (use --prices total).
+
+    CRSP rows are close-only, and that covers many of the big failures (Lehman, WaMu,
+    Bear, Countrywide). Their bars are approximated as open = previous close,
+    high/low = max/min(open, close), so the indicator runs on close-to-close ranges
+    there. Those signals are only an approximation (60-72% agreement with real bars).
+    Tickers whose close-only share is above max_close_only are skipped. Returns
+    (data, members) and writes CSVs plus members.csv if out_folder is given.
+    """
+    p = pd.read_parquet(prices_path)
+    out = {}
+    for sym, g in p.groupby("ticker", sort=True):
+        g = g.sort_values("date").drop_duplicates("date", keep="last")
+        g = g[(g.close > 0) & g.close.notna()]
+        if len(g) < 50:
+            continue
+        close_only = g.open.isna() | g.high.isna() | g.low.isna()
+        if close_only.mean() > max_close_only:
+            continue
+        scale = (g.adj_close / g.close).where(g.adj_close > 0).ffill().bfill().fillna(1.0)
+        c = g.close * scale
+        o = (g.open * scale).where(~close_only, c.shift(1)).fillna(c)
+        h = (g.high * scale).where(~close_only, np.maximum(o, c))
+        lo = (g.low * scale).where(~close_only, np.minimum(o, c))
+        df = pd.DataFrame({"open": o.values, "high": h.values, "low": lo.values, "close": c.values},
+                          index=pd.DatetimeIndex(g.date.values).normalize())
+        df.index.name = "date"
+        df = df[(df > 0).all(axis=1)].dropna()
+        if len(df) < 50:
+            continue
+        sym = str(sym).upper()
+        out[sym] = df
+        if out_folder:
+            Path(out_folder).mkdir(parents=True, exist_ok=True)
+            df.to_csv(Path(out_folder) / f"{sym}.csv", float_format="%.6g")
+    members = None
+    if members_path:
+        members = pd.read_parquet(members_path).rename(columns={"ticker": "symbol"})
+        members["symbol"] = members.symbol.str.upper()
+        if out_folder:
+            members.to_csv(Path(out_folder) / "members.csv", index=False)
+    return out, members
+
+
+def quality_filter(data: dict[str, pd.DataFrame], max_bad_ohlc=0.01, jump=0.6, max_jumps=3, keep_collapsed=False):
     """Drop series that look broken or spliced from two companies (recycled tickers):
     more than 1% of bars with high/low outside open/close, or more than 3 one-day
-    moves above 60%. Single extreme days (AIG 2008, GME 2021) are real and stay."""
+    moves above 60%. Single extreme days (AIG 2008) are real and stay.
+
+    keep_collapsed=True keeps a failed company whose only problem is junk prints after
+    it collapsed (e.g. SIVB, FRC, SBNY in 2023 trading OTC). Such a series is cut 20 bars
+    after its close first falls below 10% of its running peak; the slot is then sold at
+    that last price, which is close to the real wipe-out. Dropping these names instead
+    flatters the baskets (survivorship)."""
     keep, dropped = {}, {}
     for s, d in data.items():
         lo, hi = d[["open", "close"]].min(axis=1), d[["open", "close"]].max(axis=1)
-        bad = ((d.high < hi * 0.999) | (d.low > lo * 1.001)).mean()
-        n_jump = int((d.close.pct_change().abs() > jump).sum())
-        if bad > max_bad_ohlc or n_jump > max_jumps:
-            dropped[s] = f"{bad:.1%} bad bars, {n_jump} jumps"
-        else:
+        badm = (d.high < hi * 0.999) | (d.low > lo * 1.001)
+        jumps = d.close.pct_change().abs() > jump
+        if badm.mean() <= max_bad_ohlc and int(jumps.sum()) <= max_jumps:
             keep[s] = d
+            continue
+        if keep_collapsed:
+            dead = d.close < 0.1 * d.close.cummax()
+            if dead.any():
+                cut = int(np.argmax(dead.to_numpy()))
+                pre = slice(0, cut + 1)
+                if badm.iloc[pre].mean() <= max_bad_ohlc and int(jumps.iloc[pre].sum()) <= max_jumps:
+                    keep[s] = d.iloc[:cut + 21]
+                    dropped[s] = f"kept, cut at collapse {d.index[cut].date()}"
+                    continue
+        dropped[s] = f"{badm.mean():.1%} bad bars, {int(jumps.sum())} jumps"
     return keep, dropped
 
 

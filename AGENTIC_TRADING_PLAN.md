@@ -189,7 +189,8 @@ Do **not** add these (all tested):
 - **Development:** no level beat SPY after tax consistently. The best levels tied it and
   beat it in only half the 3-year windows.
 - **Out of sample:** the one variant that looked better (hold SPY while a stock is red)
-  failed in 2025–26.
+  failed in 2025–26. On point-in-time data that includes dead companies, every basket level
+  lost to SPY in the full 2023–2025 holdout.
 - **Fit carries forward only weakly:** about 7%.
 - **"Decent fit" baskets lost clearly**, and the per-stock gate's strict filter did worse
   than random picks.
@@ -199,9 +200,11 @@ Do **not** add these (all tested):
   with no Yahoo access and no local machine.
 - **If the user still wants a stock sleeve:** treat it as an experiment with small money
   and a forward log. Use SPY as the default holding and swap a slot into a top-10
-  past-skill stock while it is green. It was slightly ahead of SPY in all three periods
-  (+1.4, −0.1 and +1.0 pts/yr). That is post hoc, it depends on single big winners, and it
-  ran deeper drawdowns (−61% in 2008 vs −52%). It is not validated.
+  past-skill stock while it is green. On the qlib data it was slightly ahead of SPY in all
+  three periods (+1.4, −0.1 and +1.0 pts/yr). On the less biased point-in-time data it
+  **lost by 5.9 pts/yr over 2023–2025**. It depends on single big winners and ran deeper
+  drawdowns (about −60% in 2008 vs −55%). Not validated, and the better data argues against
+  it.
 
 ## 5. Validation gate (`analysis_2026/gate.py` is authoritative)
 
