@@ -770,7 +770,8 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
       same-year, −0.07 to −0.31 under leave-out.
     - Against the pool they are −0.03 to +0.16.
 - **Exploratory, none survives multiple testing.**
-  - Once you buy after the close is known, none of these improves the result:
+  - Once you buy after the close is known, none of these improves the result against the
+    stock's own drift (same-year or leave-out):
     - confluence of several averages
     - depth below the 52-week high
     - a long run (60+ closes) above the average
@@ -778,12 +779,15 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
   - Against the pool, a touch of a lone average did better (+0.53, p 0.05) than one where 4+
     averages coincide (−0.02). Confluence did not help.
   - **Strong bounces** close at least 1 ATR above the line, like HOOD's.
-    - Against the pool they gained 0.40 pts from the bounce close (p 0.02; one of 40 split
-      rows, each read several ways).
-    - Bought at the next open, as a stock buyer would, they made −0.42% (same-year) and
-      −0.26% (leave-out). That is no better than every touch that closed back above the line
-      (−0.19% / −0.26%).
-    - The sign follows the baseline rather than the entry time.
+    - **Against the pool** they gained 0.40 pts from the bounce close (p 0.025), and about
+      0.43 bought at the next open (0.37 net of costs, p 0.02). All touches that closed back
+      above the line gained +0.06 / +0.03. This is one of 40 split rows, each read several
+      ways.
+    - **Against their own drift** they did worse. Bought at the next open, as a stock buyer
+      would, they made −0.42% (same-year) and −0.26% (leave-out), no better than every
+      touch that closed back above the line (−0.19% / −0.26%). From the bounce close they
+      made −0.29% against the leave-out drift.
+    - So the sign follows the baseline rather than the entry time.
 - **HOOD-like setups** (60-day vol ≥ 50%, ≥ 20% below the 52-week high, a falling 200-day,
   ≥ 20 closes above it before the touch): 234 touches in 75 months, 131 of them first touches
   (no touch of the line in the previous 28 days).
@@ -794,10 +798,13 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
   - **Bought after the bounce** (n 106): +1.9% (same-year, CI −3.2 to +7.3) / +2.8% (leave-out,
     CI −2.8 to +8.5). There is no pool figure for this entry. Only 6 past cases bounced as
     strongly as HOOD did, too few to measure.
-  - **The positive lean is one episode.**
+  - **The positive lean against the stock's own drift is one episode.**
     - 73 of the 234 touches are from 2009, 70 of them in the May-November rebound. These
       averaged +8.3% / +10.7% / +2.5%.
     - Without 2009 (n 161): −1.4% / −1.6% / +0.3% (CIs about −6 to +3; pool −3.3 to +3.7).
+    - Against the pool, 2009 matters less. The +0.3 is still about 1.5 pts above the pool's
+      no-edge level (about −1.2), but it is not significant (p 0.19). That no-edge level
+      comes from the volatility filter, not from 2009.
     - Without 2009, bought after the bounce (n 69): −1.3% / −1.1%.
   - **The real 200-day beat the placebo lines by 1.6-3.5 pts** (p 0.03-0.11; first touches
     only 0.8-2.2 pts, p 0.09-0.26). Much of that is timing: 13% of the placebo touches fall
@@ -805,7 +812,10 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
     22%.
     - Within the same month the gap is +0.6 / +1.1 / +0.9 pts (p 0.19-0.29).
     - For first touches it is about 0 (−0.04 / +0.04 / +0.31).
-    - After adding back the no-edge differences, about +1.3 to +1.6 pts (p 0.08-0.11; the null was not month-matched) remains.
+    - After adding back the no-edge differences, about +1.3 to +1.6 pts remains (p
+      0.08-0.11; the null was not month-matched).
+    - With the X2 stop exit the gap disappears: −0.23 (same-year) and +0.70 (leave-out),
+      and −1.22 / −0.73 within the same month (`null_tests.txt`).
     - A weak hint at most, from one exploratory subset among many.
   - **Individual outcomes vary widely:** the 20-day abnormal returns of these touches run from
     −18% to +19% (10th-90th percentile).

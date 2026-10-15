@@ -1868,7 +1868,7 @@ which averages (daily, weekly or monthly, of what length)?
 - **Halves (1996-2011 / 2012-2026):** B1 −0.16 / −0.02; B2 −0.11 / −0.04.
 - **B3:** the X2 trade makes −0.26% per trade (p 0.97; halves −0.42 / −0.11) and trails the
   placebo lines by 0.13 pts. Against the leave-out drift it makes −0.20%.
-- **B4 with the X2 exit,** measured from its null level: +0.02 (same-year) and −0.12
+- **B4 with the X2 exit,** measured from its null level: +0.01 (same-year) and −0.12
   (leave-out). The trend tilt appears with the 20-day time exit only.
 - **B5:** 0 of 34 averages pass. None passes under the leave-out or pool baselines either.
 - **Within the same month the 200-day line does slightly *worse* than the placebo lines**
@@ -1911,7 +1911,7 @@ which averages (daily, weekly or monthly, of what length)?
   - The coin pool's own next 28 days after these touches averaged 1.7 pts below normal (CI
     −5.8 to +2.6). Whether the weakness is market-wide cannot be told.
 - **Crypto null:** under the registered baseline, iid bars give a placebo-line gradient from
-  +1.03 at −2 ATR to −2.11 at +2 ATR. That is about 45% of the actual gradient without LUNA
+  +1.02 at −2 ATR to −2.11 at +2 ATR. That is about 45% of the actual gradient without LUNA
   (−0.92 to −7.82).
 
 *Placebo lines, S&P members, 200-day, 20 days:*
@@ -2001,7 +2001,7 @@ known.
 |---|---|---|---|---|---|
 | closed back above the line | 19,094 | +1.14 | −0.19 | −0.26 | +0.06 |
 | closed below the line | 22,449 | −1.14 | — | — | +0.08 |
-| closed 1+ ATR above (strong bounce) | 2,057 | +3.61 | −0.42 | −0.26 | +0.40 (p 0.02) |
+| closed 1+ ATR above (strong bounce) | 2,057 | +3.61 | −0.42 | −0.26 | +0.40 (p 0.025) |
 | ≥ 60 closes above before the touch | 18,560 | +0.06 | −0.16 | −0.13 | +0.22 (p 0.07) |
 | lone average (no other within 0.25 ATR) | 1,226 | +0.08 | +0.96 | +1.24 | +0.53 (p 0.05) |
 | 4+ of the 34 averages within 0.25 ATR | 29,494 | −0.08 | −0.19 | −0.32 | −0.02 |
@@ -2010,10 +2010,12 @@ known.
 - **Read the E1 rows split by the day's close with care.** E1 fills at the line, earlier in the
   day, so those rows contain the day's own move. Judge them by E2.
 - **Strong bounces:**
-  - +0.40 against the pool, from the bounce close (one-sided p 0.02).
-  - The second verification pass found +0.42 against the pool when bought at the next open
-    (gross; +0.36 net of costs), but −0.26 to −0.29 against the leave-out drift from either
-    entry (net of costs).
+  - +0.40 against the pool, from the bounce close (one-sided p 0.025).
+  - Recomputed outside the module (not in the result files): bought at the next open they
+    gained +0.43 against the pool (gross; +0.37 net of costs; p 0.02; the pool's window
+    starts at the bounce close), against +0.03 for all touches that closed back above the
+    line. Against the leave-out drift they made −0.26 to −0.29 from either entry (net of
+    costs).
   - The sign follows the baseline, not the entry.
   - This is one of 40 split rows, each read several ways.
 - **Confluence did not help.** If anything, a lone average did better than a stack of them.
@@ -2031,16 +2033,20 @@ touches. 20 days:
 | entry | same-year | leave-out | pool | null (same-year / leave-out / pool) |
 |---|---|---|---|---|
 | E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.4) | +0.97 (CI −1.8 to +3.5) | +0.28 / −0.31 / −1.25 |
-| E1, placebo lines | −0.45 | −1.23 | −0.58 | +1.04 / +0.18 / −0.68 |
+| E1, placebo lines | −0.45 | −1.23 | −0.58 | +1.03 / +0.18 / −0.68 |
 | E2, real 200-day (n 106) | +1.88 (CI −3.2 to +7.3) | +2.85 (CI −2.8 to +8.5) | | −0.81 / −1.29 |
 | E2, strong bounce (n 6) | +4.28 (CI −4.3 to +19.3) | +5.88 (CI −2.1 to +20.0) | | |
 | E1 without 2009 (n 161) | −1.43 (CI −6.0 to +2.9) | −1.58 (CI −6.4 to +2.7) | +0.27 (CI −3.3 to +3.7) | |
 | E2 without 2009 (n 69) | −1.29 | −1.09 | | |
 
-- **The positive lean is one episode.** 73 of the 234 touches are from 2009, 70 of them in the
+- **The positive lean against the stock's own drift is one episode.** 73 of the 234 touches are from 2009, 70 of them in the
   May-November rebound; they averaged +8.25 / +10.70 / +2.52.
   - Dropping any other single year keeps the means positive.
   - Dropping 2009 turns the same-year and leave-out means negative.
+  - Against the pool, dropping 2009 leaves +0.27 (CI −3.3 to +3.7). That is still about 1.5
+    above the analog's pool no-edge level (−1.25; p 0.19 against it, vs 0.06 with 2009).
+    The no-edge level comes from the volatility filter rather than from 2009, so the lean
+    against the market shrinks but does not vanish. It is not significant either way.
   - The 60-day leave-out mean falls from +6.10 to +0.01.
 - **The analog's null is noisy.** The SE of a 16-run mean is about 0.4. Earlier audit runs of
   the same filter gave +0.7 to +1.3 for E1 against the same-year baseline.
@@ -2066,7 +2072,11 @@ touches. 20 days:
     against 22%.
   - The null differences (all touches) are −0.75 / −0.49 / −0.57 for E1 and −1.09 / −0.85 for E2. None were simulated for first
     touches or within months.
-  - Adding them back to the within-month gaps leaves about +1.33 / +1.60 / +1.47 (p 0.11 / 0.08 / 0.08; `null_tests.txt`).
+  - Adding them back to the within-month gaps leaves about +1.33 / +1.60 / +1.47 (p 0.11 /
+    0.08 / 0.08; `null_tests.txt`).
+  - With the X2 exit the real line does not beat the placebo lines: −0.23 (same-year) /
+    +0.70 (leave-out), p 0.50 / 0.27 against their null levels; within the same month −1.22 /
+    −0.73 (`null_tests.txt`).
 - **This is the only place the 200-day line looks special, and much of it is timing.** It is
   one exploratory subset among many, from 75 months: a weak hint at most.
 - **HOOD's own record:** 15 touches of its 200-day from Nov 2022 to Jul 2026, 8 of them first
@@ -2145,7 +2155,13 @@ T-bills otherwise:
 - **A touch of a moving average is not a buy signal.** That holds for daily, weekly and monthly
   averages, SMA or EMA, of any tested length, on stocks and on crypto. The average is no better
   than a line 1-2 ATR away.
-- **Buying after the bounce is confirmed** (HOOD's close near 101) does no better on average.
+- **Buying after the bounce is confirmed** (HOOD's close near 101) does no better on average
+  against the stock's own drift, even for strong bounces like HOOD's (−0.42 / −0.26 vs −0.19 /
+  −0.26 for all confirmed bounces).
+  - Against the member pool, strong bounces did about 0.4 pts better per 20 days (p
+    0.02-0.03).
+  - But that is one of 40 exploratory rows, and strong coin bounces lagged the coin pool
+    (−1.4).
 - **A bounce in a volatile, beaten-down stock like HOOD has no reliable edge either way.**
   - The 234 HOOD-like touches averaged +1.6% (same-year) / +2.2% (leave-out) over 20 days.
     But 73 of them come from 2009, mostly the May-November rebound, and without 2009 they
