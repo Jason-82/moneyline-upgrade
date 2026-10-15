@@ -10,8 +10,9 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-14. Most recent additions:
+**Last updated:** 2026-10-15. Most recent additions:
 
+- the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
 - the ten theory-driven strategies (section 5.16)
 - a pointer to the other instance's regime-switch study (section 5.17)
 
@@ -495,6 +496,40 @@ that branch.
   switch is cheaper insurance than the weekly signal, at about 1-3 pts/yr after tax.
   Crypto: no regime filter on top of the indicator.
 
+### 5.18 2x S&P + gold (50% SSO / 50% GLD) and leverage + trend — `analysis_2026/sso_gold.py`
+
+Pre-registered in `analysis_2026/SSO_GOLD_PREREG.md`. Audited by six lenses plus confirm checks;
+FINDINGS has the full entry.
+
+- **The other instance's C4** (`codex/theory-lab`) beat SPY 2007-2025, 14.3% vs 10.6%. It is
+  0.99 × S&P + 0.51 × gold with alpha −0.7 to −0.8%/yr (R² 0.995): a bet that gold beats
+  T-bills, not an edge.
+  - Synthetic C4, edge vs S&P (gold = LBMA fix from 1968, 2x fund = S&P × 2 minus financing
+    and fee):
+    - 1972-2006, out of sample: +0.4%/yr, p 0.42. FAIL.
+    - 1972-2026: +1.35%/yr, p 0.24. FAIL.
+    - From 1975: −1.85 to 2006, 0.0 to 2026.
+    - By decade: +13.6, −6.7, −4.7, +3.8, +0.8, +5.0 %/yr, following gold.
+  - Break-even: gold must beat T-bills by about 0.8-1.5%/yr. Real gold is at a record level.
+  - Bonds in place of gold: about 0. WisdomTree's GDE (90/90) live record is the same gold
+    bet, and its gold-futures gains are taxed as ordinary income every year.
+- **P3, 2x S&P while above the 200-day average, else T-bills (Gayed-Bilello): PASS.**
+  - +3.9%/yr over 1929-2026, Holm 0.014.
+  - Pre-1928 Dow: +3.5%/yr. Real SSO 2006-2026: 13.7% vs 11.3%.
+  - But most of the evidence comes from 1929-1971, when it could not be traded at these
+    costs. In tradable eras (1975+, 1982+, 2006+, 2016+) it is +1.8 to +3.1%/yr with p
+    0.03-0.13, which does not survive correction.
+  - Its Sharpe ratio has not improved since 1975.
+  - It is sensitive to execution timing and to the average length.
+  - About 6 switches a year; trailed the S&P by more than 10 points in 18 of 97 years
+    (2022: −30% vs −18%).
+  - **Tax:** after-tax edge 1972-2026 is +0.56 federal, +0.29 with NIIT, about 0 with state
+    tax, below 0 if the S&P would be held for heirs.
+- **Moneyline-timed leverage (P5) and C4 with trend filters (P4) fail.** P4 is a risk
+  reducer: drawdown −30% vs −55%.
+- **Use:** don't hold C4 expecting to beat the S&P. If P3 is used at all, use it in a
+  tax-advantaged account, at a modest allocation, with acceptance of whipsaws.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -632,7 +667,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 - Other agents work in parallel on separate branches:
   - `claude/youthful-goldberg-31vs8h`: the regime-switch study. It is audited as of
     44952ae, not merged, and summarised in section 5.17.
-  - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading.
+  - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading, and `codex/theory-lab`
+    (five strategies C1-C5, `THEORY_LAB_RESULTS.md`; its C4 is examined in section 5.18).
 
   Fetch and rebase before pushing.
 - The user runs a Schwab robo-advisor, which already does tax-loss harvesting. Wash-sale
@@ -663,6 +699,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
+| `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
 | `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |

@@ -1136,3 +1136,215 @@ zero. The pattern matches the earlier studies:
   been competed away since.
 
 No candidate is a reason to change the user's core holdings.
+
+# 2026-10-15 — 2x S&P + gold (the other instance's 50% SSO / 50% GLD) and variations
+
+**Files:**
+- code: `analysis_2026/sso_gold.py`
+- pre-registration: `analysis_2026/SSO_GOLD_PREREG.md`, a98a104, written before any pre-2006 run
+- first run: 5c90fc7
+- results: `analysis_2026/results_sso_gold/`
+
+**Audit:** six independent lenses (C4 rebuild, P3 rebuild with look-ahead truncation tests,
+statistics, realism, tax, gold), each serious finding re-checked by a confirm agent. No
+verdict changed. The fixes below are applied by default; `audit_fix=False` reruns the
+pre-registered data.
+
+**The candidate.** The other instance's C4 (`codex/theory-lab`, `THEORY_LAB_RESULTS.md`):
+50% SSO + 50% GLD, rebalanced quarterly.
+- 2007-2025: 14.33% vs SPY 10.63%.
+- It failed that study's adjusted significance test.
+- Replicated here: 14.18%.
+
+**Theory.** 50% in a 2x daily fund is about 1x S&P on half the capital, financed at a
+short rate. So C4 ≈ S&P + 0.5 × (gold − T-bill) − costs. It beats the S&P only when gold
+beats T-bills by enough.
+
+**Data:**
+- **S&P:** SteelCerberus daily S&P total return 1928-2025, spliced to SPY.
+- **Gold:** LBMA PM fix, daily from 1968, less 0.40%/yr before GLD, then GLD.
+  - It misses the pre-registered correlation threshold: 0.978 vs 0.98, because the fix is
+    at 10:00 NY and GLD closes at 16:00.
+  - The fallback, World Bank monthly averages, does far worse on that test (0.60) and gives
+    the same verdicts.
+- **Synthetic 2x fund:** S&P × 2 − financing − 0.89% fee.
+  - Financing spread 0.471% over the swap rate, fitted to actual SSO 2006-2021.
+  - Monthly tracking vs actual SSO: correlation 0.9996+, error 0.6-0.9%/yr.
+  - Since 2021 the synthetic runs +0.37%/yr richer than the real fund (out of sample).
+- **Audit data fix:** before 1986 SteelCerberus' 'Swap Rate' is the 1-month bill rounded to
+  2.52-point steps (0% in 1933-49), with no bank-funding spread.
+  - Now: financing = T-bill + 0.55% before 1986, and unrounded Ken French monthly T-bills
+    before 1954.
+  - This lowers every leveraged result by about 0.1-0.45%/yr.
+
+**Pre-registered tests, audit-corrected data.** Pre-registered data in brackets.
+
+| | rule | period | edge vs S&P %/yr | p (block 36) | Holm | verdict |
+|---|---|---|---|---|---|---|
+| P1 | C4 synthetic, out of sample | 1972-2006 | +0.44 [+0.61] | 0.42 | 0.86 | FAIL |
+| P2 | C4 synthetic | 1972-2026 | +1.35 [+1.46] | 0.24 | 0.86 | FAIL (first half -0.17) |
+| P3 | 2x S&P while above its 200-day average, else T-bills (Gayed-Bilello) | 1929-2026 | +3.90 [+4.21] | 0.003 | 0.014 | **PASS** |
+| P4 | C4 with trend filters on both sleeves | 1972-2026 | +1.75 [+1.85] | 0.22 | 0.86 | FAIL |
+| P5 | Moneyline with 5-bar delay, 2x | 1963-2026 | −2.05 [−1.87] | 0.93 | 0.93 | FAIL |
+
+**C4 is a gold bet, not an edge.**
+- **Exposure regression:** C4 = 0.99 × S&P + 0.51 × gold (R² 0.995), alpha −0.68 (t −2.6)
+  to −0.82 (t −4.2) %/yr, i.e. the fund's fee and financing. Rolling 10-year betas never
+  leave 0.98-1.02 and 0.49-0.52.
+- **By decade:**
+
+  | | 1970s | 1980s | 1990s | 2000s | 2010s | 2020-26 |
+  |---|---|---|---|---|---|---|
+  | C4 edge vs S&P (%/yr) | +13.6 | −6.7 | −4.7 | +3.8 | +0.8 | +5.0 |
+  | gold-fund CAGR | +35.5 | −2.9 | −3.5 | +13.7 | +2.9 | +15.6 |
+  | T-bills | 6.8 | 9.2 | 5.0 | 2.7 | 0.6 | 2.9 |
+
+- **Start-date sensitivity:**
+  - from 1975 (US gold ownership legal): −1.85%/yr to 2006, +0.01 to 2026
+  - excluding 1972-79: about −0.7%/yr
+- **Forward scenarios** (C4 edge when gold beats T-bills by g %/yr, historical gold path with
+  shifted drift):
+
+  | g (%/yr) | −4 | −2 | 0 | +2 | +4 | +8 |
+  |---|---|---|---|---|---|---|
+  | 1972-2026 shape | −2.4 | −1.4 | −0.4 | +0.6 | +1.6 | +3.6 |
+  | 1982-2026 shape | −2.7 | −1.7 | −0.8 | +0.2 | +1.2 | +3.2 |
+
+  Break-even: gold must beat T-bills by about 0.8-1.5%/yr. Historical g: 3.5 (1972-2026) and
+  1.2 (1982-2026). Gold's own path adds ±2.5-3%/yr of noise over 10 years.
+- **Gold is historically expensive:** the real price is at the 98.7th percentile of 1968-2026
+  and about 1.2x the 1980 daily peak. A regression of next-10-year return on real price is
+  not a usable forecast: the level is out of sample, the slope is not significant against a
+  random walk, and out-of-sample R² is negative. Only the descriptive facts are reported.
+- **Actual funds, 2006-07..2026-09:**
+
+  | | CAGR | max DD |
+  |---|---|---|
+  | C4 | 14.50% | −48% |
+  | SPY | 11.26% | −51% |
+  | SPY/GLD 50/50 | 11.03% | −26% |
+  | SSO alone | 15.51% | −81% |
+  | synthetic C4, same months | 14.53% | |
+
+- **Live evidence:**
+  - **WisdomTree GDE** (90% S&P + 90% gold futures, from 2022-03): 27%/yr vs SPY 14.7%.
+    0.9 SPY + 0.9 GLD − 0.8 T-bills reproduces it almost exactly (2024: 44.76% vs 44.75%;
+    2025: 73.85% vs 73.80%), so its outperformance is the gold boom. GLD then fell 26% from
+    the 2026-01-29 peak to July.
+  - **HFEA**, the bond analogue (55% UPRO / 45% TMF), lost about 64% in 2022.
+- **Variations on C4** (1972-2026, edge %/yr):
+  - Bonds instead of gold: long Treasuries +0.28, 10-year +0.12. Leverage itself adds nothing.
+  - 2x + cash 50/50: −0.92.
+  - More gold or less gold only scales the gold bet.
+  - Rebalancing frequency: annual +1.75, quarterly +1.35, monthly +1.01, 5-point band +1.07,
+    never +0.31.
+  - A gold 10-month trend filter (+2.29) helped before 2000 (avoiding the 1980-2001 gold
+    bear) and cost about 1%/yr since. Every length shows the same split, so it is regime
+    noise.
+  - **GDE-style 90/90:** +2.84 pre-tax, but its gold-futures gains are ordinary income each
+    year (Subpart F; GDE paid about 4-7% of NAV in 2024-25). After tax 10.30% vs S&P 10.17%.
+- **P4** (both sleeves trend-filtered) is a risk reducer: Sharpe 0.64 vs 0.48, max drawdown
+  −30% vs −55%. Its edge is not significant, and after tax it is 9.74% vs 10.17%.
+
+**P3: passes, but read it carefully.**
+- **Headline:** 14.27% vs 9.89% CAGR, 1929-2026. Vol 23.4% vs 18.4%, Sharpe 0.55 vs 0.42,
+  max drawdown −79% vs −84% (1929-32).
+- **Robustness:**
+  - ahead of the S&P in 93% of rolling 10-year windows
+  - positive from every start year 1972-2010
+  - holds under every financing model: rate-dependent fit 3.84, testfol.io-style punitive
+    3.33, DIY futures/box 4.88
+- **Pre-1928 Dow, a disjoint sample:** +3.54%/yr (p 0.009), robust to average lengths
+  50-300.
+- **Real SSO, 2006-2026:** 13.70% vs 11.26%. Across execution conventions the range is
+  12.6-15.2%.
+- **No look-ahead:** truncation tests at 21 cut dates gave identical decisions.
+- **Mechanism, 1929-2026:**
+
+  | | share of days | return | vol | Sharpe | 2x growth |
+  |---|---|---|---|---|---|
+  | above the 200-day average | 68% | 13.9%/yr | 14.5% | 0.73 | 18.3%/yr |
+  | below | 32% | 5.9%/yr | 25.2% | 0.09 | −6.5%/yr |
+
+  Leverage pays only in calm uptrends. In 2016-2026 the 'below' days returned 23.6%/yr
+  (V-shaped rebounds), which a filter misses.
+- **The caveats the audit established:**
+  1. **Era.** The 1929-1971 slice gives +5.68 (p 0.011); 1972-2026 gives +2.51 (p 0.028
+     with block 36, 0.084 with block 12). Fresh starts where it could be traded:
+
+     | start | edge %/yr | p |
+     |---|---|---|
+     | 1975-05 (negotiated commissions) | +1.78 | 0.11 |
+     | 1982-05 (S&P futures) | +2.73 | 0.03 |
+     | 1993 (SPY) | +2.29 | 0.10 |
+     | 2006 (SSO) | +2.19 | 0.13 |
+     | 2016 (after publication) | +3.07 | 0.09 |
+
+     None survives the five-test Holm correction. The Sharpe gain since 1975 is zero to
+     slightly negative: more return for more risk, not better return per unit of risk.
+  2. **Implementability.** Before 1975 there were no index funds, futures or leveraged funds,
+     and commissions were fixed at about 1% one-way by the late 1960s. Charging 2x a
+     per-side stock cost on switches before 1975-05:
+
+     | cost per side | edge %/yr | p |
+     |---|---|---|
+     | 0.10% | +3.42 | 0.008 |
+     | 0.25% | +2.68 | 0.03 |
+     | 0.50% | +1.46 | 0.17 |
+     | 1.00% | −1.02 | |
+
+  3. **Inference.** The pre-registered 36-month block suits P3, whose active returns
+     mean-revert over 1-3 years:
+     - Ibragimov-Mueller with 12 groups: p < 0.0001; all 12 eight-year groups positive.
+     - With iid or 12-month blocks: p 0.019 / 0.012, Holm about 0.06-0.10.
+     - Newey-West t 1.98 (12 lags).
+     - The weakness under short blocks is 1929-33; 1934-2026 gives p 0.0002.
+  4. **Timing.** Edge by execution lag 0-6, 1929-2026: 4.21 / 3.90 / 3.18 / 2.81 / 3.46 /
+     3.43 / 3.56. From 1972 only lag 1 has p < 0.05. 70% of the lag-1-vs-2 gap is
+     1987-10-19: on 10-15 the S&P closed 0.17% below its 200-day average, so lag 1 exited at
+     the 10-16 close and lag 2 held 2x through −41%. Next-open execution 1995-2026: +2.21 vs
+     +2.91 at close t+1 (+2.62 vs +2.19 from 2006, +1.56 vs +3.07 from 2016). A saw-tooth of
+     noise, not bias.
+  5. **SMA length.** Post-1972 the edge is negative for every length ≤ 130 days. 200 days
+     ranks 3rd of 40 lengths, and only 5 of 40 have p < 0.05.
+  6. **Tax.** 1972-2026, after-tax edge vs S&P:
+
+     | taxes | edge (points/yr) |
+     |---|---|
+     | registered federal 35/20 | +0.56 |
+     | + 3.8% NIIT (consistent for a 35%-bracket investor) | +0.29 |
+     | + NIIT + 5% state | +0.01 |
+     | + NIIT + 9.3% state | −0.23 |
+     | held for heirs (no final sale) with NIIT | −0.01 |
+
+     Over 1929-2026 the edge stays +0.9 to +2.3. Wash sales are negligible (−0.02).
+     Short-term rate at which P3 ties the S&P, 1972-2026: about 47%.
+  7. **Multiple testing.** This repo has run about 44 pre-registered primary tests. P3 passes
+     false-discovery control (q about 0.03) but not a strict project-wide Bonferroni bound.
+     Across the 68-variant grid (1972-2026) the best variant (3x + 200-day) has
+     reality-check p 0.25.
+- **Behaviour:**
+  - about 6 switches a year
+  - median stay invested 6 days; 59% of stays last 10 days or less
+  - trails the S&P by more than 10 points in 18 of 97 years: 2000 −34 vs −10, 2015 −22 vs
+    +1, 2022 −30 vs −18
+  - worst year −43% (1932)
+  - max drawdown since 1972 −44%; the 3x version −63% to −93%
+
+**Moneyline on leverage fails in every form.**
+- daily N=1: 5.1%; N=5: 9.0%
+- weekly: 11.5% (2x) vs S&P 11.1%, with a −65% drawdown
+
+The fast ATR stop whipsaws a 2x position to death; only slow filters (150-300 days) work.
+
+**Practical reading:**
+- **C4:** do not expect it to beat the S&P. It is S&P plus half a gold-vs-cash bet, at a
+  record real gold price.
+- **P3:** the only rule in this repo that beat buy & hold in a pre-registered, audited test,
+  but:
+  - the evidence is strongest where it could not be traded
+  - in tradable eras it is +2-3%/yr and not significant after correction
+  - since 1975 it does not improve risk-adjusted return
+  - in a taxable account at top rates the edge is about zero
+  - if used at all: a tax-advantaged account, a modest allocation, a slow filter (200-day,
+    perhaps a 2-3% band), and acceptance of whipsaws and multi-year underperformance

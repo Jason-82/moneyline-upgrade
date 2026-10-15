@@ -1,24 +1,33 @@
 """
 2x S&P 500 + gold (the other instance's C4: 50% SSO / 50% GLD, quarterly) and variations.
-Pre-registration: analysis_2026/SSO_GOLD_PREREG.md (written before any pre-2006 run).
+Pre-registration: analysis_2026/SSO_GOLD_PREREG.md (written before any pre-2006 run). Audited by six
+independent lenses plus confirm checks; the audit fixes are applied by default (see below).
 
-    python3 -m analysis_2026.sso_gold              # everything -> analysis_2026/results_sso_gold/
-    python3 -m analysis_2026.sso_gold --build      # assemble data/sso_gold/ from the sources below first
+    python3 -m analysis_2026.sso_gold              # everything -> analysis_2026/results_sso_gold/ (~1.5 min)
 
-Data (gitignored, data/sso_gold/; --build assembles it from the files named in SOURCES):
-  steel.csv     SteelCerberus/us-market-data: S&P 500 with dividends (= SPY total return after
-                1995), price index, 3-month T-bill rate and return index, the swap rate leveraged
-                funds pay, CPI; daily 1928-2025-12-19
-  etf_daily.csv SPY/GLD/TLT/IEF total return (Johnbrick123 sp500-data parquet, Yahoo adj_close)
-  qlib_*.csv    actual SSO/UPRO/TMF/... (qlib US, total return to 2021-09-16)
-  sso_monthly.csv  actual SSO monthly total return, Yahoo adj_close (the other instance's
-                hold_sso path, codex/theory-lab), used after 2021-09
-  gold.csv      long USD gold price (the validated series chosen under the pre-registration rule)
-  bonds.csv     long Treasury total-return indices (variants only)
-  gspc_ohlc.csv S&P 500 index daily OHLC 1950-2018 (vijinho/sp500, Yahoo ^GSPC) for Moneyline
+Data (gitignored, data/sso_gold/; build() assembles the first group, the rest were added by hand):
+  steel.csv     SteelCerberus/us-market-data: S&P 500 with dividends (= SPY total return after 1995),
+                price (= SPY raw close after 1993), T-bill rate and return index, 'Swap Rate', CPI;
+                daily 1885-2025-12-19
+  etf_daily.csv, spy_ohlc.csv  SPY/GLD/TLT/IEF total return and SPY raw OHLC (Johnbrick123 sp500-data, Yahoo)
+  qlib_*.csv    actual SSO/UPRO/... (qlib US, total return to 2021-09-16); codex_c4_monthly_log.csv: the
+                other instance's monthly paths (codex/theory-lab)
+  gspc_ohlc.csv S&P 500 index daily OHLC 1950-2018 (vijinho/sp500); real high/low from 1962
+  gold.csv      LBMA Gold Price PM, USD, daily 1968-04-01..2026-02-25 (unbalancedparentheses/forex-centuries,
+                a copy of prices.lbma.org.uk/json/gold_pm.json); gold_meta.json; gold_wb_monthly_avg.csv
+                (datasets/gold-prices commit 5571813, World Bank monthly averages: pre-registered fallback)
+  sso_tr_daily.csv  actual SSO/UPRO daily total return 2006-06-21..2026-10-13: Yahoo adj_close
+                (itbelikethat03/Testfolio_checker cache) and Tiingo (ravelab/l-etf), cross-checked
+  bonds.csv     LTB (~20y) and ITB (10y) Treasury total-return indices, daily 1962-2026: yield models on
+                H.15 constant-maturity yields, monthly totals anchored to CRSP fixed-term indices 1942-99,
+                actual TLT/IEF after the yield data end; 0.15%/yr fee deducted on the model part
+  data/ff/ff3_monthly.csv  Ken French monthly RF (unrounded T-bills before 1954)
 
-Model of a leveraged fund (daily): r_L = L * r_index - (L - 1) * (swap + s) * days/360 - fee * days/365,
-r_index = S&P total return with SPY's 0.0945% fee added back; s is fitted on actual SSO 2006-2021.
+Leveraged fund (daily): r_L = L * r_index - (L - 1) * f * days/360 - fee * days/365, r_index = S&P total return
+with SPY's 0.0945% fee added back. f = 'Swap Rate' + s, s = 0.471% fitted to match actual SSO's cumulative
+growth 2006-06-22..2021-09-16. AUDIT FIX (default; audit_fix=False reproduces the pre-registered data): before
+1986 'Swap Rate' is the 1-month bill rounded to 2.52-point steps (0% in 1933-49) with no bank-funding spread,
+so f = T-bill + 0.55% before 1986-01-02, and before 1954 T-bills come from Ken French monthly RF.
 """
 from __future__ import annotations
 
@@ -49,7 +58,10 @@ def load_etf():
     return pd.read_csv(DATA / "etf_daily.csv", index_col=0, parse_dates=True)
 
 
-def base_daily(end="2026-10-12", start="1928-01-03"):
+PRE1986_SPREAD = 0.0055   # audit fix: 1986-2006 mean of 1-month LIBOR minus the 3-month T-bill in this data
+
+
+def base_daily(end="2026-10-12", start="1928-01-03", audit_fix=True):
     """Daily frame on trading days 1928-01-03..end:
     sp      S&P total-return level (SPY-like, fee included)
     sp_px   S&P price index level (signals)
@@ -66,21 +78,28 @@ def base_daily(end="2026-10-12", start="1928-01-03"):
         spy = None
     if spy is None:
         df = pd.DataFrame({"sp": sp, "sp_px": px, "cash_lvl": cash})
-        return _finish(df, s).loc[start:end]
+        return _finish(df, s, audit_fix).loc[start:end]
     sp = pd.concat([sp, sp.iloc[-1] * spy.iloc[1:] / spy.iloc[0]])
-    # price index after the splice: SPY total return minus the S&P's trailing dividend yield
-    dy = float((np.log(s["Adjusted Close"]).diff() - np.log(s["Close"]).diff()).loc[last - pd.Timedelta(days=365):].sum())
-    ext = spy.iloc[1:] / spy.iloc[0] * np.exp(-dy * (spy.index[1:] - last).days / 365.25)
+    if audit_fix:   # steel 'Close' is SPY's raw close after 1993: continue it with SPY's raw close
+        raw = pd.read_csv(DATA / "spy_ohlc.csv", index_col=0, parse_dates=True)["close"].loc[last:end]
+        ext = raw.iloc[1:] / raw.iloc[0]
+    else:           # pre-registered run: SPY total return minus the trailing dividend yield
+        dy = float((np.log(s["Adjusted Close"]).diff() - np.log(s["Close"]).diff()).loc[last - pd.Timedelta(days=365):].sum())
+        ext = spy.iloc[1:] / spy.iloc[0] * np.exp(-dy * (spy.index[1:] - last).days / 365.25)
     px = pd.concat([px, px.iloc[-1] * ext])
     rf_last = float(s["Risk Free Rate"].iloc[-1]) / 100
     days_ext = pd.Series(spy.index[1:], index=spy.index[1:]).diff().dt.days.fillna((spy.index[1] - last).days)
     cash_ext = cash.iloc[-1] * np.exp(np.cumsum(np.log1p(rf_last * days_ext / 360)))
     cash = pd.concat([cash, cash_ext])
     df = pd.DataFrame({"sp": sp, "sp_px": px, "cash_lvl": cash})
-    return _finish(df, s).loc[start:end]
+    return _finish(df, s, audit_fix).loc[start:end]
 
 
-def _finish(df, s):
+def _finish(df, s, audit_fix=True):
+    """Rates and returns. audit_fix (default) repairs SteelCerberus' pre-1986 rates: its 'Swap Rate' is
+    the Ken French 1-month bill rounded to 2.52-point steps before 1986 (0% in 1933-49) with no
+    bank-funding spread. Fixed: before 1954 cash and rf come from Ken French MONTHLY RF (unrounded),
+    and before 1986-01-02 financing = T-bill + PRE1986_SPREAD."""
     df = df.copy()
     df["swap"] = (s["Swap Rate"].astype(float) / 100).reindex(df.index).ffill()
     df["rf"] = (s["Risk Free Rate"].astype(float) / 100).reindex(df.index).ffill()
@@ -89,13 +108,34 @@ def _finish(df, s):
     df["r_sp"] = df["sp"].pct_change().fillna(0.0)
     df["r_idx"] = df["r_sp"] + SPY_FEE * df["days"] / 365
     df["r_cash"] = df["cash_lvl"].pct_change().fillna(0.0)
+    if audit_fix:
+        ffm = pd.read_csv(ROOT / "data" / "ff" / "ff3_monthly.csv", index_col=0, parse_dates=True)["RF"].astype(float)
+        ffm.index = ffm.index.to_period("M")
+        early = (df.index >= pd.Timestamp("1926-07-01")) & (df.index < pd.Timestamp("1954-01-01"))
+        per = df.index.to_period("M")
+        n_in_month = pd.Series(1, index=df.index).groupby(per).transform("size")
+        rm = pd.Series(ffm.reindex(per).to_numpy(), index=df.index)
+        daily = (1 + rm) ** (1 / n_in_month) - 1
+        df.loc[early, "r_cash"] = daily[early].fillna(0.0)
+        df.loc[early, "rf"] = ((1 + rm[early]) ** 12 - 1).fillna(0.0)
+        df["cash_lvl"] = df["cash_lvl"].iloc[0] * (1 + df["r_cash"]).cumprod()
+        pre86 = df.index < pd.Timestamp("1986-01-02")
+        df.loc[pre86, "swap"] = df.loc[pre86, "rf"] + PRE1986_SPREAD
     df["r_div"] = (df["r_sp"] - df["sp_px"].pct_change().fillna(0.0)).clip(lower=0)   # dividend part (taxed yearly)
     return df
 
 
-def lev_returns(b, L, spread, fee):
+FINANCING = {  # alternatives to swap + s (sensitivity only): rate on the borrowed (L-1)
+    "ratedep": lambda b: 0.0068 + 1.106 * b["rf"],      # fitted to real SSO 2006-2026 (vs 1-month bill)
+    "punitive": lambda b: 0.0029 + 1.452 * b["rf"],     # implied by testfol.io's SSOSIM before 2006
+    "diy": lambda b: 0.003 + b["rf"],                    # futures / box spreads: T-bill + 0.3%
+}
+
+
+def lev_returns(b, L, spread, fee, financing=None):
     """Synthetic L-times daily fund on the S&P index (see module docstring)."""
-    return L * b["r_idx"] - (L - 1) * (b["swap"] + spread) * b["days"] / 360 - fee * b["days"] / 365
+    f = b["swap"] + spread if financing is None else FINANCING[financing](b)
+    return L * b["r_idx"] - (L - 1) * f * b["days"] / 360 - fee * b["days"] / 365
 
 
 def load_gold(b, src=None, kind=None):
@@ -123,7 +163,11 @@ def load_gold(b, src=None, kind=None):
         r.loc[per.loc[common].values] = mr.loc[common].values - GLD_FEE / 12
         r.loc[: per.loc[common].values[0]] = np.nan
     gr = gld.reindex(b.index.union(gld.index)).ffill().reindex(b.index).pct_change(fill_method=None)
-    r = r.where(b.index < start_gld, gr)
+    if meta["kind"] == "daily":
+        r = r.where(b.index < start_gld, gr.fillna(r))           # GLD's first day: keep the series' own move
+    else:                                                       # monthly series: switch after its Nov-2004 month-end
+        cut = b.index[(b.index >= start_gld)].to_series().groupby(b.index[(b.index >= start_gld)].to_period("M")).max().iloc[0]
+        r = r.where(b.index <= cut, gr)
     return r, meta["kind"]
 
 
@@ -154,12 +198,24 @@ class _PolicyMap:
 
 @dataclass
 class Tax:
-    st: float = 0.35        # short-term gains and interest
-    lt: float = 0.20        # long-term gains and qualified dividends
+    st: float = 0.35        # short-term gains (and other ordinary income)
+    lt: float = 0.20        # long-term gains
     col: float = 0.28       # long-term gains on the gold fund (collectibles)
+    interest: float | None = None   # T-bill interest (default st)
+    dividend: float | None = None   # qualified dividends (default lt)
+    liquidate: bool = True          # sell everything at the end (False: held for heirs, basis steps up)
+
+    @staticmethod
+    def scenario(niit=False, state=0.0, liquidate=True):
+        """Federal 35/20/28 as pre-registered; niit adds 3.8%; state is added to gains and dividends,
+        not to T-bill interest (exempt from state tax)."""
+        a = 0.038 if niit else 0.0
+        return Tax(st=0.35 + a + state, lt=0.20 + a + state, col=0.28 + a + state,
+                   interest=0.35 + a, dividend=0.20 + a + state, liquidate=liquidate)
 
 
-def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy=None):
+def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy=None,
+             ordinary=None, extra_cost=None):
     """Portfolio on the rows of R (daily or monthly simple returns per asset).
     W: target weights on trade dates (index subset of R.index, same columns); the portfolio
     trades to them at the close of each W date after that day's return; between dates it drifts.
@@ -169,6 +225,9 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
     reinvested after tax. With tax, lots are FIFO; tax is settled each December and the
     portfolio is liquidated at the end. policy(i, h) may replace W: called every row with the
     current holdings (dollars), it returns target weights or None (no trade).
+    ordinary: per-asset daily return component taxed each year as ordinary income when that
+    year's total is positive (a fund's Subpart F income, e.g. GDE's gold-futures sleeve); losing
+    years give no deduction. extra_cost: per-asset Series of additional per-side cost by date.
     Returns dict(value=Series, after_tax=float, turnover=float)."""
     cols = list(R.columns)
     A = R.fillna(0.0).to_numpy(float)
@@ -181,6 +240,10 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
     else:
         wmap = _PolicyMap(policy)
     inc = income.reindex(R.index).fillna(0.0)[cols].to_numpy(float) if income is not None else np.zeros_like(A)
+    oinc = ordinary.reindex(R.index).fillna(0.0)[cols].to_numpy(float) if ordinary is not None else np.zeros_like(A)
+    xc = np.zeros_like(A)
+    for c_, ser in (extra_cost or {}).items():
+        xc[:, cols.index(c_)] = ser.reindex(R.index).fillna(0.0).to_numpy(float)
     kinds = kinds or {x: "eq" for x in cols}
     kind = [kinds[x] for x in cols]
     h = np.zeros(k); V = np.empty(n); turnover = 0.0
@@ -197,7 +260,7 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
                 v = h.sum() if i else 1.0
                 tgt = w * v
                 tr = np.abs(tgt - h).sum() if i else 0.0
-                fee = (np.abs(tgt - h) * c).sum() if i else (tgt * c).sum()
+                fee = (np.abs(tgt - h) * (c + xc[i])).sum() if i else (tgt * (c + xc[i])).sum()
                 turnover += tr / max(v, 1e-12)
                 h = w * (v - fee)
             V[i] = h.sum()
@@ -207,9 +270,12 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
     P = np.ones(k)                     # per-asset unit price (cumulative growth)
     lots = [[] for _ in range(k)]
     st_g = lt_g = col_g = 0.0          # realized this year
-    ordinary = qualified = 0.0
+    interest = qualified = other_ord = 0.0
+    oacc = np.zeros(k)                 # this year's ordinary-income stream per asset (dollars)
     carry_st = carry_lt = 0.0
     paid = 0.0
+    r_int = tax.st if tax.interest is None else tax.interest
+    r_div = tax.lt if tax.dividend is None else tax.dividend
 
     def sell(j, dollars, i):
         nonlocal st_g, lt_g, col_g
@@ -239,19 +305,21 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
             lots[j].append([dollars / P[j], dollars, i])
 
     def settle(final=False):
-        nonlocal st_g, lt_g, col_g, ordinary, qualified, carry_st, carry_lt
+        nonlocal st_g, lt_g, col_g, interest, qualified, other_ord, carry_st, carry_lt
+        for j in range(k):                       # fund ordinary income: taxed if positive, reinvested
+            if oacc[j] > 0:
+                other_ord += oacc[j]
+                if lots[j]:
+                    lots[j][-1][1] += oacc[j]
+        oacc[:] = 0.0
         s_ = st_g + carry_st
-        l20, l28 = lt_g, col_g
-        lt_tot = l20 + l28 + carry_lt
-        if lt_tot < 0:
-            l20, l28 = lt_tot, 0.0
-        else:                                   # LT losses reduce 28% gains first
-            neg = min(l20, 0) + min(carry_lt, 0)
-            l28 = max(l28, 0) + neg
-            if l28 < 0:
-                l20, l28 = max(l20, 0) + l28, 0.0
-            else:
-                l20 = max(l20, 0)
+        l20, l28 = lt_g, col_g + carry_lt       # LT carryover and 20%-group losses offset 28% gains first
+        if l28 < 0:
+            l20, l28 = l20 + l28, 0.0
+        if l20 < 0:
+            l28, l20 = l28 + l20, 0.0
+        if l28 < 0:                             # net long-term loss
+            l20, l28 = l28, 0.0
         if s_ < 0 < l20 + l28:                  # cross-netting
             use = min(-s_, l28); l28 -= use; s_ += use
             use = min(-s_, l20); l20 -= use; s_ += use
@@ -259,8 +327,8 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
             use = min(s_, -(l20 + l28)); s_ -= use; l20 += use
         carry_st = min(s_, 0.0); carry_lt = min(l20 + l28, 0.0)
         t_ = (tax.st * max(s_, 0) + tax.lt * max(l20, 0) + tax.col * max(l28, 0)
-              + tax.st * ordinary + tax.lt * qualified)
-        st_g = lt_g = col_g = ordinary = qualified = 0.0
+              + r_int * interest + r_div * qualified + tax.st * other_ord)
+        st_g = lt_g = col_g = interest = qualified = other_ord = 0.0
         return t_
 
     for i in range(n):
@@ -269,9 +337,10 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
             P *= g
             gained = h * A[i]
             h *= g
+            oacc += h / g * oinc[i]
             for j in range(k):                       # income: taxable now, reinvested (adds basis)
                 if kind[j] == "cash":
-                    ordinary += gained[j]
+                    interest += gained[j]
                     for L in lots[j]:
                         L[1] *= g[j]                 # interest is basis, not a capital gain
                 elif inc[i, j] and h[j] > 0:
@@ -286,7 +355,7 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
             v = h.sum() if i else 1.0
             tgt = w * v
             d = tgt - h
-            fee = (np.abs(d) * c).sum() if i else (tgt * c).sum()
+            fee = (np.abs(d) * (c + xc[i])).sum() if i else (tgt * (c + xc[i])).sum()
             turnover += (np.abs(d).sum() if i else 0.0) / max(v, 1e-12)
             new = w * (v - fee)
             for j in range(k):
@@ -308,9 +377,10 @@ def simulate(R, W, cost, kinds=None, income=None, tax: Tax | None = None, policy
                         L[0] *= f; L[1] *= f
                 paid += t_
         V[i] = h.sum()
-    for j in range(k):                                 # final liquidation
-        if h[j] > 0:
-            sell(j, h[j], n - 1)
+    if tax.liquidate:                                  # final liquidation
+        for j in range(k):
+            if h[j] > 0:
+                sell(j, h[j], n - 1)
     t_ = settle(final=True)
     return {"value": pd.Series(V, R.index), "after_tax": V[-1] - max(t_, 0.0), "turnover": turnover}
 
@@ -335,7 +405,7 @@ def static_weights(index, w: dict, freq="Q"):
 def signal_weights(index, on: pd.Series, w_on: dict, w_off: dict, lag=1, rebalance=None):
     """Weights from a daily boolean signal read at close t, executed at close t+lag.
     Optional periodic rebalance dates (to restore w_on/w_off mixes)."""
-    sig = on.reindex(index).fillna(False).astype(bool).shift(lag).fillna(False).astype(bool)
+    sig = on.fillna(False).astype(bool).shift(lag).reindex(index).fillna(False).astype(bool)
     chg = sig.ne(sig.shift(1))
     chg.iloc[0] = True
     d = index[chg.to_numpy()]
@@ -435,20 +505,60 @@ def active_log(v_s, v_b):
     return a.dropna()
 
 
-def stationary_boot_p(x, block=36, n=5000, seed=0):
-    """Null-centred stationary block bootstrap of the mean: one-sided p = P(mean* - mean >= mean)."""
-    x = np.asarray(x, float); T = len(x); m = x.mean()
-    rng = np.random.default_rng(seed)
-    p_new = 1.0 / block
+def boot_indices(T, block, n, rng):
+    """n stationary-bootstrap index paths of length T (mean block `block`)."""
     idx = np.empty((n, T), dtype=np.int64)
     idx[:, 0] = rng.integers(0, T, n)
-    new = rng.random((n, T)) < p_new
+    new = rng.random((n, T)) < 1.0 / block
     starts = rng.integers(0, T, (n, T))
     for t in range(1, T):
         idx[:, t] = np.where(new[:, t], starts[:, t], (idx[:, t - 1] + 1) % T)
-    means = x[idx].mean(axis=1)
-    d = means - m
-    return float((d >= m).mean()), float(np.quantile(means, 0.025)), float(np.quantile(means, 0.975)), idx
+    return idx
+
+
+def stationary_boot_p(x, block=36, n=5000, seed=0, chunk=2500):
+    """Null-centred stationary block bootstrap of the mean: one-sided p = P(mean* - mean >= mean)."""
+    x = np.asarray(x, float); T = len(x); m = x.mean()
+    rng = np.random.default_rng(seed)
+    means = []
+    for k0 in range(0, n, chunk):
+        means.append(x[boot_indices(T, block, min(chunk, n - k0), rng)].mean(axis=1))
+    means = np.concatenate(means)
+    return float((means - m >= m).mean()), float(np.quantile(means, 0.025)), float(np.quantile(means, 0.975)), None
+
+
+def sharpe_diff_boot_p(rs, rb, rc, block=36, n=5000, seed=0, chunk=2500):
+    """Paired stationary bootstrap of the monthly Sharpe-ratio difference (strategy - benchmark), null-centred."""
+    rs, rb, rc = (np.asarray(v, float) for v in (rs, rb, rc))
+    es, eb = rs - rc, rb - rc
+    obs = es.mean() / es.std() - eb.mean() / eb.std()
+    rng = np.random.default_rng(seed); T = len(es); d = []
+    for k0 in range(0, n, chunk):
+        idx = boot_indices(T, block, min(chunk, n - k0), rng)
+        a, b_ = es[idx], eb[idx]
+        d.append(a.mean(1) / a.std(1) - b_.mean(1) / b_.std(1))
+    d = np.concatenate(d)
+    return float(obs * np.sqrt(12)), float((d - obs >= obs).mean())
+
+
+def nw_t(x, lags):
+    x = np.asarray(x, float); e = x - x.mean(); T = len(x)
+    s = e @ e / T
+    for L in range(1, lags + 1):
+        s += 2 * (1 - L / (lags + 1)) * (e[L:] @ e[:-L]) / T
+    return float(x.mean() / np.sqrt(s / T))
+
+
+def ibragimov_mueller_p(x, groups=12):
+    """Split into contiguous groups, t-test the group means (one-sided, t with groups-1 df)."""
+    from math import erf, sqrt
+    g = np.array([c.mean() for c in np.array_split(np.asarray(x, float), groups)])
+    t = g.mean() / (g.std(ddof=1) / np.sqrt(groups))
+    try:
+        from scipy.stats import t as tdist
+        return float(tdist.sf(t, groups - 1))
+    except Exception:
+        return float(0.5 * (1 - erf(t / sqrt(2))))
 
 
 def holm(ps: dict):
@@ -576,18 +686,20 @@ CRISES = [("1973-74 bear", "1973-01", "1974-12"), ("1980-82 gold crash + Volcker
           ("2008 GFC", "2007-10", "2009-03"), ("2020 Covid", "2020-02", "2020-03"), ("2022 inflation", "2022-01", "2022-12")]
 
 
-def assets(b, s, spread_add=0.0):
+def assets(b, s, spread_add=0.0, financing=None):
     """Daily simple returns of every building block on b's index."""
     gold, gkind = load_gold(b)
     A = pd.DataFrame({"SP": b["r_sp"], "CASH": b["r_cash"]})
     A["CE"] = A["CASH"]; A["CG"] = A["CASH"]
-    A["L15"] = lev_returns(b, 1.5, s + spread_add, SSO_FEE)
-    A["L2"] = lev_returns(b, 2, s + spread_add, SSO_FEE)
-    A["L3"] = lev_returns(b, 3, s + spread_add, UPRO_FEE)
+    fee2, fee3 = (SPY_FEE, SPY_FEE) if financing == "diy" else (SSO_FEE, UPRO_FEE)
+    A["L15"] = lev_returns(b, 1.5, s + spread_add, fee2, financing)
+    A["L2"] = lev_returns(b, 2, s + spread_add, fee2, financing)
+    A["L3"] = lev_returns(b, 3, s + spread_add, fee3, financing)
     A["GOLD"] = gold
     spot = gold + GLD_FEE * b["days"] / 365
-    A["GDE"] = (0.9 * b["r_idx"] + 0.9 * (spot - (b["rf"] + 0.002 + spread_add) * b["days"] / 360)
-                + 0.1 * b["r_cash"] - GDE_FEE * b["days"] / 365)
+    fut = 0.9 * (spot - (b["rf"] + 0.002 + spread_add) * b["days"] / 360)
+    A["GDE"] = 0.9 * b["r_idx"] + fut + 0.1 * b["r_cash"] - GDE_FEE * b["days"] / 365
+    A["_GDE_ORD"] = fut + 0.1 * b["r_cash"] - GDE_FEE * b["days"] / 365   # Subpart F + interest, net of fee
     bonds = load_bonds(b)
     if bonds is not None:
         for c in bonds.columns:
@@ -601,14 +713,20 @@ def window(A, start, end):
     return A.iloc[max(i0, 0):].loc[:end]
 
 
-def run(A, W=None, cost_mult=1.0, tax=None, b=None, policy=None, cols=None):
+def run(A, W=None, cost_mult=1.0, tax=None, b=None, policy=None, cols=None, extra_cost=None):
     cols = cols or (list(W.columns) if W is not None else None)
     R = A[cols]
     cost = {c: COST[CKIND[c]] * cost_mult for c in cols}
-    inc = None
-    if tax is not None and b is not None and "SP" in cols:
-        inc = pd.DataFrame(0.0, index=R.index, columns=cols); inc["SP"] = b["r_div"].reindex(R.index)
-    return simulate(R, W, cost, kinds={c: KIND[c] for c in cols}, income=inc, tax=tax, policy=policy)
+    inc = ordn = None
+    if tax is not None and b is not None and ("SP" in cols or "GDE" in cols):
+        inc = pd.DataFrame(0.0, index=R.index, columns=cols)
+        if "SP" in cols:
+            inc["SP"] = b["r_div"].reindex(R.index)
+        if "GDE" in cols:                       # GDE: dividends of its 0.9 equity sleeve, plus Subpart F income
+            inc["GDE"] = 0.9 * b["r_div"].reindex(R.index)
+            ordn = pd.DataFrame(0.0, index=R.index, columns=cols); ordn["GDE"] = A["_GDE_ORD"].reindex(R.index)
+    return simulate(R, W, cost, kinds={c: KIND[c] for c in cols}, income=inc, tax=tax, policy=policy,
+                    ordinary=ordn, extra_cost=extra_cost)
 
 
 def bh(A, col="SP", tax=None, b=None):
@@ -639,8 +757,8 @@ def band_policy(cols, w, band, check_dates):
 def sleeves_policy(index, sig_e, sig_g, cols, lev="L2", lag=1, freq="Q", w_e=0.5):
     """P4: equity sleeve (lev fund or cash CE) and gold sleeve (GOLD or cash CG), each following
     its own signal (read at close t, traded at close t+lag), sleeves reset to w_e/1-w_e each quarter."""
-    se = sig_e.reindex(index).fillna(False).astype(bool).shift(lag).fillna(False).to_numpy()
-    sg = sig_g.reindex(index).fillna(False).astype(bool).shift(lag).fillna(False).to_numpy()
+    se = sig_e.fillna(False).astype(bool).shift(lag).reindex(index).fillna(False).to_numpy().astype(bool)
+    sg = sig_g.fillna(False).astype(bool).shift(lag).reindex(index).fillna(False).to_numpy().astype(bool)
     reb = set(index.get_indexer(trade_dates(index, freq)))
     ci = {c: k for k, c in enumerate(cols)}
 
@@ -669,11 +787,13 @@ def gold_level(A):
 
 
 class Study:
-    def __init__(self):
-        self.b = base_daily(end="2026-09-30")
+    def __init__(self, audit_fix=True):
+        self.audit_fix = audit_fix
+        self.b = base_daily(end="2026-09-30", audit_fix=audit_fix)
         self.s, self.spread_info = fit_spread(self.b)
         self.A, self.gkind = assets(self.b, self.s)
         self.A_spread = assets(self.b, self.s, 0.005)[0]
+        self.A_fin = {k: assets(self.b, self.s, financing=k)[0] for k in FINANCING}
         self.sig = {}
         px = self.b["sp_px"]
         self.sig["eq_200d"] = sma_signal(px, 200)
@@ -807,26 +927,13 @@ PRIMARY = {"P1": ("C4", "1972-01-01", "2006-06-30"), "P2": ("C4", "1972-01-01", 
            "P5": ("P5", "1963-01-01", "2026-09-30")}
 
 
-def main():
-    OUT.mkdir(exist_ok=True)
-    st = Study()
+def primary_tests(st, say, n=20000, seed=7):
     cash = st.b["cash_lvl"]
-    res = {"spread_fit": st.spread_info, "gold_kind": st.gkind, "gold_meta": json.loads((DATA / "gold_meta.json").read_text())}
-    lines = []
-
-    def say(x=""):
-        print(x); lines.append(str(x))
-
-    say(f"Synthetic 2x: financing = swap rate + {st.s*100:.3f}%/yr, fee 0.89%: {fmt(st.spread_info)}")
-    say(f"Gold series: {res['gold_meta']}")
-
-    # ---------------- primary tests
-    say("\nPRIMARY TESTS (vs S&P 500 total-return buy & hold; monthly active log return)")
     prim, ps = {}, {}
     for key, (name, a, z) in PRIMARY.items():
         S = st.strategy(name, a, z); B = st.strategy("SP", a, z)
         act = active_log(S["value"], B["value"])
-        p, lo, hi, _ = stationary_boot_p(act.to_numpy(), 36, 5000, seed=7)
+        p, lo, hi, _ = stationary_boot_p(act.to_numpy(), 36, n, seed=seed)
         half = len(act) // 2
         h1, h2 = act.iloc[:half].mean() * 12 * 100, act.iloc[half:].mean() * 12 * 100
         stress = {}
@@ -844,10 +951,13 @@ def main():
                      "stress_active_%/yr": stress, "metrics": ms, "benchmark": mb, "turnover_per_yr": S["turnover"] / yrs}
         if name in ("P3", "P5"):
             post = act.loc["2016-01":]
+            pp = stationary_boot_p(post.to_numpy(), 36, 5000, seed=seed)[0]
             prim[key]["post_2016_active_%/yr"] = float(post.mean() * 1200)
+            prim[key]["post_2016_p"] = pp
         ps[key] = p
         say(f"[{key}] {name} {a}..{z}: active {act.mean()*1200:+.2f}%/yr  CI [{lo*1200:+.2f},{hi*1200:+.2f}]  p {p:.4f}  "
-            f"halves {h1:+.2f}/{h2:+.2f}  stress {fmt(stress)}")
+            f"halves {h1:+.2f}/{h2:+.2f}  stress {fmt(stress)}"
+            + (f"  post-2016 {prim[key]['post_2016_active_%/yr']:+.2f} (p {prim[key]['post_2016_p']:.3f})" if name in ("P3", "P5") else ""))
         say(f"     strategy {fmt(ms)}\n     S&P      {fmt(mb)}")
     adj = holm(ps)
     for k in prim:
@@ -855,12 +965,196 @@ def main():
         pr["p_holm"] = adj[k]
         pr["PASS"] = bool(adj[k] < 0.05 and pr["half1_%/yr"] > 0 and pr["half2_%/yr"] > 0
                           and all(v > 0 for v in pr["stress_active_%/yr"].values()))
-    res["primary"] = prim
     vt = pd.DataFrame([{"test": k, "strategy": v["strategy"], "period": v["period"], "active_%/yr": v["active_%/yr"],
                         "p": v["p_one_sided"], "p_holm": v["p_holm"], "half1": v["half1_%/yr"], "half2": v["half2_%/yr"],
                         "min_stress": min(v["stress_active_%/yr"].values()), "PASS": v["PASS"]} for k, v in prim.items()])
     say("\nVERDICTS (Holm across five):\n" + vt.to_string(index=False, float_format=lambda x: f"{x:,.4f}"))
+    return prim, vt
+
+
+def inference_table(st):
+    """Audit request: each primary test under other dependence assumptions and statistics."""
+    rows = []
+    for key, (name, a, z) in PRIMARY.items():
+        S = st.strategy(name, a, z)["value"]; B = st.strategy("SP", a, z)["value"]
+        act = active_log(S, B).to_numpy()
+        ms, mb = monthly(S).pct_change().dropna(), monthly(B).pct_change().dropna()
+        rc = monthly(st.b["cash_lvl"]).pct_change().reindex(ms.index).fillna(0)
+        row = {"test": key, "active_%/yr": act.mean() * 1200}
+        for blk in (1, 12, 36, 60):
+            row[f"p_block{blk}"] = stationary_boot_p(act, blk, 5000, seed=11)[0]
+        row["NW_t_12"], row["NW_t_36"] = nw_t(act, 12), nw_t(act, 36)
+        row["Sharpe_gain"], row["p_Sharpe_block36"] = sharpe_diff_boot_p(ms, mb.reindex(ms.index), rc, 36, 5000, seed=11)
+        row["p_IM_12groups"] = ibragimov_mueller_p(act, 12)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _p3_window(st, a, z="2026-09-30", lag=1):
+    S = st.strategy("P3", a, z, lag=lag)["value"]; B = st.strategy("SP", a, z)["value"]
+    return S, B, active_log(S, B)
+
+
+def p3_eras(st):
+    """P3 by era: slices of the 1929 run and fresh starts (dates when instruments appeared)."""
+    cash = st.b["cash_lvl"]; rows = []
+    S, B, act = _p3_window(st, "1929-01-01")
+    for lab, a, z in [("slice 1929-1971", "1929", "1971"), ("slice 1934-2026", "1934", "2026-09"),
+                      ("slice 1972-2026", "1972", "2026-09")]:
+        x = act.loc[a:z]
+        rows.append({"window": lab, "active_%/yr": x.mean() * 1200, "p_block36": stationary_boot_p(x.to_numpy(), 36, 5000, seed=3)[0],
+                     "p_block12": stationary_boot_p(x.to_numpy(), 12, 5000, seed=3)[0]})
+    for lab, a in [("from 1972-01", "1972-01-01"), ("from 1975-05 (negotiated commissions)", "1975-05-01"),
+                   ("from 1982-05 (S&P futures)", "1982-05-01"), ("from 1993-02 (SPY)", "1993-02-01"),
+                   ("from 2006-07 (SSO)", "2006-07-01"), ("from 2016-01 (after publication)", "2016-01-01")]:
+        S, B, x = _p3_window(st, a)
+        ms, mb = monthly(S).pct_change().dropna(), monthly(B).pct_change().dropna()
+        rc = monthly(cash).pct_change().reindex(ms.index).fillna(0)
+        dsh, psh = sharpe_diff_boot_p(ms, mb.reindex(ms.index), rc, 36, 5000, seed=3)
+        rows.append({"window": lab, "active_%/yr": x.mean() * 1200, "p_block36": stationary_boot_p(x.to_numpy(), 36, 5000, seed=3)[0],
+                     "p_block12": stationary_boot_p(x.to_numpy(), 12, 5000, seed=3)[0], "Sharpe_gain": dsh, "p_Sharpe": psh})
+    return pd.DataFrame(rows)
+
+
+def p3_implementability(st):
+    """Audit request: before May 1975 (fixed commissions; no index funds, futures or leveraged funds) 2x
+    meant trading twice the portfolio in stock. Extra cost per switch = 2 x per-side stock cost."""
+    A = window(st.A, "1929-01-01", "2026-09-30"); vb = bh(A)["value"]
+    W = switch_weights(A.index, st.sig["eq_200d"]); rows = []
+    for c in (0.0, 0.001, 0.0025, 0.005, 0.01):
+        xc = pd.Series(np.where(A.index < pd.Timestamp("1975-05-01"), 2 * c, 0.0), index=A.index)
+        act = active_log(run(A, W, extra_cost={"L2": xc})["value"], vb)
+        rows.append({"pre1975_stock_cost_per_side_%": c * 100, "active_%/yr": act.mean() * 1200,
+                     "p_block36": stationary_boot_p(act.to_numpy(), 36, 5000, seed=5)[0],
+                     "active_1929_1971_%/yr": act.loc[:"1971"].mean() * 1200})
+    return pd.DataFrame(rows)
+
+
+def lag_profile(st):
+    """P3 by execution lag (0 = trade at the signal close). Audit: the lag-1 vs lag-2 gap is mostly 1987-10-19."""
+    rows = []
+    for lag in range(0, 7):
+        row = {"lag_days": lag}
+        for a in ("1929-01-01", "1972-01-01"):
+            _, _, act = _p3_window(st, a, lag=lag)
+            row[f"active_from_{a[:4]}"] = act.mean() * 1200
+            row[f"p_from_{a[:4]}"] = stationary_boot_p(act.to_numpy(), 36, 5000, seed=5)[0]
+        rows.append(row)
+    px = st.b["sp_px"]; sma = px.rolling(200).mean()
+    note = {d: float(px.loc[d] / sma.loc[d] - 1) * 100 for d in ("1987-10-14", "1987-10-15", "1987-10-16")}
+    return pd.DataFrame(rows), note
+
+
+def p3_open_execution(st, a="1995-01-03", z="2026-09-30"):
+    """P3 executed at the next day's OPEN (SPY open; overnight move at 2x, intraday at 2x after entry),
+    vs the close-t+1 convention. ^GSPC opens before 2008 are not real, so only from 1995 (SPY)."""
+    o = pd.read_csv(DATA / "spy_ohlc.csv", index_col=0, parse_dates=True)
+    b = st.b.loc[a:z]
+    c_, o_ = o["close"].reindex(b.index), o["open"].reindex(b.index)
+    r_raw = c_.pct_change()
+    div = ((1 + b["r_sp"]) / (1 + r_raw) - 1).fillna(0)
+    r_on = (o_ / c_.shift(1)) * (1 + div) - 1
+    g_full = 1 + st.A["L2"].reindex(b.index)
+    g_open = 1 + 2 * r_on
+    g_rest = g_full / g_open
+    want = st.sig["eq_200d"].astype(bool).shift(1).reindex(b.index).fillna(False)
+    prev = want.shift(1).fillna(False).astype(bool)
+    cash = 1 + b["r_cash"]
+    g = np.where(prev & want, g_full, np.where(prev & ~want, g_open, np.where(~prev & want, cash * g_rest, cash)))
+    g = pd.Series(g, index=b.index).fillna(1.0)
+    g = g * np.where(prev != want, 1 - COST["lev"], 1.0)
+    g.iloc[0] = 1.0
+    v_open = g.cumprod()
+    vb = st.strategy("SP", a, z)["value"]
+    out = {"open_t+1": float(active_log(v_open, vb).mean() * 1200)}
+    for lag in (0, 1, 2):
+        out[f"close_t+{lag}"] = float(active_log(st.strategy("P3", a, z, lag=lag)["value"], vb).mean() * 1200)
+    for a2 in ("2006-07-01", "2016-01-01"):
+        sl = v_open.loc[a2:]; vb2 = vb.loc[a2:]
+        out[f"open_t+1_from_{a2[:4]}"] = float(active_log(sl, vb2).mean() * 1200)
+        out[f"close_t+1_from_{a2[:4]}"] = float(active_log(st.strategy("P3", a2, z)["value"], st.strategy("SP", a2, z)["value"]).mean() * 1200)
+    return out
+
+
+def tax_scenarios(st):
+    """Audit request: after-tax CAGR under the registered federal rates, + NIIT, + state tax, and held for heirs."""
+    from dataclasses import replace
+    rows = []
+    for a in ("1972-01-01", "1929-01-01"):
+        for lab, tx in [("federal 35/20/28 (registered)", Tax()), ("+NIIT 3.8%", Tax.scenario(True)),
+                        ("+NIIT +5% state", Tax.scenario(True, 0.05)), ("+NIIT +9.3% state", Tax.scenario(True, 0.093)),
+                        ("+NIIT +13.3% state", Tax.scenario(True, 0.133))]:
+            for liq in (True, False):
+                t = replace(tx, liquidate=liq)
+                row = {"from": a[:4], "tax": lab, "sold_at_end": liq}
+                for k in ("SP", "P3", "C4"):
+                    if k == "C4" and a < "1972":
+                        continue
+                    r = st.strategy(k, a, "2026-09-30", tax=t)
+                    v = r["value"]; yrs = (v.index[-1] - v.index[0]).days / 365.25
+                    row[k] = ((r["after_tax"] / v.iloc[0]) ** (1 / yrs) - 1) * 100
+                row["P3_minus_SP"] = row["P3"] - row["SP"]
+                if "C4" in row:
+                    row["C4_minus_SP"] = row["C4"] - row["SP"]
+                rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def gold_scenarios(st):
+    """Forward-looking: C4's edge vs S&P if gold's (fund, log) return beat T-bills by g %/yr; the gold path keeps its
+    historical shape and only its drift is shifted."""
+    rows = []
+    for a in ("1972-01-01", "1982-01-01"):
+        z = "2026-09-30"; win = window(st.A, a, z); n_ = len(win) - 1
+        hist = float(np.log1p(win["GOLD"].iloc[1:].fillna(0)).sum() - np.log1p(win["CASH"].iloc[1:]).sum())
+        yrs = (win.index[-1] - win.index[0]).days / 365.25
+        B = st.strategy("SP", a, z)["value"]
+        row = {"window": f"{a[:4]}-2026", "historical_g_%/yr": hist / yrs * 100}
+        for g in (-4, -2, 0, 2, 4, 8):
+            d = (g / 100 * yrs - hist) / n_
+            A2 = st.A.copy(); A2["GOLD"] = (1 + st.A["GOLD"]) * np.exp(d) - 1
+            row[f"g={g:+d}"] = float(active_log(st.strategy("C4", a, z, A=A2)["value"], B).mean() * 1200)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def main():
+    OUT.mkdir(exist_ok=True)
+    st = Study()
+    cash = st.b["cash_lvl"]
+    res = {"spread_fit": st.spread_info, "gold_kind": st.gkind, "gold_meta": json.loads((DATA / "gold_meta.json").read_text())}
+    lines = []
+
+    def say(x=""):
+        print(x); lines.append(str(x))
+
+    say(f"Synthetic 2x: financing = swap rate + {st.s*100:.3f}%/yr, fee 0.89%: {fmt(st.spread_info)}")
+    say(f"Gold series: {res['gold_meta']}")
+
+    # ---------------- primary tests: original data exactly as pre-registered, then audit-corrected data
+    st0 = Study(audit_fix=False)
+    say("\nPRIMARY TESTS ON THE PRE-REGISTERED DATA (SteelCerberus rates as published; bootstrap 5,000 draws, seed 7)")
+    prim0, vt0 = primary_tests(st0, say, n=5000)
+    vt0.to_csv(OUT / "verdicts_preregistered_data.csv", index=False)
+    say("\nPRIMARY TESTS, AUDIT-CORRECTED DATA (pre-1986 financing = T-bill + 0.55%, unrounded pre-1954 T-bills, "
+        "GLD splice day, signal lag on full history; bootstrap 20,000 draws)")
+    prim, vt = primary_tests(st, say, n=20000)
     vt.to_csv(OUT / "verdicts.csv", index=False)
+    res["primary_preregistered_data"] = prim0
+    res["primary"] = prim
+
+    # ---------------- financing-model sensitivity (not pre-registered; descriptive)
+    say("\nFINANCING SENSITIVITY (active %/yr vs S&P): pre-registered data | audit-corrected (primary) | rate-dependent fit to real SSO | "
+        "testfol.io-style punitive | DIY futures/box (T-bill+0.3%, no fund fee)")
+    fin = {}
+    for key, (name, a, z) in PRIMARY.items():
+        B = st.strategy("SP", a, z)
+        row = {"preregistered_data": prim0[key]["active_%/yr"], "primary": prim[key]["active_%/yr"]}
+        for k, A_ in st.A_fin.items():
+            row[k] = float(active_log(st.strategy(name, a, z, A=A_)["value"], B["value"]).mean() * 1200)
+        fin[key] = row
+        say(f"  {key} {name}: {fmt(row)}")
+    res["financing_sensitivity"] = fin
 
     # ---------------- pre-registered sensitivities: 1975 start; World Bank monthly-average gold
     say("\nSENSITIVITY: C4 from 1975-01 (US private gold ownership legal) and with World Bank monthly-average gold")
@@ -896,7 +1190,7 @@ def main():
         say(f"  {key} {name}: {fmt(d)}")
 
     # ---------------- actual-fund track (monthly): C4 and SPY/GLD with real SSO/GLD
-    say("\nACTUAL FUNDS 2006-07..2026-09 (SSO: qlib total return to 2021-09, then Yahoo path; GLD, SPY)")
+    say("\nACTUAL FUNDS 2006-07..2026-09 (SSO, GLD, SPY: daily total return, Yahoo adj_close)")
     act_tab = actual_track(st)
     res["actual_track"] = act_tab
     for k, v in act_tab.items():
@@ -944,7 +1238,8 @@ def main():
     era = {}
     for a, z in [("1972", "1979"), ("1980", "1989"), ("1990", "1999"), ("2000", "2009"), ("2010", "2019"), ("2020", "2026-09")]:
         row = {}
-        g_ = monthly(gl).loc[a:z]; c_ = monthly(cash).loc[a:z]
+        p0 = pd.Period(f"{a[:4]}-01", "M") - 1                  # base = previous month-end
+        g_ = monthly(gl).loc[p0:z]; c_ = monthly(cash).loc[p0:z]
         n_ = len(g_) - 1
         if n_ > 12:
             row["gold_CAGR"] = float(((g_.iloc[-1] / g_.iloc[0]) ** (12 / n_) - 1) * 100)
@@ -958,7 +1253,12 @@ def main():
 
     # ---------------- gold valuation (Erb & Harvey)
     res["gold_valuation"] = gold_valuation(st)
-    say(f"\nGOLD VALUATION (log real gold vs next-10y real return): {fmt(res['gold_valuation'])}")
+    gv = res["gold_valuation"]
+    say(f"\nGOLD VALUATION (descriptive): real gold at the {gv['current_percentile']*100:.1f}th percentile of 1968-2026, "
+        f"{gv['real_gold_now_vs_1980_peak']:.2f}x the 1980 month-end real peak (about 1.2x the 1980-01-21 daily peak). "
+        f"The regression of next-10-year real return on the real level (slope {gv['slope_fwd10y_per_log_unit']:.2f}, "
+        f"{gv['n_nonoverlapping']} non-overlapping observations) is NOT a forecast: today's level is outside the sample, "
+        f"the slope is not significant against a random-walk null (audit p about 0.1), and recursive out-of-sample R2 is negative.")
 
     # ---------------- P3 mechanism, pre-1928 out of sample, actual SSO
     res["regime_stats"] = regime_stats(st)
@@ -974,9 +1274,36 @@ def main():
     for k, v in res["pre1928"].items():
         say(f"  {k}: {fmt(v)}")
     res["actual_p3"] = actual_p3_track(st)
-    say("\nACTUAL SSO + 200-DAY RULE 2006-07..2026-09 (price-only after 2021-09 plus monthly distribution fix)")
+    say("\nACTUAL SSO + 200-DAY RULE 2006-07..2026-09 (SSO daily total return, Yahoo adj_close)")
     for k, v in res["actual_p3"].items():
         say(f"  {k}: {fmt(v)}")
+
+    # ---------------- audit-requested robustness of P3 and inference
+    inf = inference_table(st); inf.to_csv(OUT / "inference_robustness.csv", index=False)
+    say("\nINFERENCE ROBUSTNESS (p one-sided; block = mean block months; NW = Newey-West t; IM = Ibragimov-Mueller, 12 groups)")
+    say(inf.to_string(index=False, float_format=lambda x: f"{x:,.4f}"))
+    er = p3_eras(st); er.to_csv(OUT / "p3_eras.csv", index=False)
+    say("\nP3 BY ERA (slices of the 1929 run; fresh starts at dates instruments appeared)")
+    say(er.to_string(index=False, float_format=lambda x: f"{x:,.4f}"))
+    im = p3_implementability(st); im.to_csv(OUT / "p3_implementability.csv", index=False)
+    say("\nP3 IMPLEMENTABILITY: extra stock trading cost before 1975-05 (2x notional per switch)")
+    say(im.to_string(index=False, float_format=lambda x: f"{x:,.4f}"))
+    lp, note87 = lag_profile(st); lp.to_csv(OUT / "p3_lag_profile.csv", index=False)
+    say("\nP3 EXECUTION LAG PROFILE (0 = trade at the signal close; the study uses 1)")
+    say(lp.to_string(index=False, float_format=lambda x: f"{x:,.4f}"))
+    say(f"  S&P price vs its 200-day average (%): {fmt(note87)}; lag 1 exits at the 1987-10-16 close, lag 2 holds 2x through 10-19")
+    oe = p3_open_execution(st); res["p3_open_execution"] = oe
+    say(f"\nP3 EXECUTION AT THE NEXT OPEN vs CLOSES (active %/yr vs S&P, 1995-2026 unless noted): {fmt(oe)}")
+    tx = tax_scenarios(st); tx.to_csv(OUT / "tax_scenarios.csv", index=False)
+    say("\nTAX SCENARIOS (after-tax CAGR %; state tax on gains and dividends, not T-bill interest; "
+        "sold_at_end False = held for heirs, basis steps up)")
+    say(tx.to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
+    gs = gold_scenarios(st); gs.to_csv(OUT / "gold_scenarios.csv", index=False)
+    say("\nC4 EDGE vs S&P IF GOLD BEATS T-BILLS BY g %/yr (gold path shape kept, drift shifted)")
+    say(gs.to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
+    res.update({"inference": inf.to_dict("records"), "p3_eras": er.to_dict("records"),
+                "p3_implementability": im.to_dict("records"), "p3_lag_profile": lp.to_dict("records"),
+                "note_1987": note87, "tax_scenarios": tx.to_dict("records"), "gold_scenarios": gs.to_dict("records")})
 
     # ---------------- variant grid + reality check (pre-tax, 1972-01..2026-09; after-tax reported)
     say("\nVARIANT GRID 1972-01..2026-09 (pre-tax and after-tax CAGR; active vs S&P)")
@@ -1015,10 +1342,8 @@ def actual_track(st):
     """Monthly, real funds: C4 (SSO+GLD), SPY/GLD 50/50, SPY, SSO; plus the synthetic C4 on the same months."""
     e = load_etf()
     me = e[["SPY", "GLD"]].groupby(e.index.to_period("M")).last().pct_change()
-    q = pd.read_csv(DATA / "qlib_SSO.csv", index_col=0, parse_dates=True)["close"]
-    qm = q.groupby(q.index.to_period("M")).last().pct_change()
-    cm = pd.read_csv(DATA / "codex_c4_monthly_log.csv", index_col=0); cm.index = pd.PeriodIndex(cm.index, freq="M")
-    sso = pd.concat([qm.loc["2006-07":"2021-08"], np.expm1(cm["hold_sso"]).loc["2021-09":]])
+    q = pd.read_csv(DATA / "sso_tr_daily.csv", index_col=0, parse_dates=True)["SSO_yahoo"]
+    sso = q.groupby(q.index.to_period("M")).last().pct_change()
     R = pd.DataFrame({"L2": sso, "GOLD": me["GLD"], "SP": me["SPY"]}).loc["2006-07":"2026-09"].dropna()
     R.index = R.index.to_timestamp("M")
     R = pd.concat([pd.DataFrame(0.0, index=[R.index[0] - pd.offsets.MonthEnd(1)], columns=R.columns), R])
@@ -1088,25 +1413,10 @@ def actual_sso_daily():
 
 
 def actual_p3_track(st):
+    """P3 on actual SSO daily total return (Yahoo adj_close, cross-checked with Tiingo), 2006-07..2026-09."""
     b = st.b.loc["2006-06-21":"2026-09-30"]
-    q, rec = actual_sso_daily()
-    syn = lev_returns(b, 2, st.s, SSO_FEE)
-    r = pd.Series(np.nan, index=b.index)
-    rq = q.pct_change().reindex(b.index)
-    r.loc[:"2024-04-25"] = rq.loc[:"2024-04-25"]
-    rr = rec.pct_change().reindex(b.index)
-    r.loc["2024-08-06":] = rr.loc["2024-08-06":]
-    gap = r.isna() & (r.index > pd.Timestamp("2006-06-21"))
-    r[gap] = syn[gap]
-    r.iloc[0] = 0.0
-    cm = pd.read_csv(DATA / "codex_c4_monthly_log.csv", index_col=0); cm.index = pd.PeriodIndex(cm.index, freq="M")
-    mlog = np.log1p(r).groupby(r.index.to_period("M")).sum()
-    resid = (cm["hold_sso"] - mlog).loc["2021-10":"2026-09"].dropna()
-    last = r.groupby(r.index.to_period("M")).tail(1)
-    for per, x in resid.items():
-        d = last.index[last.index.to_period("M") == per]
-        if len(d):
-            r.loc[d[0]] = (1 + r.loc[d[0]]) * np.exp(x) - 1
+    q = pd.read_csv(DATA / "sso_tr_daily.csv", index_col=0, parse_dates=True)["SSO_yahoo"]
+    r = q.reindex(b.index.union(q.index)).ffill().reindex(b.index).pct_change().fillna(0.0)
     A = pd.DataFrame({"L2": r, "CASH": b["r_cash"], "SP": b["r_sp"]})
     A = window(A, "2006-07-01", "2026-09-30")
     vb = bh(A)["value"]
