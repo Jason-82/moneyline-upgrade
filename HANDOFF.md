@@ -750,7 +750,12 @@ and FINDINGS has the full entry and tables.
     +0.16.
   - The market does not rebound after any of these touches: the member pool's next 20 days
     are 0.04-0.24 pts below average, none significant.
-  - {{GRID_NULL}}
+  - The no-edge simulation, run on 8 of the averages (`--null 8 --mas ...`), confirms this.
+    - With no edge, the registered baseline reports −0.3 to −0.5% for the short averages and
+      +0.7 to +1.05% for the long ones. The leave-out and pool baselines stay within ±0.13.
+    - Measured from those no-edge levels, all 8 averages are negative: −0.06 to −0.38 under
+      same-year, −0.08 to −0.31 under leave-out.
+    - Against the pool they are −0.03 to +0.15.
 - **Exploratory, none survives multiple testing.**
   - Once you buy after the close is known, none of these improves the result:
     - confluence of several averages

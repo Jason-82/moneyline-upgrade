@@ -1,0 +1,100 @@
+Null simulation, 8 replications (iid-resampled bars, same dates, members, pools and code; averages: D-SMA20, D-SMA50, W-SMA10, W-SMA100, W-SMA200, W-EMA100, M-SMA20, M-SMA24; E1 / E2 / X2 as in the study). Means in %; costs are included (stocks 0.06%, crypto 0.60% round trip), so an unbiased AR column sits near minus the cost plus a small fill effect.
+ar_m = pre-registered same-year drift baseline; ar_m_lo = own drift with the event period left out; ar_pool = close t to t+H minus the pool's mean over the same window (no costs, no fill).
+
+       pool             stat            row  null_mean_%  null_se_%  actual_%
+S&P members     D-SMA20 ar_m      real line       -0.512      0.008    -0.570
+S&P members     D-SMA20 ar_m real - placebo       -0.212      0.012    -0.207
+S&P members  D-SMA20 ar_m_lo      real line       -0.084      0.010    -0.170
+S&P members  D-SMA20 ar_m_lo real - placebo       -0.015      0.014    -0.032
+S&P members  D-SMA20 ar_pool      real line        0.017      0.008     0.071
+S&P members  D-SMA20 ar_pool real - placebo        0.003      0.013     0.009
+S&P members     D-SMA50 ar_m      real line       -0.299      0.012    -0.545
+S&P members     D-SMA50 ar_m real - placebo       -0.017      0.016    -0.107
+S&P members  D-SMA50 ar_m_lo      real line       -0.027      0.013    -0.285
+S&P members  D-SMA50 ar_m_lo real - placebo        0.028      0.016    -0.092
+S&P members  D-SMA50 ar_pool      real line        0.045      0.017     0.017
+S&P members  D-SMA50 ar_pool real - placebo        0.027      0.018    -0.029
+S&P members     W-SMA10 ar_m      real line       -0.316      0.020    -0.548
+S&P members     W-SMA10 ar_m real - placebo       -0.035      0.023    -0.113
+S&P members  W-SMA10 ar_m_lo      real line       -0.036      0.021    -0.269
+S&P members  W-SMA10 ar_m_lo real - placebo        0.019      0.025    -0.083
+S&P members  W-SMA10 ar_pool      real line        0.040      0.023     0.007
+S&P members  W-SMA10 ar_pool real - placebo        0.022      0.025    -0.049
+S&P members    W-SMA100 ar_m      real line        0.734      0.032     0.554
+S&P members    W-SMA100 ar_m real - placebo        0.034      0.019     0.114
+S&P members W-SMA100 ar_m_lo      real line        0.016      0.028    -0.059
+S&P members W-SMA100 ar_m_lo real - placebo        0.001      0.021     0.099
+S&P members W-SMA100 ar_pool      real line       -0.030      0.027     0.119
+S&P members W-SMA100 ar_pool real - placebo       -0.043      0.020     0.062
+S&P members    W-SMA200 ar_m      real line        1.048      0.049     0.669
+S&P members    W-SMA200 ar_m real - placebo        0.038      0.032    -0.031
+S&P members W-SMA200 ar_m_lo      real line        0.127      0.044    -0.181
+S&P members W-SMA200 ar_m_lo real - placebo        0.032      0.038    -0.070
+S&P members W-SMA200 ar_pool      real line       -0.024      0.041     0.063
+S&P members W-SMA200 ar_pool real - placebo       -0.032      0.034    -0.008
+S&P members    W-EMA100 ar_m      real line        0.657      0.044     0.466
+S&P members    W-EMA100 ar_m real - placebo        0.065      0.022     0.167
+S&P members W-EMA100 ar_m_lo      real line        0.018      0.042    -0.057
+S&P members W-EMA100 ar_m_lo real - placebo        0.022      0.023     0.162
+S&P members W-EMA100 ar_pool      real line        0.030      0.036     0.145
+S&P members W-EMA100 ar_pool real - placebo       -0.001      0.027     0.118
+S&P members     M-SMA20 ar_m      real line        0.712      0.057     0.384
+S&P members     M-SMA20 ar_m real - placebo        0.104      0.049    -0.012
+S&P members  M-SMA20 ar_m_lo      real line        0.085      0.055    -0.171
+S&P members  M-SMA20 ar_m_lo real - placebo        0.089      0.050    -0.036
+S&P members  M-SMA20 ar_pool      real line        0.053      0.047     0.065
+S&P members  M-SMA20 ar_pool real - placebo        0.054      0.041     0.013
+S&P members     M-SMA24 ar_m      real line        0.710      0.041     0.462
+S&P members     M-SMA24 ar_m real - placebo       -0.003      0.022     0.012
+S&P members  M-SMA24 ar_m_lo      real line       -0.020      0.038    -0.168
+S&P members  M-SMA24 ar_m_lo real - placebo       -0.033      0.026    -0.000
+S&P members  M-SMA24 ar_pool      real line       -0.063      0.035    -0.008
+S&P members  M-SMA24 ar_pool real - placebo       -0.072      0.025    -0.053
+     crypto     D-SMA20 ar_m      real line       -1.678      0.216    -2.519
+     crypto     D-SMA20 ar_m real - placebo       -1.206      0.237    -1.231
+     crypto  D-SMA20 ar_m_lo      real line       -0.319      0.218    -0.262
+     crypto  D-SMA20 ar_m_lo real - placebo       -0.388      0.245     0.304
+     crypto  D-SMA20 ar_pool      real line        0.253      0.157    -0.638
+     crypto  D-SMA20 ar_pool real - placebo        0.113      0.182    -0.193
+     crypto     D-SMA50 ar_m      real line       -1.321      0.374    -5.159
+     crypto     D-SMA50 ar_m real - placebo       -0.711      0.306    -0.509
+     crypto  D-SMA50 ar_m_lo      real line       -0.135      0.435    -3.612
+     crypto  D-SMA50 ar_m_lo real - placebo       -0.329      0.373    -0.230
+     crypto  D-SMA50 ar_pool      real line        0.107      0.338    -1.407
+     crypto  D-SMA50 ar_pool real - placebo       -0.152      0.345     0.066
+     crypto     W-SMA10 ar_m      real line       -0.704      0.233    -7.433
+     crypto     W-SMA10 ar_m real - placebo        0.153      0.196    -2.798
+     crypto  W-SMA10 ar_m_lo      real line        0.260      0.254    -6.277
+     crypto  W-SMA10 ar_m_lo real - placebo        0.242      0.178    -2.973
+     crypto  W-SMA10 ar_pool      real line        0.382      0.184    -3.486
+     crypto  W-SMA10 ar_pool real - placebo        0.355      0.194    -2.095
+     crypto    W-SMA100 ar_m      real line        2.240      0.724    -0.587
+     crypto    W-SMA100 ar_m real - placebo       -0.239      0.441     0.489
+     crypto W-SMA100 ar_m_lo      real line        1.598      0.844    -1.315
+     crypto W-SMA100 ar_m_lo real - placebo       -0.324      0.455     0.627
+     crypto W-SMA100 ar_pool      real line        1.821      0.765    -0.463
+     crypto W-SMA100 ar_pool real - placebo       -0.007      0.451     0.085
+     crypto    W-SMA200 ar_m      real line        1.660      0.977    -1.166
+     crypto    W-SMA200 ar_m real - placebo       -0.774      0.864    -0.943
+     crypto W-SMA200 ar_m_lo      real line       -0.217      1.007    -3.717
+     crypto W-SMA200 ar_m_lo real - placebo       -1.194      0.900    -1.502
+     crypto W-SMA200 ar_pool      real line       -0.753      1.114     0.016
+     crypto W-SMA200 ar_pool real - placebo       -1.292      1.106    -0.378
+     crypto    W-EMA100 ar_m      real line        1.676      1.058    -3.871
+     crypto    W-EMA100 ar_m real - placebo        0.043      0.752    -2.272
+     crypto W-EMA100 ar_m_lo      real line        0.900      1.152    -4.882
+     crypto W-EMA100 ar_m_lo real - placebo       -0.195      0.818    -2.572
+     crypto W-EMA100 ar_pool      real line        1.521      1.112    -0.845
+     crypto W-EMA100 ar_pool real - placebo       -0.079      0.796    -1.067
+     crypto     M-SMA20 ar_m      real line        1.463      0.717    -2.761
+     crypto     M-SMA20 ar_m real - placebo       -0.029      0.539     1.752
+     crypto  M-SMA20 ar_m_lo      real line        0.698      0.681    -2.952
+     crypto  M-SMA20 ar_m_lo real - placebo       -0.434      0.531     2.230
+     crypto  M-SMA20 ar_pool      real line        0.758      0.754    -2.871
+     crypto  M-SMA20 ar_pool real - placebo       -0.414      0.611    -0.623
+     crypto     M-SMA24 ar_m      real line        2.933      0.770    -0.570
+     crypto     M-SMA24 ar_m real - placebo        0.225      0.367     0.040
+     crypto  M-SMA24 ar_m_lo      real line        2.376      0.813    -1.412
+     crypto  M-SMA24 ar_m_lo real - placebo        0.366      0.372     0.313
+     crypto  M-SMA24 ar_pool      real line        2.396      0.766     0.383
+     crypto  M-SMA24 ar_pool real - placebo        0.440      0.391     0.602

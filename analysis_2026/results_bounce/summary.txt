@@ -11,6 +11,7 @@ B5 grid: 0/34 averages pass the key-level test at 10% FDR -> FAIL
   same-year drift (pre-registered)     bounce -0.09% [95% CI -0.84, +0.53] p 0.57 (3m blocks p 0.56; effective n ~742); real-placebo -0.07% [-0.19, +0.03] p 0.92 (3m -0.07% p 0.93); first touches -0.16% p 0.62 / real-placebo -0.13% p 1.00 (n 23495); rising-falling +0.41% p 0.17
   own drift, event period left out     bounce -0.24% [95% CI -1.00, +0.42] p 0.73 (3m blocks p 0.70; effective n ~772); real-placebo -0.09% [-0.21, +0.02] p 0.95 (3m -0.09% p 0.96); first touches -0.30% p 0.75 / real-placebo -0.15% p 1.00 (n 23488); rising-falling +0.60% p 0.09
   minus the pool's same-window mean    bounce +0.06% [95% CI -0.13, +0.23] p 0.28 (3m blocks p 0.29; effective n ~7229); real-placebo -0.04% [-0.14, +0.05] p 0.83 (3m -0.04% p 0.86); first touches +0.02% p 0.43 / real-placebo -0.05% p 0.86 (n 23495); rising-falling +0.31% p 0.07
+  placebo-line gradient, lines above minus lines below the average / +2 minus -2 ATR (ar_m is biased here; see the null): ar_m -0.29 (p 0.964) / -0.44 (p 0.975); ar_m_lo +0.44 (p 0.002) / +0.51 (p 0.009); ar_pool +0.24 (p 0.002) / +0.31 (p 0.001); x2_ex_lo +0.35 (p 0.000) / +0.40 (p 0.000)
   clustering (same-year AR): 41543 events in 369 months; bootstrap SE 0.35% vs iid 0.05% -> effective n ~742
   tradable X2: same-year drift -0.26% per trade (p 0.97), vs placebo -0.13% (p 1.00); leave-out drift -0.20% (p 0.92), vs placebo -0.13% (p 1.00)
 
@@ -24,12 +25,14 @@ C5 grid: 0/34 averages pass the key-level test at 10% FDR -> FAIL
   same-year drift (pre-registered)     bounce -5.62% [95% CI -10.49, -0.90] p 0.99 (3m blocks p 0.97; effective n ~434); real-placebo +1.54% [-1.46, +4.79] p 0.16 (3m +1.54% p 0.21); first touches -5.31% p 0.94 / real-placebo +0.28% p 0.42 (n 439); rising-falling -1.37% p 0.64
   own drift, event period left out     bounce -3.67% [95% CI -8.82, +1.13] p 0.93 (3m blocks p 0.85; effective n ~413); real-placebo +1.48% [-1.59, +4.85] p 0.19 (3m +1.48% p 0.25); first touches -3.64% p 0.83 / real-placebo -0.00% p 0.46 (n 439); rising-falling +1.30% p 0.36
   minus the pool's same-window mean    bounce -2.34% [95% CI -6.00, -0.05] p 0.98 (3m blocks p 0.99; effective n ~850); real-placebo +0.83% [-1.49, +3.57] p 0.28 (3m +0.83% p 0.35); first touches -3.31% p 0.84 / real-placebo -0.15% p 0.49 (n 439); rising-falling -2.24% p 0.83
+  placebo-line gradient, lines above minus lines below the average / +2 minus -2 ATR (ar_m is biased here; see the null): ar_m -5.42 (p 0.937) / -8.17 (p 0.966); ar_m_lo -2.18 (p 0.718) / -4.14 (p 0.832); ar_pool -1.17 (p 0.654) / -2.41 (p 0.770); x2_ex_lo +1.63 (p 0.215) / +1.13 (p 0.306)
   clustering (same-year AR): 1055 events in 87 months; bootstrap SE 2.35% vs iid 1.51% -> effective n ~434
   tradable X2: same-year drift -3.75% per trade (p 0.97), vs placebo +0.45% (p 0.34); leave-out drift -1.94% (p 0.88), vs placebo +0.25% (p 0.41)
   without old LUNA (exploratory: its May-2022 collapse puts 10 touches at about -13.7 log units each into the 28-day windows):
   same-year drift (pre-registered)     bounce -4.48% [95% CI -8.13, -0.37] p 0.98 (3m blocks p 0.95; effective n ~146); real-placebo -0.24% [-2.55, +2.15] p 0.59 (3m -0.24% p 0.58); first touches -2.26% p 0.85 / real-placebo +0.77% p 0.28 (n 436); rising-falling +0.22% p 0.47
   own drift, event period left out     bounce -2.38% [95% CI -6.32, +2.20] p 0.86 (3m blocks p 0.79; effective n ~140); real-placebo -0.31% [-2.88, +2.10] p 0.61 (3m -0.31% p 0.59); first touches -0.37% p 0.56 / real-placebo +0.56% p 0.34 (n 436); rising-falling +3.10% p 0.16
   minus the pool's same-window mean    bounce -1.18% [95% CI -2.69, +0.10] p 0.96 (3m blocks p 0.99; effective n ~494); real-placebo -0.82% [-2.32, +0.59] p 0.88 (3m -0.82% p 0.84); first touches -0.26% p 0.62 / real-placebo +0.46% p 0.31 (n 436); rising-falling -0.64% p 0.68
+  placebo-line gradient, lines above minus lines below the average / +2 minus -2 ATR (ar_m is biased here; see the null): ar_m -4.82 (p 0.947) / -6.90 (p 0.972); ar_m_lo -1.33 (p 0.659) / -2.50 (p 0.747); ar_pool -0.39 (p 0.650) / -0.97 (p 0.729); x2_ex_lo +1.35 (p 0.245) / +0.58 (p 0.392)
   clustering (same-year AR): 1049 events in 87 months; bootstrap SE 1.95% vs iid 0.73% -> effective n ~146
   tradable X2: same-year drift -4.65% per trade (p 1.00), vs placebo -0.18% (p 0.55); leave-out drift -2.20% (p 0.91), vs placebo +0.11% (p 0.45)
 

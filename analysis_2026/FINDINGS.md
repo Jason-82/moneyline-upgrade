@@ -1907,9 +1907,14 @@ which averages (daily, weekly or monthly, of what length)?
 - **The registered baseline shows "deeper is better",** but the null has the same slope, only
   steeper, so it is mechanical.
 - **Under the unbiased baselines the order reverses:** touches of lines above the average beat
-  touches of lines below it. This is post hoc but strong (leave-out +2 minus −2 ATR about
-  +0.5 pts, p < 0.01; the verification pass found the same with the X2 exit). It fits trend
-  persistence (a shallower pullback means a stronger trend), not support.
+  touches of lines below it.
+  - The gap is +0.44 pts under leave-out (p 0.002) and +0.24 under the pool (p 0.002). With
+    the X2 exit it is +0.35 (p < 0.001). For +2 minus −2 ATR the figures are +0.51 / +0.31 /
+    +0.40.
+  - This is post hoc, but clear, and it fits trend persistence (a shallower pullback means a
+    stronger trend), not support.
+  - Crypto runs the other way, not significantly: −2.2 (leave-out) and −1.2 (pool); −1.3 and
+    −0.4 without LUNA.
 
 *The grid (S&P members, 20 days):*
 
@@ -1926,7 +1931,16 @@ which averages (daily, weekly or monthly, of what length)?
 - **The market itself does not rebound after these touches.** The member pool's next 20 days
   are 0.04-0.24 pts below its average after touches of every one of the 34 averages, none
   significantly (`market_after_touches.csv`).
-- {{GRID_NULL}}
+- **The no-edge simulation on 8 averages** (`null_grid_summary.txt`; D-SMA20, D-SMA50, W-SMA10,
+  W-SMA100, W-SMA200, W-EMA100, M-SMA20, M-SMA24; 8 runs) reproduces the pattern.
+  - With no edge, the registered baseline reports −0.30 to −0.51 for the three short
+    averages and +0.66 to +1.05 for the five long ones.
+  - The leave-out baseline (−0.08 to +0.13) and the pool baseline (−0.06 to +0.05) stay near
+    zero.
+  - Measured from their no-edge levels, all 8 averages are negative under the same-year
+    (−0.06 to −0.38) and leave-out (−0.08 to −0.31) baselines.
+  - Against the pool they run −0.03 to +0.15.
+  - The crypto rows of that file are too noisy at 8 runs to use.
 - **Real minus placebo:** −0.17 to +0.17 vs the leave-out drift, and −0.09 to +0.12 vs the
   pool.
   - Nominal p < 0.05: four averages under leave-out (D-EMA100, W-EMA20, W-EMA100, M-EMA24),
