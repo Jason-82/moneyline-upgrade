@@ -18,7 +18,8 @@ average with the same average shifted by +-1 and +-2 ATR, traded with identical 
                     companies (total-return-scaled OHLC). Events count only while the stock
                     is a member. PRIMARY pool for the hypotheses.
   Crypto            data/crypto_binance_regime: 40 large Binance USDT pairs incl. dead LUNA
-                    and FTT, 2017-2026 (real OHLC). SECOND pool.
+                    and FTT, 2017-2026 (real OHLC). SECOND pool: 41 series (MATIC+POL joined;
+                    old LUNA and Terra 2.0 kept apart; FTT split at its 2022-23 delisting gap).
   Indices / ETFs    S&P 500 1962-2026 (regime_switch.load_spx_long, real ^GSPC OHLC), SPY QQQ
                     IWM DIA EFA EEM TLT IEF TIP LQD HYG GLD SLV VNQ, TSLA COIN HOOD (Yahoo,
                     split-adjusted OHLC for the averages, adj_close for returns).
@@ -97,27 +98,33 @@ at the line earlier that day and so contains the day's own move; confluence coun
 the HOOD-like analog.
 
 ----------------------------------------------------------------------------- AUDIT CORRECTIONS
-A multi-agent audit after the first run confirmed 17 findings. Everything below is
-post-registration. The pre-registered verdicts are still computed exactly as registered;
-the corrections are printed next to them and never change a verdict.
+A multi-agent audit after the first run confirmed 17 findings, and a verification pass on the
+write-up confirmed 48 more (mostly wording). Everything below is post-registration. The
+pre-registered verdicts are still computed exactly as registered; the corrections are printed
+next to them and never change a verdict.
   Baseline bias. The same-calendar-year drift includes the months whose price path selected
      the touch, so it is biased by event selection. With iid-resampled bars (no predictability;
-     `--null R`) it reports about +0.3% at 20 days for the real line. It also produces a
-     line gradient (-2 ATR > real > +2 ATR) and penalises B4 by about 0.25-0.4 pts. Two
+     `--null 16`) it reports +0.22% at 20 days for the real 200-day line (SE 0.03). It also
+     produces a line gradient (-2 ATR > real > +2 ATR) and penalises B4 by about 0.3 pts. Two
      baselines that do not depend on the selection window are added:
        *_lo     the asset's mean forward log return over all its days except windows starting
                 in [t-272, t+H] (S&P member days only for the member pool);
        ar_pool  close t -> close t+H minus the equal-weight pool mean over the same window
-                (S&P members on member days; the 40-coin pool for crypto), with no fill and no cost.
-     `--null R` prints the no-edge level of every primary-average statistic under all three.
+                (S&P members on member days; for crypto the 41-series pool of 40 coins), with no
+                limit fill and no cost.
+     `--null 16` prints the no-edge level of every primary-average statistic under all three;
+     `--null 8 --mas ...` does the same for other averages.
   Repeat touches. A touch that closes above the line keeps the run alive, so a stock that hovers
-     at its average logs an event on every touching day. 37% of stock and about half of crypto
+     at its average logs an event on every touching day. 43% of stock and 58% of crypto
      primary events are repeats; "first touches" (no touch of the same line in the previous
-     28 days) are reported too.
+     28 calendar days) are reported too.
   EMA. The first run seeded EMAs with the first close (wrong by up to 40% for years on long
      weekly/monthly EMAs). EMAs are now seeded with the SMA of the first n values.
   Dead assets. A horizon that runs past the end of a series that stopped trading (delisted
-     stock, LUNA, FTT) now exits at the last close instead of dropping the event.
+     stock, LUNA, FTT) now exits at the last close instead of dropping the event, in every
+     column (the pool column too since the verification pass). Old LUNA's May-2022 collapse puts
+     about ten touches (one on the real line) at about -14 log units each into the crypto
+     table; crypto results are also printed without old LUNA.
   Pool filter. Stocks with fewer than 60 rows are skipped (the first run silently required
      260 rows, which dropped 8 stocks). 157 of the 1,227 member symbols have no price file,
      mostly names that left before 2001, so 1996-2000 covers only about 80% of member-days:
@@ -125,14 +132,19 @@ the corrections are printed next to them and never change a verdict.
   Costs. AR (B1/B2/B4/B5) is net of the round-trip cost (stocks 0.06 pts, crypto 0.60 pts),
      not gross as the text above implies; the pool-adjusted column is gross.
   Chart lines. The member pool's OHLC is dividend-back-adjusted, so its averages sit about
-     0.2 ATR (median) below the chart averages traders see, and only ~60% of touches coincide.
-     The daily averages are rerun on chart prices (dividend factor from data/raw_pit; returns
-     still total return). ETFs, indices, single stocks and crypto already use chart lines.
-  Statistics. 3-month blocks, 95% CIs, effective sample sizes (events cluster: tens of
-     thousands of stock events carry the information of under a thousand independent ones),
-     and a NaN-safe bootstrap difference are added. Long-average (100-200 week, 20-24 month)
-     positives must be read with the pool-adjusted column: they are the market's rebound
-     after broad sell-offs, shared by every line nearby.
+     0.25 ATR (median over member days) below the chart averages traders see, and only ~60% of
+     touches coincide. The daily averages are rerun on chart prices (dividend factor from
+     data/raw_pit; returns still total return). ETFs, indices, single stocks and crypto already
+     use chart lines.
+  Statistics. 3-month blocks, 95% CIs, effective sample sizes and a NaN-safe bootstrap
+     difference are added. Events cluster in sell-offs: against the asset's own drift, 41,543
+     stock touches carry the information of about 740-770 independent ones; against the pool,
+     which removes the market-wide move, about 7,000.
+  Long averages. Under the same-year baseline, touches of 100-200-week and 20-24-month averages
+     look positive. That is the baseline's selection bias (the touch follows a long decline
+     that depresses the same-year drift), shared by every nearby line: the leave-out column is
+     negative and the pool column near zero, and the market itself does not rebound after
+     these touches (market_after_touches.csv).
 """
 from __future__ import annotations
 
@@ -344,8 +356,9 @@ def asset_events(f: dict, member_mask: np.ndarray | None = None, mas=None, pool:
             # close-synchronous pool-adjusted AR: asset close t -> close t+Hm minus the pool's mean
             ap = np.full(len(T), np.nan)
             if pool is not None:
-                okp = T + Hm < n
-                ap[okp] = np.log(tr[T[okp] + Hm] / tr[T[okp]]) - pool[T[okp]]
+                ep = np.minimum(T + Hm, n - 1) if dead else T + Hm   # a dead series exits at its last close
+                okp = (ep < n) & (ep > T)
+                ap[okp] = np.log(tr[ep[okp]] / tr[T[okp]]) - pool[T[okp]]
             held_days = np.where(XI >= 0, XI - T, np.nan)
             cols["ma"].append(np.full(len(T), mi, np.int16)); cols["line"].append(np.full(len(T), li, np.int8))
             cols["day"].append(days[T].astype(np.int32)); cols["held"].append(HELD); cols["gap"].append(GAP)
@@ -402,12 +415,12 @@ def boot_mean(df: pd.DataFrame, col: str, B=2000, seed=0, block=1) -> tuple[floa
     return float(mean), float((bm <= 0).mean()), int(k.sum())
 
 
-def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=1) -> tuple[float, float]:
-    """mean(a) - mean(b) with months resampled jointly; one-sided p of diff <= 0."""
+def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=1, ci=False) -> tuple:
+    """mean(a) - mean(b) with months resampled jointly; one-sided p of diff <= 0 (and the 95% CI if ci)."""
     xa = a[[col]].assign(m=month_of(a.day.to_numpy(), block)).dropna()
     xb = b[[col]].assign(m=month_of(b.day.to_numpy(), block)).dropna()
     if len(xa) < 5 or len(xb) < 5:
-        return np.nan, np.nan
+        return (np.nan,) * (4 if ci else 2)
     ga = xa.groupby("m")[col].agg(["sum", "count"]); gb = xb.groupby("m")[col].agg(["sum", "count"])
     months = np.union1d(ga.index, gb.index)
     ga = ga.reindex(months, fill_value=0); gb = gb.reindex(months, fill_value=0)
@@ -418,7 +431,10 @@ def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=
         bd = sa[pick].sum(1) / ka[pick].sum(1) - sb[pick].sum(1) / kb[pick].sum(1)
     d = sa.sum() / ka.sum() - sb.sum() / kb.sum()
     okb = np.isfinite(bd)
-    return float(d), float((bd[okb] <= 0).mean()) if okb.any() else np.nan
+    p = float((bd[okb] <= 0).mean()) if okb.any() else np.nan
+    if ci:
+        return float(d), p, float(np.quantile(bd[okb], .025)), float(np.quantile(bd[okb], .975))
+    return float(d), p
 
 
 def bh_fdr(p: np.ndarray, q=0.10) -> np.ndarray:
@@ -497,26 +513,45 @@ def hypotheses(ev: pd.DataFrame, cut: str, label: str, say) -> dict:
             g[col.replace("p_key", "fdr_key")] = bh_fdr(g[col].to_numpy())
     out["grid"] = g
     say("  robustness (post-registration; verdicts above use the pre-registered AR):")
-    first = first_touch(ev)
+    robust_block(ev, say)
+    return out
+
+
+def robust_block(ev: pd.DataFrame, say) -> None:
+    """Primary average under the three baselines: bounce with CI (1- and 3-month blocks), real minus
+    placebo, first touches, rising minus falling, clustering, and the X2 trade on the leave-out drift."""
+    real = ev[(ev.ma == PRIMARY) & (ev.line == 0)]
+    plac = ev[(ev.ma == PRIMARY) & (ev.line > 0)]
+    first = first_touch(ev[ev.ma == PRIMARY])
     real_f = first[(first.ma == PRIMARY) & (first.line == 0)]; plac_f = first[(first.ma == PRIMARY) & (first.line > 0)]
     for desc, col in (("same-year drift (pre-registered)", "ar_m"), ("own drift, event period left out", "ar_m_lo"),
                       ("minus the pool's same-window mean", "ar_pool")):
         if real[col].notna().sum() < 30:
             continue
         st = boot_stats(real, col); st3 = boot_stats(real, col, block=3)
-        d_, pd_ = boot_diff(real, plac, col); d3_, pd3_ = boot_diff(real, plac, col, block=3)
+        d_, pd_, dlo, dhi = boot_diff(real, plac, col, ci=True); d3_, pd3_ = boot_diff(real, plac, col, block=3)
         mf, pf, nf = boot_mean(real_f, col); dfk, pdf = boot_diff(real_f, plac_f, col)
         r4, p4_ = boot_diff(real[real.rising], real[real.falling], col)
         say(f"  {desc:36s} bounce {st['mean'] * 100:+.2f}% [95% CI {st['lo'] * 100:+.2f}, {st['hi'] * 100:+.2f}] p {st['p']:.2f}"
-            f" (3m blocks p {st3['p']:.2f}); real-placebo {d_ * 100:+.2f}% p {pd_:.2f} (3m {d3_ * 100:+.2f}% p {pd3_:.2f});"
+            f" (3m blocks p {st3['p']:.2f}; effective n ~{st['n_eff']:.0f}); real-placebo {d_ * 100:+.2f}%"
+            f" [{dlo * 100:+.2f}, {dhi * 100:+.2f}] p {pd_:.2f} (3m {d3_ * 100:+.2f}% p {pd3_:.2f});"
             f" first touches {mf * 100:+.2f}% p {pf:.2f} / real-placebo {dfk * 100:+.2f}% p {pdf:.2f} (n {nf});"
             f" rising-falling {r4 * 100:+.2f}% p {p4_:.2f}")
+    e = ev[ev.ma == PRIMARY]
+    above, below = e[e.line.isin([3, 4])], e[e.line.isin([1, 2])]
+    parts = []
+    for col in ("ar_m", "ar_m_lo", "ar_pool", "x2_ex_lo"):
+        d1, p1 = boot_diff(above, below, col); d2, p2 = boot_diff(e[e.line == 4], e[e.line == 1], col)
+        parts.append(f"{col} {d1 * 100:+.2f} (p {p1:.3f}) / {d2 * 100:+.2f} (p {p2:.3f})")
+    say("  placebo-line gradient, lines above minus lines below the average / +2 minus -2 ATR (ar_m is biased here;"
+        " see the null): " + "; ".join(parts))
     st = boot_stats(real, "ar_m")
-    say(f"  clustering: {st['n']} events in {st['months']} months; bootstrap SE {st['se'] * 100:.2f}% vs iid "
+    say(f"  clustering (same-year AR): {st['n']} events in {st['months']} months; bootstrap SE {st['se'] * 100:.2f}% vs iid "
         f"{st['se_iid'] * 100:.2f}% -> effective n ~{st['n_eff']:.0f}")
     m3l, p3l, _ = boot_mean(real, "x2_ex_lo"); d3l, p3lb = boot_diff(real, plac, "x2_ex_lo")
-    say(f"  tradable X2 with the leave-out drift: {m3l * 100:+.2f}% per trade (p {p3l:.2f}); vs placebo {d3l * 100:+.2f}% (p {p3lb:.2f})")
-    return out
+    m3, p3, _ = boot_mean(real, "x2_ex"); d3, p3b = boot_diff(real, plac, "x2_ex")
+    say(f"  tradable X2: same-year drift {m3 * 100:+.2f}% per trade (p {p3:.2f}), vs placebo {d3 * 100:+.2f}% (p {p3b:.2f});"
+        f" leave-out drift {m3l * 100:+.2f}% (p {p3l:.2f}), vs placebo {d3l * 100:+.2f}% (p {p3lb:.2f})")
 
 
 def boot_stats(df: pd.DataFrame, col: str, B=2000, seed=0, block=1) -> dict:
@@ -632,7 +667,7 @@ def summarize(ev: pd.DataFrame, by=("ma", "line")) -> pd.DataFrame:
                          "AR_m_lo_%": g.ar_m_lo.mean() * 100, "AR_m_pool_%": g.ar_pool.mean() * 100,
                          "held_%": g.held.mean() * 100, "E2_m_%": g.ar_e2.mean() * 100, "E2_m_lo_%": g.ar_e2_lo.mean() * 100,
                          "X2_ex_%": g.x2_ex.mean() * 100, "X2_ex_lo_%": g.x2_ex_lo.mean() * 100,
-                         "X2_days": g.x2_days.mean()}).reset_index()
+                         "X2_days": g.x2_days.mean(), "n_pool": g.ar_pool.count()}).reset_index()
 
 
 def analog(df: pd.DataFrame) -> pd.DataFrame:
@@ -699,11 +734,27 @@ def null_stats(ev: pd.DataFrame, with_analog: bool) -> dict:
     return out
 
 
-def null_run(R: int) -> None:
+def null_grid_stats(ev: pd.DataFrame, mas) -> dict:
+    """Real-line mean and real minus placebo of the three 20/28-day baselines for each average in mas."""
+    out = {}
+    for mi in mas:
+        e = ev[ev.ma == mi]; real = e[e.line == 0]; plac = e[e.line > 0]
+        for col in ("ar_m", "ar_m_lo", "ar_pool"):
+            out[(f"{MA_NAME[mi]} {col}", "real line")] = real[col].mean() * 100
+            out[(f"{MA_NAME[mi]} {col}", "real - placebo")] = (real[col].mean() - plac[col].mean()) * 100
+    return out
+
+
+def null_run(R: int, mas=None) -> None:
     """R replications of every member stock and crypto series with iid-resampled bars (same dates,
-    member masks, pools and code, primary average only). Prints the mean of each statistic under
-    no predictability next to the actual value: what each baseline reports when there is no edge."""
+    member masks, pools and code; the primary average, or the averages in mas). Prints the mean of
+    each statistic under no predictability next to the actual value: what each baseline reports
+    when there is no edge."""
     OUT.mkdir(exist_ok=True)
+    grid = mas is not None
+    mset = set(mas) if grid else {PRIMARY}
+    stats = (lambda e, wa: null_grid_stats(e, mas)) if grid else null_stats
+    tag = "null_grid" if grid else "null"
     stocks, members = load_members()
     spells = {s: g for s, g in members.groupby("symbol")}
     s_end = max(d.index[-1] for d in stocks.values())
@@ -725,45 +776,47 @@ def null_run(R: int) -> None:
             dd = synth_bars(d, rng); f = make_frame(dd, dd.close, "us", s); restrict_baseline(f, mm)
             fr[s] = (f, mm, dead)
         pool = pool_forward([(f, mm) for f, mm, _ in fr.values()], 20)
-        ev = pd.concat([asset_events(f, mm, mas={PRIMARY}, pool=pool.reindex(f["idx"]).to_numpy(), dead=dead)
+        ev = pd.concat([asset_events(f, mm, mas=mset, pool=pool.reindex(f["idx"]).to_numpy(), dead=dead)
                         for f, mm, dead in fr.values()], ignore_index=True)
-        for key, v in null_stats(ev, True).items():
+        for key, v in stats(ev, True).items():
             rows.append({"pool": "S&P members", "rep": rep, "stat": key[0], "row": key[1], "value": v})
         frc = {}
         for s, d in cr.items():
             dd = synth_bars(d, rng); frc[s] = make_frame(dd, dd.close, "crypto", s)
         poolc = pool_forward([(f, None) for f in frc.values()], 28)
-        evc = pd.concat([asset_events(f, mas={PRIMARY}, pool=poolc.reindex(f["idx"]).to_numpy(),
+        evc = pd.concat([asset_events(f, mas=mset, pool=poolc.reindex(f["idx"]).to_numpy(),
                                       dead=cr[s].index[-1] < c_end - pd.Timedelta(days=7)) for s, f in frc.items()],
                         ignore_index=True)
-        for key, v in null_stats(evc, False).items():
+        for key, v in stats(evc, False).items():
             rows.append({"pool": "crypto", "rep": rep, "stat": key[0], "row": key[1], "value": v})
         print(f"null rep {rep + 1}/{R}: stocks {len(ev[ev.line == 0]):,} real-line events, crypto {len(evc[evc.line == 0]):,}",
               flush=True)
-    nr = pd.DataFrame(rows); nr.to_csv(OUT / "null_by_rep.csv", index=False)
+    nr = pd.DataFrame(rows); nr.to_csv(OUT / f"{tag}_by_rep.csv", index=False)
     g = nr.groupby(["pool", "stat", "row"], sort=False).value
     tab = pd.DataFrame({"null_mean_%": g.mean(), "null_se_%": g.std() / np.sqrt(R)})
     act = {}
     for pool_name, fn, wa in (("S&P members", "events_stocks.parquet", True), ("crypto", "events_crypto.parquet", False)):
         if (OUT / fn).exists():
-            for key, v in null_stats(pd.read_parquet(OUT / fn), wa).items():
+            for key, v in stats(pd.read_parquet(OUT / fn, columns=["ma", "line"] + list(NULL_COLS) + [
+                    "vol60", "dd252", "falling", "rising", "run"]), wa).items():
                 act[(pool_name,) + key] = v
     tab["actual_%"] = [act.get(i, np.nan) for i in tab.index]
     tab = tab.reset_index()
-    tab.to_csv(OUT / "null_summary.csv", index=False)
-    with open(OUT / "null_summary.txt", "w") as fh:
-        fh.write(f"Null simulation, {R} replications (iid-resampled bars, same dates, members, pools and code; primary "
-                 f"average D-SMA200, E1 / E2 / X2 as in the study). Means in %; costs are included (stocks 0.06%, crypto "
+    tab.to_csv(OUT / f"{tag}_summary.csv", index=False)
+    which = ", ".join(MA_NAME[m] for m in sorted(mset))
+    with open(OUT / f"{tag}_summary.txt", "w") as fh:
+        fh.write(f"Null simulation, {R} replications (iid-resampled bars, same dates, members, pools and code; "
+                 f"averages: {which}; E1 / E2 / X2 as in the study). Means in %; costs are included (stocks 0.06%, crypto "
                  f"0.60% round trip), so an unbiased AR column sits near minus the cost plus a small fill effect.\n"
                  f"ar_m = pre-registered same-year drift baseline; ar_m_lo = own drift with the event period left out; "
                  f"ar_pool = close t to t+H minus the pool's mean over the same window (no costs, no fill).\n\n")
         fh.write(tab.to_string(index=False, float_format=lambda x: f"{x:,.3f}") + "\n")
-    print((OUT / "null_summary.txt").read_text())
+    print((OUT / f"{tag}_summary.txt").read_text())
 
 
 def chart_line_check(stocks, spells, pool_s, s_end, ev_s, say) -> None:
     """AUDIT: the member pool's OHLC is dividend-back-adjusted, so its averages sit below the chart
-    averages (median ~0.2 ATR). Rerun the daily averages on chart prices (returns stay total return)."""
+    averages (median ~0.25 ATR on member days). Rerun the daily averages on chart prices (returns stay total return)."""
     qf = chart_factor()
     dmas = {i for i, (tf, _, _) in enumerate(MAS) if tf == "D"}
     evq = []
@@ -862,6 +915,10 @@ def main():
     say(f"\nCrypto pool: {ev_c.asset.nunique()} series, {len(ev_c):,} events")
     hc = hypotheses(ev_c, "2023-01-01", "C", say)
     hc["grid"].to_csv(OUT / "grid_crypto.csv", index=False)
+    luna = ev_c[(ev_c.ma == PRIMARY) & (ev_c.asset == "LUNA")]
+    say(f"  without old LUNA (exploratory: its May-2022 collapse puts {int((luna.ar_m < -5).sum())} touches at about "
+        f"{luna.ar_m[luna.ar_m < -5].mean():+.1f} log units each into the 28-day windows):")
+    robust_block(ev_c[ev_c.asset != "LUNA"], say)
 
     say("\nGrid, S&P members (AR at 20 days; key = real minus placebo):")
     say(hs["grid"].to_string(index=False, float_format=fmt))
@@ -878,7 +935,9 @@ def main():
     sa = summarize(pd.concat([ev_n[ev_n.line == 0], named_crypto[named_crypto.line == 0]]), by=("asset", "ma"))
     sa["ma"] = sa.ma.map(lambda i: MA_NAME[i]); sa.to_csv(OUT / "single_assets_by_ma.csv", index=False)
     prim = sa[sa.ma == "D-SMA200"]
-    say("\nSingle assets, daily 200-day SMA, real line:")
+    say("\nSingle assets, daily 200-day SMA, real line. For indices, ETFs and stocks the pool column is the asset minus the")
+    say("equal-weight S&P member average over the same 20 days (cap- vs equal-weight for indices; member data start in")
+    say("1996, so n_pool can be smaller); for coins it is the coin minus the equal-weight coin pool:")
     say(prim.to_string(index=False, float_format=fmt))
 
     splits = []
@@ -901,7 +960,7 @@ def main():
                                "E1_hit_%": (x.ar_m.dropna() > 0).mean() * 100, "X2_ex_%": x.x2_ex.mean() * 100,
                                "E2_n": n2, "E2_AR_%": m2 * 100, "E2_p": p2, "E2_hit_%": (x.ar_e2.dropna() > 0).mean() * 100,
                                "E1_lo_%": ml * 100, "E1_lo_p": pl_, "E2_lo_%": m2l * 100, "E2_lo_p": p2l,
-                               "pool_adj_%": x.ar_pool.mean() * 100})
+                               "pool_adj_%": x.ar_pool.mean() * 100, "pool_adj_p": boot_mean(x, "ar_pool", B=1000)[1]})
     sp = pd.DataFrame(splits); sp.to_csv(OUT / "splits_primary.csv", index=False)
     say("\nSplits, daily 200-day SMA, real line (AR mid horizon). CAUTION: 'hold_close' and 'strength' are only known at")
     say("the touch day's close, so the E1 column (filled earlier, at the line) contains that day's own move; judge those")
@@ -913,6 +972,7 @@ def main():
     r = ev_s[(ev_s.ma == PRIMARY) & (ev_s.line == 0)]
     an = analog(r)
     an_p = analog(ev_s[(ev_s.ma == PRIMARY) & (ev_s.line > 0)])
+    ft_idx = first_touch(ev_s[ev_s.ma == PRIMARY]).index      # first touches judged on all touches, not only HOOD-like ones
     rows = []
     strong = an[an.held & (an.reject >= 1.0)]
     e1 = (("ar_s", "5 days", "same-year"), ("ar_s_lo", "5 days", "leave-out"), ("ar_m", "20 days", "same-year"),
@@ -927,17 +987,44 @@ def main():
             q = x[col].dropna()
             if len(q) < 5:
                 continue
-            eps = len(first_touch(x[x[col].notna()]))
+            eps = int(x[x[col].notna()].index.isin(ft_idx).sum())
             st = boot_stats(x, col, B=1000)
-            rows.append({"set": lab, "horizon": h, "baseline": base, "n": st["n"], "episodes": eps, "months": st["months"],
+            rows.append({"set": lab, "horizon": h, "baseline": base, "n": st["n"], "first_touches": eps, "months": st["months"],
                          "eff_n": st["n_eff"], "mean_AR_%": st["mean"] * 100, "ci_lo_%": st["lo"] * 100,
                          "ci_hi_%": st["hi"] * 100, "p": st["p"], "median_%": q.median() * 100,
                          "hit_%": (q > 0).mean() * 100, "p10_%": q.quantile(.1) * 100, "p90_%": q.quantile(.9) * 100})
     hd = pd.DataFrame(rows); hd.to_csv(OUT / "hood_analog.csv", index=False)
     say("\nHOOD-like analog (60-day vol >= 50%, >= 20% below the 52-week high, falling 200-day, >= 20 closes above).")
-    say("episodes = touches with no touch of the same line in the previous 28 days; eff_n from the month-block SE.")
-    say("The same-year baseline is biased upward for this filter: run `--null` for its no-edge level.")
+    say("first_touches = touches with no touch of the same stock's line (HOOD-like or not) in the previous 28 calendar")
+    say("days; eff_n from the month-block SE. `--null` gives each row's no-edge level (null_summary.txt).")
     say(hd.to_string(index=False, float_format=fmt))
+    rows = []
+    for lab, a, b in (("all touches", an, an_p), ("first touches", an[an.index.isin(ft_idx)], an_p[an_p.index.isin(ft_idx)])):
+        for col in ("ar_m", "ar_m_lo", "ar_pool", "ar_e2", "ar_e2_lo"):
+            d_, p_, lo_, hi_ = boot_diff(a, b, col, B=4000, ci=True)
+            rows.append({"set": lab, "baseline": col, "n_real": int(a[col].notna().sum()), "n_placebo": int(b[col].notna().sum()),
+                         "real_%": a[col].mean() * 100, "placebo_%": b[col].mean() * 100, "real_minus_placebo_%": d_ * 100,
+                         "ci_lo_%": lo_ * 100, "ci_hi_%": hi_ * 100, "p": p_})
+    hp = pd.DataFrame(rows); hp.to_csv(OUT / "hood_analog_vs_placebo.csv", index=False)
+    say("\nHOOD-like analog, real 200-day minus the placebo lines (20 days; exploratory):")
+    say(hp.to_string(index=False, float_format=fmt))
+
+    # the market itself after touches (exploratory): pool's own forward return on touch dates minus its average
+    rows = []
+    for label, ev, pool, H in (("S&P members", ev_s, pool_s, 20), ("crypto", ev_c, pool_c, 28)):
+        mu = pool.mean()
+        for mi, name in enumerate(MA_NAME):
+            r_ = ev[(ev.ma == mi) & (ev.line == 0)][["day"]].copy()
+            r_["mkt"] = pool.reindex(pd.to_datetime(r_.day.to_numpy(), unit="D")).to_numpy() - mu
+            if r_.mkt.notna().sum() < 30:
+                continue
+            st = boot_stats(r_, "mkt", B=1000, seed=mi)
+            rows.append({"pool": label, "ma": name, "n": st["n"], "market_minus_avg_%": st["mean"] * 100,
+                         "ci_lo_%": st["lo"] * 100, "ci_hi_%": st["hi"] * 100})
+    mk = pd.DataFrame(rows); mk.to_csv(OUT / "market_after_touches.csv", index=False)
+    say(f"\nThe market after touches of each real average (exploratory): the pool's own {20}-day (crypto 28-day) forward")
+    say("return from the touch-day close minus its average over all days; a 'rebound' would show as > 0:")
+    say(mk.to_string(index=False, float_format=fmt))
 
     bt = []
     for name in NAMED:
@@ -961,10 +1048,15 @@ def main():
 if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv:
         print("python3 -m analysis_2026.ma_bounce            (writes analysis_2026/results_bounce/)\n"
-              "python3 -m analysis_2026.ma_bounce --null 16  (no-edge simulation; run after the main run)")
+              "python3 -m analysis_2026.ma_bounce --null 16  (no-edge simulation, primary average; run after the main run)\n"
+              "python3 -m analysis_2026.ma_bounce --null 8 --mas D-SMA20,W-SMA200  (no-edge levels for other averages)")
         sys.exit(0)
     if "--null" in sys.argv:
         i = sys.argv.index("--null")
-        null_run(int(sys.argv[i + 1]) if len(sys.argv) > i + 1 else 16)
+        reps = int(sys.argv[i + 1]) if len(sys.argv) > i + 1 and sys.argv[i + 1].isdigit() else 16
+        mas = None
+        if "--mas" in sys.argv:
+            mas = [MA_NAME.index(x) for x in sys.argv[sys.argv.index("--mas") + 1].split(",")]
+        null_run(reps, mas)
     else:
         main()
