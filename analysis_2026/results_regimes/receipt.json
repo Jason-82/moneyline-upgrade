@@ -1,0 +1,198 @@
+{
+  "inputs": [
+    {
+      "name": "BTC_1D.csv",
+      "sha256": "b8770cab2eb584e874accf6edfe116ab54044a65b1a3f734e955b231de2d4091"
+    },
+    {
+      "name": "SOL_1D.csv",
+      "sha256": "0e2a62fd6c4229ab3e62b00905156a7fa3aa56da877abc838388a860615db9b6"
+    },
+    {
+      "name": "BNB_1D.csv",
+      "sha256": "7cf315ff513f93fd90a6a5c7de8fe7f57d4524d5bd8b2789097a25a76ef36a25"
+    },
+    {
+      "name": "ETH_1D.csv",
+      "sha256": "9ba1bd0279ba5690639a72a61f847792093fce889bbf13e352f346e5e396e8cd"
+    },
+    {
+      "name": "ZEC_1D.csv",
+      "sha256": "63cb3d5f95abca17034d486dec7f37093137dcb9c9ea1e215b05d1da60b5a058"
+    },
+    {
+      "name": "coin_years_retail.csv",
+      "sha256": "4c95b8e73b97aa2ac97cb1c4437e56dac39698a199243c7f0f235e1645dcabd4"
+    },
+    {
+      "name": "SHIBUSDT.csv",
+      "sha256": "ae43748f575e8cd1b891e5dbc62cc0585d57bec564ee7157cdc4c3ec8f2f5840"
+    },
+    {
+      "name": "TRXUSDT.csv",
+      "sha256": "16b11e6b97ee69aed4853ed4877163a75c232c5754560a056e33f2f8e3c867fd"
+    },
+    {
+      "name": "AXSUSDT.csv",
+      "sha256": "89e29c5bbf47db6a0f66b715f470b720078841d613fcc23d6ed6a69cf15f774c"
+    },
+    {
+      "name": "ETCUSDT.csv",
+      "sha256": "603d5258817e9ae42830e6a1d771469b3875363df321c22934b9b27a264f6352"
+    },
+    {
+      "name": "MASKUSDT.csv",
+      "sha256": "a1b9e77def7bd10b14a63525c1cdddc210795b78de4053b726fb8ecd8e09fad7"
+    },
+    {
+      "name": "DOTUSDT.csv",
+      "sha256": "1cdcadb61c3a57694fcd59e3aa9240e87aae7b54e3165ab7b36e17dee2419159"
+    },
+    {
+      "name": "SUSHIUSDT.csv",
+      "sha256": "db446669bfb11685a052d19693cb84e39ec142c684a0b5b90fb5d28017717359"
+    },
+    {
+      "name": "DYDXUSDT.csv",
+      "sha256": "076a27746ce681cc0269496a95396cef4bc50dd638e908af3b7852e8b5951fcf"
+    },
+    {
+      "name": "MATICUSDT.csv",
+      "sha256": "45f11729c41e6eb79750d4ceea5905acb4312de9e83f012e27526e8af457b786"
+    },
+    {
+      "name": "SOLUSDT.csv",
+      "sha256": "7c307786d8ea866c818d2209f053bf333a74636eb56a0883aaa93ed3b3327e9a"
+    },
+    {
+      "name": "NEARUSDT.csv",
+      "sha256": "3ffccfafd087530ae539b3864299d65821b7eaaee83449bf841c02ebc0421402"
+    },
+    {
+      "name": "XMRUSDT.csv",
+      "sha256": "89289d9b97815fbd355681e5a2745b926ddfbe29f1d5938be1cad645e54e91fe"
+    },
+    {
+      "name": "ADAUSDT.csv",
+      "sha256": "79ae77726a16bce7b8b8b61b98ac27c40cf33a461c2d7bbcc77ec9fa24c328ab"
+    },
+    {
+      "name": "JASMYUSDT.csv",
+      "sha256": "295206bd9f8c642fd84368d9ab18a067f79d1f08f9fd9de41eec88e2db668692"
+    },
+    {
+      "name": "WAVESUSDT.csv",
+      "sha256": "571aa67b8e0723ad30a91fab119cb03f8306082d4a2141057ff97fa35ba7994b"
+    },
+    {
+      "name": "VETUSDT.csv",
+      "sha256": "5c793a19c710d2adc20d6e251d0dab234c85242db921f6a2079135edc88bbc1a"
+    },
+    {
+      "name": "BTCUSDT.csv",
+      "sha256": "14c99a14f448b908bde0f8eab6f7698297862b2070fb9307dd06fbecb3d0d226"
+    },
+    {
+      "name": "AAVEUSDT.csv",
+      "sha256": "e2888386eb8ccf3618971a73d35b8ff8b30f43f587597cb528468253b1137bf2"
+    },
+    {
+      "name": "DOGEUSDT.csv",
+      "sha256": "16b2c738900df32d04ef45a9c97d239ad1561ff96b3c5af720a79cc7af46839e"
+    },
+    {
+      "name": "QNTUSDT.csv",
+      "sha256": "c465707769c84040b2d20d9f1f39415d8dfcb74f44c934192965ff1378d3d760"
+    },
+    {
+      "name": "FETUSDT.csv",
+      "sha256": "563a893eed6dc26e2f7a4723fd200d2e6bf150f69a5ea1e97e1a3f1d4bc69bed"
+    },
+    {
+      "name": "AVAXUSDT.csv",
+      "sha256": "86542eef963201abe3242ed8d70f8b443c23a70d283df39cf3284e086b14fda9"
+    },
+    {
+      "name": "TWTUSDT.csv",
+      "sha256": "1746ab9b9bcf8556840597b3b7a2d708f44b4986f5c3181d0f38b1a6892f16f7"
+    },
+    {
+      "name": "DASHUSDT.csv",
+      "sha256": "561771ee727cfdd661eec812c8c15254ab85722a59600f6ff79c9ab1e58b6ea6"
+    },
+    {
+      "name": "LUNAUSDT.csv",
+      "sha256": "91ab4ef2ab363e51400cce90a47bc6b50e3e282420d84f740cba7c9050d075b0"
+    },
+    {
+      "name": "FILUSDT.csv",
+      "sha256": "846befd7df1902aa85274e59fd9d7e75d785a7031d1458c79142ded86ea5a6d0"
+    },
+    {
+      "name": "PEOPLEUSDT.csv",
+      "sha256": "d207ce5990c67240921e4641d61b8e2845f9efd07952a6259f40e84c6b7d6e26"
+    },
+    {
+      "name": "ATOMUSDT.csv",
+      "sha256": "73de656d0ffe2cf3ba43c84b683d42664969ab5aa898383fa7171836d9a1d4e8"
+    },
+    {
+      "name": "CHZUSDT.csv",
+      "sha256": "8ee528e0fa34f6992e96fb34f4d1a93f7c7ff662b5eab66683104abcea82f931"
+    },
+    {
+      "name": "ETHUSDT.csv",
+      "sha256": "4f5efa3a4ff9fa44d1aa7296686e9e44e43a86b21412a4b528b2949b6277b1e4"
+    },
+    {
+      "name": "SANDUSDT.csv",
+      "sha256": "b57853268336e27ad790b631859ffef6fb62a7cd928aaefaabe0224eba7d2457"
+    },
+    {
+      "name": "GALAUSDT.csv",
+      "sha256": "24f411f0c6ba6dc8a4c257db77df90362e17a2928746e0f2047705d546ccbb5a"
+    },
+    {
+      "name": "BNBUSDT.csv",
+      "sha256": "86cc78256b764e773904a2e05645dbea3b02510929e2ec0f1cf381e9c721382b"
+    },
+    {
+      "name": "LTCUSDT.csv",
+      "sha256": "16fa89ecbabaa4bac7fe9ea6fbc197a536ce2e397a1913931c5f7e189010bcb6"
+    },
+    {
+      "name": "ALGOUSDT.csv",
+      "sha256": "bf6a3a7ea4ebc2a0b0d47b43ef3fd552d5dc90f1a33a4a64430fab0f506092f3"
+    },
+    {
+      "name": "EOSUSDT.csv",
+      "sha256": "77fd287f092fdb20fb6968284fbec2031ac1c3bd2880e9a5ef902f085cd9a6a3"
+    },
+    {
+      "name": "CRVUSDT.csv",
+      "sha256": "2d7d8e75f9ad7ea561b535547347d303f6416eb685720e92f96d584c931666e6"
+    },
+    {
+      "name": "LINKUSDT.csv",
+      "sha256": "bac10aaf7b5b4d8e8dbaecde95c60c412d3d0ee1e221d5942e2ed7c758acf6b7"
+    },
+    {
+      "name": "XRPUSDT.csv",
+      "sha256": "1e1dfff2f940b79000dc10e6214ca16c5a7cfe79e50f8f843cd91d87347ba737"
+    },
+    {
+      "name": "UNIUSDT.csv",
+      "sha256": "8c9c4c285d3a305859308f665c047fa49c2805be5f048056e598e5319f8df606"
+    },
+    {
+      "name": "FTMUSDT.csv",
+      "sha256": "6d973189d419d6e1f8cf4b5eb2519bfef697bb30dbcd3af8116b61afe70faa99"
+    }
+  ],
+  "code_sha256": "8cb4446ad8d81ba0c6259358481ba1ed9182c80a7956fd632b97fd9ad49f5821",
+  "numpy": "2.3.5",
+  "pandas": "2.2.3",
+  "metrics_rows": 26460,
+  "ohlc_folder_supplied": true,
+  "scope": "Exploratory historical checks; no untouched holdout or live orders"
+}
