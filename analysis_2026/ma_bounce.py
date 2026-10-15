@@ -98,8 +98,8 @@ at the line earlier that day and so contains the day's own move; confluence coun
 the HOOD-like analog.
 
 ----------------------------------------------------------------------------- AUDIT CORRECTIONS
-A multi-agent audit after the first run confirmed 17 findings, and a verification pass on the
-write-up confirmed 48 more (mostly wording). Everything below is post-registration. The
+A multi-agent audit after the first run confirmed 17 findings, and two verification passes on
+the write-up confirmed 48 and 16 more (mostly wording, three code issues). Everything below is post-registration. The
 pre-registered verdicts are still computed exactly as registered; the corrections are printed
 next to them and never change a verdict.
   Baseline bias. The same-calendar-year drift includes the months whose price path selected
@@ -111,7 +111,8 @@ next to them and never change a verdict.
                 in [t-272, t+H] (S&P member days only for the member pool);
        ar_pool  close t -> close t+H minus the equal-weight pool mean over the same window
                 (S&P members on member days; for crypto the 41-series pool of 40 coins), with no
-                limit fill and no cost.
+                limit fill and no cost. A series that stops trading stays in the pool at its
+                last close.
      `--null 16` prints the no-edge level of every primary-average statistic under all three;
      `--null 8 --mas ...` does the same for other averages.
   Repeat touches. A touch that closes above the line keeps the run alive, so a stock that hovers
@@ -122,9 +123,11 @@ next to them and never change a verdict.
      weekly/monthly EMAs). EMAs are now seeded with the SMA of the first n values.
   Dead assets. A horizon that runs past the end of a series that stopped trading (delisted
      stock, LUNA, FTT) now exits at the last close instead of dropping the event, in every
-     column (the pool column too since the verification pass). Old LUNA's May-2022 collapse puts
-     about ten touches (one on the real line) at about -14 log units each into the crypto
-     table; crypto results are also printed without old LUNA.
+     event column and in the pool benchmark (the verification passes found that both still
+     dropped them; the benchmark "knew" which assets would vanish). Old LUNA's May-2022
+     collapse puts about ten touches (one on the real line) at about -14 log units each into
+     the 200-day crypto table and sits in the real-line touches of most averages; the 200-day
+     crypto results and the crypto grid are also printed without old LUNA.
   Pool filter. Stocks with fewer than 60 rows are skipped (the first run silently required
      260 rows, which dropped 8 stocks). 157 of the 1,227 member symbols have no price file,
      mostly names that left before 2001, so 1996-2000 covers only about 80% of member-days:
@@ -139,7 +142,8 @@ next to them and never change a verdict.
   Statistics. 3-month blocks, 95% CIs, effective sample sizes and a NaN-safe bootstrap
      difference are added. Events cluster in sell-offs: against the asset's own drift, 41,543
      stock touches carry the information of about 740-770 independent ones; against the pool,
-     which removes the market-wide move, about 7,000.
+     which removes the market-wide move, about 7,000. Real minus placebo is also compared
+     within the same calendar month (boot_diff_matched), which removes timing.
   Long averages. Under the same-year baseline, touches of 100-200-week and 20-24-month averages
      look positive. That is the baseline's selection bias (the touch follows a long decline
      that depresses the same-year drift), shared by every nearby line: the leave-out column is
@@ -382,12 +386,20 @@ def asset_events(f: dict, member_mask: np.ndarray | None = None, mas=None, pool:
     return ev
 
 
-def pool_forward(frames_masks, H: int) -> pd.Series:
+def dead_tail(fwd: np.ndarray, ltr: np.ndarray, H: int) -> np.ndarray:
+    """Forward returns of a series that stopped trading: windows that run past its end are valued
+    at its last close (what a holder got), so the pool does not drop it in its last H bars."""
+    fwd = fwd.copy(); n = len(ltr); a = max(n - H, 0)
+    fwd[a:] = ltr[-1] - ltr[a:]
+    return fwd
+
+
+def pool_forward(items, H: int) -> pd.Series:
     """Equal-weight mean, by date, of each member's H-bar forward log return from that close
-    (only days where the asset is in the pool)."""
+    (only days where the asset is in the pool). items: (frame, mask or None, dead)."""
     parts = []
-    for f, mask in frames_masks:
-        fwd = f["fwd"][H]
+    for f, mask, dead in items:
+        fwd = dead_tail(f["fwd"][H], np.log(f["tr"]), H) if dead else f["fwd"][H]
         ok = np.isfinite(fwd) & (mask if mask is not None else True)
         parts.append(pd.Series(fwd[ok], index=f["idx"][ok]))
     return pd.concat(parts).groupby(level=0).mean().sort_index()
@@ -437,6 +449,23 @@ def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=
     return float(d), p
 
 
+def boot_diff_matched(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0) -> tuple:
+    """mean(a) - mean(b) within the same calendar month: per-month differences over months that hold
+    both, weighted by a's count, months resampled. Removes timing (a and b touching in different
+    markets). Returns (diff, one-sided p of diff <= 0, 95% CI low, high)."""
+    xa = a[[col]].assign(m=month_of(a.day.to_numpy())).dropna()
+    xb = b[[col]].assign(m=month_of(b.day.to_numpy())).dropna()
+    ga = xa.groupby("m")[col].agg(["mean", "count"]); gb = xb.groupby("m")[col].mean()
+    common = ga.index.intersection(gb.index)
+    if len(common) < 5:
+        return (np.nan,) * 4
+    d = (ga.loc[common, "mean"] - gb.loc[common]).to_numpy(float); w = ga.loc[common, "count"].to_numpy(float)
+    rng = np.random.default_rng(seed)
+    pick = rng.integers(0, len(d), size=(B, len(d)))
+    bd = (d[pick] * w[pick]).sum(1) / w[pick].sum(1)
+    return float((d * w).sum() / w.sum()), float((bd <= 0).mean()), float(np.quantile(bd, .025)), float(np.quantile(bd, .975))
+
+
 def bh_fdr(p: np.ndarray, q=0.10) -> np.ndarray:
     p = np.asarray(p, float); m = np.isfinite(p).sum(); out = np.zeros(len(p), bool)
     if m == 0:
@@ -480,6 +509,20 @@ def hypotheses(ev: pd.DataFrame, cut: str, label: str, say) -> dict:
     out["4"] = bool(d4 > 0 and p4 < 0.05)
     say(f"{label}4 rising vs falling: {real[real.rising].ar_m.mean() * 100:+.2f}% vs {real[real.falling].ar_m.mean() * 100:+.2f}%"
         f" (diff {d4 * 100:+.2f}%, p {p4:.3f}) -> {'PASS' if out['4'] else 'FAIL'}")
+    g = key_grid(ev)
+    npass = int(g.fdr_key.sum())
+    out["5"] = bool(out["2"] and npass >= len(MAS) / 3)
+    say(f"{label}5 grid: {npass}/{len(MAS)} averages pass the key-level test at 10% FDR -> "
+        f"{'PASS' if out['5'] else 'FAIL'}")
+    out["grid"] = g
+    say("  robustness (post-registration; verdicts above use the pre-registered AR):")
+    robust_block(ev, say)
+    return out
+
+
+def key_grid(ev: pd.DataFrame) -> pd.DataFrame:
+    """B5/C5 grid: bounce and real minus placebo for all 34 averages, registered baseline plus (post-
+    registration) the leave-out and pool baselines, each with Benjamini-Hochberg at 10%."""
     grid = []
     for mi, name in enumerate(MA_NAME):
         r_ = ev[(ev.ma == mi) & (ev.line == 0)]; p_ = ev[(ev.ma == mi) & (ev.line > 0)]
@@ -491,11 +534,6 @@ def hypotheses(ev: pd.DataFrame, cut: str, label: str, say) -> dict:
                      "hit_%": float((r_.ar_m.dropna() > 0).mean() * 100), "held_%": float(r_.held.mean() * 100)})
     g = pd.DataFrame(grid)
     g["fdr_key"] = bh_fdr(g["p_key"].to_numpy() if "p_key" in g else np.full(len(g), np.nan))
-    npass = int(g.fdr_key.sum())
-    out["5"] = bool(out["2"] and npass >= len(MAS) / 3)
-    say(f"{label}5 grid: {npass}/{len(MAS)} averages pass the key-level test at 10% FDR -> "
-        f"{'PASS' if out['5'] else 'FAIL'}")
-    # post-registration robustness (AUDIT): unbiased baselines, first touches, 3-month blocks
     for mi, name in enumerate(MA_NAME):
         r_ = ev[(ev.ma == mi) & (ev.line == 0)]; p_ = ev[(ev.ma == mi) & (ev.line > 0)]
         if len(r_) < 30:
@@ -511,10 +549,7 @@ def hypotheses(ev: pd.DataFrame, cut: str, label: str, say) -> dict:
     for col in ("p_key_ar_m_lo", "p_key_ar_pool"):
         if col in g:
             g[col.replace("p_key", "fdr_key")] = bh_fdr(g[col].to_numpy())
-    out["grid"] = g
-    say("  robustness (post-registration; verdicts above use the pre-registered AR):")
-    robust_block(ev, say)
-    return out
+    return g
 
 
 def robust_block(ev: pd.DataFrame, say) -> None:
@@ -539,12 +574,18 @@ def robust_block(ev: pd.DataFrame, say) -> None:
             f" rising-falling {r4 * 100:+.2f}% p {p4_:.2f}")
     e = ev[ev.ma == PRIMARY]
     above, below = e[e.line.isin([3, 4])], e[e.line.isin([1, 2])]
-    parts = []
+    parts = []; parts_m = []; parts_k = []
     for col in ("ar_m", "ar_m_lo", "ar_pool", "x2_ex_lo"):
         d1, p1 = boot_diff(above, below, col); d2, p2 = boot_diff(e[e.line == 4], e[e.line == 1], col)
         parts.append(f"{col} {d1 * 100:+.2f} (p {p1:.3f}) / {d2 * 100:+.2f} (p {p2:.3f})")
+        dm, pm_, lo_, hi_ = boot_diff_matched(above, below, col)
+        parts_m.append(f"{col} {dm * 100:+.2f} [{lo_ * 100:+.2f}, {hi_ * 100:+.2f}] p {pm_:.3f}")
+        dk, pk, klo, khi = boot_diff_matched(real, plac, col)
+        parts_k.append(f"{col} {dk * 100:+.2f} [{klo * 100:+.2f}, {khi * 100:+.2f}] p {pk:.3f}")
     say("  placebo-line gradient, lines above minus lines below the average / +2 minus -2 ATR (ar_m is biased here;"
         " see the null): " + "; ".join(parts))
+    say("  the same gradient within the same calendar month (above minus below): " + "; ".join(parts_m))
+    say("  real minus placebo within the same calendar month: " + "; ".join(parts_k))
     st = boot_stats(real, "ar_m")
     say(f"  clustering (same-year AR): {st['n']} events in {st['months']} months; bootstrap SE {st['se'] * 100:.2f}% vs iid "
         f"{st['se_iid'] * 100:.2f}% -> effective n ~{st['n_eff']:.0f}")
@@ -664,7 +705,7 @@ def summarize(ev: pd.DataFrame, by=("ma", "line")) -> pd.DataFrame:
     g = ev.groupby(list(by))
     return pd.DataFrame({"n": g.size(), "AR_s_%": g.ar_s.mean() * 100, "AR_m_%": g.ar_m.mean() * 100,
                          "AR_l_%": g.ar_l.mean() * 100, "hit_m_%": g.ar_m.apply(lambda x: (x.dropna() > 0).mean() * 100),
-                         "AR_m_lo_%": g.ar_m_lo.mean() * 100, "AR_m_pool_%": g.ar_pool.mean() * 100,
+                         "AR_m_lo_%": g.ar_m_lo.mean() * 100, "AR_l_lo_%": g.ar_l_lo.mean() * 100, "AR_m_pool_%": g.ar_pool.mean() * 100,
                          "held_%": g.held.mean() * 100, "E2_m_%": g.ar_e2.mean() * 100, "E2_m_lo_%": g.ar_e2_lo.mean() * 100,
                          "X2_ex_%": g.x2_ex.mean() * 100, "X2_ex_lo_%": g.x2_ex_lo.mean() * 100,
                          "X2_days": g.x2_days.mean(), "n_pool": g.ar_pool.count()}).reset_index()
@@ -775,7 +816,7 @@ def null_run(R: int, mas=None) -> None:
         for s, (d, mm, dead) in st.items():
             dd = synth_bars(d, rng); f = make_frame(dd, dd.close, "us", s); restrict_baseline(f, mm)
             fr[s] = (f, mm, dead)
-        pool = pool_forward([(f, mm) for f, mm, _ in fr.values()], 20)
+        pool = pool_forward(list(fr.values()), 20)
         ev = pd.concat([asset_events(f, mm, mas=mset, pool=pool.reindex(f["idx"]).to_numpy(), dead=dead)
                         for f, mm, dead in fr.values()], ignore_index=True)
         for key, v in stats(ev, True).items():
@@ -783,7 +824,7 @@ def null_run(R: int, mas=None) -> None:
         frc = {}
         for s, d in cr.items():
             dd = synth_bars(d, rng); frc[s] = make_frame(dd, dd.close, "crypto", s)
-        poolc = pool_forward([(f, None) for f in frc.values()], 28)
+        poolc = pool_forward([(f, None, cr[s].index[-1] < c_end - pd.Timedelta(days=7)) for s, f in frc.items()], 28)
         evc = pd.concat([asset_events(f, mas=mset, pool=poolc.reindex(f["idx"]).to_numpy(),
                                       dead=cr[s].index[-1] < c_end - pd.Timedelta(days=7)) for s, f in frc.items()],
                         ignore_index=True)
@@ -881,6 +922,8 @@ def main():
             continue
         idx = d.index; ltr = np.log(d.close.to_numpy(float)); k = 20
         fwd = np.r_[ltr[k:] - ltr[:-k], np.full(k, np.nan)]
+        if idx[-1] < s_end - pd.Timedelta(days=7):           # delisted: valued at its last close, not dropped
+            fwd = dead_tail(fwd, ltr, k)
         mm = member_mask(idx, spells[s]) & np.isfinite(fwd)
         pool_parts.append(pd.Series(fwd[mm], index=idx[mm]))
     pool_s = pd.concat(pool_parts).groupby(level=0).mean().sort_index()
@@ -898,7 +941,7 @@ def main():
     ev_s = pd.concat(evs, ignore_index=True)
     ev_s.to_parquet(OUT / "events_stocks.parquet")
     c_end = max(f["idx"][-1] for f in crypto.values())
-    pool_c = pool_forward([(f, None) for f in crypto.values()], 28)
+    pool_c = pool_forward([(f, None, f["idx"][-1] < c_end - pd.Timedelta(days=7)) for f in crypto.values()], 28)
     ev_c = pd.concat([asset_events(f, pool=pool_c.reindex(f["idx"]).to_numpy(), dead=f["idx"][-1] < c_end - pd.Timedelta(days=7))
                       for f in crypto.values()], ignore_index=True)
     ev_c.to_parquet(OUT / "events_crypto.parquet")
@@ -919,11 +962,14 @@ def main():
     say(f"  without old LUNA (exploratory: its May-2022 collapse puts {int((luna.ar_m < -5).sum())} touches at about "
         f"{luna.ar_m[luna.ar_m < -5].mean():+.1f} log units each into the 28-day windows):")
     robust_block(ev_c[ev_c.asset != "LUNA"], say)
+    gn = key_grid(ev_c[ev_c.asset != "LUNA"]); gn.to_csv(OUT / "grid_crypto_without_luna.csv", index=False)
 
     say("\nGrid, S&P members (AR at 20 days; key = real minus placebo):")
     say(hs["grid"].to_string(index=False, float_format=fmt))
     say("\nGrid, crypto (AR at 28 days):")
     say(hc["grid"].to_string(index=False, float_format=fmt))
+    say("\nGrid, crypto without old LUNA (exploratory; its collapse sits in the real-line touches of most averages):")
+    say(gn.to_string(index=False, float_format=fmt))
 
     # ---------------------------------------------------------------- exploratory tables
     say("\n" + "=" * 100); say("EXPLORATORY"); say("=" * 100)
@@ -982,7 +1028,9 @@ def main():
     for lab, x, cols_ in (("HOOD-like, real 200-day, limit at the line (E1)", an, e1),
                           ("HOOD-like, placebo lines, E1", an_p, e1),
                           ("HOOD-like, real 200-day, buy after the bounce (E2)", an, e2),
-                          ("HOOD-like, strong bounce (close >= 1 ATR above), E2", strong, e2)):
+                          ("HOOD-like, strong bounce (close >= 1 ATR above), E2", strong, e2),
+                          ("HOOD-like, real 200-day, E1, without 2009", an[pd.to_datetime(an.day, unit="D").dt.year != 2009], e1),
+                          ("HOOD-like, real 200-day, E2, without 2009", an[pd.to_datetime(an.day, unit="D").dt.year != 2009], e2)):
         for col, h, base in cols_:
             q = x[col].dropna()
             if len(q) < 5:
@@ -996,17 +1044,31 @@ def main():
     hd = pd.DataFrame(rows); hd.to_csv(OUT / "hood_analog.csv", index=False)
     say("\nHOOD-like analog (60-day vol >= 50%, >= 20% below the 52-week high, falling 200-day, >= 20 closes above).")
     say("first_touches = touches with no touch of the same stock's line (HOOD-like or not) in the previous 28 calendar")
-    say("days; eff_n from the month-block SE. `--null` gives each row's no-edge level (null_summary.txt).")
+    say("days; eff_n from the month-block SE. `--null` gives the no-edge level of the 20-day rows of the full analog")
+    say("(null_summary.txt); the 5- and 60-day, strong-bounce and without-2009 rows have none.")
     say(hd.to_string(index=False, float_format=fmt))
+    yr = pd.to_datetime(an.day, unit="D").dt.year
+    say("  touches by year: " + ", ".join(f"{y} {c}" for y, c in yr.value_counts().sort_index().items()))
+    for col in ("ar_m", "ar_m_lo", "ar_pool"):
+        drops = {y: an[yr != y][col].mean() * 100 for y in sorted(yr.unique())}
+        lo_y = min(drops, key=drops.get); hi_y = max(drops, key=drops.get)
+        say(f"  {col}: mean {an[col].mean() * 100:+.2f}; dropping one year at a time {drops[lo_y]:+.2f} (without {lo_y})"
+            f" to {drops[hi_y]:+.2f} (without {hi_y}); 2009 alone {an[yr == 2009][col].mean() * 100:+.2f} (n {(yr == 2009).sum()})")
     rows = []
     for lab, a, b in (("all touches", an, an_p), ("first touches", an[an.index.isin(ft_idx)], an_p[an_p.index.isin(ft_idx)])):
         for col in ("ar_m", "ar_m_lo", "ar_pool", "ar_e2", "ar_e2_lo"):
             d_, p_, lo_, hi_ = boot_diff(a, b, col, B=4000, ci=True)
+            dm, pm_, mlo, mhi = boot_diff_matched(a, b, col, B=4000)
             rows.append({"set": lab, "baseline": col, "n_real": int(a[col].notna().sum()), "n_placebo": int(b[col].notna().sum()),
                          "real_%": a[col].mean() * 100, "placebo_%": b[col].mean() * 100, "real_minus_placebo_%": d_ * 100,
-                         "ci_lo_%": lo_ * 100, "ci_hi_%": hi_ * 100, "p": p_})
+                         "ci_lo_%": lo_ * 100, "ci_hi_%": hi_ * 100, "p": p_, "same_month_%": dm * 100,
+                         "same_month_ci_lo_%": mlo * 100, "same_month_ci_hi_%": mhi * 100, "same_month_p": pm_})
     hp = pd.DataFrame(rows); hp.to_csv(OUT / "hood_analog_vs_placebo.csv", index=False)
-    say("\nHOOD-like analog, real 200-day minus the placebo lines (20 days; exploratory):")
+    pl_yr = pd.to_datetime(an_p.day, unit="D").dt.year
+    say("\nHOOD-like analog, real 200-day minus the placebo lines (20 days; exploratory). same_month = compared within the")
+    say("same calendar month, which removes timing: share of touches in 2008 real "
+        f"{(yr == 2008).mean() * 100:.0f}% vs placebo {(pl_yr == 2008).mean() * 100:.0f}%, in 2009 real {(yr == 2009).mean() * 100:.0f}%"
+        f" vs placebo {(pl_yr == 2009).mean() * 100:.0f}%:")
     say(hp.to_string(index=False, float_format=fmt))
 
     # the market itself after touches (exploratory): pool's own forward return on touch dates minus its average

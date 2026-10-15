@@ -1800,6 +1800,9 @@ which averages (daily, weekly or monthly, of what length)?
     reported as well.
   - P-values are one-sided.
   - FDR = Benjamini-Hochberg false-discovery rate across the 34 averages.
+  - "Within the same month" (post hoc): each month's real-line mean minus that month's
+    placebo-line mean, weighted by the real-line count, months resampled. This removes timing,
+    i.e. real and placebo lines being touched in different markets.
 - **Pre-registered tests.** The primary spec is the daily 200-day SMA, E1, H, same-year drift.
   - B1/C1, bounce: AR > 0.
   - B2/C2, key level: real minus placebo > 0.
@@ -1812,8 +1815,10 @@ which averages (daily, weekly or monthly, of what length)?
 **Audit and verification.**
 
 - **First audit:** four lenses with skeptics confirmed 17 findings.
-- **Verification pass on this write-up:** four lenses, each checked by a skeptic. 48 of 59
-  findings were confirmed, mostly wording and two code issues.
+- **Two verification passes on this write-up,** each lens checked by a skeptic:
+  - the first confirmed 48 of 59 findings, mostly wording plus two code issues;
+  - the second confirmed 16 of 24, including the timing and 2009 caveats below and one more
+    code issue.
 - All are fixed. Every post-registration change is listed under AUDIT CORRECTIONS in the
   docstring. The registered verdicts are still computed as registered.
 - **The pre-registered baseline is biased by event selection.** Its calendar year includes the
@@ -1821,10 +1826,16 @@ which averages (daily, weekly or monthly, of what length)?
   no-edge simulation: each asset's own daily bars are resampled iid, with the same dates,
   members and code, so nothing is predictable. The simulation shows what each baseline reports
   when there is no edge.
-- **Dead assets are valued at their last close in every column.** The verification pass found
-  that the pool column still dropped them. Old LUNA's May-2022 collapse puts about ten touches
-  at about −14 in log terms into the crypto windows: one on the real line, the rest on placebo
-  lines. Crypto results are therefore also shown without old LUNA.
+- **Dead assets are valued at their last close everywhere: in the event columns and in the
+  pool benchmark itself.**
+  - The verification passes found that both still dropped them: the benchmark lost a dying
+    series in its last 20 (crypto 28) bars, so it "knew" which assets were about to vanish.
+  - Fixing the benchmark moves the stock figures by about 0.01 pts. It moves the crypto pool
+    bounce from −2.34 (CI −6.00 to −0.05) to −2.18 (CI −5.71 to +0.02).
+  - Old LUNA's May-2022 collapse puts about ten touches at about −14 in log terms into the
+    crypto windows, one on the real line and the rest on placebo lines.
+  - The 200-day crypto results and the crypto grid are therefore also shown without old
+    LUNA.
 - **Other fixes:**
   - EMAs are seeded with an SMA. The first-close seed had been off by up to 40% on long
     weekly/monthly EMAs.
@@ -1842,56 +1853,66 @@ which averages (daily, weekly or monthly, of what length)?
 
 | | same-year drift (registered) | leave-out drift | pool (gross) |
 |---|---|---|---|
-| bounce (B1) | −0.09 (p 0.57) | −0.24 (p 0.73) | +0.06 (p 0.28) |
-| 95% CI | −0.84 to +0.53 | −1.00 to +0.42 | −0.13 to +0.23 |
-| effective n | ~740 | ~770 | ~7,200 |
-| no-edge (null) level | +0.22 | 0.00 | −0.02 |
+| bounce (B1) | −0.09 (p 0.57) | −0.24 (p 0.73) | +0.07 (p 0.25) |
+| 95% CI | −0.84 to +0.53 | −1.00 to +0.42 | −0.12 to +0.24 |
+| effective n | ~740 | ~770 | ~7,000 |
+| no-edge (null) level | +0.22 | 0.00 | {{NS_POOL}} |
 | real − placebo (B2) | −0.07 (p 0.92) | −0.09 (p 0.95) | −0.04 (p 0.83) |
 | 95% CI of real − placebo | −0.19 to +0.03 | −0.21 to +0.02 | −0.14 to +0.05 |
-| first touches (n 23,495): bounce / real − placebo | −0.16 / −0.13 | −0.30 / −0.15 | +0.02 / −0.05 |
-| rising − falling 200-day (B4) | +0.41 (p 0.17) | +0.60 (p 0.09) | +0.31 (p 0.07) |
-| B4 null level | −0.31 | +0.08 | +0.05 |
-| B4 minus its null level | +0.72 (p 0.05) | +0.52 (p 0.13) | +0.26 (p 0.11) |
+| real − placebo within the same month (95% CI) | −0.11 (−0.20 to −0.01) | −0.13 (−0.23 to −0.03) | −0.06 (−0.15 to +0.03) |
+| first touches (n 23,495): bounce / real − placebo | −0.16 / −0.13 | −0.30 / −0.15 | +0.03 / −0.05 |
+| rising − falling 200-day (B4) | +0.41 (p 0.17) | +0.60 (p 0.09) | +0.30 (p 0.08) |
+| B4 null level | −0.31 | +0.08 | {{NS_B4_POOL}} |
+| B4 minus its null level | +0.72 (p 0.05) | +0.52 (p 0.13) | {{B4_POOL_ADJ}} |
 
 - **Halves (1996-2011 / 2012-2026):** B1 −0.16 / −0.02; B2 −0.11 / −0.04.
-- **B3:** the X2 trade makes −0.26% per trade (p 0.97; halves −0.42 / −0.11). It trails the
+- **B3:** the X2 trade makes −0.26% per trade (p 0.97; halves −0.42 / −0.11) and trails the
   placebo lines by 0.13 pts. Against the leave-out drift it makes −0.20%.
-- **B4 with the X2 exit:** measured from its null level, it is +0.02 (same-year) and −0.12
+- **B4 with the X2 exit,** measured from its null level: +0.02 (same-year) and −0.12
   (leave-out). The trend tilt appears with the 20-day time exit only.
-- **B5:** 0 of 34 averages pass, and none passes under the leave-out or pool baselines either.
-- **Effective n:** touches cluster in market-wide sell-offs, so against the asset's own drift
-  41,543 touches in 369 months carry the information of about 740-770 independent ones.
-  Against the pool the market move cancels, and the effective n is about 7,200. A bounce edge
-  over the market of more than about 0.2 pts per 20 days is ruled out.
+- **B5:** 0 of 34 averages pass. None passes under the leave-out or pool baselines either.
+- **Within the same month the 200-day line does slightly *worse* than the placebo lines**
+  (−0.06 to −0.13; −0.15 with the X2 exit and leave-out drift, CI −0.25 to −0.06). This is
+  post hoc. If anything, the average is a slightly worse place to buy than a nearby price.
+- **Effective n:**
+  - Touches cluster in market-wide sell-offs. Against the asset's own drift, 41,543 touches
+    in 369 months carry the information of about 740-770 independent ones.
+  - Against the pool the market move cancels, and the effective n is about 7,000.
+  - A bounce edge over the market of more than about 0.25 pts per 20 days is ruled out.
 
 *Crypto, daily 200-day SMA, 28 days (1,055 touches, 41 series):*
 
 | | same-year drift (registered) | leave-out drift | pool (gross) |
 |---|---|---|---|
-| bounce (C1) | −5.62 (p 0.99) | −3.67 (p 0.93) | −2.34 (p 0.98) |
-| 95% CI | −10.49 to −0.90 | −8.82 to +1.13 | −6.00 to −0.05 |
-| no-edge (null) level | −0.28 | +0.38 | +0.33 |
-| real − placebo (C2) | +1.54 (p 0.16) | +1.48 (p 0.19) | +0.83 (p 0.28) |
-| rising − falling (C4) | −1.37 (p 0.64) | +1.30 (p 0.36) | −2.24 (p 0.83) |
-| without old LUNA: bounce | −4.48 (CI −8.13 to −0.37) | −2.38 (CI −6.32 to +2.20) | −1.18 (CI −2.69 to +0.10) |
-| without old LUNA: real − placebo | −0.24 (p 0.59) | −0.31 (p 0.61) | −0.82 (p 0.88) |
-| first touches (n 439): bounce / real − placebo | −5.31 / +0.28 | −3.64 / 0.00 | −3.31 / −0.15 |
+| bounce (C1) | −5.62 (p 0.99) | −3.67 (p 0.93) | −2.18 (p 0.97) |
+| 95% CI | −10.49 to −0.90 | −8.82 to +1.13 | −5.71 to +0.02 |
+| no-edge (null) level | −0.28 | +0.38 | {{NC_POOL}} |
+| real − placebo (C2) | +1.54 (p 0.16) | +1.48 (p 0.19) | +0.73 (p 0.30) |
+| real − placebo within the same month | +2.59 (p 0.04) | +2.26 (p 0.06) | +0.50 (p 0.34) |
+| rising − falling (C4) | −1.37 (p 0.64) | +1.30 (p 0.36) | −2.50 (p 0.85) |
+| without old LUNA: bounce | −4.48 (CI −8.13 to −0.37) | −2.38 (CI −6.32 to +2.20) | −1.05 (CI −2.51 to +0.24) |
+| without old LUNA: real − placebo | −0.24 (p 0.59) | −0.31 (p 0.61) | −0.88 (p 0.89) |
+| without old LUNA: real − placebo within the same month | +1.10 (p 0.16) | +0.78 (p 0.24) | −0.86 (p 0.89) |
+| first touches (n 439): bounce / real − placebo | −5.31 / +0.28 | −3.64 / 0.00 | −3.03 / −0.19 |
 
 - **C3:** the X2 trade makes −3.75% per trade (p 0.97). Against the placebo lines it is +0.45
-  (p 0.34). Without old LUNA it makes −4.65 / −2.20 per trade, and −0.18 vs placebo.
+  (p 0.34). Without old LUNA: −4.65 / −2.20 per trade, and −0.18 vs placebo.
 - **C5:** 0 of 34 averages pass.
-- **Old LUNA dominates the crypto contrasts.** Its collapse adds 9-10 touches worth about −14
-  log units each, most of them on placebo lines. That turns real minus placebo from −0.2 to
-  +1.5 (same-year), moves C4 from +0.2 to −1.4, and inflates the iid SE: effective n is about
-  430 with LUNA and about 145 without.
+- **Old LUNA dominates the crypto contrasts.**
+  - Its collapse adds about ten touches worth about −14 log units each, most of them on
+    placebo lines.
+  - That turns real minus placebo from −0.2 to +1.5 (same-year), and the nominal same-month
+    +2.6 (p 0.04) falls to +1.1 (p 0.16) without it.
+  - It moves C4 from +0.2 to −1.4, and it inflates the iid SE: the effective n is about 430
+    with LUNA and about 145 without.
 - **How to read it:** coins that touch their 200-day from above show no bounce.
   - They trail their own drift by 2-6 pts over 28 days, and the coin pool by about 1-2 pts.
-  - Only the registered baseline's CI excludes zero without LUNA.
-  - The coin pool's own next 28 days after these touches averaged 1.9 pts below normal (CI
-    −6.0 to +2.5). Whether the weakness is market-wide cannot be told.
-- **Crypto null:** iid bars give a placebo-line gradient under the registered baseline: +1.03
-  at −2 ATR down to −2.11 at +2 ATR. The actual gradient without LUNA runs from −0.92 to
-  −7.82, so the null accounts for about 45% of it.
+  - Without LUNA, only the registered baseline's CI excludes zero.
+  - The coin pool's own next 28 days after these touches averaged 1.7 pts below normal (CI
+    −5.8 to +2.6). Whether the weakness is market-wide cannot be told.
+- **Crypto null:** under the registered baseline, iid bars give a placebo-line gradient from
+  +1.03 at −2 ATR to −2.11 at +2 ATR. That is about 45% of the actual gradient without LUNA
+  (−0.92 to −7.82).
 
 *Placebo lines, S&P members, 200-day, 20 days:*
 
@@ -1901,65 +1922,63 @@ which averages (daily, weekly or monthly, of what length)?
 | same-year drift (null) | +0.72 | +0.51 | +0.22 | −0.05 | −0.33 |
 | leave-out (actual) | −0.40 | −0.36 | −0.24 | −0.00 | +0.11 |
 | leave-out (null) | +0.02 | +0.05 | 0.00 | −0.02 | −0.05 |
-| pool (actual) | −0.06 | −0.00 | +0.06 | +0.17 | +0.25 |
-| pool (null) | 0.00 | +0.02 | −0.02 | −0.01 | +0.01 |
+| pool (actual) | −0.05 | +0.01 | +0.07 | +0.18 | +0.26 |
+| pool (null) | {{NG_P}} |
 
 - **The registered baseline shows "deeper is better",** but the null has the same slope, only
-  steeper, so it is mechanical.
+  steeper, so the pattern is mechanical.
 - **Under the unbiased baselines the order reverses:** touches of lines above the average beat
   touches of lines below it.
-  - The gap is +0.44 pts under leave-out (p 0.002) and +0.24 under the pool (p 0.002). With
-    the X2 exit it is +0.35 (p < 0.001). For +2 minus −2 ATR the figures are +0.51 / +0.31 /
-    +0.40.
-  - This is post hoc, but clear, and it fits trend persistence (a shallower pullback means a
-    stronger trend), not support.
-  - Crypto runs the other way, not significantly: −2.2 (leave-out) and −1.2 (pool); −1.3 and
-    −0.4 without LUNA.
+  - Lines above minus lines below: +0.44 pts under leave-out (p 0.002), +0.24 under the pool
+    (p 0.002), and +0.35 with the X2 exit (p < 0.001).
+  - Part of the leave-out gap is timing: below-line touches land in months when the market
+    kept falling. Within the same month the gaps are +0.10 (leave-out, p 0.13), +0.10 (X2,
+    p 0.05) and +0.22 (pool, p 0.003; CI +0.06 to +0.39).
+  - This is post hoc, but the pool version is clear. It fits trend persistence (a shallower
+    pullback means a stronger trend), not support.
+- **Crypto is mixed and never significant.**
+  - At 28 days it runs the other way: −2.2 (leave-out) and −1.4 (pool); without LUNA −1.3
+    and −0.6.
+  - With the X2 exit it runs the same way as stocks: +1.6 (p 0.22); without LUNA +1.35
+    (p 0.25).
 
 *The grid (S&P members, 20 days):*
 
 | averages | same-year (registered) | leave-out | pool |
 |---|---|---|---|
-| short: 20-50-day, 10-week | −0.53 to −0.66 | −0.17 to −0.29 | +0.01 to +0.07 |
-| long: 100-200-week, 20-24-month | +0.25 to +0.67 | −0.21 to −0.01 | −0.02 to +0.16 |
+| short: 20-50-day, 10-week | −0.53 to −0.66 | −0.17 to −0.29 | +0.01 to +0.08 |
+| long: 100-200-week, 20-24-month | +0.25 to +0.67 | −0.21 to −0.01 | −0.00 to +0.17 |
 
 - **Both the bad short averages and the good long ones come from the registered baseline.**
-  The baseline follows the path that led to the touch. The same-year drift is depressed in
-  years with a long decline to a 2-4-year average, and elevated in the strong years in which
-  brief dips to a 20-day average happen.
-- **Under the leave-out drift, every average except W-EMA20 (+0.01) is negative.**
+  The baseline follows the path that led to the touch:
+  - the same-year drift is depressed in years with a long decline to a 2-4-year average;
+  - it is elevated in the strong years in which brief dips to a 20-day average happen.
+- **Under the leave-out drift every average except W-EMA20 (+0.01) is negative.**
 - **The market itself does not rebound after these touches.** The member pool's next 20 days
-  are 0.04-0.24 pts below its average after touches of every one of the 34 averages, none
+  are 0.04-0.25 pts below its average after touches of every one of the 34 averages, none
   significantly (`market_after_touches.csv`).
-- **The no-edge simulation on 8 averages** (`null_grid_summary.txt`; D-SMA20, D-SMA50, W-SMA10,
-  W-SMA100, W-SMA200, W-EMA100, M-SMA20, M-SMA24; 8 runs) reproduces the pattern.
-  - With no edge, the registered baseline reports −0.30 to −0.51 for the three short
-    averages and +0.66 to +1.05 for the five long ones.
-  - The leave-out baseline (−0.08 to +0.13) and the pool baseline (−0.06 to +0.05) stay near
-    zero.
-  - Measured from their no-edge levels, all 8 averages are negative under the same-year
-    (−0.06 to −0.38) and leave-out (−0.08 to −0.31) baselines.
-  - Against the pool they run −0.03 to +0.15.
-  - The crypto rows of that file are too noisy at 8 runs to use.
-- **Real minus placebo:** −0.17 to +0.17 vs the leave-out drift, and −0.09 to +0.12 vs the
-  pool.
+- {{GRID_NULL}}
+- **Real minus placebo:** −0.17 to +0.17 against the leave-out drift, and −0.09 to +0.12
+  against the pool.
   - Nominal p < 0.05: four averages under leave-out (D-EMA100, W-EMA20, W-EMA100, M-EMA24),
-    one under pool (W-EMA100), and three under same-year (W-SMA100, W-EMA100, M-EMA24).
+    one under the pool (W-EMA100) and three under same-year (W-SMA100, W-EMA100, M-EMA24).
   - That is about what 34 tries per baseline produce by chance. None survives FDR.
-- **Crypto grid:**
-  - Every average is negative against the same-year drift (−0.6 to −13.2).
-  - Against the leave-out drift all but D-EMA20 (+0.3) are negative; against the pool the
-    range is −7.3 to +0.4.
-  - No key-level test reaches even nominal p < 0.05.
-  - The coin pool's next 28 days are at or below average after touches of all 34 averages
-    (0 to −4.4 pts, none significant on its own).
+- **Crypto grid** (`grid_crypto.csv`; without old LUNA, whose collapse sits in the real-line
+  touches of most averages, in `grid_crypto_without_luna.csv`; that version in brackets):
+  - every average is negative against the same-year drift: −0.6 to −13.2 [−0.3 to −7.3]
+  - against the leave-out drift all but D-EMA20 (+0.3 [+0.2]) are negative
+  - against the pool the range is −6.9 to +1.7 [−1.5 to +1.7]
+  - key level: nothing is nominally significant with LUNA. Without it, M-SMA20 against the
+    leave-out drift is +2.33 (p 0.04). Nothing survives FDR.
+  - the coin pool's next 28 days after touches range from −5.2 to +0.2 pts vs average,
+    mostly negative, none significant on its own
 
 *Chart lines (exploratory).*
 
 - The member pool's OHLC is dividend-back-adjusted, so its averages sit about 0.25 ATR (median
-  over member days) below the chart averages traders see. Only 61% of chart-line 200-day
-  touches are also pool touches.
-- Rerun of the daily averages on chart prices (returns still total return):
+  over member days) below the chart averages traders see.
+- Only 61% of chart-line 200-day touches are also pool touches.
+- Rerunning the daily averages on chart prices (returns still total return):
   - B1 −0.13% (p 0.62); B2 −0.07% (p 0.90)
   - leave-out −0.22 / −0.09
   - pool +0.04 / −0.07
@@ -1971,65 +1990,83 @@ known.
 
 | split | n | E1 (registered) | E2 same-year | E2 leave-out | pool |
 |---|---|---|---|---|---|
-| closed back above the line | 19,094 | +1.14 | −0.19 | −0.26 | +0.05 |
-| closed below the line | 22,449 | −1.14 | — | — | +0.07 |
-| closed 1+ ATR above (strong bounce) | 2,057 | +3.61 | −0.42 | −0.26 | +0.39 (p 0.03) |
-| ≥ 60 closes above before the touch | 18,560 | +0.06 | −0.16 | −0.13 | +0.21 (p 0.08) |
-| lone average (no other within 0.25 ATR) | 1,226 | +0.08 | +0.96 | +1.24 | +0.52 (p 0.05) |
-| 4+ of the 34 averages within 0.25 ATR | 29,494 | −0.08 | −0.19 | −0.32 | −0.03 |
-| 20-40% below the 52-week high | 4,207 | −0.40 | −0.55 | −0.36 | −0.35 |
+| closed back above the line | 19,094 | +1.14 | −0.19 | −0.26 | +0.06 |
+| closed below the line | 22,449 | −1.14 | — | — | +0.08 |
+| closed 1+ ATR above (strong bounce) | 2,057 | +3.61 | −0.42 | −0.26 | +0.40 (p 0.02) |
+| ≥ 60 closes above before the touch | 18,560 | +0.06 | −0.16 | −0.13 | +0.22 (p 0.07) |
+| lone average (no other within 0.25 ATR) | 1,226 | +0.08 | +0.96 | +1.24 | +0.53 (p 0.05) |
+| 4+ of the 34 averages within 0.25 ATR | 29,494 | −0.08 | −0.19 | −0.32 | −0.02 |
+| 20-40% below the 52-week high | 4,207 | −0.40 | −0.55 | −0.36 | −0.33 |
 
 - **Read the E1 rows split by the day's close with care.** E1 fills at the line, earlier in the
   day, so those rows contain the day's own move. Judge them by E2.
 - **Strong bounces:**
-  - +0.39 vs the pool, from the bounce close (one-sided p 0.03).
-  - The verification pass found +0.42 vs the pool when bought at the next open, but −0.2 to
-    −0.26 vs the leave-out drift from either entry. The sign follows the baseline, not the
-    entry.
+  - +0.40 against the pool, from the bounce close (one-sided p 0.02).
+  - The second verification pass found +0.42 against the pool when bought at the next open
+    (gross; +0.36 net of costs), but −0.26 to −0.29 against the leave-out drift from either
+    entry (net of costs).
+  - The sign follows the baseline, not the entry.
   - This is one of 40 split rows, each read several ways.
 - **Confluence did not help.** If anything, a lone average did better than a stack of them.
-- **Crypto splits:**
-  - Negative almost everywhere.
-  - The exceptions:
-    - E1 rows that contain the day's own move
-    - the near-zero-depth row (E1 +1.45, n 10)
-    - a few small pool-adjusted rows (+0.5 to +0.6)
-    - strong bounces against the leave-out drift (+1.07, n 59, p 0.42)
-  - The same strong-bounce trades are −2.05 vs same-year and −1.40 vs the pool.
+- **Crypto splits are negative almost everywhere.** The exceptions:
+  - E1 rows that contain the day's own move
+  - the near-zero-depth row (E1 +1.45, n 10)
+  - a few small pool-adjusted rows
+  - strong bounces against the leave-out drift (+1.07, n 59, p 0.42; the same trades are
+    −2.05 against the same-year drift and negative against the pool)
 
 *HOOD-like analog.* S&P members with 60-day vol ≥ 50%, ≥ 20% below the 52-week high, a falling
-200-day, and ≥ 20 closes above it before the touch: 234 touches in 75 months, 131 of them first
+200-day and ≥ 20 closes above it before the touch: 234 touches in 75 months, 131 of them first
 touches. 20 days:
 
 | entry | same-year | leave-out | pool | null (same-year / leave-out / pool) |
 |---|---|---|---|---|
-| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.5) | +0.94 (CI −1.8 to +3.4) | +0.28 / −0.31 / −1.25 |
-| E1, placebo lines | −0.45 | −1.23 | −0.61 | +1.04 / +0.18 / −0.68 |
-| E2, real 200-day (n 106) | +1.88 | +2.85 | | −0.81 / −1.29 |
+| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.4) | +0.97 (CI −1.8 to +3.5) | +0.28 / −0.31 / {{NA_POOL}} |
+| E1, placebo lines | −0.45 | −1.23 | −0.58 | +1.04 / +0.18 / {{NA_PPOOL}} |
+| E2, real 200-day (n 106) | +1.88 (CI −3.2 to +7.3) | +2.85 (CI −2.8 to +8.5) | | −0.81 / −1.29 |
 | E2, strong bounce (n 6) | +4.28 (CI −4.3 to +19.3) | +5.88 (CI −2.1 to +20.0) | | |
+| E1 without 2009 (n 161) | −1.43 (CI −6.0 to +2.9) | −1.58 (CI −6.4 to +2.7) | +0.27 (CI −3.3 to +3.7) | |
+| E2 without 2009 (n 69) | −1.29 | −1.09 | | |
 
-- **The analog's null is noisy.** The SE of a 16-run mean is about 0.4, and earlier audit runs
-  of the same filter gave +0.7 to +1.3 for E1 under the same-year baseline.
-- **The pool null is negative here.** That comes mainly from the 60-day-vol ≥ 50% filter.
-  Returns are in logs, and stocks that volatile have a lower mean log return than the pool
-  (volatility drag), although their arithmetic drift is no lower. Within the volatile subset,
-  a falling 200-day deepens it. A falling 200-day alone gives about 0.
+- **The positive lean is one episode.** 73 of the 234 touches are from 2009, 70 of them in the
+  May-November rebound; they averaged +8.25 / +10.70 / +2.52.
+  - Dropping any other single year keeps the means positive.
+  - Dropping 2009 turns the same-year and leave-out means negative.
+  - The 60-day leave-out mean falls from +6.10 to +0.01.
+- **The analog's null is noisy.** The SE of a 16-run mean is about 0.4. Earlier audit runs of
+  the same filter gave +0.7 to +1.3 for E1 against the same-year baseline.
+- **The pool null is negative here.**
+  - It comes mainly from the 60-day-vol ≥ 50% filter. Returns are in logs, and stocks that
+    volatile have a lower mean log return than the pool (volatility drag), although their
+    arithmetic drift is no lower.
+  - Within the volatile subset, a falling 200-day deepens it. A falling 200-day alone gives
+    about 0.
 - **Real minus placebo inside the analog** (`hood_analog_vs_placebo.csv`):
 
   | entry | same-year | leave-out | pool |
   |---|---|---|---|
   | E1 | +2.04 (p 0.11) | +3.48 (p 0.03) | +1.55 (p 0.11) |
+  | E1 within the same month | +0.58 (p 0.29) | +1.11 (p 0.19) | +0.90 (p 0.20) |
   | E2 | +2.44 (p 0.15) | +4.13 (p 0.05) | |
+  | E2 within the same month | −0.63 (p 0.63) | +0.29 (p 0.44) | |
   | first touches, E1 | +1.00 (p 0.26) | +2.19 (p 0.09) | +0.85 (p 0.24) |
+  | first touches, E1, within the same month | −0.04 | +0.04 | +0.31 |
 
-  The null differences are about −0.5 to −0.75.
-- **This is the only place the 200-day line looks special.** It is one exploratory subset among
-  many, from 75 months: worth a forward test at most, not evidence.
+  - Much of the raw gap is timing. 13% of the placebo-line touches fall in the 2008 crash,
+    against 4% of the real-line ones. 31% of the real-line touches fall in the 2009 rebound,
+    against 22%.
+  - The null differences (all touches) are {{NA_NULLDIFF}}. None were simulated for first
+    touches or within months.
+  - Adding them back to the within-month gaps leaves about {{AN_MATCH_ADJ}}.
+- **This is the only place the 200-day line looks special, and much of it is timing.** It is
+  one exploratory subset among many, from 75 months: a weak hint at most.
 - **HOOD's own record:** 15 touches of its 200-day from Nov 2022 to Jul 2026, 8 of them first
   touches.
-  - Averages: −4.46 (same-year), −3.76 (leave-out), −3.73 (pool).
-  - Individual results run from −31% to +39%; 4 of 15 beat the same-year drift.
-  - Its placebo lines did better, +2 to +4 vs the pool.
+  - Over 20 days: −4.46 (same-year), −3.76 (leave-out), −3.73 (pool). Individual results run
+    from −31% to +39%, and 4 of 15 beat the same-year drift.
+  - Over 60 days: +14.04 / +20.27 (9 of 15 positive), mostly from the two April-2025 touches.
+    Its placebo lines did about as well over 60 days (+11.2 / +21.9), and better over 20
+    days (+2 to +4 against the pool).
 
 *Single assets, 200-day touches, 20 days (small n; exploratory).*
 
@@ -2038,9 +2075,9 @@ touches. 20 days:
   bounce. For coins it is the coin minus the coin pool.
 - **Same-year / pool:**
   - SPY +0.40 / +0.81 (n 77)
-  - S&P 1962-2026 −0.14 (n 150); since 1996 −0.04 / +0.78 (n 71)
+  - S&P 1962-2026 −0.14 (n 150); since 1996 −0.04 / +0.79 (n 71)
   - QQQ +0.93 / +1.51 (n 60)
-  - IWM −0.38 / +0.36
+  - IWM −0.38 / +0.42
   - TSLA +0.23 / −1.08 (n 52)
   - HOOD −4.46 / −3.73 (n 15)
   - COIN −13.6 / −12.7 (n 13)
@@ -2061,10 +2098,10 @@ T-bills otherwise:
 | BTC | 2018 | 12 | 5% | −0.1% | −36% | 31.2% | −77% |
 | ETH | 2018 | 13 | 5% | −7.3% | −61% | 19.0% | −90% |
 
-- Across the 50-day, 200-day, 40-week and 10-month versions (`backtests_named.csv`),
+- **Across the 50-day, 200-day, 40-week and 10-month versions** (`backtests_named.csv`),
   bounce-buying is invested 3-17% of the time.
-- It trails buy & hold on every asset except COIN, whose buy & hold lost money (−2 to −6%/yr
-  since 2021-22, against −1.9 to +3.6% for the bounce versions).
+- **It trails buy & hold on every asset except COIN,** whose buy & hold lost money: −2 to −6%/yr
+  since 2021-22, against −1.9 to +3.6% for the bounce versions.
 
 **Literature** (web search; abstracts and digests only):
 
@@ -2084,10 +2121,15 @@ T-bills otherwise:
 - **Buy-the-dip tests:** Bonini, Shohfi & Simaan (2024) and AQR's "Hold the Dip" (2025) find no
   reliable gain.
 
-This study fits that literature for stocks: no support effect at averages, and a slight
-trend-persistence tilt. Lines above the average beat lines below it, and rising averages beat
-falling ones with the 20-day exit. Crypto shows no such tilt: C4 is null, and its placebo-line
-order runs the other way, though not significantly.
+**How this fits:**
+
+- **Stocks match that literature.** There is no support effect at averages (within the same
+  month the average is slightly worse than nearby lines), and there is a slight
+  trend-persistence tilt:
+  - lines above the average beat lines below it, clearly so against the pool;
+  - rising averages beat falling ones with the 20-day exit, weakly.
+- **Crypto shows no such tilt.** C4 is null, and the placebo-line order is mixed: the other way
+  at 28 days, the same way with the X2 exit, never significant.
 
 **Practical reading:**
 
@@ -2096,7 +2138,11 @@ order runs the other way, though not significantly.
   than a line 1-2 ATR away.
 - **Buying after the bounce is confirmed** (HOOD's close near 101) does no better on average.
 - **A bounce in a volatile, beaten-down stock like HOOD has no reliable edge either way.**
+  - The 234 HOOD-like touches averaged +1.6% (same-year) / +2.2% (leave-out) over 20 days.
+    But 73 of them come from 2009, mostly the May-November rebound, and without 2009 they
+    averaged −1.4% / −1.6%.
   - Only 6 past HOOD-like touches bounced as strongly as HOOD just did.
-  - Across all 234 HOOD-like touches bought at the line, the 10th-90th percentile of the
-    20-day abnormal return is about −18% to +19% (−16% to +20% when bought after the bounce).
-  - HOOD's own 15 past touches of its 200-day averaged −4.5%.
+  - Across all 234 bought at the line, the 10th-90th percentile of the 20-day abnormal return
+    is about −18% to +19% (−16% to +20% when bought after the bounce).
+  - HOOD's own 15 past touches of its 200-day averaged −4.5% over 20 days (+14% over 60 days,
+    mostly from April 2025, with its placebo lines doing about as well).

@@ -652,17 +652,18 @@ FINDINGS has the full entry.
 
 The user's example: on 2026-10-15 HOOD fell to its 200-day SMA (about 95) and bounced to about
 101. The study was pre-registered in the module docstring (commit c8eceed) before any event
-statistic existed. An audit (4 lenses with skeptics, 17 findings) and a verification pass on
-the write-up (48 findings) were applied. The docstring's AUDIT CORRECTIONS lists the changes,
-and FINDINGS has the full entry and tables.
+statistic existed. It has since been checked three times: an audit (4 lenses with skeptics, 17
+findings) and two verification passes on the write-up (48 and 16 findings). The docstring's
+AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
 
 - **Design.**
   - **Touch:** 10 closes above the average, then a day whose low reaches it.
   - **34 averages:** daily 20-200, weekly 10-200, monthly 6-24, each as SMA and EMA.
   - **Placebo lines:** the same average shifted 1 and 2 ATR up and down, traded the same way.
-    ATR is the 14-day Wilder average true range, used as a volatility ruler, not the
-    indicator's ATR(10). This follows Osler (2000). It tests whether the average itself is
-    special, not merely whether dips get bought.
+    - ATR here is the 14-day Wilder average true range, used as a volatility ruler (not the
+      indicator's ATR(10)).
+    - The design follows Osler (2000).
+    - It tests whether the average itself is special, not merely whether dips get bought.
   - **Entry and exit:**
     - The registered test buys at the line with a limit order.
     - An exploratory version buys after a close back above the line, at the next open for
@@ -677,10 +678,10 @@ and FINDINGS has the full entry and tables.
     - *Leave-out drift:* the asset's average over all its days, excluding windows that start
       between 272 trading days before the touch and the end of its own window.
     - *Pool:* the equal-weight average S&P member (for crypto, coin) over the same 20 days,
-      measured close to close, before costs.
-    - A no-edge simulation (`--null 16`: each asset's own daily bars reshuffled, so nothing
-      is predictable) gives each baseline's *no-edge level*, the value it reports when there
-      is no edge.
+      close to close, before costs. Delisted members count at their last close.
+    - A no-edge simulation (`--null 16`) redraws each asset's own daily bars at random with
+      replacement, so nothing is predictable. It gives each baseline's *no-edge level*: the
+      value that baseline reports when there is no edge.
   - **Pools:**
     - 1,062 S&P 500 members, 1996-2026, point in time with dead companies: 41,543 touches of
       the 200-day.
@@ -688,38 +689,47 @@ and FINDINGS has the full entry and tables.
       includes LUNA): 1,055 touches.
   - **Single assets:** the S&P 500 1962-2026, 14 ETFs, TSLA, COIN, HOOD, BTC, ETH, SOL, BNB and
     ZEC.
-  - **Statistics:** month-block bootstrap (all touches in a month resampled together);
-    Benjamini-Hochberg false-discovery rate (FDR) across the 34 averages.
+  - **Statistics:**
+    - Month-block bootstrap: all touches in a month are resampled together.
+    - Benjamini-Hochberg false-discovery rate (FDR) across the 34 averages.
+    - "Within the same month" means a real-line touch is compared only with placebo-line
+      touches from the same calendar month, which removes timing.
 - **All ten pre-registered tests fail** (B1-B5 stocks, C1-C5 crypto).
   - **Stocks, 20 days after a 200-day touch:**
 
     | | same-year (registered) | leave-out | pool (gross) |
     |---|---|---|---|
-    | bounce (95% CI) | −0.09% (−0.84 to +0.53) | −0.24% (−1.00 to +0.42) | +0.06% (−0.13 to +0.23) |
-    | no-edge level | +0.22% | 0.00% | −0.02% |
+    | bounce (95% CI) | −0.09% (−0.84 to +0.53) | −0.24% (−1.00 to +0.42) | +0.07% (−0.12 to +0.24) |
+    | no-edge level | +0.22% | 0.00% | {{P_NULL}} |
     | real − placebo (95% CI) | −0.07 (−0.19 to +0.03) | −0.09 (−0.21 to +0.02) | −0.04 (−0.14 to +0.05) |
+    | real − placebo, within the same month | −0.11 (−0.20 to −0.01) | −0.13 (−0.23 to −0.03) | −0.06 (−0.15 to +0.03) |
 
-    - The pool figure is about 0.00% after the 0.06-point round-trip cost.
+    - The pool figure is about +0.01% after the 0.06-point round-trip cost.
     - No average out of 34 beats its placebo lines at 10% FDR, under any of the three
       baselines.
+    - Compared within the same month, the 200-day is if anything slightly *worse* than the
+      nearby lines (post hoc).
   - **Crypto, 28 days:**
     - −5.6% vs the same-year drift (CI −10.5 to −0.9).
     - −3.7% vs the leave-out drift (CI −8.8 to +1.1).
-    - −2.3% vs the coin pool (CI −6.0 to −0.05).
+    - −2.2% vs the coin pool (CI −5.7 to +0.02).
     - One coin weighs heavily. Old LUNA's May-2022 collapse puts about ten touches (one on
       the real line) at about −14 in log terms into these windows. Without old LUNA the
-      figures are −4.5% / −2.4% / −1.2% (CI −2.7 to +0.1 vs the pool).
-    - Real minus placebo is +1.5% (p 0.16) vs the same-year drift. That is LUNA too: without
-      it the figure is −0.2% (p 0.59), and −0.8% vs the pool.
-    - So crypto shows no bounce. It is unclear whether the touch also marks market-wide
-      weakness: the coin pool's own next 28 days after these touches averaged 1.9 pts below
-      normal, with a CI of −6.0 to +2.5.
-  - **Trend (B4):** touches of a rising 200-day beat touches of a falling one by 0.3-0.6
-    pts, p 0.07-0.17 depending on the baseline.
-    - Measured against each baseline's no-edge level, the gap is +0.26 to +0.72 pts (p 0.05-0.13).
-    - That is a weak hint of trend persistence, not a pass. It appears with the 20-day exit
-      only: with the X2 exit there is none.
-    - Crypto shows nothing.
+      figures are −4.5% / −2.4% / −1.05% (CI −2.5 to +0.2 vs the pool).
+    - Real minus placebo is +1.5% (p 0.16) vs the same-year drift. That comes from LUNA:
+      without it the figure is −0.2% (p 0.59), and −0.9% vs the pool.
+    - So crypto shows no bounce.
+    - It cannot be told whether the touch also marks market-wide weakness: the coin pool's
+      own next 28 days after these touches averaged 1.7 pts below normal, with a CI of −5.8
+      to +2.6.
+  - **Trend.**
+    - **B4:** touches of a rising 200-day beat touches of a falling one by 0.3-0.6 pts (p
+      0.08-0.17 depending on the baseline). Measured against each baseline's no-edge level,
+      the gap is {{B4_RANGE}}. That is a weak hint, not a pass. It appears with the 20-day
+      exit only (none with the X2 exit), and crypto shows nothing.
+    - **Placebo lines:** touches of the lines above the average beat touches of the lines
+      below it. Within the same month this is +0.22 pts vs the pool (p 0.003) and +0.10 vs
+      the leave-out drift (p 0.13). It is post hoc and fits trend persistence, not support.
   - **The tradable version (X2):**
     - Stocks: −0.26% per trade vs the same-year drift, −0.20% vs the leave-out drift.
     - Crypto: −3.75% vs the same-year drift, −1.94% vs the leave-out drift.
@@ -728,11 +738,11 @@ and FINDINGS has the full entry and tables.
     of about 740-770 independent ones. The bounce CI is therefore about ±0.7 pts per 20
     days.
   - Against the pool, which removes the market-wide move, the effective sample is about
-    7,200. The CI is −0.13 to +0.23.
-  - So a bounce edge over the market of more than about 0.2 pts per 20 days is ruled out.
+    7,000 and the CI is −0.12 to +0.24.
+  - So a bounce edge over the market of more than about 0.25 pts per 20 days is ruled out.
     A smaller one is not.
-  - A key-level edge (the average beating nearby lines) is ruled out more tightly: the 95%
-    CI of real minus placebo tops out at +0.02 to +0.05 pts.
+  - A key-level edge is ruled out more tightly: the 95% CI of real minus placebo tops out at
+    +0.02 to +0.05 pts.
 - **The registered baseline is biased.** Its window includes the decline that produced the
   touch.
   - On the no-edge simulation it reports +0.22% for the 200-day (SE 0.03).
@@ -741,57 +751,65 @@ and FINDINGS has the full entry and tables.
   - It costs B4 0.31 pts.
   - The leave-out and pool baselines sit at about zero on the simulation.
   - Measured from its no-edge level, the stock 200-day touch is −0.3% (same-year), −0.24%
-    (leave-out) and +0.08% (pool) over 20 days.
+    (leave-out) and {{P_FROM_NULL}} (pool) over 20 days.
 - **Short vs long averages (stocks).**
   - Under the registered baseline, the 20-50-day and 10-week averages look bad (−0.5 to
     −0.7%) and the 100-200-week and 20-24-month averages look good (+0.2 to +0.7%).
-  - Both patterns come from the baseline. Under the leave-out drift every average except
-    one is negative (long ones −0.21 to −0.01). Against the pool all are between −0.02 and
-    +0.16.
-  - The market does not rebound after any of these touches: the member pool's next 20 days
-    are 0.04-0.24 pts below average, none significant.
-  - The no-edge simulation, run on 8 of the averages (`--null 8 --mas ...`), confirms this.
-    - With no edge, the registered baseline reports −0.3 to −0.5% for the short averages and
-      +0.7 to +1.05% for the long ones. The leave-out and pool baselines stay within ±0.13.
-    - Measured from those no-edge levels, all 8 averages are negative: −0.06 to −0.38 under
-      same-year, −0.08 to −0.31 under leave-out.
-    - Against the pool they are −0.03 to +0.15.
+  - Both patterns come from the baseline:
+    - Under the leave-out drift every average except one is negative (long ones −0.21 to
+      −0.01).
+    - Against the pool all are between −0.00 and +0.17.
+    - The market does not rebound after any of these touches: the member pool's next 20
+      days are 0.04-0.25 pts below average, none significant.
+  - {{GRID_NULL}}
 - **Exploratory, none survives multiple testing.**
   - Once you buy after the close is known, none of these improves the result:
     - confluence of several averages
     - depth below the 52-week high
     - a long run (60+ closes) above the average
     - bounce strength
-  - Against the pool, a touch of a lone average did better (+0.52, p 0.05) than one where
-    4+ averages coincide (−0.03). Confluence did not help.
+  - Against the pool, a touch of a lone average did better (+0.53, p 0.05) than one where 4+
+    averages coincide (−0.02). Confluence did not help.
   - **Strong bounces** close at least 1 ATR above the line, like HOOD's.
-    - Against the pool they gained 0.39 pts measured from the bounce close (p 0.03; one of
-      40 split rows, each read several ways).
+    - Against the pool they gained 0.40 pts from the bounce close (p 0.02; one of 40 split
+      rows, each read several ways).
     - Bought at the next open, as a stock buyer would, they made −0.42% (same-year) and
       −0.26% (leave-out). That is no better than every touch that closed back above the line
       (−0.19% / −0.26%).
     - The sign follows the baseline rather than the entry time.
 - **HOOD-like setups** (60-day vol ≥ 50%, ≥ 20% below the 52-week high, a falling 200-day,
-  ≥ 20 closes above it before the touch): 234 touches in 75 months, 131 of them first
-  touches (no touch of the line in the previous 28 days).
-  - Bought at the line, over 20 days:
+  ≥ 20 closes above it before the touch): 234 touches in 75 months, 131 of them first touches
+  (no touch of the line in the previous 28 days).
+  - **Bought at the line, over 20 days:**
     - same-year +1.6% (CI −2.8 to +5.3), no-edge level +0.3
-    - leave-out +2.3% (CI −2.8 to +6.5), no-edge level −0.3
-    - pool +0.9% (CI −1.8 to +3.4), no-edge level −1.2
-  - Bought after the bounce (n 106): +1.9% / +2.9%. Only 6 past cases bounced as strongly
-    as HOOD did, too few to measure.
-  - The real 200-day beat the placebo lines by 1.6-3.5 pts (p 0.03-0.11 depending on the
-    baseline; first touches only: 0.9-2.2 pts, p 0.09-0.26).
-    - It is the only place the line looks special, but it is one exploratory subset among
-      many, from 75 months: a hint at most.
-    - Individual outcomes vary widely: the 20-day abnormal returns of these touches run from
-      −18% to +19% (10th-90th percentile).
+    - leave-out +2.2% (CI −2.8 to +6.4), no-edge level −0.3
+    - pool +1.0% (CI −1.8 to +3.5), no-edge level {{AN_POOL_NULL}}
+  - **Bought after the bounce** (n 106): +1.9% (same-year, CI −3.2 to +7.3) / +2.8% (leave-out,
+    CI −2.8 to +8.5). There is no pool figure for this entry. Only 6 past cases bounced as
+    strongly as HOOD did, too few to measure.
+  - **The positive lean is one episode.**
+    - 73 of the 234 touches are from 2009, 70 of them in the May-November rebound. These
+      averaged +8.3% / +10.7% / +2.5%.
+    - Without 2009 (n 161): −1.4% / −1.6% / +0.3% (CIs about −6 to +3; pool −3.3 to +3.7).
+    - Without 2009, bought after the bounce (n 69): −1.3% / −1.1%.
+  - **The real 200-day beat the placebo lines by 1.6-3.5 pts** (p 0.03-0.11; first touches
+    only 0.8-2.2 pts, p 0.09-0.26). Much of that is timing: 13% of the placebo touches fall
+    in the 2008 crash against 4% of the real ones, and 31% of the real ones in 2009 against
+    22%.
+    - Within the same month the gap is +0.6 / +1.1 / +0.9 pts (p 0.19-0.29).
+    - For first touches it is about 0 (−0.04 / +0.04 / +0.31).
+    - After adding back the no-edge differences, about {{AN_MATCH_ADJ}} remains.
+    - A weak hint at most, from one exploratory subset among many.
+  - **Individual outcomes vary widely:** the 20-day abnormal returns of these touches run from
+    −18% to +19% (10th-90th percentile).
   - **HOOD's own record:** 15 touches of its 200-day, Nov 2022 to Jul 2026 (8 separate
     pullbacks).
-    - Averages: −4.5% (same-year), −3.8% (leave-out), −3.7% (pool).
-    - Range: −31% to +39%.
-    - 4 of 15 beat the same-year drift.
-    - Too few to test, but no sign that HOOD's own 200-day has acted as support.
+    - Over 20 days they averaged −4.5% (same-year), −3.8% (leave-out) and −3.7% (pool);
+      4 of 15 beat the same-year drift.
+    - Over 60 days they averaged +14% / +20% (9 of 15 positive), mostly from the two
+      April-2025 touches. HOOD's placebo lines did about as well over 60 days (+11% / +22%),
+      so neither horizon shows support.
+    - Too few to test.
 - **Chart lines.** The member pool's averages were computed on dividend-adjusted prices,
   about 0.25 ATR (median) below the chart line. Rerun on chart prices: B1 −0.13%, B2
   −0.07%, and no daily average passes.
@@ -988,7 +1006,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
-| `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
+| `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
