@@ -86,6 +86,12 @@ pool (C1-C5). Primary spec: daily 200-day SMA, E1, H = 20 (crypto 28).
     52-week high, a falling 200-day, and >= 20 closes above it before the touch.
 
     python3 -m analysis_2026.ma_bounce
+
+Added after the first run (exploratory, labelled as such in the output): E2 versions of the
+splits that are only known at the touch day's close (held / bounce strength), because E1 fills
+at the line earlier that day and so contains the day's own move; confluence counted within
+0.25 ATR (the 1-ATR count put nearly every event in one bucket); E2 and strong-bounce rows of
+the HOOD-like analog.
 """
 from __future__ import annotations
 
@@ -111,7 +117,7 @@ PRIMARY = MA_NAME.index("D-SMA200")
 OFFSETS = [0.0, -2.0, -1.0, 1.0, 2.0]          # line 0 = the real average; 1-4 = placebo lines
 K_APPROACH = 10
 NAMED = ["SPX_LONG", "SPY", "QQQ", "IWM", "TSLA", "COIN", "HOOD", "BTC", "ETH", "SOL", "BNB", "ZEC"]
-FIELDS = ["asset", "ma", "line", "day", "held", "gap", "slope", "run", "reject", "dd252", "vol60", "confl",
+FIELDS = ["asset", "ma", "line", "day", "held", "gap", "slope", "run", "reject", "dd252", "vol60", "confl", "confl25",
           "ar_s", "ar_m", "ar_l", "ar_e2", "x2_ex", "x2_days"]
 
 
@@ -219,6 +225,7 @@ def asset_events(f: dict, member_mask: np.ndarray | None = None, mas=None) -> pd
         with np.errstate(invalid="ignore", divide="ignore"):
             slope = np.r_[np.full(20, np.nan), base[20:] / base[:-20] - 1]
             confl = (np.abs(real - base) <= atrp).sum(axis=0)
+            confl25 = (np.abs(real - base) <= 0.25 * atrp).sum(axis=0)
         for li, k in enumerate(OFFSETS):
             line = base + k * atrp
             T, FILL, HELD, GAP, RUN, XI, XR, R = _events(o, h, l, c, tr, atrp, line, K_APPROACH, H, f["cost"], 1.0)
@@ -242,7 +249,7 @@ def asset_events(f: dict, member_mask: np.ndarray | None = None, mas=None) -> pd
             cols["slope"].append(slope[T].astype(np.float32)); cols["run"].append(RUN.astype(np.int32))
             cols["reject"].append(((c[T] - line[T]) / atrp[T]).astype(np.float32))
             cols["dd252"].append(f["dd252"][T].astype(np.float32)); cols["vol60"].append(f["vol60"][T].astype(np.float32))
-            cols["confl"].append(confl[T].astype(np.int16))
+            cols["confl"].append(confl[T].astype(np.int16)); cols["confl25"].append(confl25[T].astype(np.int16))
             for i, key in enumerate(("ar_s", "ar_m", "ar_l")):
                 cols[key].append((R[:, i] - dr[f["H"][i]]).astype(np.float32))
             cols["ar_e2"].append(e2.astype(np.float32))
@@ -507,16 +514,20 @@ def main():
         r["strength"] = pd.cut(r.reject, [-np.inf, -0.5, 0, 0.5, 1, np.inf])
         r["first_test"] = np.where(r.run >= 60, ">= 60 closes above", "< 60 closes above")
         r["depth"] = pd.cut(r.dd252, [-1, -0.4, -0.2, -0.1, 0.01])
-        r["confluence"] = pd.cut(r.confl, [0, 1, 2, 4, 40])
+        r["confluence"] = pd.cut(r.confl25, [0, 1, 2, 3, 40])
         r["trend"] = np.where(r.rising, "rising 200-day", np.where(r.falling, "falling 200-day", "unknown"))
         for col in ("hold_close", "strength", "first_test", "depth", "confluence", "trend"):
             g = r.groupby(col, observed=True)
             for k, x in g:
                 m, p, nn = boot_mean(x, "ar_m", B=1000)
-                splits.append({"pool": label, "split": col, "bucket": str(k), "n": nn, "mean_AR_%": m * 100, "p": p,
-                               "hit_%": (x.ar_m.dropna() > 0).mean() * 100, "X2_ex_%": x.x2_ex.mean() * 100})
+                m2, p2, n2 = boot_mean(x, "ar_e2", B=1000)
+                splits.append({"pool": label, "split": col, "bucket": str(k), "n": nn, "E1_AR_%": m * 100, "E1_p": p,
+                               "E1_hit_%": (x.ar_m.dropna() > 0).mean() * 100, "X2_ex_%": x.x2_ex.mean() * 100,
+                               "E2_n": n2, "E2_AR_%": m2 * 100, "E2_p": p2, "E2_hit_%": (x.ar_e2.dropna() > 0).mean() * 100})
     sp = pd.DataFrame(splits); sp.to_csv(OUT / "splits_primary.csv", index=False)
-    say("\nSplits, daily 200-day SMA, real line (AR mid horizon):")
+    say("\nSplits, daily 200-day SMA, real line (AR mid horizon). CAUTION: 'hold_close' and 'strength' are only known at")
+    say("the touch day's close, so the E1 column (filled earlier, at the line) contains that day's own move; judge those")
+    say("rows by E2, which buys only after the close is known (crypto at the close, stocks at the next open):")
     say(sp.to_string(index=False, float_format=fmt))
 
     # HOOD-like analog (pre-registered definition)
@@ -525,8 +536,12 @@ def main():
     pl = ev_s[(ev_s.ma == PRIMARY) & (ev_s.line > 0)]
     an_p = pl[(pl.vol60 >= 0.5) & (pl.dd252 <= -0.2) & pl.falling & (pl.run >= 20)]
     rows = []
-    for lab, x in (("HOOD-like, real 200-day", an), ("HOOD-like, placebo lines", an_p)):
-        for col, h in (("ar_s", "5 days"), ("ar_m", "20 days"), ("ar_l", "60 days")):
+    strong = an[an.held & (an.reject >= 1.0)]
+    for lab, x, cols_ in (("HOOD-like, real 200-day, limit at the line (E1)", an, (("ar_s", "5 days"), ("ar_m", "20 days"), ("ar_l", "60 days"))),
+                          ("HOOD-like, placebo lines, E1", an_p, (("ar_s", "5 days"), ("ar_m", "20 days"), ("ar_l", "60 days"))),
+                          ("HOOD-like, real 200-day, buy after the bounce (E2)", an, (("ar_e2", "20 days"),)),
+                          ("HOOD-like, strong bounce (close >= 1 ATR above), E2", strong, (("ar_e2", "20 days"),))):
+        for col, h in cols_:
             m, p, nn = boot_mean(x, col, B=1000)
             q = x[col].dropna()
             rows.append({"set": lab, "horizon": h, "n": nn, "mean_AR_%": m * 100, "p": p, "median_%": q.median() * 100,
