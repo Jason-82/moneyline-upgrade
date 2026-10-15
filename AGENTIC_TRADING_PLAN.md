@@ -181,6 +181,9 @@ Do **not** add these (all tested):
   drawdown insurance, not an edge. It does not robustly beat holding after tax: never on the
   S&P 1963-2026, and the SPY and QQQ wins are post hoc and window-dependent (QQQ's window
   starts at the dot-com top).
+- buying touches of moving averages ("bounces at key levels", e.g. the 200-day SMA): no edge
+  on S&P 500 members 1996-2026 or 41 coins, on any of 34 daily/weekly/monthly averages, and
+  the average is no better than a line 1-2 ATR away (HANDOFF section 5.19).
 
 ---
 

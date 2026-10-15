@@ -1,0 +1,116 @@
+Null simulation, 16 replications (iid-resampled bars, same dates, members, pools and code; primary average D-SMA200, E1 / E2 / X2 as in the study). Means in %; costs are included (stocks 0.06%, crypto 0.60% round trip), so an unbiased AR column sits near minus the cost plus a small fill effect.
+ar_m = pre-registered same-year drift baseline; ar_m_lo = own drift with the event period left out; ar_pool = close t to t+H minus the pool's mean over the same window (no costs, no fill).
+
+       pool     stat                             row  null_mean_%  null_se_%  actual_%
+S&P members     ar_m                       real line        0.222      0.026    -0.089
+S&P members     ar_m                     line -2 ATR        0.718      0.020     0.246
+S&P members     ar_m                     line -1 ATR        0.512      0.024     0.046
+S&P members     ar_m                     line +1 ATR       -0.053      0.019    -0.099
+S&P members     ar_m                     line +2 ATR       -0.333      0.018    -0.197
+S&P members     ar_m                  real - placebo        0.029      0.020    -0.075
+S&P members     ar_m           rising - falling (B4)       -0.308      0.055     0.408
+S&P members     ar_m                HOOD-like analog        0.282      0.378     1.586
+S&P members     ar_m HOOD-like analog, placebo lines        1.035      0.294    -0.450
+S&P members  ar_m_lo                       real line       -0.003      0.029    -0.239
+S&P members  ar_m_lo                     line -2 ATR        0.017      0.020    -0.400
+S&P members  ar_m_lo                     line -1 ATR        0.047      0.023    -0.361
+S&P members  ar_m_lo                     line +1 ATR       -0.024      0.022    -0.002
+S&P members  ar_m_lo                     line +2 ATR       -0.052      0.020     0.112
+S&P members  ar_m_lo                  real - placebo        0.001      0.021    -0.095
+S&P members  ar_m_lo           rising - falling (B4)        0.083      0.060     0.602
+S&P members  ar_m_lo                HOOD-like analog       -0.310      0.401     2.250
+S&P members  ar_m_lo HOOD-like analog, placebo lines        0.183      0.316    -1.233
+S&P members  ar_pool                       real line       -0.023      0.025     0.058
+S&P members  ar_pool                     line -2 ATR        0.003      0.021    -0.061
+S&P members  ar_pool                     line -1 ATR        0.024      0.018    -0.000
+S&P members  ar_pool                     line +1 ATR       -0.008      0.021     0.168
+S&P members  ar_pool                     line +2 ATR        0.009      0.013     0.253
+S&P members  ar_pool                  real - placebo       -0.030      0.020    -0.042
+S&P members  ar_pool           rising - falling (B4)        0.051      0.050     0.310
+S&P members  ar_pool                HOOD-like analog       -1.246      0.240     0.879
+S&P members  ar_pool HOOD-like analog, placebo lines       -0.679      0.198    -0.683
+S&P members    ar_e2                       real line       -0.049      0.029    -0.194
+S&P members    ar_e2                     line -2 ATR        0.463      0.026     0.011
+S&P members    ar_e2                     line -1 ATR        0.252      0.029    -0.083
+S&P members    ar_e2                     line +1 ATR       -0.303      0.033    -0.239
+S&P members    ar_e2                     line +2 ATR       -0.545      0.022    -0.343
+S&P members    ar_e2                  real - placebo        0.001      0.030    -0.018
+S&P members    ar_e2           rising - falling (B4)       -0.444      0.070     0.010
+S&P members    ar_e2                HOOD-like analog       -0.808      0.413     1.884
+S&P members    ar_e2 HOOD-like analog, placebo lines        0.285      0.235    -0.555
+S&P members ar_e2_lo                       real line       -0.122      0.035    -0.262
+S&P members ar_e2_lo                     line -2 ATR       -0.094      0.028    -0.588
+S&P members ar_e2_lo                     line -1 ATR       -0.066      0.029    -0.425
+S&P members ar_e2_lo                     line +1 ATR       -0.116      0.036    -0.038
+S&P members ar_e2_lo                     line +2 ATR       -0.105      0.025     0.057
+S&P members ar_e2_lo                  real - placebo       -0.027      0.032    -0.039
+S&P members ar_e2_lo           rising - falling (B4)       -0.024      0.074     0.165
+S&P members ar_e2_lo                HOOD-like analog       -1.287      0.450     2.846
+S&P members ar_e2_lo HOOD-like analog, placebo lines       -0.439      0.271    -1.284
+S&P members    x2_ex                       real line       -0.046      0.019    -0.259
+S&P members    x2_ex                     line -2 ATR        0.221      0.012    -0.018
+S&P members    x2_ex                     line -1 ATR        0.120      0.023    -0.173
+S&P members    x2_ex                     line +1 ATR       -0.200      0.015    -0.159
+S&P members    x2_ex                     line +2 ATR       -0.356      0.016    -0.165
+S&P members    x2_ex                  real - placebo        0.017      0.015    -0.127
+S&P members    x2_ex           rising - falling (B4)       -0.209      0.043    -0.194
+S&P members    x2_ex                HOOD-like analog        0.284      0.380     0.597
+S&P members    x2_ex HOOD-like analog, placebo lines        0.596      0.258     0.828
+S&P members x2_ex_lo                       real line        0.005      0.020    -0.203
+S&P members x2_ex_lo                     line -2 ATR        0.002      0.014    -0.258
+S&P members x2_ex_lo                     line -1 ATR        0.038      0.024    -0.256
+S&P members x2_ex_lo                     line +1 ATR       -0.008      0.017     0.036
+S&P members x2_ex_lo                     line +2 ATR       -0.031      0.017     0.142
+S&P members x2_ex_lo                  real - placebo        0.005      0.016    -0.133
+S&P members x2_ex_lo           rising - falling (B4)        0.069      0.047    -0.052
+S&P members x2_ex_lo                HOOD-like analog        0.111      0.382     1.428
+S&P members x2_ex_lo HOOD-like analog, placebo lines        0.304      0.261     0.732
+     crypto     ar_m                       real line       -0.281      0.394    -5.620
+     crypto     ar_m                     line -2 ATR        1.025      0.259    -2.310
+     crypto     ar_m                     line -1 ATR        0.277      0.236    -6.339
+     crypto     ar_m                     line +1 ATR       -1.224      0.321    -9.309
+     crypto     ar_m                     line +2 ATR       -2.108      0.294   -10.476
+     crypto     ar_m                  real - placebo        0.256      0.343     1.537
+     crypto     ar_m           rising - falling (B4)       -1.416      0.737    -1.368
+     crypto  ar_m_lo                       real line        0.377      0.411    -3.670
+     crypto  ar_m_lo                     line -2 ATR        0.112      0.326    -2.193
+     crypto  ar_m_lo                     line -1 ATR        0.111      0.233    -5.715
+     crypto  ar_m_lo                     line +1 ATR        0.320      0.348    -6.164
+     crypto  ar_m_lo                     line +2 ATR        0.145      0.293    -6.334
+     crypto  ar_m_lo                  real - placebo        0.199      0.353     1.483
+     crypto  ar_m_lo           rising - falling (B4)        0.594      0.823     1.303
+     crypto  ar_pool                       real line        0.334      0.401    -1.056
+     crypto  ar_pool                     line -2 ATR       -0.250      0.293     0.373
+     crypto  ar_pool                     line -1 ATR       -0.185      0.261    -0.431
+     crypto  ar_pool                     line +1 ATR        0.510      0.390    -0.433
+     crypto  ar_pool                     line +2 ATR        0.684      0.287    -2.025
+     crypto  ar_pool                  real - placebo        0.132      0.355    -0.432
+     crypto  ar_pool           rising - falling (B4)        0.489      0.714    -0.589
+     crypto    ar_e2                       real line       -1.492      0.475    -6.388
+     crypto    ar_e2                     line -2 ATR       -0.465      0.333    -1.629
+     crypto    ar_e2                     line -1 ATR       -1.398      0.363    -8.963
+     crypto    ar_e2                     line +1 ATR       -2.376      0.429   -11.640
+     crypto    ar_e2                     line +2 ATR       -3.215      0.398    -8.902
+     crypto    ar_e2                  real - placebo        0.391      0.438     1.597
+     crypto    ar_e2           rising - falling (B4)       -1.039      1.013    -0.669
+     crypto ar_e2_lo                       real line       -0.482      0.498    -3.869
+     crypto ar_e2_lo                     line -2 ATR       -1.078      0.398    -0.843
+     crypto ar_e2_lo                     line -1 ATR       -1.262      0.355    -8.206
+     crypto ar_e2_lo                     line +1 ATR       -0.483      0.483    -7.991
+     crypto ar_e2_lo                     line +2 ATR       -0.667      0.395    -4.350
+     crypto ar_e2_lo                  real - placebo        0.380      0.464     1.690
+     crypto ar_e2_lo           rising - falling (B4)        0.934      1.127     2.624
+     crypto    x2_ex                       real line       -0.457      0.233    -3.750
+     crypto    x2_ex                     line -2 ATR        0.446      0.255    -3.788
+     crypto    x2_ex                     line -1 ATR       -0.063      0.224    -4.601
+     crypto    x2_ex                     line +1 ATR       -0.934      0.159    -3.570
+     crypto    x2_ex                     line +2 ATR       -1.575      0.288    -4.847
+     crypto    x2_ex                  real - placebo        0.093      0.203     0.450
+     crypto    x2_ex           rising - falling (B4)        0.025      0.641     3.665
+     crypto x2_ex_lo                       real line        0.326      0.233    -1.943
+     crypto x2_ex_lo                     line -2 ATR        0.331      0.259    -2.770
+     crypto x2_ex_lo                     line -1 ATR        0.275      0.215    -3.212
+     crypto x2_ex_lo                     line +1 ATR        0.386      0.191    -1.133
+     crypto x2_ex_lo                     line +2 ATR        0.125      0.277    -1.644
+     crypto x2_ex_lo                  real - placebo        0.045      0.205     0.247
+     crypto x2_ex_lo           rising - falling (B4)        1.167      0.656     4.392

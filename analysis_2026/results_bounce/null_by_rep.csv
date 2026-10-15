@@ -1,0 +1,1793 @@
+pool,rep,stat,row,value
+S&P members,0,ar_m,real line,0.07414158550876034
+S&P members,0,ar_m,line -2 ATR,0.8147512387777684
+S&P members,0,ar_m,line -1 ATR,0.45948413583172776
+S&P members,0,ar_m,line +1 ATR,-0.09210072606600712
+S&P members,0,ar_m,line +2 ATR,-0.36234150322330533
+S&P members,0,ar_m,real - placebo,-0.11320802000576291
+S&P members,0,ar_m,rising - falling (B4),-0.6836473444300877
+S&P members,0,ar_m,HOOD-like analog,2.4780239355134066
+S&P members,0,ar_m,"HOOD-like analog, placebo lines",1.1742932583355108
+S&P members,0,ar_m_lo,real line,-0.14062966906802102
+S&P members,0,ar_m_lo,line -2 ATR,0.09973896546399638
+S&P members,0,ar_m_lo,line -1 ATR,-0.003353344088759065
+S&P members,0,ar_m_lo,line +1 ATR,-0.08838392886056338
+S&P members,0,ar_m_lo,line +2 ATR,-0.12867715857002926
+S&P members,0,ar_m_lo,real - placebo,-0.10702536948960471
+S&P members,0,ar_m_lo,rising - falling (B4),-0.3369284426213864
+S&P members,0,ar_m_lo,HOOD-like analog,2.17210354051991
+S&P members,0,ar_m_lo,"HOOD-like analog, placebo lines",0.3004595311183198
+S&P members,0,ar_pool,real line,-0.0913755025364848
+S&P members,0,ar_pool,line -2 ATR,0.1457963047169263
+S&P members,0,ar_pool,line -1 ATR,0.029626352458062076
+S&P members,0,ar_pool,line +1 ATR,-0.04575146692141625
+S&P members,0,ar_pool,line +2 ATR,-0.01581399108589059
+S&P members,0,ar_pool,real - placebo,-0.11690645388533406
+S&P members,0,ar_pool,rising - falling (B4),-0.09979074379162681
+S&P members,0,ar_pool,HOOD-like analog,-0.5455494248856078
+S&P members,0,ar_pool,"HOOD-like analog, placebo lines",-1.7735715858355983
+S&P members,0,ar_e2,real line,-0.20356288420763444
+S&P members,0,ar_e2,line -2 ATR,0.618138117547342
+S&P members,0,ar_e2,line -1 ATR,0.229372483594775
+S&P members,0,ar_e2,line +1 ATR,-0.274836249834625
+S&P members,0,ar_e2,line +2 ATR,-0.5620943270113195
+S&P members,0,ar_e2,real - placebo,-0.19075736691457085
+S&P members,0,ar_e2,rising - falling (B4),-0.67458996344631
+S&P members,0,ar_e2,HOOD-like analog,0.5889477385871686
+S&P members,0,ar_e2,"HOOD-like analog, placebo lines",-0.9017244655348801
+S&P members,0,ar_e2_lo,real line,-0.2602091055347806
+S&P members,0,ar_e2_lo,line -2 ATR,0.02759945587256081
+S&P members,0,ar_e2_lo,line -1 ATR,-0.0738831371753734
+S&P members,0,ar_e2_lo,line +1 ATR,-0.14609737147626747
+S&P members,0,ar_e2_lo,line +2 ATR,-0.21638781283425773
+S&P members,0,ar_e2_lo,real - placebo,-0.15504082640798042
+S&P members,0,ar_e2_lo,rising - falling (B4),-0.31827311796040286
+S&P members,0,ar_e2_lo,HOOD-like analog,0.7121064369980177
+S&P members,0,ar_e2_lo,"HOOD-like analog, placebo lines",-1.6409188840142457
+S&P members,0,x2_ex,real line,-0.16838635842670702
+S&P members,0,x2_ex,line -2 ATR,0.20609106706814734
+S&P members,0,x2_ex,line -1 ATR,0.010427012274410239
+S&P members,0,x2_ex,line +1 ATR,-0.22332448050675852
+S&P members,0,x2_ex,line +2 ATR,-0.3872434057937507
+S&P members,0,x2_ex,real - placebo,-0.06136533384757349
+S&P members,0,x2_ex,rising - falling (B4),-0.5659497318130061
+S&P members,0,x2_ex,HOOD-like analog,2.4117548394715413
+S&P members,0,x2_ex,"HOOD-like analog, placebo lines",1.4064675844035135
+S&P members,0,x2_ex_lo,real line,-0.10642202630611303
+S&P members,0,x2_ex_lo,line -2 ATR,-0.02469675743465472
+S&P members,0,x2_ex_lo,line -1 ATR,-0.07229546822857787
+S&P members,0,x2_ex_lo,line +1 ATR,-0.044184973517694584
+S&P members,0,x2_ex_lo,line +2 ATR,-0.09840215287865729
+S&P members,0,x2_ex_lo,real - placebo,-0.04592013888441829
+S&P members,0,x2_ex_lo,rising - falling (B4),-0.3350165365853814
+S&P members,0,x2_ex_lo,HOOD-like analog,2.5457759874270245
+S&P members,0,x2_ex_lo,"HOOD-like analog, placebo lines",1.1056855198515394
+crypto,0,ar_m,real line,0.07622682303190231
+crypto,0,ar_m,line -2 ATR,1.9520901441574097
+crypto,0,ar_m,line -1 ATR,1.721827745437622
+crypto,0,ar_m,line +1 ATR,-0.6009963750839233
+crypto,0,ar_m,line +2 ATR,-1.6447844505310059
+crypto,0,ar_m,real - placebo,-0.2271815836429596
+crypto,0,ar_m,rising - falling (B4),-0.7967633008956909
+crypto,0,ar_m_lo,real line,0.4892869293689728
+crypto,0,ar_m_lo,line -2 ATR,0.6803385019302368
+crypto,0,ar_m_lo,line -1 ATR,1.7988553047180176
+crypto,0,ar_m_lo,line +1 ATR,0.31120121479034424
+crypto,0,ar_m_lo,line +2 ATR,-0.35613274574279785
+crypto,0,ar_m_lo,real - placebo,-0.10885298252105713
+crypto,0,ar_m_lo,rising - falling (B4),0.0520579069852829
+crypto,0,ar_pool,real line,-0.020624080672860146
+crypto,0,ar_pool,line -2 ATR,-0.6826179027557373
+crypto,0,ar_pool,line -1 ATR,1.2479424476623535
+crypto,0,ar_pool,line +1 ATR,0.2374819964170456
+crypto,0,ar_pool,line +2 ATR,-0.15849937498569489
+crypto,0,ar_pool,real - placebo,-0.19730304181575775
+crypto,0,ar_pool,rising - falling (B4),-0.6659414768218994
+crypto,0,ar_e2,real line,-1.5551860332489014
+crypto,0,ar_e2,line -2 ATR,0.6293724775314331
+crypto,0,ar_e2,line -1 ATR,0.3495813012123108
+crypto,0,ar_e2,line +1 ATR,-1.9574843645095825
+crypto,0,ar_e2,line +2 ATR,-2.7636969089508057
+crypto,0,ar_e2,real - placebo,-0.5819835662841797
+crypto,0,ar_e2,rising - falling (B4),2.612910032272339
+crypto,0,ar_e2_lo,real line,-0.796822190284729
+crypto,0,ar_e2_lo,line -2 ATR,-0.48576319217681885
+crypto,0,ar_e2_lo,line -1 ATR,0.7652644515037537
+crypto,0,ar_e2_lo,line +1 ATR,-0.7927248477935791
+crypto,0,ar_e2_lo,line +2 ATR,-1.483452558517456
+crypto,0,ar_e2_lo,real - placebo,-0.2975270748138428
+crypto,0,ar_e2_lo,rising - falling (B4),3.5172078609466553
+crypto,0,x2_ex,real line,-0.269520103931427
+crypto,0,x2_ex,line -2 ATR,2.1008453369140625
+crypto,0,x2_ex,line -1 ATR,1.5828520059585571
+crypto,0,x2_ex,line +1 ATR,-0.10200425982475281
+crypto,0,x2_ex,line +2 ATR,-0.6719786524772644
+crypto,0,x2_ex,real - placebo,-0.9523482322692871
+crypto,0,x2_ex,rising - falling (B4),2.732532024383545
+crypto,0,x2_ex_lo,real line,0.2604962885379791
+crypto,0,x2_ex_lo,line -2 ATR,1.8477122783660889
+crypto,0,x2_ex_lo,line -1 ATR,1.981551170349121
+crypto,0,x2_ex_lo,line +1 ATR,0.9249655604362488
+crypto,0,x2_ex_lo,line +2 ATR,0.4466642141342163
+crypto,0,x2_ex_lo,real - placebo,-1.0198231935501099
+crypto,0,x2_ex_lo,rising - falling (B4),3.3378052711486816
+S&P members,1,ar_m,real line,0.3267689222636803
+S&P members,1,ar_m,line -2 ATR,0.7209254788473815
+S&P members,1,ar_m,line -1 ATR,0.5196341945159315
+S&P members,1,ar_m,line +1 ATR,-0.1188007755616664
+S&P members,1,ar_m,line +2 ATR,-0.20859273473295922
+S&P members,1,ar_m,real - placebo,0.11530772350570534
+S&P members,1,ar_m,rising - falling (B4),-0.26611987008950894
+S&P members,1,ar_m,HOOD-like analog,-1.3696596446789044
+S&P members,1,ar_m,"HOOD-like analog, placebo lines",0.5522520948478559
+S&P members,1,ar_m_lo,real line,0.10722965280942928
+S&P members,1,ar_m_lo,line -2 ATR,0.011639971874540486
+S&P members,1,ar_m_lo,line -1 ATR,0.057427481245158146
+S&P members,1,ar_m_lo,line +1 ATR,-0.08172458236371252
+S&P members,1,ar_m_lo,line +2 ATR,0.07346581273100629
+S&P members,1,ar_m_lo,real - placebo,0.09275628471447947
+S&P members,1,ar_m_lo,rising - falling (B4),0.14815310286533337
+S&P members,1,ar_m_lo,HOOD-like analog,-2.3071388141761418
+S&P members,1,ar_m_lo,"HOOD-like analog, placebo lines",-0.6947219328028542
+S&P members,1,ar_pool,real line,0.05281350464925172
+S&P members,1,ar_pool,line -2 ATR,0.0023894008465525063
+S&P members,1,ar_pool,line -1 ATR,0.01458378353283692
+S&P members,1,ar_pool,line +1 ATR,-0.111260395710262
+S&P members,1,ar_pool,line +2 ATR,0.09078787020308542
+S&P members,1,ar_pool,real - placebo,0.05443783395616474
+S&P members,1,ar_pool,rising - falling (B4),-0.06972193992789286
+S&P members,1,ar_pool,HOOD-like analog,-1.962012939695228
+S&P members,1,ar_pool,"HOOD-like analog, placebo lines",-0.9508686364420282
+S&P members,1,ar_e2,real line,-0.013567403055842711
+S&P members,1,ar_e2,line -2 ATR,0.4526696823119563
+S&P members,1,ar_e2,line -1 ATR,0.26318282052974
+S&P members,1,ar_e2,line +1 ATR,-0.474921240853255
+S&P members,1,ar_e2,line +2 ATR,-0.36050543684679837
+S&P members,1,ar_e2,real - placebo,0.031364654624213464
+S&P members,1,ar_e2,rising - falling (B4),-0.577812832285848
+S&P members,1,ar_e2,HOOD-like analog,-3.7583676577323
+S&P members,1,ar_e2,"HOOD-like analog, placebo lines",-0.39271418144432213
+S&P members,1,ar_e2_lo,real line,-0.06503127183875534
+S&P members,1,ar_e2_lo,line -2 ATR,-0.10820596322531824
+S&P members,1,ar_e2_lo,line -1 ATR,-0.041733910164559906
+S&P members,1,ar_e2_lo,line +1 ATR,-0.2758596386976423
+S&P members,1,ar_e2_lo,line +2 ATR,0.10044835621574766
+S&P members,1,ar_e2_lo,real - placebo,0.017436771271921475
+S&P members,1,ar_e2_lo,rising - falling (B4),-0.16327583679819738
+S&P members,1,ar_e2_lo,HOOD-like analog,-4.232270629651358
+S&P members,1,ar_e2_lo,"HOOD-like analog, placebo lines",-1.705534815194386
+S&P members,1,x2_ex,real line,0.06282934932106111
+S&P members,1,x2_ex,line -2 ATR,0.2334196133796184
+S&P members,1,x2_ex,line -1 ATR,0.12131895439298718
+S&P members,1,x2_ex,line +1 ATR,-0.22269646356747602
+S&P members,1,x2_ex,line +2 ATR,-0.2678542489954708
+S&P members,1,x2_ex,real - placebo,0.10589708087281335
+S&P members,1,x2_ex,rising - falling (B4),0.04382337836174855
+S&P members,1,x2_ex,HOOD-like analog,-1.9169765817605366
+S&P members,1,x2_ex,"HOOD-like analog, placebo lines",0.0361651086213421
+S&P members,1,x2_ex_lo,real line,0.11369327684192757
+S&P members,1,x2_ex_lo,line -2 ATR,0.0014956419180845186
+S&P members,1,x2_ex_lo,line -1 ATR,0.04381180831203874
+S&P members,1,x2_ex_lo,line +1 ATR,-0.016263191661776078
+S&P members,1,x2_ex_lo,line +2 ATR,0.05837678011546095
+S&P members,1,x2_ex_lo,real - placebo,0.09167811151267637
+S&P members,1,x2_ex_lo,rising - falling (B4),0.37425240265616755
+S&P members,1,x2_ex_lo,HOOD-like analog,-2.252385419997154
+S&P members,1,x2_ex_lo,"HOOD-like analog, placebo lines",-0.5192182028225739
+crypto,1,ar_m,real line,1.0256203413009644
+crypto,1,ar_m,line -2 ATR,0.901491641998291
+crypto,1,ar_m,line -1 ATR,1.4724173545837402
+crypto,1,ar_m,line +1 ATR,-1.629570484161377
+crypto,1,ar_m,line +2 ATR,-4.246169090270996
+crypto,1,ar_m,real - placebo,1.887802243232727
+crypto,1,ar_m,rising - falling (B4),0.08726389706134796
+crypto,1,ar_m_lo,real line,1.810176134109497
+crypto,1,ar_m_lo,line -2 ATR,0.06962984055280685
+crypto,1,ar_m_lo,line -1 ATR,1.1335097551345825
+crypto,1,ar_m_lo,line +1 ATR,-0.07877541333436966
+crypto,1,ar_m_lo,line +2 ATR,-1.5373742580413818
+crypto,1,ar_m_lo,real - placebo,1.89643394947052
+crypto,1,ar_m_lo,rising - falling (B4),1.7858860492706299
+crypto,1,ar_pool,real line,1.3412569761276245
+crypto,1,ar_pool,line -2 ATR,-0.6813327074050903
+crypto,1,ar_pool,line -1 ATR,0.7501904964447021
+crypto,1,ar_pool,line +1 ATR,-0.32271307706832886
+crypto,1,ar_pool,line +2 ATR,-1.5745211839675903
+crypto,1,ar_pool,real - placebo,1.7785850763320923
+crypto,1,ar_pool,rising - falling (B4),1.5953222513198853
+crypto,1,ar_e2,real line,0.14018365740776062
+crypto,1,ar_e2,line -2 ATR,-1.41062593460083
+crypto,1,ar_e2,line -1 ATR,0.7144105434417725
+crypto,1,ar_e2,line +1 ATR,-3.2172181606292725
+crypto,1,ar_e2,line +2 ATR,-6.193214416503906
+crypto,1,ar_e2,real - placebo,2.6044423580169678
+crypto,1,ar_e2,rising - falling (B4),-0.4622648358345032
+crypto,1,ar_e2_lo,real line,1.3146227598190308
+crypto,1,ar_e2_lo,line -2 ATR,-2.067655563354492
+crypto,1,ar_e2_lo,line -1 ATR,0.5661320686340332
+crypto,1,ar_e2_lo,line +1 ATR,-1.3398391008377075
+crypto,1,ar_e2_lo,line +2 ATR,-3.038982391357422
+crypto,1,ar_e2_lo,real - placebo,2.7337026596069336
+crypto,1,ar_e2_lo,rising - falling (B4),1.266838550567627
+crypto,1,x2_ex,real line,0.44978076219558716
+crypto,1,x2_ex,line -2 ATR,1.0711702108383179
+crypto,1,x2_ex,line -1 ATR,0.8163310289382935
+crypto,1,x2_ex,line +1 ATR,-1.3292778730392456
+crypto,1,x2_ex,line +2 ATR,-3.191906213760376
+crypto,1,x2_ex,real - placebo,1.1052780151367188
+crypto,1,x2_ex,rising - falling (B4),0.8314285278320312
+crypto,1,x2_ex_lo,real line,1.1542530059814453
+crypto,1,x2_ex_lo,line -2 ATR,0.8061516880989075
+crypto,1,x2_ex_lo,line -1 ATR,0.9050233364105225
+crypto,1,x2_ex_lo,line +1 ATR,-0.09305207431316376
+crypto,1,x2_ex_lo,line +2 ATR,-0.9368560314178467
+crypto,1,x2_ex_lo,real - placebo,0.9805185794830322
+crypto,1,x2_ex_lo,rising - falling (B4),1.747694969177246
+S&P members,2,ar_m,real line,0.23211279349227024
+S&P members,2,ar_m,line -2 ATR,0.6395351372976549
+S&P members,2,ar_m,line -1 ATR,0.5229084331731659
+S&P members,2,ar_m,line +1 ATR,-0.040928618896583696
+S&P members,2,ar_m,line +2 ATR,-0.3703617965575332
+S&P members,2,ar_m,real - placebo,0.06171675297575508
+S&P members,2,ar_m,rising - falling (B4),-0.6152000501547642
+S&P members,2,ar_m,HOOD-like analog,-0.6594545285245343
+S&P members,2,ar_m,"HOOD-like analog, placebo lines",-0.19308197516307282
+S&P members,2,ar_m_lo,real line,0.03855230497700334
+S&P members,2,ar_m_lo,line -2 ATR,-0.03941940552014716
+S&P members,2,ar_m_lo,line -1 ATR,0.09823832348352945
+S&P members,2,ar_m_lo,line +1 ATR,0.013363291327786657
+S&P members,2,ar_m_lo,line +2 ATR,-0.08744064527692684
+S&P members,2,ar_m_lo,real - placebo,0.04249428430653266
+S&P members,2,ar_m_lo,rising - falling (B4),-0.24425190355822243
+S&P members,2,ar_m_lo,HOOD-like analog,-1.2075818882212284
+S&P members,2,ar_m_lo,"HOOD-like analog, placebo lines",-0.8911562906372118
+S&P members,2,ar_pool,real line,0.04227818019781109
+S&P members,2,ar_pool,line -2 ATR,-0.02423457042976907
+S&P members,2,ar_pool,line -1 ATR,0.06904102554550891
+S&P members,2,ar_pool,line +1 ATR,0.06525645515221183
+S&P members,2,ar_pool,line +2 ATR,-0.00474111808366506
+S&P members,2,ar_pool,real - placebo,0.014914373683421248
+S&P members,2,ar_pool,rising - falling (B4),-0.385296455327347
+S&P members,2,ar_pool,HOOD-like analog,-1.6205580829390984
+S&P members,2,ar_pool,"HOOD-like analog, placebo lines",-1.1340221918269084
+S&P members,2,ar_e2,real line,0.01275872969870117
+S&P members,2,ar_e2,line -2 ATR,0.5107623818969703
+S&P members,2,ar_e2,line -1 ATR,0.37122541656782815
+S&P members,2,ar_e2,line +1 ATR,-0.19237950636742324
+S&P members,2,ar_e2,line +2 ATR,-0.5245297494730472
+S&P members,2,ar_e2,real - placebo,-0.01208293167613563
+S&P members,2,ar_e2,rising - falling (B4),-1.0626799631972292
+S&P members,2,ar_e2,HOOD-like analog,0.49780346687440197
+S&P members,2,ar_e2,"HOOD-like analog, placebo lines",-0.12101439521255168
+S&P members,2,ar_e2_lo,real line,-0.017349693051140074
+S&P members,2,ar_e2_lo,line -2 ATR,-0.021818839303121687
+S&P members,2,ar_e2_lo,line -1 ATR,0.11602103928687063
+S&P members,2,ar_e2_lo,line +1 ATR,0.03279359972256423
+S&P members,2,ar_e2_lo,line +2 ATR,-0.09109538889624647
+S&P members,2,ar_e2_lo,real - placebo,-0.026427759354189465
+S&P members,2,ar_e2_lo,rising - falling (B4),-0.6796712309774389
+S&P members,2,ar_e2_lo,HOOD-like analog,0.2514073325177215
+S&P members,2,ar_e2_lo,"HOOD-like analog, placebo lines",-0.8041050420998331
+S&P members,2,x2_ex,real line,-0.031806308677182746
+S&P members,2,x2_ex,line -2 ATR,0.2663844073257992
+S&P members,2,x2_ex,line -1 ATR,0.17651301034455755
+S&P members,2,x2_ex,line +1 ATR,-0.19964223614089466
+S&P members,2,x2_ex,line +2 ATR,-0.4089338937845987
+S&P members,2,x2_ex,real - placebo,0.021339352172979872
+S&P members,2,x2_ex,rising - falling (B4),-0.15894208386360445
+S&P members,2,x2_ex,HOOD-like analog,-0.9271804245963429
+S&P members,2,x2_ex,"HOOD-like analog, placebo lines",-0.027256519711377866
+S&P members,2,x2_ex_lo,real line,0.034784718664290365
+S&P members,2,x2_ex_lo,line -2 ATR,0.04713835411454184
+S&P members,2,x2_ex_lo,line -1 ATR,0.11889076372739796
+S&P members,2,x2_ex_lo,line +1 ATR,0.007012348938002046
+S&P members,2,x2_ex_lo,line +2 ATR,-0.08448698747529793
+S&P members,2,x2_ex_lo,real - placebo,0.014521938114141422
+S&P members,2,x2_ex_lo,rising - falling (B4),0.13044665142433198
+S&P members,2,x2_ex_lo,HOOD-like analog,-1.1851205971825893
+S&P members,2,x2_ex_lo,"HOOD-like analog, placebo lines",-0.22131400791964742
+crypto,2,ar_m,real line,-1.0124479532241821
+crypto,2,ar_m,line -2 ATR,-0.15697993338108063
+crypto,2,ar_m,line -1 ATR,-0.8141891360282898
+crypto,2,ar_m,line +1 ATR,-3.105435609817505
+crypto,2,ar_m,line +2 ATR,-1.5847736597061157
+crypto,2,ar_m,real - placebo,0.439447820186615
+crypto,2,ar_m,rising - falling (B4),-3.7200675010681152
+crypto,2,ar_m_lo,real line,-0.015912804752588272
+crypto,2,ar_m_lo,line -2 ATR,-0.6019828915596008
+crypto,2,ar_m_lo,line -1 ATR,-0.5681416392326355
+crypto,2,ar_m_lo,line +1 ATR,-1.996207594871521
+crypto,2,ar_m_lo,line +2 ATR,0.553709864616394
+crypto,2,ar_m_lo,real - placebo,0.6434279084205627
+crypto,2,ar_m_lo,rising - falling (B4),-1.9011904001235962
+crypto,2,ar_pool,real line,-0.04353362321853638
+crypto,2,ar_pool,line -2 ATR,-0.5996583700180054
+crypto,2,ar_pool,line -1 ATR,-0.7443571090698242
+crypto,2,ar_pool,line +1 ATR,-1.7747232913970947
+crypto,2,ar_pool,line +2 ATR,0.33609044551849365
+crypto,2,ar_pool,real - placebo,0.6584466099739075
+crypto,2,ar_pool,rising - falling (B4),-2.6587026119232178
+crypto,2,ar_e2,real line,-3.0285305976867676
+crypto,2,ar_e2,line -2 ATR,-2.2806036472320557
+crypto,2,ar_e2,line -1 ATR,-2.9312562942504883
+crypto,2,ar_e2,line +1 ATR,-5.710424900054932
+crypto,2,ar_e2,line +2 ATR,-3.6543688774108887
+crypto,2,ar_e2,real - placebo,0.6554272174835205
+crypto,2,ar_e2,rising - falling (B4),-6.041981220245361
+crypto,2,ar_e2_lo,real line,-1.7193737030029297
+crypto,2,ar_e2_lo,line -2 ATR,-2.611685276031494
+crypto,2,ar_e2_lo,line -1 ATR,-2.4500484466552734
+crypto,2,ar_e2_lo,line +1 ATR,-4.429904460906982
+crypto,2,ar_e2_lo,line +2 ATR,-1.1265329122543335
+crypto,2,ar_e2_lo,real - placebo,0.933932900428772
+crypto,2,ar_e2_lo,rising - falling (B4),-4.483322620391846
+crypto,2,x2_ex,real line,-0.44459012150764465
+crypto,2,x2_ex,line -2 ATR,-1.6620633602142334
+crypto,2,x2_ex,line -1 ATR,-0.8349050879478455
+crypto,2,x2_ex,line +1 ATR,-0.8591203093528748
+crypto,2,x2_ex,line +2 ATR,-1.363144040107727
+crypto,2,x2_ex,real - placebo,0.7230932712554932
+crypto,2,x2_ex,rising - falling (B4),-2.417292833328247
+crypto,2,x2_ex_lo,real line,0.4297471046447754
+crypto,2,x2_ex_lo,line -2 ATR,-1.734421968460083
+crypto,2,x2_ex_lo,line -1 ATR,-0.46221351623535156
+crypto,2,x2_ex_lo,line +1 ATR,0.04758641496300697
+crypto,2,x2_ex_lo,line +2 ATR,0.03191434219479561
+crypto,2,x2_ex_lo,real - placebo,0.9285846948623657
+crypto,2,x2_ex_lo,rising - falling (B4),-1.3802539110183716
+S&P members,3,ar_m,real line,0.19906576268535178
+S&P members,3,ar_m,line -2 ATR,0.6361815017225545
+S&P members,3,ar_m,line -1 ATR,0.4762233151655401
+S&P members,3,ar_m,line +1 ATR,0.021957045487621677
+S&P members,3,ar_m,line +2 ATR,-0.33664836257935715
+S&P members,3,ar_m,real - placebo,0.01433907794161607
+S&P members,3,ar_m,rising - falling (B4),-0.2603750549753631
+S&P members,3,ar_m,HOOD-like analog,1.5032423573389928
+S&P members,3,ar_m,"HOOD-like analog, placebo lines",1.552483848985361
+S&P members,3,ar_m_lo,real line,-0.010096753929798833
+S&P members,3,ar_m_lo,line -2 ATR,-0.05705517714163588
+S&P members,3,ar_m_lo,line -1 ATR,0.03800964591910067
+S&P members,3,ar_m_lo,line +1 ATR,0.0651214208006813
+S&P members,3,ar_m_lo,line +2 ATR,-0.04650249693760285
+S&P members,3,ar_m_lo,real - placebo,-0.011417044789694682
+S&P members,3,ar_m_lo,rising - falling (B4),0.10568783211426838
+S&P members,3,ar_m_lo,HOOD-like analog,0.893176328190183
+S&P members,3,ar_m_lo,"HOOD-like analog, placebo lines",0.9717383690943819
+S&P members,3,ar_pool,real line,-0.034705934435429915
+S&P members,3,ar_pool,line -2 ATR,-0.061105330698954054
+S&P members,3,ar_pool,line -1 ATR,0.04894407810441917
+S&P members,3,ar_pool,line +1 ATR,0.10168737098575148
+S&P members,3,ar_pool,line +2 ATR,0.008636934109272664
+S&P members,3,ar_pool,real - placebo,-0.061602149859201684
+S&P members,3,ar_pool,rising - falling (B4),0.1062400656674405
+S&P members,3,ar_pool,HOOD-like analog,-1.0631155905551697
+S&P members,3,ar_pool,"HOOD-like analog, placebo lines",-0.6544465078160091
+S&P members,3,ar_e2,real line,-0.08345785520577001
+S&P members,3,ar_e2,line -2 ATR,0.40913834565444956
+S&P members,3,ar_e2,line -1 ATR,0.20859334447365488
+S&P members,3,ar_e2,line +1 ATR,-0.15983420818711855
+S&P members,3,ar_e2,line +2 ATR,-0.5958374078357441
+S&P members,3,ar_e2,real - placebo,-0.03693523610737584
+S&P members,3,ar_e2,rising - falling (B4),-0.2373437618558915
+S&P members,3,ar_e2,HOOD-like analog,0.40799011879911024
+S&P members,3,ar_e2,"HOOD-like analog, placebo lines",-0.9662485317377474
+S&P members,3,ar_e2_lo,real line,-0.1245241759857964
+S&P members,3,ar_e2_lo,line -2 ATR,-0.1414246909945105
+S&P members,3,ar_e2_lo,line -1 ATR,-0.07246323193468425
+S&P members,3,ar_e2_lo,line +1 ATR,0.04004786975239531
+S&P members,3,ar_e2_lo,line +2 ATR,-0.1453458840358624
+S&P members,3,ar_e2_lo,real - placebo,-0.04710096503555951
+S&P members,3,ar_e2_lo,rising - falling (B4),0.13200685734426382
+S&P members,3,ar_e2_lo,HOOD-like analog,-0.35160555322120973
+S&P members,3,ar_e2_lo,"HOOD-like analog, placebo lines",-1.3694554408254487
+S&P members,3,x2_ex,real line,-0.06221099868128675
+S&P members,3,x2_ex,line -2 ATR,0.2540852356731305
+S&P members,3,x2_ex,line -1 ATR,0.08961932719435775
+S&P members,3,x2_ex,line +1 ATR,-0.169361375066151
+S&P members,3,x2_ex,line +2 ATR,-0.3390404414038347
+S&P members,3,x2_ex,real - placebo,-0.011580195148258133
+S&P members,3,x2_ex,rising - falling (B4),-0.15372787685149678
+S&P members,3,x2_ex,HOOD-like analog,1.5530279999879415
+S&P members,3,x2_ex,"HOOD-like analog, placebo lines",1.2417774028798916
+S&P members,3,x2_ex_lo,real line,0.012425458054639798
+S&P members,3,x2_ex_lo,line -2 ATR,0.04429096683702591
+S&P members,3,x2_ex_lo,line -1 ATR,0.02652171137971703
+S&P members,3,x2_ex_lo,line +1 ATR,0.039617571729066776
+S&P members,3,x2_ex_lo,line +2 ATR,-0.00482506587147791
+S&P members,3,x2_ex_lo,real - placebo,-0.013570022372485536
+S&P members,3,x2_ex_lo,rising - falling (B4),0.10160676868610481
+S&P members,3,x2_ex_lo,HOOD-like analog,1.4239035938144806
+S&P members,3,x2_ex_lo,"HOOD-like analog, placebo lines",1.1705898881638497
+crypto,3,ar_m,real line,1.662904977798462
+crypto,3,ar_m,line -2 ATR,2.2574992179870605
+crypto,3,ar_m,line -1 ATR,-0.08057159185409546
+crypto,3,ar_m,line +1 ATR,-0.3500056564807892
+crypto,3,ar_m,line +2 ATR,-1.379319429397583
+crypto,3,ar_m,real - placebo,1.564568042755127
+crypto,3,ar_m,rising - falling (B4),2.852647542953491
+crypto,3,ar_m_lo,real line,2.8303802013397217
+crypto,3,ar_m_lo,line -2 ATR,1.9975244998931885
+crypto,3,ar_m_lo,line -1 ATR,-0.05439786985516548
+crypto,3,ar_m_lo,line +1 ATR,1.458198070526123
+crypto,3,ar_m_lo,line +2 ATR,1.234676718711853
+crypto,3,ar_m_lo,real - placebo,1.697945237159729
+crypto,3,ar_m_lo,rising - falling (B4),4.627642631530762
+crypto,3,ar_pool,real line,2.5852408409118652
+crypto,3,ar_pool,line -2 ATR,1.1631407737731934
+crypto,3,ar_pool,line -1 ATR,-0.6013888716697693
+crypto,3,ar_pool,line +1 ATR,1.4426348209381104
+crypto,3,ar_pool,line +2 ATR,1.6712970733642578
+crypto,3,ar_pool,real - placebo,1.6957696676254272
+crypto,3,ar_pool,rising - falling (B4),5.075279712677002
+crypto,3,ar_e2,real line,0.6823976635932922
+crypto,3,ar_e2,line -2 ATR,0.49347031116485596
+crypto,3,ar_e2,line -1 ATR,-3.728188991546631
+crypto,3,ar_e2,line +1 ATR,-1.0603668689727783
+crypto,3,ar_e2,line +2 ATR,-2.930936813354492
+crypto,3,ar_e2,real - placebo,2.5428884029388428
+crypto,3,ar_e2,rising - falling (B4),5.791102886199951
+crypto,3,ar_e2_lo,real line,2.233713388442993
+crypto,3,ar_e2_lo,line -2 ATR,0.7832967042922974
+crypto,3,ar_e2_lo,line -1 ATR,-3.4604296684265137
+crypto,3,ar_e2_lo,line +1 ATR,0.9955358505249023
+crypto,3,ar_e2_lo,line +2 ATR,-0.06288594007492065
+crypto,3,ar_e2_lo,real - placebo,2.7570583820343018
+crypto,3,ar_e2_lo,rising - falling (B4),7.2383880615234375
+crypto,3,x2_ex,real line,-0.5441513061523438
+crypto,3,x2_ex,line -2 ATR,1.0274055004119873
+crypto,3,x2_ex,line -1 ATR,-1.028967022895813
+crypto,3,x2_ex,line +1 ATR,-0.7358850240707397
+crypto,3,x2_ex,line +2 ATR,-0.3248961269855499
+crypto,3,x2_ex,real - placebo,-0.25197017192840576
+crypto,3,x2_ex,rising - falling (B4),2.0160436630249023
+crypto,3,x2_ex_lo,real line,0.6688647270202637
+crypto,3,x2_ex_lo,line -2 ATR,1.214467167854309
+crypto,3,x2_ex_lo,line -1 ATR,-0.41246122121810913
+crypto,3,x2_ex_lo,line +1 ATR,0.7010939717292786
+crypto,3,x2_ex_lo,line +2 ATR,1.3866732120513916
+crypto,3,x2_ex_lo,real - placebo,-0.02498324029147625
+crypto,3,x2_ex_lo,rising - falling (B4),3.631577730178833
+S&P members,4,ar_m,real line,0.1880250417439848
+S&P members,4,ar_m,line -2 ATR,0.6811505663119942
+S&P members,4,ar_m,line -1 ATR,0.5477695826075292
+S&P members,4,ar_m,line +1 ATR,-0.03331741388869056
+S&P members,4,ar_m,line +2 ATR,-0.35355367558938383
+S&P members,4,ar_m,real - placebo,-0.005785877885129947
+S&P members,4,ar_m,rising - falling (B4),-0.30129450630228
+S&P members,4,ar_m,HOOD-like analog,3.17605072488007
+S&P members,4,ar_m,"HOOD-like analog, placebo lines",0.24351630576027378
+S&P members,4,ar_m_lo,real line,-0.043232637900536185
+S&P members,4,ar_m_lo,line -2 ATR,-0.04552498466651302
+S&P members,4,ar_m_lo,line -1 ATR,0.08686778867938959
+S&P members,4,ar_m_lo,line +1 ATR,0.007477582215934446
+S&P members,4,ar_m_lo,line +2 ATR,-0.05331693542722575
+S&P members,4,ar_m_lo,real - placebo,-0.042235870597034646
+S&P members,4,ar_m_lo,rising - falling (B4),0.09019052559830812
+S&P members,4,ar_m_lo,HOOD-like analog,2.2082176796195783
+S&P members,4,ar_m_lo,"HOOD-like analog, placebo lines",-0.688723377966449
+S&P members,4,ar_pool,real line,-0.08431488548590806
+S&P members,4,ar_pool,line -2 ATR,-0.0563721855617494
+S&P members,4,ar_pool,line -1 ATR,0.06192158977154648
+S&P members,4,ar_pool,line +1 ATR,-0.0203229266017172
+S&P members,4,ar_pool,line +2 ATR,-0.05635757837174094
+S&P members,4,ar_pool,real - placebo,-0.06657530605175409
+S&P members,4,ar_pool,rising - falling (B4),0.09674706314263873
+S&P members,4,ar_pool,HOOD-like analog,0.07482635774614668
+S&P members,4,ar_pool,"HOOD-like analog, placebo lines",-1.338062813725002
+S&P members,4,ar_e2,real line,-0.037381108360984655
+S&P members,4,ar_e2,line -2 ATR,0.49774859357306034
+S&P members,4,ar_e2,line -1 ATR,0.28851055203427706
+S&P members,4,ar_e2,line +1 ATR,-0.2659954247802584
+S&P members,4,ar_e2,line +2 ATR,-0.6239144431854327
+S&P members,4,ar_e2,real - placebo,0.005844119372688252
+S&P members,4,ar_e2,rising - falling (B4),-0.36510523184373334
+S&P members,4,ar_e2,HOOD-like analog,1.1179577353793908
+S&P members,4,ar_e2,"HOOD-like analog, placebo lines",-0.29773700597287184
+S&P members,4,ar_e2_lo,real line,-0.1253835988167562
+S&P members,4,ar_e2_lo,line -2 ATR,-0.08559589686832897
+S&P members,4,ar_e2_lo,line -1 ATR,-0.006965057057493712
+S&P members,4,ar_e2_lo,line +1 ATR,-0.03959258210012655
+S&P members,4,ar_e2_lo,line +2 ATR,-0.13348200670775875
+S&P members,4,ar_e2_lo,real - placebo,-0.05893971058249287
+S&P members,4,ar_e2_lo,rising - falling (B4),0.053166677385538874
+S&P members,4,ar_e2_lo,HOOD-like analog,-0.04074949188803907
+S&P members,4,ar_e2_lo,"HOOD-like analog, placebo lines",-1.3108931620401747
+S&P members,4,x2_ex,real line,-0.056798837871757636
+S&P members,4,x2_ex,line -2 ATR,0.18652675445468445
+S&P members,4,x2_ex,line -1 ATR,0.19213916516667126
+S&P members,4,x2_ex,line +1 ATR,-0.1849807774437532
+S&P members,4,x2_ex,line +2 ATR,-0.3507863820270276
+S&P members,4,x2_ex,real - placebo,-0.008599685820201295
+S&P members,4,x2_ex,rising - falling (B4),-0.2666109231169421
+S&P members,4,x2_ex,HOOD-like analog,2.5950715959995994
+S&P members,4,x2_ex,"HOOD-like analog, placebo lines",0.27212916708533297
+S&P members,4,x2_ex_lo,real line,-0.0051598022129124566
+S&P members,4,x2_ex_lo,line -2 ATR,-0.036207884733352735
+S&P members,4,x2_ex_lo,line -1 ATR,0.12523373716913933
+S&P members,4,x2_ex_lo,line +1 ATR,0.016783639871183847
+S&P members,4,x2_ex_lo,line +2 ATR,-0.0016363620275529815
+S&P members,4,x2_ex_lo,real - placebo,-0.03158782981249249
+S&P members,4,x2_ex_lo,rising - falling (B4),0.046633625477409194
+S&P members,4,x2_ex_lo,HOOD-like analog,1.9868925102212627
+S&P members,4,x2_ex_lo,"HOOD-like analog, placebo lines",-0.13684955237329022
+crypto,4,ar_m,real line,-0.8438164591789246
+crypto,4,ar_m,line -2 ATR,1.558031678199768
+crypto,4,ar_m,line -1 ATR,1.1244099140167236
+crypto,4,ar_m,line +1 ATR,-1.2412835359573364
+crypto,4,ar_m,line +2 ATR,-2.907456874847412
+crypto,4,ar_m,real - placebo,-0.4481619596481323
+crypto,4,ar_m,rising - falling (B4),-5.800106525421143
+crypto,4,ar_m_lo,real line,-0.4160195589065552
+crypto,4,ar_m_lo,line -2 ATR,0.4024152159690857
+crypto,4,ar_m_lo,line -1 ATR,0.8126798272132874
+crypto,4,ar_m_lo,line +1 ATR,0.4782099723815918
+crypto,4,ar_m_lo,line +2 ATR,-0.8179183006286621
+crypto,4,ar_m_lo,real - placebo,-0.6332328915596008
+crypto,4,ar_m_lo,rising - falling (B4),-3.7319324016571045
+crypto,4,ar_pool,real line,0.1633443832397461
+crypto,4,ar_pool,line -2 ATR,0.33169153332710266
+crypto,4,ar_pool,line -1 ATR,0.9378044009208679
+crypto,4,ar_pool,line +1 ATR,0.6650679111480713
+crypto,4,ar_pool,line +2 ATR,0.6541996002197266
+crypto,4,ar_pool,real - placebo,-0.4887639880180359
+crypto,4,ar_pool,rising - falling (B4),-3.265031337738037
+crypto,4,ar_e2,real line,-1.6137892007827759
+crypto,4,ar_e2,line -2 ATR,0.33787891268730164
+crypto,4,ar_e2,line -1 ATR,-0.44568347930908203
+crypto,4,ar_e2,line +1 ATR,-2.1091396808624268
+crypto,4,ar_e2,line +2 ATR,-3.5026252269744873
+crypto,4,ar_e2,real - placebo,-0.15577980875968933
+crypto,4,ar_e2,rising - falling (B4),-7.787214279174805
+crypto,4,ar_e2_lo,real line,-0.614551842212677
+crypto,4,ar_e2_lo,line -2 ATR,-0.7471175193786621
+crypto,4,ar_e2_lo,line -1 ATR,-0.3875837028026581
+crypto,4,ar_e2_lo,line +1 ATR,0.13462522625923157
+crypto,4,ar_e2_lo,line +2 ATR,-1.197385549545288
+crypto,4,ar_e2_lo,real - placebo,-0.07623559981584549
+crypto,4,ar_e2_lo,rising - falling (B4),-5.651607513427734
+crypto,4,x2_ex,real line,-1.7176326513290405
+crypto,4,x2_ex,line -2 ATR,-0.3605804741382599
+crypto,4,x2_ex,line -1 ATR,-0.25368934869766235
+crypto,4,x2_ex,line +1 ATR,-1.4326410293579102
+crypto,4,x2_ex,line +2 ATR,-2.1903414726257324
+crypto,4,x2_ex,real - placebo,-0.6478529572486877
+crypto,4,x2_ex,rising - falling (B4),-3.8057916164398193
+crypto,4,x2_ex_lo,real line,-1.1323845386505127
+crypto,4,x2_ex_lo,line -2 ATR,-0.6155667304992676
+crypto,4,x2_ex_lo,line -1 ATR,0.06218352168798447
+crypto,4,x2_ex_lo,line +1 ATR,0.004826744087040424
+crypto,4,x2_ex_lo,line +2 ATR,-0.4521399140357971
+crypto,4,x2_ex_lo,real - placebo,-0.8884181976318359
+crypto,4,x2_ex_lo,rising - falling (B4),-2.4878017902374268
+S&P members,5,ar_m,real line,0.30242644371451627
+S&P members,5,ar_m,line -2 ATR,0.7629720628597007
+S&P members,5,ar_m,line -1 ATR,0.5019691611899568
+S&P members,5,ar_m,line +1 ATR,-0.08963343521590594
+S&P members,5,ar_m,line +2 ATR,-0.42991187670875497
+S&P members,5,ar_m,real - placebo,0.1361278378677802
+S&P members,5,ar_m,rising - falling (B4),-0.14966383720088017
+S&P members,5,ar_m,HOOD-like analog,-0.48885457440417174
+S&P members,5,ar_m,"HOOD-like analog, placebo lines",-0.5821675759573979
+S&P members,5,ar_m_lo,real line,0.09494623229613584
+S&P members,5,ar_m_lo,line -2 ATR,0.11294476256226632
+S&P members,5,ar_m_lo,line -1 ATR,0.05168872054524355
+S&P members,5,ar_m_lo,line +1 ATR,-0.07472919281842907
+S&P members,5,ar_m_lo,line +2 ATR,-0.1603109978930374
+S&P members,5,ar_m_lo,real - placebo,0.1170586491947515
+S&P members,5,ar_m_lo,rising - falling (B4),0.21991021223636636
+S&P members,5,ar_m_lo,HOOD-like analog,-0.49041775878746413
+S&P members,5,ar_m_lo,"HOOD-like analog, placebo lines",-1.2279036466380338
+S&P members,5,ar_pool,real line,0.09932656625566585
+S&P members,5,ar_pool,line -2 ATR,0.10533727868932213
+S&P members,5,ar_pool,line -1 ATR,0.06752851591299606
+S&P members,5,ar_pool,line +1 ATR,-0.0357873702150211
+S&P members,5,ar_pool,line +2 ATR,-0.05015288062477464
+S&P members,5,ar_pool,real - placebo,0.08056212125128086
+S&P members,5,ar_pool,rising - falling (B4),0.023758697242749132
+S&P members,5,ar_pool,HOOD-like analog,-0.6929144968122987
+S&P members,5,ar_pool,"HOOD-like analog, placebo lines",-0.9016713866946191
+S&P members,5,ar_e2,real line,0.17750780252950327
+S&P members,5,ar_e2,line -2 ATR,0.5465879534438914
+S&P members,5,ar_e2,line -1 ATR,0.15136819680970998
+S&P members,5,ar_e2,line +1 ATR,-0.32752355258961047
+S&P members,5,ar_e2,line +2 ATR,-0.5672321572568225
+S&P members,5,ar_e2,real - placebo,0.2447115864046149
+S&P members,5,ar_e2,rising - falling (B4),-0.5706599714624209
+S&P members,5,ar_e2,HOOD-like analog,1.790915946548921
+S&P members,5,ar_e2,"HOOD-like analog, placebo lines",0.42857830052742807
+S&P members,5,ar_e2_lo,real line,0.10975769467907001
+S&P members,5,ar_e2_lo,line -2 ATR,0.0490033813157828
+S&P members,5,ar_e2_lo,line -1 ATR,-0.17751582430552032
+S&P members,5,ar_e2_lo,line +1 ATR,-0.17153753227280377
+S&P members,5,ar_e2_lo,line +2 ATR,-0.14047823328320155
+S&P members,5,ar_e2_lo,real - placebo,0.22338644191120988
+S&P members,5,ar_e2_lo,rising - falling (B4),-0.1327379868232837
+S&P members,5,ar_e2_lo,HOOD-like analog,2.3229816103594203
+S&P members,5,ar_e2_lo,"HOOD-like analog, placebo lines",0.03076695495158656
+S&P members,5,x2_ex,real line,-0.08763460761100732
+S&P members,5,x2_ex,line -2 ATR,0.26640883711562
+S&P members,5,x2_ex,line -1 ATR,0.04806481122576174
+S&P members,5,x2_ex,line +1 ATR,-0.24152679371625885
+S&P members,5,x2_ex,line +2 ATR,-0.41257491044828876
+S&P members,5,x2_ex,real - placebo,0.008763465980084553
+S&P members,5,x2_ex,rising - falling (B4),-0.0640238651451994
+S&P members,5,x2_ex,HOOD-like analog,-0.025502435145809816
+S&P members,5,x2_ex,"HOOD-like analog, placebo lines",-0.9876306395705707
+S&P members,5,x2_ex_lo,real line,-0.04336434047803124
+S&P members,5,x2_ex_lo,line -2 ATR,0.07311427248434425
+S&P members,5,x2_ex_lo,line -1 ATR,-0.036600156992730615
+S&P members,5,x2_ex_lo,line +1 ATR,-0.07289800693735485
+S&P members,5,x2_ex_lo,line +2 ATR,-0.10254254569342515
+S&P members,5,x2_ex_lo,real - placebo,-0.005639405534392066
+S&P members,5,x2_ex_lo,rising - falling (B4),0.1697517320153514
+S&P members,5,x2_ex_lo,HOOD-like analog,0.38748228932967427
+S&P members,5,x2_ex_lo,"HOOD-like analog, placebo lines",-1.08786384272492
+crypto,5,ar_m,real line,1.4733346700668335
+crypto,5,ar_m,line -2 ATR,-0.2783174514770508
+crypto,5,ar_m,line -1 ATR,-0.5168958902359009
+crypto,5,ar_m,line +1 ATR,-1.6240326166152954
+crypto,5,ar_m,line +2 ATR,-2.2201013565063477
+crypto,5,ar_m,real - placebo,2.655165672302246
+crypto,5,ar_m,rising - falling (B4),-0.1370266079902649
+crypto,5,ar_m_lo,real line,2.3464198112487793
+crypto,5,ar_m_lo,line -2 ATR,-1.1321285963058472
+crypto,5,ar_m_lo,line -1 ATR,-0.24873733520507812
+crypto,5,ar_m_lo,line +1 ATR,0.3239772915840149
+crypto,5,ar_m_lo,line +2 ATR,0.5053406357765198
+crypto,5,ar_m_lo,real - placebo,2.45672869682312
+crypto,5,ar_m_lo,rising - falling (B4),1.3184531927108765
+crypto,5,ar_pool,real line,2.3228001594543457
+crypto,5,ar_pool,line -2 ATR,-1.9155036211013794
+crypto,5,ar_pool,line -1 ATR,-1.115820050239563
+crypto,5,ar_pool,line +1 ATR,0.7888864874839783
+crypto,5,ar_pool,line +2 ATR,0.856292724609375
+crypto,5,ar_pool,real - placebo,2.6232728958129883
+crypto,5,ar_pool,rising - falling (B4),0.9150674343109131
+crypto,5,ar_e2,real line,0.060002006590366364
+crypto,5,ar_e2,line -2 ATR,-2.398090124130249
+crypto,5,ar_e2,line -1 ATR,-3.0754268169403076
+crypto,5,ar_e2,line +1 ATR,-1.886474370956421
+crypto,5,ar_e2,line +2 ATR,-2.98111891746521
+crypto,5,ar_e2,real - placebo,2.6517333984375
+crypto,5,ar_e2,rising - falling (B4),1.0456446409225464
+crypto,5,ar_e2_lo,real line,1.3889548778533936
+crypto,5,ar_e2_lo,line -2 ATR,-3.1642279624938965
+crypto,5,ar_e2_lo,line -1 ATR,-2.4084818363189697
+crypto,5,ar_e2_lo,line +1 ATR,0.534723699092865
+crypto,5,ar_e2_lo,line +2 ATR,0.1951097548007965
+crypto,5,ar_e2_lo,real - placebo,2.558856964111328
+crypto,5,ar_e2_lo,rising - falling (B4),2.3861992359161377
+crypto,5,x2_ex,real line,-0.04639216512441635
+crypto,5,x2_ex,line -2 ATR,0.3983960449695587
+crypto,5,x2_ex,line -1 ATR,0.6656229496002197
+crypto,5,x2_ex,line +1 ATR,-0.766503095626831
+crypto,5,x2_ex,line +2 ATR,-1.414294958114624
+crypto,5,x2_ex,real - placebo,0.24878159165382385
+crypto,5,x2_ex,rising - falling (B4),2.5541532039642334
+crypto,5,x2_ex_lo,real line,0.81255704164505
+crypto,5,x2_ex_lo,line -2 ATR,0.4043302834033966
+crypto,5,x2_ex_lo,line -1 ATR,1.077361822128296
+crypto,5,x2_ex_lo,line +1 ATR,0.862181544303894
+crypto,5,x2_ex_lo,line +2 ATR,0.44150039553642273
+crypto,5,x2_ex_lo,real - placebo,0.10531763732433319
+crypto,5,x2_ex_lo,rising - falling (B4),3.5048470497131348
+S&P members,6,ar_m,real line,0.23143904186285874
+S&P members,6,ar_m,line -2 ATR,0.8418888560042321
+S&P members,6,ar_m,line -1 ATR,0.4294769745119427
+S&P members,6,ar_m,line +1 ATR,0.04577900614443073
+S&P members,6,ar_m,line +2 ATR,-0.2626420807042664
+S&P members,6,ar_m,real - placebo,-0.017207133638689944
+S&P members,6,ar_m,rising - falling (B4),-0.018374703327133073
+S&P members,6,ar_m,HOOD-like analog,-0.546530927692206
+S&P members,6,ar_m,"HOOD-like analog, placebo lines",-0.7884878427296026
+S&P members,6,ar_m_lo,real line,0.03783377911516607
+S&P members,6,ar_m_lo,line -2 ATR,0.15665305847475788
+S&P members,6,ar_m_lo,line -1 ATR,-0.03534808648876415
+S&P members,6,ar_m_lo,line +1 ATR,0.09710984137715102
+S&P members,6,ar_m_lo,line +2 ATR,0.0746113557808862
+S&P members,6,ar_m_lo,real - placebo,-0.03476459414050189
+S&P members,6,ar_m_lo,rising - falling (B4),0.42340707300940167
+S&P members,6,ar_m_lo,HOOD-like analog,-1.5534061721395396
+S&P members,6,ar_m_lo,"HOOD-like analog, placebo lines",-2.0317444483569655
+S&P members,6,ar_pool,real line,0.01996565105677398
+S&P members,6,ar_pool,line -2 ATR,0.12425632519845888
+S&P members,6,ar_pool,line -1 ATR,-0.0507575641570844
+S&P members,6,ar_pool,line +1 ATR,0.10439629157404723
+S&P members,6,ar_pool,line +2 ATR,0.1192545032990283
+S&P members,6,ar_pool,real - placebo,-0.05455557595621751
+S&P members,6,ar_pool,rising - falling (B4),0.2577074134303272
+S&P members,6,ar_pool,HOOD-like analog,-1.001153179850554
+S&P members,6,ar_pool,"HOOD-like analog, placebo lines",-1.4717044806829527
+S&P members,6,ar_e2,real line,-0.02027048991849821
+S&P members,6,ar_e2,line -2 ATR,0.677551728298697
+S&P members,6,ar_e2,line -1 ATR,0.18661649298117702
+S&P members,6,ar_e2,line +1 ATR,-0.15625693850633585
+S&P members,6,ar_e2,line +2 ATR,-0.44245394214199013
+S&P members,6,ar_e2,real - placebo,-0.07363976607641194
+S&P members,6,ar_e2,rising - falling (B4),-0.2633769435346135
+S&P members,6,ar_e2,HOOD-like analog,0.3587440501402628
+S&P members,6,ar_e2,"HOOD-like analog, placebo lines",-0.5851656580944775
+S&P members,6,ar_e2_lo,real line,-0.05980303975246478
+S&P members,6,ar_e2_lo,line -2 ATR,0.13803783726617214
+S&P members,6,ar_e2_lo,line -1 ATR,-0.14233770622474953
+S&P members,6,ar_e2_lo,line +1 ATR,0.03767716826255209
+S&P members,6,ar_e2_lo,line +2 ATR,0.06600067080080552
+S&P members,6,ar_e2_lo,real - placebo,-0.08374666753026849
+S&P members,6,ar_e2_lo,rising - falling (B4),0.21964871401144126
+S&P members,6,ar_e2_lo,HOOD-like analog,-0.6237324585763181
+S&P members,6,ar_e2_lo,"HOOD-like analog, placebo lines",-1.7234024724671324
+S&P members,6,x2_ex,real line,0.011890788122026414
+S&P members,6,x2_ex,line -2 ATR,0.2917048214794676
+S&P members,6,x2_ex,line -1 ATR,-0.018381827538093833
+S&P members,6,x2_ex,line +1 ATR,-0.12398929662641707
+S&P members,6,x2_ex,line +2 ATR,-0.3072196708513725
+S&P members,6,x2_ex,real - placebo,0.05905691753713379
+S&P members,6,x2_ex,rising - falling (B4),-0.0034957164845573225
+S&P members,6,x2_ex,HOOD-like analog,-0.6749331541308672
+S&P members,6,x2_ex,"HOOD-like analog, placebo lines",-0.9636114085259386
+S&P members,6,x2_ex_lo,real line,0.08789755221620313
+S&P members,6,x2_ex_lo,line -2 ATR,0.0888785749060732
+S&P members,6,x2_ex_lo,line -1 ATR,-0.1046162037236976
+S&P members,6,x2_ex_lo,line +1 ATR,0.07461981979779037
+S&P members,6,x2_ex_lo,line +2 ATR,0.04119408405122122
+S&P members,6,x2_ex_lo,real - placebo,0.06280270181796252
+S&P members,6,x2_ex_lo,rising - falling (B4),0.30841043913559796
+S&P members,6,x2_ex_lo,HOOD-like analog,-1.1265142341157073
+S&P members,6,x2_ex_lo,"HOOD-like analog, placebo lines",-1.3082044263525554
+crypto,6,ar_m,real line,-1.1434777975082397
+crypto,6,ar_m,line -2 ATR,2.1100878715515137
+crypto,6,ar_m,line -1 ATR,0.9689604640007019
+crypto,6,ar_m,line +1 ATR,-0.7200009226799011
+crypto,6,ar_m,line +2 ATR,-4.91040563583374
+crypto,6,ar_m,real - placebo,-0.3908809423446655
+crypto,6,ar_m,rising - falling (B4),-2.2501416206359863
+crypto,6,ar_m_lo,real line,-0.762597918510437
+crypto,6,ar_m_lo,line -2 ATR,1.5382122993469238
+crypto,6,ar_m_lo,line -1 ATR,0.7844419479370117
+crypto,6,ar_m_lo,line +1 ATR,0.9909839630126953
+crypto,6,ar_m_lo,line +2 ATR,-2.799952268600464
+crypto,6,ar_m_lo,real - placebo,-0.8423383235931396
+crypto,6,ar_m_lo,rising - falling (B4),-0.3054065704345703
+crypto,6,ar_pool,real line,-0.6751830577850342
+crypto,6,ar_pool,line -2 ATR,1.1787253618240356
+crypto,6,ar_pool,line -1 ATR,0.7420241832733154
+crypto,6,ar_pool,line +1 ATR,1.7580095529556274
+crypto,6,ar_pool,line +2 ATR,-1.5008225440979004
+crypto,6,ar_pool,real - placebo,-1.2062381505966187
+crypto,6,ar_pool,rising - falling (B4),1.5282931327819824
+crypto,6,ar_e2,real line,-3.2145087718963623
+crypto,6,ar_e2,line -2 ATR,0.6542728543281555
+crypto,6,ar_e2,line -1 ATR,-0.380934476852417
+crypto,6,ar_e2,line +1 ATR,-1.0984770059585571
+crypto,6,ar_e2,line +2 ATR,-6.425382137298584
+crypto,6,ar_e2,real - placebo,-1.2941241264343262
+crypto,6,ar_e2,rising - falling (B4),-2.9311063289642334
+crypto,6,ar_e2_lo,real line,-2.6724581718444824
+crypto,6,ar_e2_lo,line -2 ATR,0.5752337574958801
+crypto,6,ar_e2_lo,line -1 ATR,-0.2797601521015167
+crypto,6,ar_e2_lo,line +1 ATR,1.2881754636764526
+crypto,6,ar_e2_lo,line +2 ATR,-3.869723081588745
+crypto,6,ar_e2_lo,real - placebo,-2.070411205291748
+crypto,6,ar_e2_lo,rising - falling (B4),-1.165176510810852
+crypto,6,x2_ex,real line,-1.4046555757522583
+crypto,6,x2_ex,line -2 ATR,-0.9840890765190125
+crypto,6,x2_ex,line -1 ATR,-0.4549790024757385
+crypto,6,x2_ex,line +1 ATR,-1.4227161407470703
+crypto,6,x2_ex,line +2 ATR,-4.264987945556641
+crypto,6,x2_ex,real - placebo,0.41617339849472046
+crypto,6,x2_ex,rising - falling (B4),-1.3398078680038452
+crypto,6,x2_ex_lo,real line,-0.692573606967926
+crypto,6,x2_ex_lo,line -2 ATR,-0.8376558423042297
+crypto,6,x2_ex_lo,line -1 ATR,-0.1463269293308258
+crypto,6,x2_ex_lo,line +1 ATR,0.08761968463659286
+crypto,6,x2_ex_lo,line +2 ATR,-2.697413206100464
+crypto,6,x2_ex_lo,real - placebo,0.20707887411117554
+crypto,6,x2_ex_lo,rising - falling (B4),-0.3689953088760376
+S&P members,7,ar_m,real line,0.20071138574399686
+S&P members,7,ar_m,line -2 ATR,0.6202327420218219
+S&P members,7,ar_m,line -1 ATR,0.4095969110003932
+S&P members,7,ar_m,line +1 ATR,-0.14541842065309443
+S&P members,7,ar_m,line +2 ATR,-0.3425466248134411
+S&P members,7,ar_m,real - placebo,0.08382219597666833
+S&P members,7,ar_m,rising - falling (B4),-0.3861867475069468
+S&P members,7,ar_m,HOOD-like analog,1.1911126399187006
+S&P members,7,ar_m,"HOOD-like analog, placebo lines",1.534143204295728
+S&P members,7,ar_m_lo,real line,-0.010616617170564564
+S&P members,7,ar_m_lo,line -2 ATR,-0.05237574652192297
+S&P members,7,ar_m_lo,line -1 ATR,-0.037377450863533127
+S&P members,7,ar_m_lo,line +1 ATR,-0.1262198829879715
+S&P members,7,ar_m_lo,line +2 ATR,-0.07718114288507896
+S&P members,7,ar_m_lo,real - placebo,0.06398030735924506
+S&P members,7,ar_m_lo,rising - falling (B4),-0.029004736159304764
+S&P members,7,ar_m_lo,HOOD-like analog,1.1534027867774534
+S&P members,7,ar_m_lo,"HOOD-like analog, placebo lines",0.8555959712728857
+S&P members,7,ar_pool,real line,-0.020405972876446916
+S&P members,7,ar_pool,line -2 ATR,-0.08184231842684801
+S&P members,7,ar_pool,line -1 ATR,-0.0352224702453379
+S&P members,7,ar_pool,line +1 ATR,-0.10338100480595674
+S&P members,7,ar_pool,line +2 ATR,-0.004517699327287817
+S&P members,7,ar_pool,real - placebo,0.035611034797074934
+S&P members,7,ar_pool,rising - falling (B4),0.025825050566131314
+S&P members,7,ar_pool,HOOD-like analog,-0.820553413629285
+S&P members,7,ar_pool,"HOOD-like analog, placebo lines",-0.3389073428736005
+S&P members,7,ar_e2,real line,-0.017256435027745688
+S&P members,7,ar_e2,line -2 ATR,0.322676765744336
+S&P members,7,ar_e2,line -1 ATR,0.19002266204517193
+S&P members,7,ar_e2,line +1 ATR,-0.49324050539564085
+S&P members,7,ar_e2,line +2 ATR,-0.5451385439230402
+S&P members,7,ar_e2,real - placebo,0.1324935058572831
+S&P members,7,ar_e2,rising - falling (B4),-0.3711035956298302
+S&P members,7,ar_e2,HOOD-like analog,-1.5156393599896747
+S&P members,7,ar_e2,"HOOD-like analog, placebo lines",0.24294848179130152
+S&P members,7,ar_e2_lo,real line,-0.09288315247786423
+S&P members,7,ar_e2_lo,line -2 ATR,-0.21013738709138777
+S&P members,7,ar_e2_lo,line -1 ATR,-0.10453408741854069
+S&P members,7,ar_e2_lo,line +1 ATR,-0.3440850781405466
+S&P members,7,ar_e2_lo,line +2 ATR,-0.12294905811638436
+S&P members,7,ar_e2_lo,real - placebo,0.10457395811480125
+S&P members,7,ar_e2_lo,rising - falling (B4),-0.04944735192133139
+S&P members,7,ar_e2_lo,HOOD-like analog,-1.048851977093292
+S&P members,7,ar_e2_lo,"HOOD-like analog, placebo lines",-0.2621141660188222
+S&P members,7,x2_ex,real line,-0.0121059245242114
+S&P members,7,x2_ex,line -2 ATR,0.17598996959476507
+S&P members,7,x2_ex,line -1 ATR,0.08758108582601232
+S&P members,7,x2_ex,line +1 ATR,-0.26082758941791234
+S&P members,7,x2_ex,line +2 ATR,-0.3994401181087985
+S&P members,7,x2_ex,real - placebo,0.09809900431599675
+S&P members,7,x2_ex,rising - falling (B4),-0.2750138456002593
+S&P members,7,x2_ex,HOOD-like analog,1.1108596624437366
+S&P members,7,x2_ex,"HOOD-like analog, placebo lines",0.3238475135436959
+S&P members,7,x2_ex_lo,real line,0.0515204504081709
+S&P members,7,x2_ex_lo,line -2 ATR,-0.041490967515775766
+S&P members,7,x2_ex_lo,line -1 ATR,0.007418111732679379
+S&P members,7,x2_ex_lo,line +1 ATR,-0.08564900563884828
+S&P members,7,x2_ex_lo,line +2 ATR,-0.08306411782138669
+S&P members,7,x2_ex_lo,real - placebo,0.10348774372088837
+S&P members,7,x2_ex_lo,rising - falling (B4),-0.038256622092958874
+S&P members,7,x2_ex_lo,HOOD-like analog,1.3489410129535062
+S&P members,7,x2_ex_lo,"HOOD-like analog, placebo lines",0.07119678161086931
+crypto,7,ar_m,real line,1.4118412733078003
+crypto,7,ar_m,line -2 ATR,1.9079649448394775
+crypto,7,ar_m,line -1 ATR,0.20832903683185577
+crypto,7,ar_m,line +1 ATR,-1.6053643226623535
+crypto,7,ar_m,line +2 ATR,-1.032785415649414
+crypto,7,ar_m,real - placebo,1.5806652307510376
+crypto,7,ar_m,rising - falling (B4),-5.642532825469971
+crypto,7,ar_m_lo,real line,1.8130518198013306
+crypto,7,ar_m_lo,line -2 ATR,0.46804895997047424
+crypto,7,ar_m_lo,line -1 ATR,-0.2748508155345917
+crypto,7,ar_m_lo,line +1 ATR,-0.7003150582313538
+crypto,7,ar_m_lo,line +2 ATR,1.2139049768447876
+crypto,7,ar_m_lo,real - placebo,1.650704026222229
+crypto,7,ar_m_lo,rising - falling (B4),-4.481631278991699
+crypto,7,ar_pool,real line,1.947548747062683
+crypto,7,ar_pool,line -2 ATR,0.30062809586524963
+crypto,7,ar_pool,line -1 ATR,-0.8176437616348267
+crypto,7,ar_pool,line +1 ATR,-0.251034677028656
+crypto,7,ar_pool,line +2 ATR,2.046643018722534
+crypto,7,ar_pool,real - placebo,1.6368736028671265
+crypto,7,ar_pool,rising - falling (B4),-3.2827441692352295
+crypto,7,ar_e2,real line,0.8953983187675476
+crypto,7,ar_e2,line -2 ATR,0.45346900820732117
+crypto,7,ar_e2,line -1 ATR,-1.5143941640853882
+crypto,7,ar_e2,line +1 ATR,-2.9253523349761963
+crypto,7,ar_e2,line +2 ATR,-0.7842503786087036
+crypto,7,ar_e2,real - placebo,2.1430678367614746
+crypto,7,ar_e2,rising - falling (B4),-6.22224235534668
+crypto,7,ar_e2_lo,real line,1.7303690910339355
+crypto,7,ar_e2_lo,line -2 ATR,-0.7054920792579651
+crypto,7,ar_e2_lo,line -1 ATR,-1.5288740396499634
+crypto,7,ar_e2_lo,line +1 ATR,-1.698407530784607
+crypto,7,ar_e2_lo,line +2 ATR,1.883204460144043
+crypto,7,ar_e2_lo,real - placebo,2.2789690494537354
+crypto,7,ar_e2_lo,rising - falling (B4),-5.4934587478637695
+crypto,7,x2_ex,real line,-0.07246812433004379
+crypto,7,x2_ex,line -2 ATR,1.2975505590438843
+crypto,7,x2_ex,line -1 ATR,-0.7481198906898499
+crypto,7,x2_ex,line +1 ATR,-1.7203294038772583
+crypto,7,x2_ex,line +2 ATR,-0.4454960525035858
+crypto,7,x2_ex,real - placebo,0.36622217297554016
+crypto,7,x2_ex,rising - falling (B4),-3.0756661891937256
+crypto,7,x2_ex_lo,real line,0.6549463272094727
+crypto,7,x2_ex_lo,line -2 ATR,0.7638709545135498
+crypto,7,x2_ex_lo,line -1 ATR,-0.644106924533844
+crypto,7,x2_ex_lo,line +1 ATR,-0.7666624784469604
+crypto,7,x2_ex_lo,line +2 ATR,1.3911325931549072
+crypto,7,x2_ex_lo,real - placebo,0.4882175326347351
+crypto,7,x2_ex_lo,rising - falling (B4),-2.231806993484497
+S&P members,8,ar_m,real line,0.23138079040942536
+S&P members,8,ar_m,line -2 ATR,0.8121672162503399
+S&P members,8,ar_m,line -1 ATR,0.6933198368280533
+S&P members,8,ar_m,line +1 ATR,0.013507877818267486
+S&P members,8,ar_m,line +2 ATR,-0.2815203717749369
+S&P members,8,ar_m,real - placebo,-0.05785347933330233
+S&P members,8,ar_m,rising - falling (B4),-0.5782271978526926
+S&P members,8,ar_m,HOOD-like analog,0.8410953807449127
+S&P members,8,ar_m,"HOOD-like analog, placebo lines",3.944321035279529
+S&P members,8,ar_m_lo,real line,-0.0372417780258365
+S&P members,8,ar_m_lo,line -2 ATR,0.09113272036660044
+S&P members,8,ar_m_lo,line -1 ATR,0.1946180720241475
+S&P members,8,ar_m_lo,line +1 ATR,0.026052845344483454
+S&P members,8,ar_m_lo,line +2 ATR,-0.024541463466816443
+S&P members,8,ar_m_lo,real - placebo,-0.10669226780126242
+S&P members,8,ar_m_lo,rising - falling (B4),-0.23385489479574922
+S&P members,8,ar_m_lo,HOOD-like analog,0.5224060001903748
+S&P members,8,ar_m_lo,"HOOD-like analog, placebo lines",3.18142009618255
+S&P members,8,ar_pool,real line,-0.10702787734962887
+S&P members,8,ar_pool,line -2 ATR,0.03490365687008653
+S&P members,8,ar_pool,line -1 ATR,0.09900987295423365
+S&P members,8,ar_pool,line +1 ATR,0.0015073264280067366
+S&P members,8,ar_pool,line +2 ATR,-0.006287367674584991
+S&P members,8,ar_pool,real - placebo,-0.13824022420201865
+S&P members,8,ar_pool,rising - falling (B4),-0.2884012622498186
+S&P members,8,ar_pool,HOOD-like analog,-1.1432209192740053
+S&P members,8,ar_pool,"HOOD-like analog, placebo lines",1.0713611690657285
+S&P members,8,ar_e2,real line,-0.18565694135916813
+S&P members,8,ar_e2,line -2 ATR,0.47747959083330865
+S&P members,8,ar_e2,line -1 ATR,0.44321789976998716
+S&P members,8,ar_e2,line +1 ATR,-0.2555987777823708
+S&P members,8,ar_e2,line +2 ATR,-0.5354210510303867
+S&P members,8,ar_e2,real - placebo,-0.1995476344588296
+S&P members,8,ar_e2,rising - falling (B4),-0.6823721924815005
+S&P members,8,ar_e2,HOOD-like analog,-2.2573485565730014
+S&P members,8,ar_e2,"HOOD-like analog, placebo lines",2.46577360035721
+S&P members,8,ar_e2_lo,real line,-0.3249029251814553
+S&P members,8,ar_e2_lo,line -2 ATR,-0.12699112115577174
+S&P members,8,ar_e2_lo,line -1 ATR,0.05902705576002187
+S&P members,8,ar_e2_lo,line +1 ATR,-0.0988944185016023
+S&P members,8,ar_e2_lo,line +2 ATR,-0.1371647387410105
+S&P members,8,ar_e2_lo,real - placebo,-0.24854758296704071
+S&P members,8,ar_e2_lo,rising - falling (B4),-0.3614571877796147
+S&P members,8,ar_e2_lo,HOOD-like analog,-2.750926085192567
+S&P members,8,ar_e2_lo,"HOOD-like analog, placebo lines",1.799782092637587
+S&P members,8,x2_ex,real line,-0.06843106271245977
+S&P members,8,x2_ex,line -2 ATR,0.2684856587317987
+S&P members,8,x2_ex,line -1 ATR,0.28472423420391957
+S&P members,8,x2_ex,line +1 ATR,-0.15300982062074026
+S&P members,8,x2_ex,line +2 ATR,-0.23930460674781556
+S&P members,8,x2_ex,real - placebo,-0.09846901354911733
+S&P members,8,x2_ex,rising - falling (B4),-0.3953586670608915
+S&P members,8,x2_ex,HOOD-like analog,1.157425061487962
+S&P members,8,x2_ex,"HOOD-like analog, placebo lines",3.0287666454334197
+S&P members,8,x2_ex_lo,real line,-0.038305893876768644
+S&P members,8,x2_ex_lo,line -2 ATR,0.035423721436200276
+S&P members,8,x2_ex_lo,line -1 ATR,0.18182149532986458
+S&P members,8,x2_ex_lo,line +1 ATR,0.027849503321401806
+S&P members,8,x2_ex_lo,line +2 ATR,0.08019648752562103
+S&P members,8,x2_ex_lo,real - placebo,-0.11945442247862625
+S&P members,8,x2_ex_lo,rising - falling (B4),-0.16363295321667348
+S&P members,8,x2_ex_lo,HOOD-like analog,1.085928741585809
+S&P members,8,x2_ex_lo,"HOOD-like analog, placebo lines",2.6120182800205005
+crypto,8,ar_m,real line,-1.1052608489990234
+crypto,8,ar_m,line -2 ATR,1.0106441974639893
+crypto,8,ar_m,line -1 ATR,-0.655242383480072
+crypto,8,ar_m,line +1 ATR,-2.064465284347534
+crypto,8,ar_m,line +2 ATR,-1.7444653511047363
+crypto,8,ar_m,real - placebo,-0.21441756188869476
+crypto,8,ar_m,rising - falling (B4),0.50594562292099
+crypto,8,ar_m_lo,real line,-0.6707823276519775
+crypto,8,ar_m_lo,line -2 ATR,0.08458666503429413
+crypto,8,ar_m_lo,line -1 ATR,-1.2784467935562134
+crypto,8,ar_m_lo,line +1 ATR,-0.13168951869010925
+crypto,8,ar_m_lo,line +2 ATR,1.0030115842819214
+crypto,8,ar_m_lo,real - placebo,-0.597428560256958
+crypto,8,ar_m_lo,rising - falling (B4),4.253795623779297
+crypto,8,ar_pool,real line,-1.732499361038208
+crypto,8,ar_pool,line -2 ATR,-0.7546852231025696
+crypto,8,ar_pool,line -1 ATR,-1.825609803199768
+crypto,8,ar_pool,line +1 ATR,-0.8865754008293152
+crypto,8,ar_pool,line +2 ATR,1.165724754333496
+crypto,8,ar_pool,real - placebo,-1.1686574220657349
+crypto,8,ar_pool,rising - falling (B4),3.6351370811462402
+crypto,8,ar_e2,real line,-2.2606117725372314
+crypto,8,ar_e2,line -2 ATR,-0.22627697885036469
+crypto,8,ar_e2,line -1 ATR,-2.8090827465057373
+crypto,8,ar_e2,line +1 ATR,-3.5064804553985596
+crypto,8,ar_e2,line +2 ATR,-3.3780791759490967
+crypto,8,ar_e2,real - placebo,0.2303134649991989
+crypto,8,ar_e2,rising - falling (B4),1.8557524681091309
+crypto,8,ar_e2_lo,real line,-1.566220760345459
+crypto,8,ar_e2_lo,line -2 ATR,-0.6350213289260864
+crypto,8,ar_e2_lo,line -1 ATR,-3.222480058670044
+crypto,8,ar_e2_lo,line +1 ATR,-1.049445629119873
+crypto,8,ar_e2_lo,line +2 ATR,-0.324611097574234
+crypto,8,ar_e2_lo,real - placebo,-0.27360859513282776
+crypto,8,ar_e2_lo,rising - falling (B4),6.400887489318848
+crypto,8,x2_ex,real line,-0.3217860460281372
+crypto,8,x2_ex,line -2 ATR,1.0364328622817993
+crypto,8,x2_ex,line -1 ATR,-0.08550949394702911
+crypto,8,x2_ex,line +1 ATR,-0.10558124631643295
+crypto,8,x2_ex,line +2 ATR,-0.5255888104438782
+crypto,8,x2_ex,real - placebo,-0.39073726534843445
+crypto,8,x2_ex,rising - falling (B4),-0.40942299365997314
+crypto,8,x2_ex_lo,real line,0.1607132852077484
+crypto,8,x2_ex_lo,line -2 ATR,0.810850203037262
+crypto,8,x2_ex_lo,line -1 ATR,-0.11639375239610672
+crypto,8,x2_ex_lo,line +1 ATR,1.3788557052612305
+crypto,8,x2_ex_lo,line +2 ATR,1.6717805862426758
+crypto,8,x2_ex_lo,real - placebo,-0.7863382697105408
+crypto,8,x2_ex_lo,rising - falling (B4),1.8245630264282227
+S&P members,9,ar_m,real line,0.26091729659407636
+S&P members,9,ar_m,line -2 ATR,0.7575590573164076
+S&P members,9,ar_m,line -1 ATR,0.4929573371002652
+S&P members,9,ar_m,line +1 ATR,-0.005009312238250733
+S&P members,9,ar_m,line +2 ATR,-0.28847515571982507
+S&P members,9,ar_m,real - placebo,0.03875123007719794
+S&P members,9,ar_m,rising - falling (B4),-0.5085393820828369
+S&P members,9,ar_m,HOOD-like analog,1.2192808810254636
+S&P members,9,ar_m,"HOOD-like analog, placebo lines",2.473369266459649
+S&P members,9,ar_m_lo,real line,0.026682041875755222
+S&P members,9,ar_m_lo,line -2 ATR,0.04951477111747686
+S&P members,9,ar_m_lo,line -1 ATR,0.02393790835167497
+S&P members,9,ar_m_lo,line +1 ATR,0.014995173116976485
+S&P members,9,ar_m_lo,line +2 ATR,0.0030446952668097193
+S&P members,9,ar_m_lo,real - placebo,0.004534096750532219
+S&P members,9,ar_m_lo,rising - falling (B4),-0.05218486870324792
+S&P members,9,ar_m_lo,HOOD-like analog,0.39796003800921026
+S&P members,9,ar_m_lo,"HOOD-like analog, placebo lines",1.5601184677039166
+S&P members,9,ar_pool,real line,-0.07069452740243144
+S&P members,9,ar_pool,line -2 ATR,0.0015177318786328252
+S&P members,9,ar_pool,line -1 ATR,-0.051750252455302286
+S&P members,9,ar_pool,line +1 ATR,-0.06003583964563998
+S&P members,9,ar_pool,line +2 ATR,0.010010378818316006
+S&P members,9,ar_pool,real - placebo,-0.04501535997072039
+S&P members,9,ar_pool,rising - falling (B4),-0.10906455578825794
+S&P members,9,ar_pool,HOOD-like analog,-1.1202865512272877
+S&P members,9,ar_pool,"HOOD-like analog, placebo lines",0.20372646815617215
+S&P members,9,ar_e2,real line,-0.07927068841323473
+S&P members,9,ar_e2,line -2 ATR,0.359491864049909
+S&P members,9,ar_e2,line -1 ATR,0.17301429513316213
+S&P members,9,ar_e2,line +1 ATR,-0.3004744495232521
+S&P members,9,ar_e2,line +2 ATR,-0.5404397486676005
+S&P members,9,ar_e2,real - placebo,0.010166428301128542
+S&P members,9,ar_e2,rising - falling (B4),-0.8998725813344922
+S&P members,9,ar_e2,HOOD-like analog,-0.9330506591088904
+S&P members,9,ar_e2,"HOOD-like analog, placebo lines",1.553789638720998
+S&P members,9,ar_e2_lo,real line,-0.16231817213743296
+S&P members,9,ar_e2_lo,line -2 ATR,-0.19168832836723038
+S&P members,9,ar_e2_lo,line -1 ATR,-0.12712073129341295
+S&P members,9,ar_e2_lo,line +1 ATR,-0.12320019952165943
+S&P members,9,ar_e2_lo,line +2 ATR,-0.08556847137987628
+S&P members,9,ar_e2_lo,real - placebo,-0.031717851126226035
+S&P members,9,ar_e2_lo,rising - falling (B4),-0.35584641856920035
+S&P members,9,ar_e2_lo,HOOD-like analog,-2.0949836854457056
+S&P members,9,ar_e2_lo,"HOOD-like analog, placebo lines",0.6429898438582416
+S&P members,9,x2_ex,real line,0.07140189748374859
+S&P members,9,x2_ex,line -2 ATR,0.27032875341960966
+S&P members,9,x2_ex,line -1 ATR,0.09722166889490155
+S&P members,9,x2_ex,line +1 ATR,-0.09642400415285197
+S&P members,9,x2_ex,line +2 ATR,-0.3302070201246286
+S&P members,9,x2_ex,real - placebo,0.09494277339166748
+S&P members,9,x2_ex,rising - falling (B4),-0.44109441242984
+S&P members,9,x2_ex,HOOD-like analog,1.3139878935111515
+S&P members,9,x2_ex,"HOOD-like analog, placebo lines",1.165346677890079
+S&P members,9,x2_ex_lo,real line,0.11012175978221116
+S&P members,9,x2_ex_lo,line -2 ATR,0.03882586018024639
+S&P members,9,x2_ex_lo,line -1 ATR,0.01292154121103035
+S&P members,9,x2_ex_lo,line +1 ATR,0.09592628775829617
+S&P members,9,x2_ex_lo,line +2 ATR,-0.013569544156730734
+S&P members,9,x2_ex_lo,real - placebo,0.07610800532657094
+S&P members,9,x2_ex_lo,rising - falling (B4),-0.12139336493652247
+S&P members,9,x2_ex_lo,HOOD-like analog,0.8095529847930376
+S&P members,9,x2_ex_lo,"HOOD-like analog, placebo lines",0.7391092038762301
+crypto,9,ar_m,real line,-2.4289841651916504
+crypto,9,ar_m,line -2 ATR,0.20181618630886078
+crypto,9,ar_m,line -1 ATR,0.38381528854370117
+crypto,9,ar_m,line +1 ATR,-2.383563995361328
+crypto,9,ar_m,line +2 ATR,-1.112687587738037
+crypto,9,ar_m,real - placebo,-1.6896586418151855
+crypto,9,ar_m,rising - falling (B4),-3.1075327396392822
+crypto,9,ar_m_lo,real line,-1.8081594705581665
+crypto,9,ar_m_lo,line -2 ATR,-1.5014463663101196
+crypto,9,ar_m_lo,line -1 ATR,-0.15924152731895447
+crypto,9,ar_m_lo,line +1 ATR,-0.7155370116233826
+crypto,9,ar_m_lo,line +2 ATR,0.9486662149429321
+crypto,9,ar_m_lo,real - placebo,-1.4596946239471436
+crypto,9,ar_m_lo,rising - falling (B4),-0.2664273679256439
+crypto,9,ar_pool,real line,-1.4130771160125732
+crypto,9,ar_pool,line -2 ATR,-1.39226233959198
+crypto,9,ar_pool,line -1 ATR,0.3566264510154724
+crypto,9,ar_pool,line +1 ATR,-0.5812104344367981
+crypto,9,ar_pool,line +2 ATR,1.2187681198120117
+crypto,9,ar_pool,real - placebo,-1.3259268999099731
+crypto,9,ar_pool,rising - falling (B4),-0.9862221479415894
+crypto,9,ar_e2,real line,-4.175853729248047
+crypto,9,ar_e2,line -2 ATR,-0.9158109426498413
+crypto,9,ar_e2,line -1 ATR,-0.6373147368431091
+crypto,9,ar_e2,line +1 ATR,-3.4603238105773926
+crypto,9,ar_e2,line +2 ATR,-1.3707517385482788
+crypto,9,ar_e2,real - placebo,-2.5724384784698486
+crypto,9,ar_e2,rising - falling (B4),-2.713289499282837
+crypto,9,ar_e2_lo,real line,-3.069441556930542
+crypto,9,ar_e2_lo,line -2 ATR,-2.6035640239715576
+crypto,9,ar_e2_lo,line -1 ATR,-0.7903059720993042
+crypto,9,ar_e2_lo,line +1 ATR,-1.407609462738037
+crypto,9,ar_e2_lo,line +2 ATR,0.8260854482650757
+crypto,9,ar_e2_lo,real - placebo,-2.0960781574249268
+crypto,9,ar_e2_lo,rising - falling (B4),0.09745340794324875
+crypto,9,x2_ex,real line,-1.713871717453003
+crypto,9,x2_ex,line -2 ATR,0.05476333200931549
+crypto,9,x2_ex,line -1 ATR,-0.08389342576265335
+crypto,9,x2_ex,line +1 ATR,-1.5838923454284668
+crypto,9,x2_ex,line +2 ATR,-0.3907075524330139
+crypto,9,x2_ex,real - placebo,-1.2019401788711548
+crypto,9,x2_ex,rising - falling (B4),-0.7995538711547852
+crypto,9,x2_ex_lo,real line,-0.9767058491706848
+crypto,9,x2_ex_lo,line -2 ATR,-0.3462185263633728
+crypto,9,x2_ex_lo,line -1 ATR,0.18206842243671417
+crypto,9,x2_ex_lo,line +1 ATR,-0.3514533042907715
+crypto,9,x2_ex_lo,line +2 ATR,0.9040665030479431
+crypto,9,x2_ex_lo,real - placebo,-1.0739319324493408
+crypto,9,x2_ex_lo,rising - falling (B4),0.9520030617713928
+S&P members,10,ar_m,real line,0.19992004567569366
+S&P members,10,ar_m,line -2 ATR,0.6523192195797308
+S&P members,10,ar_m,line -1 ATR,0.5160717162179241
+S&P members,10,ar_m,line +1 ATR,-0.007154338416035215
+S&P members,10,ar_m,line +2 ATR,-0.37176839848058774
+S&P members,10,ar_m,real - placebo,0.020806119450666495
+S&P members,10,ar_m,rising - falling (B4),-0.25785485229019717
+S&P members,10,ar_m,HOOD-like analog,-2.152369207287962
+S&P members,10,ar_m,"HOOD-like analog, placebo lines",1.2628901532892647
+S&P members,10,ar_m_lo,real line,-0.05108103368108796
+S&P members,10,ar_m_lo,line -2 ATR,-0.05072706799713221
+S&P members,10,ar_m_lo,line -1 ATR,0.01925146952008568
+S&P members,10,ar_m_lo,line +1 ATR,0.00011713469129227078
+S&P members,10,ar_m_lo,line +2 ATR,-0.11695188178279334
+S&P members,10,ar_m_lo,real - placebo,-0.013787861272281744
+S&P members,10,ar_m_lo,rising - falling (B4),0.1558137890027463
+S&P members,10,ar_m_lo,HOOD-like analog,-3.120939902577855
+S&P members,10,ar_m_lo,"HOOD-like analog, placebo lines",0.17786825397638042
+S&P members,10,ar_pool,real line,-0.0167738629619095
+S&P members,10,ar_pool,line -2 ATR,-0.05664458916239667
+S&P members,10,ar_pool,line -1 ATR,0.031707041802511306
+S&P members,10,ar_pool,line +1 ATR,0.07737937775074427
+S&P members,10,ar_pool,line +2 ATR,-0.030839697357984797
+S&P members,10,ar_pool,real - placebo,-0.023902169719491356
+S&P members,10,ar_pool,rising - falling (B4),0.3058934291974036
+S&P members,10,ar_pool,HOOD-like analog,-4.064646360916701
+S&P members,10,ar_pool,"HOOD-like analog, placebo lines",-1.8233110785228261
+S&P members,10,ar_e2,real line,-0.0229961722861237
+S&P members,10,ar_e2,line -2 ATR,0.38897061283052786
+S&P members,10,ar_e2,line -1 ATR,0.3452822984595756
+S&P members,10,ar_e2,line +1 ATR,-0.13429440915123786
+S&P members,10,ar_e2,line +2 ATR,-0.5999636430039534
+S&P members,10,ar_e2,real - placebo,-0.007837589565144704
+S&P members,10,ar_e2,rising - falling (B4),-0.0812570700078565
+S&P members,10,ar_e2,HOOD-like analog,-2.843490502331406
+S&P members,10,ar_e2,"HOOD-like analog, placebo lines",0.04789806731985733
+S&P members,10,ar_e2_lo,real line,-0.12577625094029038
+S&P members,10,ar_e2_lo,line -2 ATR,-0.15843464087725528
+S&P members,10,ar_e2_lo,line -1 ATR,-0.022057210897259056
+S&P members,10,ar_e2_lo,line +1 ATR,0.03508876596739967
+S&P members,10,ar_e2_lo,line +2 ATR,-0.200206278071085
+S&P members,10,ar_e2_lo,real - placebo,-0.041622750713827095
+S&P members,10,ar_e2_lo,rising - falling (B4),0.36825372560820885
+S&P members,10,ar_e2_lo,HOOD-like analog,-3.767352923005819
+S&P members,10,ar_e2_lo,"HOOD-like analog, placebo lines",-0.8447178212799195
+S&P members,10,x2_ex,real line,-0.06657069437154786
+S&P members,10,x2_ex,line -2 ATR,0.20719942571325428
+S&P members,10,x2_ex,line -1 ATR,0.14082302442817485
+S&P members,10,x2_ex,line +1 ATR,-0.18825134854709075
+S&P members,10,x2_ex,line +2 ATR,-0.35293177152446703
+S&P members,10,x2_ex,real - placebo,-0.0077976286147786785
+S&P members,10,x2_ex,rising - falling (B4),-0.24166693888224272
+S&P members,10,x2_ex,HOOD-like analog,-1.2150822157386914
+S&P members,10,x2_ex,"HOOD-like analog, placebo lines",1.12415167479234
+S&P members,10,x2_ex_lo,real line,-0.03554146055265288
+S&P members,10,x2_ex_lo,line -2 ATR,-0.004047369208806552
+S&P members,10,x2_ex_lo,line -1 ATR,0.03841789590790822
+S&P members,10,x2_ex_lo,line +1 ATR,-0.016118716266229557
+S&P members,10,x2_ex_lo,line +2 ATR,-0.04205215624847108
+S&P members,10,x2_ex_lo,real - placebo,-0.028901684484611494
+S&P members,10,x2_ex_lo,rising - falling (B4),0.05031217676323364
+S&P members,10,x2_ex_lo,HOOD-like analog,-1.522651758288806
+S&P members,10,x2_ex_lo,"HOOD-like analog, placebo lines",0.8708131035926577
+crypto,10,ar_m,real line,-3.8150813579559326
+crypto,10,ar_m,line -2 ATR,1.7634738683700562
+crypto,10,ar_m,line -1 ATR,-1.843328595161438
+crypto,10,ar_m,line +1 ATR,-2.8250391483306885
+crypto,10,ar_m,line +2 ATR,-3.180795192718506
+crypto,10,ar_m,real - placebo,-2.1571784019470215
+crypto,10,ar_m,rising - falling (B4),5.150683403015137
+crypto,10,ar_m_lo,real line,-2.9706103801727295
+crypto,10,ar_m_lo,line -2 ATR,1.4572482109069824
+crypto,10,ar_m_lo,line -1 ATR,-1.7741087675094604
+crypto,10,ar_m_lo,line +1 ATR,-1.1878877878189087
+crypto,10,ar_m_lo,line +2 ATR,-0.6893019676208496
+crypto,10,ar_m_lo,real - placebo,-2.363072633743286
+crypto,10,ar_m_lo,rising - falling (B4),8.318840980529785
+crypto,10,ar_pool,real line,-2.74521803855896
+crypto,10,ar_pool,line -2 ATR,1.8349636793136597
+crypto,10,ar_pool,line -1 ATR,-1.6865524053573608
+crypto,10,ar_pool,line +1 ATR,-1.045883297920227
+crypto,10,ar_pool,line +2 ATR,-0.23384608328342438
+crypto,10,ar_pool,real - placebo,-2.4007508754730225
+crypto,10,ar_pool,rising - falling (B4),7.063000679016113
+crypto,10,ar_e2,real line,-5.709196090698242
+crypto,10,ar_e2,line -2 ATR,0.6552873849868774
+crypto,10,ar_e2,line -1 ATR,-3.516758918762207
+crypto,10,ar_e2,line +1 ATR,-4.02864933013916
+crypto,10,ar_e2,line +2 ATR,-4.574780464172363
+crypto,10,ar_e2,real - placebo,-2.674816131591797
+crypto,10,ar_e2,rising - falling (B4),6.048964500427246
+crypto,10,ar_e2_lo,real line,-4.644917011260986
+crypto,10,ar_e2_lo,line -2 ATR,0.9920118451118469
+crypto,10,ar_e2_lo,line -1 ATR,-3.2786731719970703
+crypto,10,ar_e2_lo,line +1 ATR,-2.3756659030914307
+crypto,10,ar_e2_lo,line +2 ATR,-1.7384916543960571
+crypto,10,ar_e2_lo,real - placebo,-2.9465150833129883
+crypto,10,ar_e2_lo,rising - falling (B4),9.975112915039062
+crypto,10,x2_ex,real line,-2.2967448234558105
+crypto,10,x2_ex,line -2 ATR,1.1847752332687378
+crypto,10,x2_ex,line -1 ATR,-2.138836622238159
+crypto,10,x2_ex,line +1 ATR,-1.3273162841796875
+crypto,10,x2_ex,line +2 ATR,-2.0682373046875
+crypto,10,x2_ex,real - placebo,-1.1326831579208374
+crypto,10,x2_ex,rising - falling (B4),4.512487411499023
+crypto,10,x2_ex_lo,real line,-1.3412190675735474
+crypto,10,x2_ex_lo,line -2 ATR,1.4558526277542114
+crypto,10,x2_ex_lo,line -1 ATR,-1.4711008071899414
+crypto,10,x2_ex_lo,line +1 ATR,-0.037425559014081955
+crypto,10,x2_ex_lo,line +2 ATR,-0.3002491593360901
+crypto,10,x2_ex_lo,real - placebo,-1.2163007259368896
+crypto,10,x2_ex_lo,rising - falling (B4),5.842705726623535
+S&P members,11,ar_m,real line,0.4392966647729977
+S&P members,11,ar_m,line -2 ATR,0.8538472567484374
+S&P members,11,ar_m,line -1 ATR,0.6588865394112253
+S&P members,11,ar_m,line +1 ATR,-0.023527555025576838
+S&P members,11,ar_m,line +2 ATR,-0.390052353844965
+S&P members,11,ar_m,real - placebo,0.18660602753035957
+S&P members,11,ar_m,rising - falling (B4),0.03235777823207214
+S&P members,11,ar_m,HOOD-like analog,-1.7409261179044586
+S&P members,11,ar_m,"HOOD-like analog, placebo lines",0.41331609169505773
+S&P members,11,ar_m_lo,real line,0.24721224848535786
+S&P members,11,ar_m_lo,line -2 ATR,0.14077493193404764
+S&P members,11,ar_m_lo,line -1 ATR,0.183428184966583
+S&P members,11,ar_m_lo,line +1 ATR,0.05133862114207703
+S&P members,11,ar_m_lo,line +2 ATR,-0.051562930087903566
+S&P members,11,ar_m_lo,real - placebo,0.1692299155603958
+S&P members,11,ar_m_lo,rising - falling (B4),0.4524226739679728
+S&P members,11,ar_m_lo,HOOD-like analog,-2.338626186010092
+S&P members,11,ar_m_lo,"HOOD-like analog, placebo lines",-0.32731613937902304
+S&P members,11,ar_pool,real line,0.15886393057733866
+S&P members,11,ar_pool,line -2 ATR,0.12965877563433414
+S&P members,11,ar_pool,line -1 ATR,0.16358545652594136
+S&P members,11,ar_pool,line +1 ATR,0.04089575559780286
+S&P members,11,ar_pool,line +2 ATR,-0.008569372668706303
+S&P members,11,ar_pool,real - placebo,0.07997115022752656
+S&P members,11,ar_pool,rising - falling (B4),0.23143999558417958
+S&P members,11,ar_pool,HOOD-like analog,-2.254747756362795
+S&P members,11,ar_pool,"HOOD-like analog, placebo lines",-0.17355961881774018
+S&P members,11,ar_e2,real line,0.08864924282174654
+S&P members,11,ar_e2,line -2 ATR,0.5467708860671849
+S&P members,11,ar_e2,line -1 ATR,0.3389658247420156
+S&P members,11,ar_e2,line +1 ATR,-0.4004386544173856
+S&P members,11,ar_e2,line +2 ATR,-0.696691455882877
+S&P members,11,ar_e2,real - placebo,0.16487423404593116
+S&P members,11,ar_e2,rising - falling (B4),-0.08276708562630981
+S&P members,11,ar_e2,HOOD-like analog,-3.2084901543337185
+S&P members,11,ar_e2,"HOOD-like analog, placebo lines",-0.09619349801314497
+S&P members,11,ar_e2_lo,real line,0.06103913638426842
+S&P members,11,ar_e2_lo,line -2 ATR,-0.04414287092709349
+S&P members,11,ar_e2_lo,line -1 ATR,-0.009875939922410572
+S&P members,11,ar_e2_lo,line +1 ATR,-0.15905365204242086
+S&P members,11,ar_e2_lo,line +2 ATR,-0.19048209589648668
+S&P members,11,ar_e2_lo,real - placebo,0.1648304224855578
+S&P members,11,ar_e2_lo,rising - falling (B4),0.37758604581349536
+S&P members,11,ar_e2_lo,HOOD-like analog,-3.6537861587835083
+S&P members,11,ar_e2_lo,"HOOD-like analog, placebo lines",-0.6935580162454199
+S&P members,11,x2_ex,real line,0.056030743305763846
+S&P members,11,x2_ex,line -2 ATR,0.2704682189127364
+S&P members,11,x2_ex,line -1 ATR,0.16952488863200757
+S&P members,11,x2_ex,line +1 ATR,-0.1922820692221287
+S&P members,11,x2_ex,line +2 ATR,-0.4071271087169026
+S&P members,11,x2_ex,real - placebo,0.1077341230417739
+S&P members,11,x2_ex,rising - falling (B4),0.032984681113055664
+S&P members,11,x2_ex,HOOD-like analog,-1.9783526765274662
+S&P members,11,x2_ex,"HOOD-like analog, placebo lines",-0.30746559891031744
+S&P members,11,x2_ex_lo,real line,0.13087185998795098
+S&P members,11,x2_ex_lo,line -2 ATR,0.037883678644451885
+S&P members,11,x2_ex_lo,line -1 ATR,0.0852088403952851
+S&P members,11,x2_ex_lo,line +1 ATR,0.03747436188495678
+S&P members,11,x2_ex_lo,line +2 ATR,-0.04081452751570096
+S&P members,11,x2_ex_lo,real - placebo,0.10176700384894229
+S&P members,11,x2_ex_lo,rising - falling (B4),0.32830408946792516
+S&P members,11,x2_ex_lo,HOOD-like analog,-1.9410077976550213
+S&P members,11,x2_ex_lo,"HOOD-like analog, placebo lines",-0.5633708950775634
+crypto,11,ar_m,real line,0.6824119687080383
+crypto,11,ar_m,line -2 ATR,0.500027060508728
+crypto,11,ar_m,line -1 ATR,-0.1554863452911377
+crypto,11,ar_m,line +1 ATR,1.8942068815231323
+crypto,11,ar_m,line +2 ATR,-1.97963547706604
+crypto,11,ar_m,real - placebo,0.5868299603462219
+crypto,11,ar_m,rising - falling (B4),-3.1478426456451416
+crypto,11,ar_m_lo,real line,1.2514656782150269
+crypto,11,ar_m_lo,line -2 ATR,-0.9103446006774902
+crypto,11,ar_m_lo,line -1 ATR,-0.3964351415634155
+crypto,11,ar_m_lo,line +1 ATR,3.710437297821045
+crypto,11,ar_m_lo,line +2 ATR,0.7567165493965149
+crypto,11,ar_m_lo,real - placebo,0.430853009223938
+crypto,11,ar_m_lo,rising - falling (B4),-0.4393310248851776
+crypto,11,ar_pool,real line,1.131232500076294
+crypto,11,ar_pool,line -2 ATR,-1.516038179397583
+crypto,11,ar_pool,line -1 ATR,-0.7995349168777466
+crypto,11,ar_pool,line +1 ATR,3.596010446548462
+crypto,11,ar_pool,line +2 ATR,1.3059778213500977
+crypto,11,ar_pool,real - placebo,0.4587029218673706
+crypto,11,ar_pool,rising - falling (B4),0.34004878997802734
+crypto,11,ar_e2,real line,-0.0471423864364624
+crypto,11,ar_e2,line -2 ATR,-1.0248041152954102
+crypto,11,ar_e2,line -1 ATR,-1.9258002042770386
+crypto,11,ar_e2,line +1 ATR,0.959684431552887
+crypto,11,ar_e2,line +2 ATR,-3.470134735107422
+crypto,11,ar_e2,real - placebo,1.275726079940796
+crypto,11,ar_e2,rising - falling (B4),-2.0445334911346436
+crypto,11,ar_e2_lo,real line,1.0366772413253784
+crypto,11,ar_e2_lo,line -2 ATR,-2.260143756866455
+crypto,11,ar_e2_lo,line -1 ATR,-1.8657857179641724
+crypto,11,ar_e2_lo,line +1 ATR,3.2239227294921875
+crypto,11,ar_e2_lo,line +2 ATR,-0.42524173855781555
+crypto,11,ar_e2_lo,real - placebo,1.3425637483596802
+crypto,11,ar_e2_lo,rising - falling (B4),0.9161712527275085
+crypto,11,x2_ex,real line,0.3496168553829193
+crypto,11,x2_ex,line -2 ATR,0.7403241395950317
+crypto,11,x2_ex,line -1 ATR,-0.09131194651126862
+crypto,11,x2_ex,line +1 ATR,0.4350508451461792
+crypto,11,x2_ex,line +2 ATR,-2.7013437747955322
+crypto,11,x2_ex,real - placebo,0.7300695180892944
+crypto,11,x2_ex,rising - falling (B4),0.2690773606300354
+crypto,11,x2_ex_lo,real line,1.0845379829406738
+crypto,11,x2_ex_lo,line -2 ATR,0.22229012846946716
+crypto,11,x2_ex_lo,line -1 ATR,0.19714131951332092
+crypto,11,x2_ex_lo,line +1 ATR,2.234766721725464
+crypto,11,x2_ex_lo,line +2 ATR,-0.8881220817565918
+crypto,11,x2_ex_lo,real - placebo,0.6123380064964294
+crypto,11,x2_ex_lo,rising - falling (B4),1.5648908615112305
+S&P members,12,ar_m,real line,0.010068167524177359
+S&P members,12,ar_m,line -2 ATR,0.6630231270294702
+S&P members,12,ar_m,line -1 ATR,0.3572362656932517
+S&P members,12,ar_m,line +1 ATR,-0.17043920685007397
+S&P members,12,ar_m,line +2 ATR,-0.3723234809832565
+S&P members,12,ar_m,real - placebo,-0.09030764526799578
+S&P members,12,ar_m,rising - falling (B4),-0.4601825997179675
+S&P members,12,ar_m,HOOD-like analog,0.9046527781494156
+S&P members,12,ar_m,"HOOD-like analog, placebo lines",0.4824263810085733
+S&P members,12,ar_m_lo,real line,-0.26289453451801476
+S&P members,12,ar_m_lo,line -2 ATR,-0.04752649133954144
+S&P members,12,ar_m_lo,line -1 ATR,-0.1313709366429152
+S&P members,12,ar_m_lo,line +1 ATR,-0.1749690041939973
+S&P members,12,ar_m_lo,line +2 ATR,-0.14232080142207607
+S&P members,12,ar_m_lo,real - placebo,-0.13656776449547775
+S&P members,12,ar_m_lo,rising - falling (B4),-0.1092194556076667
+S&P members,12,ar_m_lo,HOOD-like analog,-0.03670179166927304
+S&P members,12,ar_m_lo,"HOOD-like analog, placebo lines",-0.7320186296550084
+S&P members,12,ar_pool,real line,-0.2521284618996684
+S&P members,12,ar_pool,line -2 ATR,-0.027052134887794906
+S&P members,12,ar_pool,line -1 ATR,-0.1238842208865472
+S&P members,12,ar_pool,line +1 ATR,-0.13710579312625754
+S&P members,12,ar_pool,line +2 ATR,-0.017374383389048453
+S&P members,12,ar_pool,real - placebo,-0.1746202314147257
+S&P members,12,ar_pool,rising - falling (B4),0.1125189903741912
+S&P members,12,ar_pool,HOOD-like analog,-1.0859543766718411
+S&P members,12,ar_pool,"HOOD-like analog, placebo lines",-0.8558743602048285
+S&P members,12,ar_e2,real line,-0.2740897020901889
+S&P members,12,ar_e2,line -2 ATR,0.403084914436737
+S&P members,12,ar_e2,line -1 ATR,-0.014889570121323435
+S&P members,12,ar_e2,line +1 ATR,-0.4899016510861842
+S&P members,12,ar_e2,line +2 ATR,-0.5181609257397294
+S&P members,12,ar_e2,real - placebo,-0.10080423869716615
+S&P members,12,ar_e2,rising - falling (B4),-0.2712320084403981
+S&P members,12,ar_e2,HOOD-like analog,-0.6366928431131216
+S&P members,12,ar_e2,"HOOD-like analog, placebo lines",0.10723214018977126
+S&P members,12,ar_e2_lo,real line,-0.39613193198495145
+S&P members,12,ar_e2_lo,line -2 ATR,-0.16179528207495203
+S&P members,12,ar_e2_lo,line -1 ATR,-0.36690295897683783
+S&P members,12,ar_e2_lo,line +1 ATR,-0.3353076857203183
+S&P members,12,ar_e2_lo,line +2 ATR,-0.13833945523635305
+S&P members,12,ar_e2_lo,real - placebo,-0.14334194845162057
+S&P members,12,ar_e2_lo,rising - falling (B4),0.14807793197768887
+S&P members,12,ar_e2_lo,HOOD-like analog,-1.572584524283361
+S&P members,12,ar_e2_lo,"HOOD-like analog, placebo lines",-1.029090164657387
+S&P members,12,x2_ex,real line,-0.15677136085185608
+S&P members,12,x2_ex,line -2 ATR,0.13539951295585118
+S&P members,12,x2_ex,line -1 ATR,-0.029281944634629575
+S&P members,12,x2_ex,line +1 ATR,-0.27899592313358496
+S&P members,12,x2_ex,line +2 ATR,-0.4157449732639297
+S&P members,12,x2_ex,real - placebo,8.696467155803068e-05
+S&P members,12,x2_ex,rising - falling (B4),-0.30837170485486554
+S&P members,12,x2_ex,HOOD-like analog,0.7012745002459605
+S&P members,12,x2_ex,"HOOD-like analog, placebo lines",-0.12397515148551079
+S&P members,12,x2_ex_lo,real line,-0.12164696633746681
+S&P members,12,x2_ex_lo,line -2 ATR,-0.09941584364861929
+S&P members,12,x2_ex_lo,line -1 ATR,-0.1305963795050918
+S&P members,12,x2_ex_lo,line +1 ATR,-0.10429382916195289
+S&P members,12,x2_ex_lo,line +2 ATR,-0.1162979247815855
+S&P members,12,x2_ex_lo,real - placebo,-0.008879087509502427
+S&P members,12,x2_ex_lo,rising - falling (B4),-0.02172881548041549
+S&P members,12,x2_ex_lo,HOOD-like analog,0.24078817080203013
+S&P members,12,x2_ex_lo,"HOOD-like analog, placebo lines",-0.703313106507766
+crypto,12,ar_m,real line,0.4717653691768646
+crypto,12,ar_m,line -2 ATR,2.2015953063964844
+crypto,12,ar_m,line -1 ATR,0.8045819401741028
+crypto,12,ar_m,line +1 ATR,-2.2668843269348145
+crypto,12,ar_m,line +2 ATR,-2.3138227462768555
+crypto,12,ar_m,real - placebo,0.8921788930892944
+crypto,12,ar_m,rising - falling (B4),-2.172020435333252
+crypto,12,ar_m_lo,real line,1.420839548110962
+crypto,12,ar_m_lo,line -2 ATR,2.0610499382019043
+crypto,12,ar_m_lo,line -1 ATR,0.9250108003616333
+crypto,12,ar_m_lo,line +1 ATR,-0.8689338564872742
+crypto,12,ar_m_lo,line +2 ATR,-0.6450609564781189
+crypto,12,ar_m_lo,real - placebo,1.0737422704696655
+crypto,12,ar_m_lo,rising - falling (B4),-0.9921888709068298
+crypto,12,ar_pool,real line,0.4249536991119385
+crypto,12,ar_pool,line -2 ATR,1.0123462677001953
+crypto,12,ar_pool,line -1 ATR,-0.647796094417572
+crypto,12,ar_pool,line +1 ATR,-1.1589492559432983
+crypto,12,ar_pool,line +2 ATR,0.1604849100112915
+crypto,12,ar_pool,real - placebo,0.6137027144432068
+crypto,12,ar_pool,rising - falling (B4),0.1905750036239624
+crypto,12,ar_e2,real line,-1.1900097131729126
+crypto,12,ar_e2,line -2 ATR,0.8295825719833374
+crypto,12,ar_e2,line -1 ATR,-1.4848781824111938
+crypto,12,ar_e2,line +1 ATR,-4.123460292816162
+crypto,12,ar_e2,line +2 ATR,-4.046688556671143
+crypto,12,ar_e2,real - placebo,1.0236490964889526
+crypto,12,ar_e2,rising - falling (B4),-1.488002061843872
+crypto,12,ar_e2_lo,real line,-0.06555332243442535
+crypto,12,ar_e2_lo,line -2 ATR,1.0195294618606567
+crypto,12,ar_e2_lo,line -1 ATR,-1.3446943759918213
+crypto,12,ar_e2_lo,line +1 ATR,-2.3377604484558105
+crypto,12,ar_e2_lo,line +2 ATR,-2.262515068054199
+crypto,12,ar_e2_lo,real - placebo,1.175196886062622
+crypto,12,ar_e2_lo,rising - falling (B4),-0.5962046980857849
+crypto,12,x2_ex,real line,0.5958965420722961
+crypto,12,x2_ex,line -2 ATR,1.514184594154358
+crypto,12,x2_ex,line -1 ATR,0.4110337793827057
+crypto,12,x2_ex,line +1 ATR,-1.453258752822876
+crypto,12,x2_ex,line +2 ATR,-0.8936269879341125
+crypto,12,x2_ex,real - placebo,0.7257809638977051
+crypto,12,x2_ex,rising - falling (B4),-1.4683735370635986
+crypto,12,x2_ex_lo,real line,1.3051557540893555
+crypto,12,x2_ex_lo,line -2 ATR,1.7687933444976807
+crypto,12,x2_ex_lo,line -1 ATR,0.9792391061782837
+crypto,12,x2_ex_lo,line +1 ATR,-0.23678648471832275
+crypto,12,x2_ex_lo,line +2 ATR,0.7349379062652588
+crypto,12,x2_ex_lo,real - placebo,0.5164213180541992
+crypto,12,x2_ex_lo,rising - falling (B4),-0.8460243344306946
+S&P members,13,ar_m,real line,0.18731728598031486
+S&P members,13,ar_m,line -2 ATR,0.6370803930969954
+S&P members,13,ar_m,line -1 ATR,0.4801509467273603
+S&P members,13,ar_m,line +1 ATR,-0.021892399155999394
+S&P members,13,ar_m,line +2 ATR,-0.30658350991786065
+S&P members,13,ar_m,real - placebo,0.007806973773566059
+S&P members,13,ar_m,rising - falling (B4),-0.2549987510332228
+S&P members,13,ar_m,HOOD-like analog,-0.5355470825703753
+S&P members,13,ar_m,"HOOD-like analog, placebo lines",1.4392953756155054
+S&P members,13,ar_m_lo,real line,-0.06931728750846058
+S&P members,13,ar_m_lo,line -2 ATR,-0.0676523774856562
+S&P members,13,ar_m_lo,line -1 ATR,0.00027711249839760155
+S&P members,13,ar_m_lo,line +1 ATR,-0.00119421184285256
+S&P members,13,ar_m_lo,line +2 ATR,-0.015370787999203377
+S&P members,13,ar_m_lo,real - placebo,-0.04949504347513818
+S&P members,13,ar_m_lo,rising - falling (B4),0.1154378683848792
+S&P members,13,ar_m_lo,HOOD-like analog,-1.396672830389398
+S&P members,13,ar_m_lo,"HOOD-like analog, placebo lines",0.6838319779045904
+S&P members,13,ar_pool,real line,-0.08726679167119936
+S&P members,13,ar_pool,line -2 ATR,-0.07212006380620288
+S&P members,13,ar_pool,line -1 ATR,-0.0040717093932306206
+S&P members,13,ar_pool,line +1 ATR,0.06018421182057776
+S&P members,13,ar_pool,line +2 ATR,0.07276724126640884
+S&P members,13,ar_pool,real - placebo,-0.10441903981591204
+S&P members,13,ar_pool,rising - falling (B4),0.23544985063095153
+S&P members,13,ar_pool,HOOD-like analog,-1.6215194264609378
+S&P members,13,ar_pool,"HOOD-like analog, placebo lines",-0.6631231326785251
+S&P members,13,ar_e2,real line,-0.10736697448180843
+S&P members,13,ar_e2,line -2 ATR,0.43054412530294395
+S&P members,13,ar_e2,line -1 ATR,0.28959171891070556
+S&P members,13,ar_e2,line +1 ATR,-0.18981566544829687
+S&P members,13,ar_e2,line +2 ATR,-0.5052178048061499
+S&P members,13,ar_e2,real - placebo,-0.09645625061008577
+S&P members,13,ar_e2,rising - falling (B4),-0.3499777359668163
+S&P members,13,ar_e2,HOOD-like analog,-1.4935075906468622
+S&P members,13,ar_e2,"HOOD-like analog, placebo lines",0.61844906987579
+S&P members,13,ar_e2_lo,real line,-0.24548877864113633
+S&P members,13,ar_e2_lo,line -2 ATR,-0.10921951387472442
+S&P members,13,ar_e2_lo,line -1 ATR,-0.047963540667314605
+S&P members,13,ar_e2_lo,line +1 ATR,-0.002154467375957339
+S&P members,13,ar_e2_lo,line +2 ATR,-0.04315074796802633
+S&P members,13,ar_e2_lo,real - placebo,-0.19694665638972203
+S&P members,13,ar_e2_lo,rising - falling (B4),0.05050616264540564
+S&P members,13,ar_e2_lo,HOOD-like analog,-2.2681291680783033
+S&P members,13,ar_e2_lo,"HOOD-like analog, placebo lines",-0.05910657519006609
+S&P members,13,x2_ex,real line,-0.08378371334113567
+S&P members,13,x2_ex,line -2 ATR,0.15453745999757662
+S&P members,13,x2_ex,line -1 ATR,0.10561605543940686
+S&P members,13,x2_ex,line +1 ATR,-0.20205688953769094
+S&P members,13,x2_ex,line +2 ATR,-0.40384820414558037
+S&P members,13,x2_ex,real - placebo,0.012834325786291467
+S&P members,13,x2_ex,rising - falling (B4),-0.28628271133002675
+S&P members,13,x2_ex,HOOD-like analog,-0.38381388113457643
+S&P members,13,x2_ex,"HOOD-like analog, placebo lines",1.3589761578906816
+S&P members,13,x2_ex_lo,real line,-0.061798512998683164
+S&P members,13,x2_ex_lo,line -2 ATR,-0.06972148863916063
+S&P members,13,x2_ex_lo,line -1 ATR,0.00895471269645268
+S&P members,13,x2_ex_lo,line +1 ATR,-0.014411671814908026
+S&P members,13,x2_ex_lo,line +2 ATR,-0.06148643238141851
+S&P members,13,x2_ex_lo,real - placebo,-0.028161535780054054
+S&P members,13,x2_ex_lo,rising - falling (B4),-0.047530456020008785
+S&P members,13,x2_ex_lo,HOOD-like analog,-0.5433632156802373
+S&P members,13,x2_ex_lo,"HOOD-like analog, placebo lines",1.0674260106762838
+crypto,13,ar_m,real line,-0.5376472473144531
+crypto,13,ar_m,line -2 ATR,1.3753923177719116
+crypto,13,ar_m,line -1 ATR,0.4848587214946747
+crypto,13,ar_m,line +1 ATR,-0.7260231375694275
+crypto,13,ar_m,line +2 ATR,-1.4187593460083008
+crypto,13,ar_m,real - placebo,-0.4106352925300598
+crypto,13,ar_m,rising - falling (B4),-1.5354503393173218
+crypto,13,ar_m_lo,real line,-0.040018633008003235
+crypto,13,ar_m_lo,line -2 ATR,0.6628880500793457
+crypto,13,ar_m_lo,line -1 ATR,0.1877506971359253
+crypto,13,ar_m_lo,line +1 ATR,0.9984241724014282
+crypto,13,ar_m_lo,line +2 ATR,1.2625573873519897
+crypto,13,ar_m_lo,real - placebo,-0.832626223564148
+crypto,13,ar_m_lo,rising - falling (B4),0.5302481651306152
+crypto,13,ar_pool,real line,-0.01490971352905035
+crypto,13,ar_pool,line -2 ATR,0.5780455470085144
+crypto,13,ar_pool,line -1 ATR,0.6348899602890015
+crypto,13,ar_pool,line +1 ATR,1.7756439447402954
+crypto,13,ar_pool,line +2 ATR,1.775095820426941
+crypto,13,ar_pool,real - placebo,-1.2355332374572754
+crypto,13,ar_pool,rising - falling (B4),0.1062779426574707
+crypto,13,ar_e2,real line,-2.0066990852355957
+crypto,13,ar_e2,line -2 ATR,0.8070684671401978
+crypto,13,ar_e2,line -1 ATR,-0.608565628528595
+crypto,13,ar_e2,line +1 ATR,-1.8706996440887451
+crypto,13,ar_e2,line +2 ATR,-1.5207735300064087
+crypto,13,ar_e2,real - placebo,-1.1601966619491577
+crypto,13,ar_e2,rising - falling (B4),0.09551979601383209
+crypto,13,ar_e2_lo,real line,-1.324881911277771
+crypto,13,ar_e2_lo,line -2 ATR,0.2348303496837616
+crypto,13,ar_e2_lo,line -1 ATR,-0.7185046672821045
+crypto,13,ar_e2_lo,line +1 ATR,0.19747333228588104
+crypto,13,ar_e2_lo,line +2 ATR,1.5289121866226196
+crypto,13,ar_e2_lo,real - placebo,-1.6521400213241577
+crypto,13,ar_e2_lo,rising - falling (B4),1.836187720298767
+crypto,13,x2_ex,real line,0.8057671785354614
+crypto,13,x2_ex,line -2 ATR,0.7375739812850952
+crypto,13,x2_ex,line -1 ATR,0.04989562928676605
+crypto,13,x2_ex,line +1 ATR,-0.39163604378700256
+crypto,13,x2_ex,line +2 ATR,-1.6640739440917969
+crypto,13,x2_ex,real - placebo,1.1633405685424805
+crypto,13,x2_ex,rising - falling (B4),-1.188815712928772
+crypto,13,x2_ex_lo,real line,1.5255539417266846
+crypto,13,x2_ex_lo,line -2 ATR,0.8063962459564209
+crypto,13,x2_ex_lo,line -1 ATR,0.28556904196739197
+crypto,13,x2_ex_lo,line +1 ATR,0.9697872400283813
+crypto,13,x2_ex_lo,line +2 ATR,0.1856868863105774
+crypto,13,x2_ex_lo,real - placebo,0.9666937589645386
+crypto,13,x2_ex_lo,rising - falling (B4),-0.41705742478370667
+S&P members,14,ar_m,real line,0.13491845047404535
+S&P members,14,ar_m,line -2 ATR,0.7265333080872285
+S&P members,14,ar_m,line -1 ATR,0.4491375972025976
+S&P members,14,ar_m,line +1 ATR,-0.2124479999857538
+S&P members,14,ar_m,line +2 ATR,-0.4446365117599928
+S&P members,14,ar_m,real - placebo,0.023343128118442392
+S&P members,14,ar_m,rising - falling (B4),-0.25394191461745813
+S&P members,14,ar_m,HOOD-like analog,-0.5541213060736903
+S&P members,14,ar_m,"HOOD-like analog, placebo lines",1.631948913742845
+S&P members,14,ar_m_lo,real line,-0.09479989163851348
+S&P members,14,ar_m_lo,line -2 ATR,0.03709294784836255
+S&P members,14,ar_m_lo,line -1 ATR,-0.006598547301954176
+S&P members,14,ar_m_lo,line +1 ATR,-0.18167852404107884
+S&P members,14,ar_m_lo,line +2 ATR,-0.15186898745017363
+S&P members,14,ar_m_lo,real - placebo,-0.015370324855495617
+S&P members,14,ar_m_lo,rising - falling (B4),0.18966575653380063
+S&P members,14,ar_m_lo,HOOD-like analog,-0.7724089845604476
+S&P members,14,ar_m_lo,"HOOD-like analog, placebo lines",1.1006884942608226
+S&P members,14,ar_pool,real line,-0.05895650695849881
+S&P members,14,ar_pool,line -2 ATR,-0.012498968848153304
+S&P members,14,ar_pool,line -1 ATR,-0.046749375890170974
+S&P members,14,ar_pool,line +1 ATR,-0.1411484654243301
+S&P members,14,ar_pool,line +2 ATR,-0.04804901885719121
+S&P members,14,ar_pool,real - placebo,0.00475410930746913
+S&P members,14,ar_pool,rising - falling (B4),0.1322156478423864
+S&P members,14,ar_pool,HOOD-like analog,-0.25766470409242165
+S&P members,14,ar_pool,"HOOD-like analog, placebo lines",0.407956464951161
+S&P members,14,ar_e2,real line,-0.09589321322119376
+S&P members,14,ar_e2,line -2 ATR,0.48711585146134007
+S&P members,14,ar_e2,line -1 ATR,0.15837504798864496
+S&P members,14,ar_e2,line +1 ATR,-0.514677020344167
+S&P members,14,ar_e2,line +2 ATR,-0.6843385238993082
+S&P members,14,ar_e2,real - placebo,0.058956987787706
+S&P members,14,ar_e2,rising - falling (B4),-0.42171637592963906
+S&P members,14,ar_e2,HOOD-like analog,-1.556911917906555
+S&P members,14,ar_e2,"HOOD-like analog, placebo lines",1.2080623162414958
+S&P members,14,ar_e2_lo,real line,-0.16977770185818128
+S&P members,14,ar_e2_lo,line -2 ATR,-0.03818398914677191
+S&P members,14,ar_e2_lo,line -1 ATR,-0.14406681028016882
+S&P members,14,ar_e2_lo,line +1 ATR,-0.32291551681193226
+S&P members,14,ar_e2_lo,line +2 ATR,-0.2339851708176512
+S&P members,14,ar_e2_lo,real - placebo,0.019218863349562687
+S&P members,14,ar_e2_lo,rising - falling (B4),0.07270871323306119
+S&P members,14,ar_e2_lo,HOOD-like analog,-1.6075858505134801
+S&P members,14,ar_e2_lo,"HOOD-like analog, placebo lines",1.1047341722515345
+S&P members,14,x2_ex,real line,-0.13714560439872242
+S&P members,14,x2_ex,line -2 ATR,0.19727095762352556
+S&P members,14,x2_ex,line -1 ATR,0.15953003276864575
+S&P members,14,x2_ex,line +1 ATR,-0.3341430607982636
+S&P members,14,x2_ex,line +2 ATR,-0.43932177299961195
+S&P members,14,x2_ex,real - placebo,-0.02266713094940993
+S&P members,14,x2_ex,rising - falling (B4),-0.1602287724034763
+S&P members,14,x2_ex,HOOD-like analog,-1.2249086871576438
+S&P members,14,x2_ex,"HOOD-like analog, placebo lines",1.3672130067379509
+S&P members,14,x2_ex_lo,real line,-0.09526045883792392
+S&P members,14,x2_ex_lo,line -2 ATR,-0.0033970203857034546
+S&P members,14,x2_ex_lo,line -1 ATR,0.09310792154126254
+S&P members,14,x2_ex_lo,line +1 ATR,-0.1415293910926003
+S&P members,14,x2_ex_lo,line +2 ATR,-0.10774636264943144
+S&P members,14,x2_ex_lo,real - placebo,-0.05288208187369679
+S&P members,14,x2_ex_lo,rising - falling (B4),0.15492302638584396
+S&P members,14,x2_ex_lo,HOOD-like analog,-1.265407330709312
+S&P members,14,x2_ex_lo,"HOOD-like analog, placebo lines",1.315995581086148
+crypto,14,ar_m,real line,1.3348206281661987
+crypto,14,ar_m,line -2 ATR,-1.1449798345565796
+crypto,14,ar_m,line -1 ATR,1.1668981313705444
+crypto,14,ar_m,line +1 ATR,0.6727918386459351
+crypto,14,ar_m,line +2 ATR,-1.453210473060608
+crypto,14,ar_m,real - placebo,1.4646787643432617
+crypto,14,ar_m,rising - falling (B4),0.9158214330673218
+crypto,14,ar_m_lo,real line,1.9926154613494873
+crypto,14,ar_m_lo,line -2 ATR,-2.4076712131500244
+crypto,14,ar_m_lo,line -1 ATR,1.0250732898712158
+crypto,14,ar_m_lo,line +1 ATR,2.2842626571655273
+crypto,14,ar_m_lo,line +2 ATR,0.7330628633499146
+crypto,14,ar_m_lo,real - placebo,1.4401352405548096
+crypto,14,ar_m_lo,rising - falling (B4),3.1211395263671875
+crypto,14,ar_pool,real line,2.772284746170044
+crypto,14,ar_pool,line -2 ATR,-1.5615320205688477
+crypto,14,ar_pool,line -1 ATR,1.433680534362793
+crypto,14,ar_pool,line +1 ATR,3.311128616333008
+crypto,14,ar_pool,line +2 ATR,2.3998520374298096
+crypto,14,ar_pool,real - placebo,1.2299813032150269
+crypto,14,ar_pool,rising - falling (B4),-0.8056748509407043
+crypto,14,ar_e2,real line,0.7910038232803345
+crypto,14,ar_e2,line -2 ATR,-3.4158918857574463
+crypto,14,ar_e2,line -1 ATR,0.40042001008987427
+crypto,14,ar_e2,line +1 ATR,0.548828661441803
+crypto,14,ar_e2,line +2 ATR,-2.170948028564453
+crypto,14,ar_e2,real - placebo,1.7910977602005005
+crypto,14,ar_e2,rising - falling (B4),0.43286100029945374
+crypto,14,ar_e2_lo,real line,1.8682218790054321
+crypto,14,ar_e2_lo,line -2 ATR,-4.098257541656494
+crypto,14,ar_e2_lo,line -1 ATR,0.7876065373420715
+crypto,14,ar_e2_lo,line +1 ATR,2.455289602279663
+crypto,14,ar_e2_lo,line +2 ATR,0.5827443599700928
+crypto,14,ar_e2_lo,real - placebo,1.7104582786560059
+crypto,14,ar_e2_lo,rising - falling (B4),2.2671685218811035
+crypto,14,x2_ex,real line,0.3528641164302826
+crypto,14,x2_ex,line -2 ATR,-0.639799952507019
+crypto,14,x2_ex,line -1 ATR,1.045560598373413
+crypto,14,x2_ex,line +1 ATR,-0.6927914023399353
+crypto,14,x2_ex,line +2 ATR,-2.3961827754974365
+crypto,14,x2_ex,real - placebo,1.0175341367721558
+crypto,14,x2_ex,rising - falling (B4),4.2626543045043945
+crypto,14,x2_ex_lo,real line,1.358744502067566
+crypto,14,x2_ex_lo,line -2 ATR,-0.6951766014099121
+crypto,14,x2_ex_lo,line -1 ATR,1.4174654483795166
+crypto,14,x2_ex_lo,line +1 ATR,0.6485282182693481
+crypto,14,x2_ex_lo,line +2 ATR,-0.6577733159065247
+crypto,14,x2_ex_lo,real - placebo,1.1340432167053223
+crypto,14,x2_ex_lo,rising - falling (B4),5.3519463539123535
+S&P members,15,ar_m,real line,0.3410138021721816
+S&P members,15,ar_m,line -2 ATR,0.6640915473600154
+S&P members,15,ar_m,line -1 ATR,0.6775789896017911
+S&P members,15,ar_m,line +1 ATR,0.03509194687737072
+S&P members,15,ar_m,line +2 ATR,-0.2000619726451431
+S&P members,15,ar_m,real - placebo,0.061942674313175766
+S&P members,15,ar_m,rising - falling (B4),0.03067441085972903
+S&P members,15,ar_m,HOOD-like analog,1.2518224949272845
+S&P members,15,ar_m,"HOOD-like analog, placebo lines",1.4163481068120876
+S&P members,15,ar_m_lo,real line,0.11452968556059007
+S&P members,15,ar_m_lo,line -2 ATR,-0.06895973308132324
+S&P members,15,ar_m_lo,line -1 ATR,0.21008520404777212
+S&P members,15,ar_m_lo,line +1 ATR,0.0669762176206096
+S&P members,15,ar_m_lo,line +2 ATR,0.07000423576937154
+S&P members,15,ar_m_lo,real - placebo,0.04283303872876544
+S&P members,15,ar_m_lo,rising - falling (B4),0.43721965624899334
+S&P members,15,ar_m_lo,HOOD-like analog,0.9172504755444941
+S&P members,15,ar_m_lo,"HOOD-like analog, placebo lines",0.6891217074620342
+S&P members,15,ar_pool,real line,0.07763738549934249
+S&P members,15,ar_pool,line -2 ATR,-0.11050043683474715
+S&P members,15,ar_pool,line -1 ATR,0.11171433798621759
+S&P members,15,ar_pool,line +1 ATR,0.07347262964260907
+S&P members,15,ar_pool,line +2 ATR,0.08242985770114938
+S&P members,15,ar_pool,real - placebo,0.035020883087215716
+S&P members,15,ar_pool,rising - falling (B4),0.2433023760539829
+S&P members,15,ar_pool,HOOD-like analog,-0.754706822815614
+S&P members,15,ar_pool,"HOOD-like analog, placebo lines",-0.46292737793946354
+S&P members,15,ar_e2,real line,0.08418528962392956
+S&P members,15,ar_e2,line -2 ATR,0.2798695699104915
+S&P members,15,ar_e2,line -1 ATR,0.4045639676430651
+S&P members,15,ar_e2,line +1 ATR,-0.2104143598549658
+S&P members,15,ar_e2,line +2 ATR,-0.413209981263326
+S&P members,15,ar_e2,real - placebo,0.07958866447942083
+S&P members,15,ar_e2,rising - falling (B4),-0.18888427266337388
+S&P members,15,ar_e2,HOOD-like analog,0.5148154865795126
+S&P members,15,ar_e2,"HOOD-like analog, placebo lines",1.2543820917489732
+S&P members,15,ar_e2_lo,real line,0.04067550459937304
+S&P members,15,ar_e2_lo,line -2 ATR,-0.31946415264196537
+S&P members,15,ar_e2_lo,line -1 ATR,0.10406762218170397
+S&P members,15,ar_e2_lo,line +1 ATR,0.015539563699341704
+S&P members,15,ar_e2_lo,line +2 ATR,0.0397570471617526
+S&P members,15,ar_e2_lo,real - placebo,0.07458227636650293
+S&P members,15,ar_e2_lo,rising - falling (B4),0.257415858088098
+S&P members,15,ar_e2_lo,HOOD-like analog,0.12618718668818474
+S&P members,15,ar_e2_lo,"HOOD-like analog, placebo lines",0.8356759947360267
+S&P members,15,x2_ex,real line,-0.006880889999066429
+S&P members,15,x2_ex,line -2 ATR,0.1591634680790202
+S&P members,15,x2_ex,line -1 ATR,0.2795854650303894
+S&P members,15,x2_ex,line +1 ATR,-0.1226673326288427
+S&P members,15,x2_ex,line +2 ATR,-0.23816281884571944
+S&P members,15,x2_ex,real - placebo,-0.0192278572926281
+S&P members,15,x2_ex,rising - falling (B4),-0.09855328217468437
+S&P members,15,x2_ex,HOOD-like analog,2.0396319188785412
+S&P members,15,x2_ex,"HOOD-like analog, placebo lines",0.6195559131508634
+S&P members,15,x2_ex_lo,real line,0.041833605848296956
+S&P members,15,x2_ex_lo,line -2 ATR,-0.06353898780152692
+S&P members,15,x2_ex_lo,line -1 ATR,0.20542225048048993
+S&P members,15,x2_ex_lo,line +1 ATR,0.07599182716634209
+S&P members,15,x2_ex_lo,line +2 ATR,0.0863740450401881
+S&P members,15,x2_ex_lo,real - placebo,-0.03656073683821787
+S&P members,15,x2_ex_lo,rising - falling (B4),0.16321659604538463
+S&P members,15,x2_ex_lo,HOOD-like analog,1.7806011537884903
+S&P members,15,x2_ex_lo,"HOOD-like analog, placebo lines",0.45459307041866265
+crypto,15,ar_m,real line,-1.748177170753479
+crypto,15,ar_m,line -2 ATR,0.23390613496303558
+crypto,15,ar_m,line -1 ATR,0.16316278278827667
+crypto,15,ar_m,line +1 ATR,-1.012036681175232
+crypto,15,ar_m,line +2 ATR,-0.5924615263938904
+crypto,15,ar_m,real - placebo,-1.4347976446151733
+crypto,15,ar_m,rising - falling (B4),-3.8566737174987793
+crypto,15,ar_m_lo,real line,-1.2451274394989014
+crypto,15,ar_m_lo,line -2 ATR,-1.0765818357467651
+crypto,15,ar_m_lo,line -1 ATR,-0.1420133411884308
+crypto,15,ar_m_lo,line +1 ATR,0.24925465881824493
+crypto,15,ar_m_lo,line +2 ATR,0.95937579870224
+crypto,15,ar_m_lo,real - placebo,-1.2687487602233887
+crypto,15,ar_m_lo,rising - falling (B4),-2.3783512115478516
+crypto,15,ar_pool,real line,-0.706410825252533
+crypto,15,ar_pool,line -2 ATR,-1.2932839393615723
+crypto,15,ar_pool,line -1 ATR,-0.8266640901565552
+crypto,15,ar_pool,line +1 ATR,0.6016772389411926
+crypto,15,ar_pool,line +2 ATR,0.8208670616149902
+crypto,15,ar_pool,real - placebo,-0.5583594441413879
+crypto,15,ar_pool,rising - falling (B4),-0.9670047163963318
+crypto,15,ar_e2,real line,-1.641364336013794
+crypto,15,ar_e2,line -2 ATR,-0.6263874769210815
+crypto,15,ar_e2,line -1 ATR,-0.7729633450508118
+crypto,15,ar_e2,line +1 ATR,-2.5653064250946045
+crypto,15,ar_e2,line +2 ATR,-1.6779663562774658
+crypto,15,ar_e2,real - placebo,-0.22250451147556305
+crypto,15,ar_e2,rising - falling (B4),-4.823978424072266
+crypto,15,ar_e2_lo,real line,-0.810375452041626
+crypto,15,ar_e2_lo,line -2 ATR,-1.475837230682373
+crypto,15,ar_e2_lo,line -1 ATR,-0.5685266256332397
+crypto,15,ar_e2_lo,line +1 ATR,-1.1246662139892578
+crypto,15,ar_e2_lo,line +2 ATR,-0.15603891015052795
+crypto,15,ar_e2_lo,real - placebo,-0.0005146488547325134
+crypto,15,ar_e2_lo,rising - falling (B4),-3.5640125274658203
+crypto,15,x2_ex,real line,-1.0321283340454102
+crypto,15,x2_ex,line -2 ATR,-0.38648632168769836
+crypto,15,x2_ex,line -1 ATR,0.14861589670181274
+crypto,15,x2_ex,line +1 ATR,-1.4530376195907593
+crypto,15,x2_ex,line +2 ATR,-0.6957283020019531
+crypto,15,x2_ex,real - placebo,-0.433088481426239
+crypto,15,x2_ex,rising - falling (B4),-2.2721478939056396
+crypto,15,x2_ex_lo,real line,-0.06350395083427429
+crypto,15,x2_ex_lo,line -2 ATR,-0.5711507797241211
+crypto,15,x2_ex_lo,line -1 ATR,0.5573959946632385
+crypto,15,x2_ex_lo,line +1 ATR,-0.20345358550548553
+crypto,15,x2_ex_lo,line +2 ATR,0.7343485951423645
+crypto,15,x2_ex_lo,real - placebo,-0.21179041266441345
+crypto,15,x2_ex_lo,rising - falling (B4),-1.3617727756500244

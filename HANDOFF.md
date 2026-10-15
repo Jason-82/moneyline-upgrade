@@ -12,6 +12,7 @@ commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
 **Last updated:** 2026-10-15. Most recent additions:
 
+- buying bounces at moving averages ("key levels", the user's HOOD 200-day example; section 5.19)
 - the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
 - the ten theory-driven strategies (section 5.16)
 - the regime-switch study (section 5.17), merged from `claude/youthful-goldberg-31vs8h`
@@ -56,6 +57,8 @@ reviewed by 41 agents on 2026-10-13.
    - **TSLA:** no.
    - **COIN, HOOD and CRCL:** too little history, and their results hinge on one or two
      trades and on fill timing.
+   - **Buying pullbacks to moving averages** (200-day and 33 others, stocks and crypto)
+     has no edge, and no average acts as support (section 5.19).
 5. **Market data in this cloud environment:**
    - **Blocked (403):** Yahoo, Alpha Vantage, Binance, Kraken, Coinbase, CoinGecko and
      robinhood.com.
@@ -616,6 +619,100 @@ FINDINGS has the full entry.
 - **Use:** don't hold C4 expecting to beat the S&P. If P3 is used at all, use it in a
   tax-advantaged account, at a modest allocation, with acceptance of whipsaws.
 
+### 5.19 Buying bounces at moving averages ("key levels") — `analysis_2026/ma_bounce.py`
+
+The user's example: on 2026-10-15 HOOD fell to its 200-day SMA (about 95) and bounced to about
+101. The study was pre-registered in the module docstring (commit c8eceed) before any event
+statistic existed. An audit with four lenses and skeptics confirmed 17 findings, all fixed
+(the docstring's AUDIT CORRECTIONS lists them). FINDINGS has the full entry and tables.
+
+- **Design.**
+  - **Touch:** 10 closes above the average, then a low at or below it.
+  - **34 averages:** daily 20-200, weekly 10-200, monthly 6-24, each as SMA and EMA.
+  - **Placebo lines:** the same average shifted 1 and 2 ATR up and down, traded the same
+    way (Osler 2000's design). The question is whether the average is special, not
+    whether dips get bought.
+  - **Entry and exit:** buy at the line (limit order) or after a close back above it. Hold
+    20 trading days (crypto 28), or exit on a close 1 ATR below the line.
+  - **Pools:**
+    - 1,062 S&P 500 members, 1996-2026, point in time with dead companies: 41,543
+      touches of the 200-day.
+    - 41 Binance coins, 2017-2026, including LUNA and FTT: 1,055 touches.
+  - **Single assets:** S&P 1962-2026, 14 ETFs, TSLA, COIN, HOOD, BTC, ETH, SOL, BNB and ZEC.
+- **All ten pre-registered tests fail** (B1-B5 stocks, C1-C5 crypto).
+  - **Stocks, 20 days after a 200-day touch:**
+    - −0.09% vs the stock's own same-year drift (p 0.57).
+    - +0.06% vs the S&P member pool over the same window (95% CI −0.13 to +0.24).
+    - The 200-day does no better than lines 1-2 ATR away: −0.04 to −0.09 pts.
+    - 0 of 34 averages beats its placebos at 10% FDR, under any of the three baselines.
+  - **Crypto, 28 days:**
+    - −5.6% vs the coin's own drift (CI −10.5 to −0.9).
+    - −1.1% vs the crypto pool: a touch from above tends to come before market-wide
+      weakness, not before a bounce.
+    - Real minus placebo is +1.5% (p 0.16) vs own drift and −0.4% vs the pool.
+  - **Trend (B4):** touches of a rising 200-day beat touches of a falling one by 0.3-0.6
+    pts, p 0.07-0.17 depending on the baseline. Measured against each baseline's no-edge
+    level the gap is +0.26 to +0.72 pts, p 0.05-0.12: a weak hint of trend persistence,
+    not a pass.
+  - **The tradable version (X2 exit):** −0.26% per trade on stocks and −3.75% on crypto,
+    vs own drift.
+- **The samples are smaller than they look.** Touches cluster in sell-offs. 41,543 stock
+  touches in 369 months carry the information of about 740 independent ones, so the bounce
+  CI is about ±0.7 pts per 20 days. A small bounce edge cannot be ruled out. A key-level
+  edge (the average beating nearby lines) is ruled out more tightly: the 95% CI of real
+  minus placebo tops out at +0.03 to +0.05 pts.
+- **The pre-registered baseline is biased.** It is the asset's mean return over the same
+  calendar year, which includes the months that selected the touch. With iid-resampled
+  bars (`--null 16`, no edge by construction) it reports +0.22% for the 200-day, a false
+  gradient across the placebo lines (+0.72% at −2 ATR down to −0.33% at +2 ATR), and
+  −0.31 pts on B4. The two baselines added after the audit sit near zero on the null:
+  own drift with the event period left out (0.00%) and the pool over the same window
+  (−0.02%). Measured from its no-edge level, the stock 200-day touch is −0.3% (registered
+  baseline), −0.24% (leave-out) or +0.08% (pool) over 20 days.
+- **Short vs long averages.**
+  - Against the pre-registered baseline, short averages look bad (20-50-day and 10-week:
+    −0.5 to −0.7%) and long ones look good (100-200-week and 20-24-month: +0.3 to +0.7%).
+  - Against the pool both are about zero (−0.02 to +0.15).
+  - The long-average "bounce" is the market's own rebound after broad sell-offs, and every
+    nearby line shares it.
+- **Exploratory, none survives multiple testing.** These change nothing once you buy after
+  the close is known:
+  - confluence of several averages
+  - depth below the 52-week high
+  - first touch after a long run above
+  - bounce strength
+
+  Strong bounces (a close at least 1 ATR above the line, like HOOD's) beat the pool by
+  0.39 pts from the bounce close (p 0.03, one of 40 split rows read several ways). Bought at
+  the next open, they are −0.26% vs own drift.
+- **HOOD-like setups** (60-day vol ≥ 50%, ≥ 20% below the 52-week high, a falling
+  200-day): 234 touches, 155 episodes, 75 months.
+  - +0.9% vs the pool (CI −1.9 to +3.4), where the null gives −1.2%.
+  - +1.6% (registered) and +2.3% (leave-out) vs own drift, where the null gives +0.3 and
+    −0.3 (other null runs: up to +1.3).
+  - The real 200-day beat the placebo lines here by 1.6 to 3.5 pts, p 0.03-0.11 depending
+    on the baseline (first touches only: p 0.09-0.26). It is one exploratory subset among
+    many, from 75 months: a hint at most.
+  - No reliable edge either way: the CIs span about ±4 pts.
+- **Chart lines.** The member pool's averages were computed on dividend-adjusted prices,
+  a median 0.2 ATR below the chart line. Rerun on chart prices: B1 −0.13%, B2 −0.07%, and
+  no daily average passes.
+- **Backtests (exploratory).** Buying 200-day touches with the X2 exit, T-bills otherwise:
+
+  | asset | strategy CAGR | buy & hold | invested | max drawdown |
+  |---|---|---|---|---|
+  | SPY | 4.1% | 10.6% | 6% of the time | −8.5% vs −55% |
+  | S&P, 1962-2026 | 5.4% | 11.0% | | |
+  | HOOD, since 2022 | 8.9% | 71% | | |
+  | BTC | −0.1% | 31% | | |
+- **Literature.**
+  - No published study tests MA bounces against placebo levels.
+  - The documented MA effects are trend-following: Brock-Lakonishok-LeBaron 1992,
+    Han-Yang-Zhou 2013.
+  - Avramov-Kaplanski-Subrahmanyam 2021: stocks sagging toward their 200-day earn *less*.
+- **Use:** don't treat a touch of any tested average (daily, weekly or monthly) as a buy
+  signal or as support.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -753,7 +850,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
 - Other agents work in parallel on separate branches:
-  - `claude/youthful-goldberg-31vs8h`: the regime-switch study (section 5.17), merged here.
+  - `claude/youthful-goldberg-31vs8h`: the regime-switch study (section 5.17) and the
+    moving-average bounce study (section 5.19), merged here.
   - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading, and `codex/theory-lab`
     (five strategies C1-C5, `THEORY_LAB_RESULTS.md`; its C4 is examined in section 5.18).
 
@@ -786,6 +884,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
+| `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
