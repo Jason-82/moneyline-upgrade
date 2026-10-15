@@ -10,10 +10,14 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-14. Added the regime-switch study (section 5.15). Earlier the
-same day: the stock-basket strictness study (section 5.10),
-which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
-2026-10-13.
+**Last updated:** 2026-10-15. Most recent additions:
+
+- the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
+- the ten theory-driven strategies (section 5.16)
+- the regime-switch study (section 5.17), merged from `claude/youthful-goldberg-31vs8h`
+
+Earlier the same day: sections 5.10-5.15, each adversarially audited. The rest was
+reviewed by 41 agents on 2026-10-13.
 
 ---
 
@@ -46,7 +50,7 @@ which a 4-lens adversarial audit checked. The rest was reviewed by 41 agents on
    - **Scanner:** `screener/scan.py` matches TradingView on every IWM date 2012-2025. It is
      information only.
    - **Indices:** the weekly signal on SPY/QQQ qualifies only as optional crash insurance;
-     on IWM it does not. Section 5.15 (exploratory) found cheaper insurance after tax. A plain
+     on IWM it does not. Section 5.17 (exploratory) found cheaper insurance after tax. A plain
      200-day rule cut drawdown at least as much for less in every SPY/QQQ/S&P window except
      QQQ 2000-2012. The regime switch costs less still, but cuts less drawdown on QQQ.
    - **TSLA:** no.
@@ -304,7 +308,7 @@ Median CAGR edge vs indicator-only; (n/5) = coins improved.
   | IWM | 3.3-4.1 pts | 16-21 pts | no |
 
   It helped in dot-com and the GFC, was too slow for Covid, and cost 10-20 points in the
-  2025-26 rally. Section 5.15 (exploratory) tested it on daily bars against a plain 200-day
+  2025-26 rally. Section 5.17 (exploratory) tested it on daily bars against a plain 200-day
   or 50/200 rule and the regime switch. Judged by T2 after tax, which is stricter than the
   pre-tax INSURANCE bar used in this table, the weekly signal was dominated in every window
   except QQQ 2000-2012, where it ties the 50/200 rule.
@@ -439,7 +443,47 @@ Full tables and the pre-registration are in `screener/README.md`.
   lost money on 16-19 of 20 coins. Lottery, not edge.
 - **ETF breakouts lag buy & hold.**
 
-### 5.15 Why the indicator trails buy & hold; regime switching — `analysis_2026/regime_switch.py`
+### 5.15 Flip-confirmation delay (Ivan's hourglass N/5) — `analysis_2026/flip_delay.py`
+
+- **Rule:** flip only after N consecutive closes beyond the line. N=1 is the original.
+- **Stocks: helps robustly.** S&P 500 point-in-time basket at N=5: Sharpe 0.53 → 0.70,
+  CAGR 5.0 → 6.6%, max DD −34 → −22% (bootstrap p ≤ 0.009; every definition, both halves).
+- **ETFs: helps in direction** (10/13), but statistically fragile.
+- **Crypto: no help.** The top-20 basket is worse at every N; keep the immediate flip, or a
+  short exit-only delay at most.
+- **Mechanism:** immediate flips are false about twice as often in stocks/ETFs (10-13%
+  reversed within 4 bars) as in crypto (5-6%), and crypto breakouts tend to run right
+  after the flip.
+- **Versus buy & hold:** even delayed, the indicator matches B&H's risk-adjusted return on
+  stocks/ETFs at half the drawdown, but with lower CAGR (S&P basket 6.6% vs 10.9%).
+
+### 5.16 Ten theory-driven strategies (S1-S10) — `analysis_2026/theory_strategies.py`
+
+Pre-registered in `analysis_2026/THEORY_PREREG.md`. Each has a published mechanism and suits
+an individual. The test is the Sharpe gain vs a benchmark (block bootstrap, Holm across
+ten) that must also be positive in a later or post-publication sub-period. A three-lens
+audit plus a confirm stage reproduced everything.
+
+- **9 of 10 fail:**
+  - vol-managed equity, 10-month SMA, dual momentum, low-vol stocks
+  - 12-1 momentum, turn of the month, Halloween
+  - crypto trend × vol target, crypto 4-week momentum
+- **Risk reducers (S1, S2, S4)** cut max drawdown (e.g. −48% vs −84% for the 10-month
+  SMA) but do not raise the Sharpe reliably, and cost CAGR, especially after tax.
+- **Turn of the month** is the decay case: highly significant 1927-88, zero since 2009.
+  Halloween is similar.
+- **S9, BTC/ETH cash-and-carry** (long spot, short perpetual), passes the pre-registered
+  rule: 6.5%/yr over T-bills at 1% vol since 2019-10.
+  - 96% of that came in 2020-21. Since 2023: +0.8%/yr, not significant. Since 2025:
+    −1.4%/yr, significantly negative.
+  - Significance holds up to about 100 Newey-West lags and under the pre-registered
+    bootstrap, but not at longer bandwidths.
+  - It needs daily margin top-ups and carries exchange-failure risk.
+  - **Do not trade it at current funding.**
+- **Takeaway:** no candidate beats its benchmark reliably now. That matches every earlier
+  study: published edges decay, and risk reduction costs return.
+
+### 5.17 Why the indicator trails buy & hold; regime switching — `analysis_2026/regime_switch.py`
 
 Pre-registered H-A1 and H-B1 to H-B5. Two audits and two verification passes followed.
 FINDINGS has the full entry. `analysis_2026/results_regime/summary.txt` has the main tables,
@@ -538,6 +582,40 @@ and the CSVs beside it hold the rest: the sensitivity grid is only in `sensitivi
   - **Crypto:** where the gate says TRADE (ETH via ETF), keep the indicator alone and add no
     regime filter.
 
+### 5.18 2x S&P + gold (50% SSO / 50% GLD) and leverage + trend — `analysis_2026/sso_gold.py`
+
+Pre-registered in `analysis_2026/SSO_GOLD_PREREG.md`. Audited by six lenses plus confirm checks;
+FINDINGS has the full entry.
+
+- **The other instance's C4** (`codex/theory-lab`) beat SPY 2007-2025, 14.3% vs 10.6%. It is
+  0.99 × S&P + 0.51 × gold with alpha −0.7 to −0.8%/yr (R² 0.995): a bet that gold beats
+  T-bills, not an edge.
+  - Synthetic C4, edge vs S&P (gold = LBMA fix from 1968, 2x fund = S&P × 2 minus financing
+    and fee):
+    - 1972-2006, out of sample: +0.4%/yr, p 0.42. FAIL.
+    - 1972-2026: +1.35%/yr, p 0.24. FAIL.
+    - From 1975: −1.85 to 2006, 0.0 to 2026.
+    - By decade: +13.6, −6.7, −4.7, +3.8, +0.8, +5.0 %/yr, following gold.
+  - Break-even: gold must beat T-bills by about 0.8-1.5%/yr. Real gold is at a record level.
+  - Bonds in place of gold: about 0. WisdomTree's GDE (90/90) live record is the same gold
+    bet, and its gold-futures gains are taxed as ordinary income every year.
+- **P3, 2x S&P while above the 200-day average, else T-bills (Gayed-Bilello): PASS.**
+  - +3.9%/yr over 1929-2026, Holm 0.014.
+  - Pre-1928 Dow: +3.5%/yr. Real SSO 2006-2026: 13.7% vs 11.3%.
+  - But most of the evidence comes from 1929-1971, when it could not be traded at these
+    costs. In tradable eras (1975+, 1982+, 2006+, 2016+) it is +1.8 to +3.1%/yr with p
+    0.03-0.13, which does not survive correction.
+  - Its Sharpe ratio has not improved since 1975.
+  - It is sensitive to execution timing and to the average length.
+  - About 6 switches a year; trailed the S&P by more than 10 points in 18 of 97 years
+    (2022: −30% vs −18%).
+  - **Tax:** after-tax edge 1972-2026 is +0.56 federal, +0.29 with NIIT, about 0 with state
+    tax, below 0 if the S&P would be held for heirs.
+- **Moneyline-timed leverage (P5) and C4 with trend filters (P4) fail.** P4 is a risk
+  reducer: drawdown −30% vs −55%.
+- **Use:** don't hold C4 expecting to beat the S&P. If P3 is used at all, use it in a
+  tax-advantaged account, at a modest allocation, with acceptance of whipsaws.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -619,8 +697,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - SOL: PROBATION (≤10%).
   - BTC, BNB, ZEC: hold or skip.
   - SPY/QQQ: hold, with optional insurance: the weekly signal, or the cheaper plain 200-day
-    rule or regime switch (section 5.15; the switch cuts less drawdown on QQQ).
-  - IWM: hold (section 5.15, exploratory: only the 200-day regime switch was near-free
+    rule or regime switch (section 5.17; the switch cuts less drawdown on QQQ).
+  - IWM: hold (section 5.17, exploratory: only the 200-day regime switch was near-free
     insurance, 2001-2026). TSLA: hold.
   - COIN, HOOD, CRCL: watch.
   - Stock baskets picked by past fit: don't run (section 5.10). Scanner for information
@@ -674,6 +752,12 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   `pip` targets another interpreter). pandas is unpinned.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
+- Other agents work in parallel on separate branches:
+  - `claude/youthful-goldberg-31vs8h`: the regime-switch study (section 5.17), merged here.
+  - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading, and `codex/theory-lab`
+    (five strategies C1-C5, `THEORY_LAB_RESULTS.md`; its C4 is examined in section 5.18).
+
+  Fetch and rebase before pushing.
 - The user runs a Schwab robo-advisor, which already does tax-loss harvesting. Wash-sale
   rules span all of the user's accounts, IRAs included, so any agentic-account plan must
   avoid buying, within 30 days, securities that are substantially identical to ones the
@@ -701,8 +785,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/trend_portfolio.py`, `analysis_2026/results_trend/` | Trend sleeve study (H1-H3 pre-registered): TSMOM long/short, long-only, and the moneyline signal diversified across ETFs, as a 20% sleeve vs SPY (section 5.12). Data `data/etf/` (gitignored): universe A from the Johnbrick123 parquet (SPY IWM EFA EEM TLT IEF SHY TIP LQD HYG GLD SLV VNQ, scaled to total return); universe B extras and WTMF/DBMF/KMLM from qlib (`Q_*.csv`). |
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
-| `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.15). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
+| `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
+| `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
+| `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
+| `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (audit-correction sections are in the 2026-10-13 entries; the latest entries are at the end). |
 | `analysis_2026/moneyline_ref.py` | **Exact indicator from OHLC** (`moneyline`, `supertrend`, `to_weekly`). Used by every OHLC-based study (screener, altcoins, trend_portfolio, leverage_breakout, flip_delay, regime_switch, replicate); the TradingView-export backtests read the exported state instead. Needs high/low. |

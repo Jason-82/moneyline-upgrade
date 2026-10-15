@@ -15,3 +15,4 @@ data/crypto_binance_regime/
 # large per-spell / per-slot outputs of the regime study (regenerate with python -m analysis_2026.regime_switch)
 analysis_2026/results_regime/partA_spells_stocks.csv
 analysis_2026/results_regime/basket_stocks_slots.csv
+data/sso_gold/

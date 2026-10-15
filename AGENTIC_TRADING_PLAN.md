@@ -158,8 +158,8 @@ routines); anthropic.com/legal/aup.
 | BTC | NO-SIGNAL: −14.3 after tax via ETF, −22.2 direct | **hold** (signal only in a tax-advantaged account, by explicit choice) | spot BTC ETF or coin |
 | BNB | NO-SIGNAL | hold or skip | no confirmed US spot ETF |
 | ZEC | NO-SIGNAL | hold or skip | — |
-| SPY / QQQ | daily NO-SIGNAL; weekly **INSURANCE** qualifies (SPX gives up 1.7-1.9 pts/yr for 16-21 pts less drawdown; NDX 2.1-2.9 for 30-36). HANDOFF 5.15 (exploratory, daily bars, after tax): a plain 200-day rule cut at least as much drawdown for less in every SPY/QQQ/S&P window except QQQ 2000-2012; the regime switch (hold above the 200-day, daily signal below) costs less still but cuts less drawdown on QQQ | hold; optional crash insurance (weekly signal, or the cheaper plain 200-day rule or regime switch) | ETF |
-| IWM | daily NO-SIGNAL; weekly fails INSURANCE (gives up 3.3-4.1 pts/yr); HANDOFF 5.15 (exploratory): only the 200-day regime switch was near-free insurance 2001-2026 | hold | ETF |
+| SPY / QQQ | daily NO-SIGNAL; weekly **INSURANCE** qualifies (SPX gives up 1.7-1.9 pts/yr for 16-21 pts less drawdown; NDX 2.1-2.9 for 30-36). HANDOFF 5.17 (exploratory, daily bars, after tax): a plain 200-day rule cut at least as much drawdown for less in every SPY/QQQ/S&P window except QQQ 2000-2012; the regime switch (hold above the 200-day, daily signal below) costs less still but cuts less drawdown on QQQ | hold; optional crash insurance (weekly signal, or the cheaper plain 200-day rule or regime switch) | ETF |
+| IWM | daily NO-SIGNAL; weekly fails INSURANCE (gives up 3.3-4.1 pts/yr); HANDOFF 5.17 (exploratory): only the 200-day regime switch was near-free insurance 2001-2026 | hold | ETF |
 | TSLA | NO-SIGNAL (signal halves CAGR) | hold or skip | — |
 | COIN, HOOD, CRCL | NO-SIGNAL; also fail the history test | watch only | — |
 | new tickers | run `gate.py` first | — | — |
@@ -177,7 +177,7 @@ Do **not** add these (all tested):
 - trailing 1.5×ATR stops (−37 CAGR points)
 - leverage (not available anyway)
 - a regime switch on crypto (hold in good regimes, the indicator in bad ones): on ETH it is
-  far below the indicator alone on every route (HANDOFF section 5.15). On indices it is
+  far below the indicator alone on every route (HANDOFF section 5.17). On indices it is
   drawdown insurance, not an edge. It does not robustly beat holding after tax: never on the
   S&P 1963-2026, and the SPY and QQQ wins are post hoc and window-dependent (QQQ's window
   starts at the dot-com top).

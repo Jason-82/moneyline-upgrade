@@ -16,8 +16,11 @@ Delayed rule (built on moneyline_ref's exact reset-on-flip ATR stop, ATR10 x 2 o
 
 Trading (as elsewhere): long while green, cash (T-bills) while red; the signal is
 read at a bar's close and traded at the next bar's open. Costs per side: crypto 0.10%
-(+0.05% for coins other than BTC/ETH), ETFs 0.02%, stocks 0.03%. After-tax: realised
-gains netted each calendar year at an illustrative 35% (losses carried forward).
+(+0.05% for coins other than BTC/ETH), ETFs 0.02%, stocks 0.03%. After-tax: each
+calendar year's total growth (mark-to-market, incl. T-bill interest) taxed at an
+illustrative 35%, losses carried forward - the same method for every N and for B&H.
+Sharpe here is on total returns; on returns above T-bills the vs-B&H comparisons are
+less flattering (see FINDINGS), the N-vs-N=1 deltas barely change.
 
 Assets (gitignored data):
   crypto20   20 large coins + ZEC, Binance daily (4h data resampled; ZEC daily file)
@@ -294,5 +297,81 @@ def main():
     piv.to_csv(OUT / "sharpe_by_asset.csv")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--supplement" not in sys.argv:
     main()
+
+
+def supplement():
+    """Exploratory follow-ups (after the pre-registered run): delayed indicator vs buy &
+    hold, sub-period stability, crypto at Robinhood-like 0.95%/side costs, and the
+    equal-weight buy & hold of the S&P basket."""
+    pd.set_option("display.width", 250)
+    res = pd.read_csv(OUT / "per_asset.csv")
+    res = res[res.variant == "trailing"]
+    rows = []
+    for cls in ("crypto20", "etf13", "user_stocks", "weekly"):
+        g = res[res["class"] == cls]
+        bh = g[g.N == "B&H"].set_index("asset")
+        for n in ("1", "3", "5", "7"):
+            x = g[g.N == n].set_index("asset")
+            rows.append({"class": cls, "N": n, "median_CAGR": x["CAGR_%"].median(), "median_BH_CAGR": bh["CAGR_%"].median(),
+                         "beats_BH_CAGR": f"{int((x['CAGR_%'] > bh['CAGR_%'].reindex(x.index)).sum())}/{len(x)}",
+                         "median_Sharpe": x.Sharpe.median(), "median_BH_Sharpe": bh.Sharpe.median(),
+                         "beats_BH_Sharpe": f"{int((x.Sharpe > bh.Sharpe.reindex(x.index)).sum())}/{len(x)}",
+                         "median_CAGR_tax": x["CAGR_tax_%"].median(), "median_BH_CAGR_tax": bh["CAGR_tax_%"].median()})
+    t1 = pd.DataFrame(rows); t1.to_csv(OUT / "vs_buy_and_hold.csv", index=False)
+    print("Delayed indicator vs buy & hold (B&H after-tax figure taxes the whole gain yearly - conservative for B&H):")
+    print(t1.to_string(index=False, float_format=lambda x: f"{x:,.2f}"))
+    # sub-periods for ETFs and crypto: N=5 and N=3 vs N=1
+    sub = []
+    for cls, items, ppy, halves in [("etf13", [(s, load_etf(s), 0.0002) for s in ETF13], 252, [("2005-01-01", "2015-12-31"), ("2016-01-01", "2026-09-30")]),
+                                     ("crypto20", [(s, load_crypto_daily(s), 0.0010 if s in ("BTC", "ETH") else 0.0015) for s in LARGE20 + ["ZEC"]], 365,
+                                      [("2018-01-01", "2021-12-31"), ("2022-01-01", "2026-09-30")])]:
+        for a, b in halves:
+            for n in (3, 5):
+                ds = []
+                for s, d, cost in items:
+                    if len(d.loc[:a]) < 100:                      # need ~100 bars of warm-up before the half starts
+                        continue
+                    r1 = strat_returns(d, moneyline_delay(d, 1), cost)[0].loc[a:b]
+                    rn = strat_returns(d, moneyline_delay(d, n), cost)[0].loc[a:b]
+                    ds.append(stats(rn, ppy)["Sharpe"] - stats(r1, ppy)["Sharpe"])
+                ds = np.array(ds)
+                sub.append({"class": cls, "period": f"{a[:4]}-{b[:4]}", "N": n, "assets": len(ds), "median_dSharpe": np.median(ds),
+                            "improved": f"{int((ds > 0).sum())}/{len(ds)}"})
+    t2 = pd.DataFrame(sub); t2.to_csv(OUT / "subperiods.csv", index=False)
+    print("\nSub-periods, delay vs N=1 (median Sharpe change):")
+    print(t2.to_string(index=False, float_format=lambda x: f"{x:,.3f}"))
+    # crypto at 0.95%/side
+    hc = []
+    for s in LARGE20 + ["ZEC"]:
+        d = load_crypto_daily(s)
+        st = max(pd.Timestamp("2018-01-01"), d.index[min(len(d) - 1, 100)])
+        for n in (1, 3, 5, 7, 10):
+            r, tr = strat_returns(d, moneyline_delay(d, n), 0.0095)
+            hc.append({"asset": s, "N": n, **stats(r.loc[st:"2026-09-30"], 365)})
+    hc = pd.DataFrame(hc); hc.to_csv(OUT / "crypto_095cost.csv", index=False)
+    base = hc[hc.N == 1].set_index("asset")
+    print("\nCrypto at 0.95%/side (Robinhood-like): median Sharpe / CAGR by N, and assets improved vs N=1:")
+    for n in (1, 3, 5, 7, 10):
+        x = hc[hc.N == n].set_index("asset")
+        print(n, round(x.Sharpe.median(), 3), round(x["CAGR_%"].median(), 2), f"{int((x.Sharpe > base.Sharpe).sum())}/{len(x)}")
+    # equal-weight buy & hold of the S&P basket (same members, daily-rebalanced)
+    from screener.data import from_csv_folder, quality_filter
+    sp, _ = quality_filter(from_csv_folder(ROOT / "data" / "universe_pit_all"), keep_collapsed=True)
+    mem = pd.read_csv(ROOT / "data" / "universe_pit_all" / "members.csv", parse_dates=["start", "end"])
+    out = []
+    for y in range(2001, 2027):
+        m = mem[(mem.start <= f"{y}-01-01") & (mem.end.isna() | (mem.end >= f"{y}-01-01"))].symbol.str.upper()
+        rs = [sp[s].close.pct_change().loc[f"{y}-01-01":f"{y}-12-31"] for s in m if s in sp and s != "SPY" and len(sp[s]) > 300]
+        rs = [x for x in rs if len(x) > 20]
+        if rs:
+            out.append(pd.concat(rs, axis=1, sort=True).mean(axis=1))
+    bh = pd.concat(out).sort_index().loc[:"2026-09-30"].fillna(0)
+    spy = load_etf("SPY").close.pct_change().loc["2001-01-01":"2026-09-30"].fillna(0)
+    print("\nS&P basket buy & hold (equal weight, same members):", {k: round(v, 2) for k, v in stats(bh, 252).items()})
+    print("SPY buy & hold:", {k: round(v, 2) for k, v in stats(spy, 252).items()})
+
+
+if __name__ == "__main__" and "--supplement" in sys.argv:
+    supplement()
