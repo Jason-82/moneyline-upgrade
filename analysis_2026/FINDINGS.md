@@ -1856,14 +1856,14 @@ which averages (daily, weekly or monthly, of what length)?
 | bounce (B1) | −0.09 (p 0.57) | −0.24 (p 0.73) | +0.07 (p 0.25) |
 | 95% CI | −0.84 to +0.53 | −1.00 to +0.42 | −0.12 to +0.24 |
 | effective n | ~740 | ~770 | ~7,000 |
-| no-edge (null) level | +0.22 | 0.00 | {{NS_POOL}} |
+| no-edge (null) level | +0.22 | 0.00 | −0.02 |
 | real − placebo (B2) | −0.07 (p 0.92) | −0.09 (p 0.95) | −0.04 (p 0.83) |
 | 95% CI of real − placebo | −0.19 to +0.03 | −0.21 to +0.02 | −0.14 to +0.05 |
 | real − placebo within the same month (95% CI) | −0.11 (−0.20 to −0.01) | −0.13 (−0.23 to −0.03) | −0.06 (−0.15 to +0.03) |
 | first touches (n 23,495): bounce / real − placebo | −0.16 / −0.13 | −0.30 / −0.15 | +0.03 / −0.05 |
 | rising − falling 200-day (B4) | +0.41 (p 0.17) | +0.60 (p 0.09) | +0.30 (p 0.08) |
-| B4 null level | −0.31 | +0.08 | {{NS_B4_POOL}} |
-| B4 minus its null level | +0.72 (p 0.05) | +0.52 (p 0.13) | {{B4_POOL_ADJ}} |
+| B4 null level | −0.31 | +0.08 | +0.05 |
+| B4 minus its null level | +0.72 (p 0.05) | +0.52 (p 0.13) | +0.25 (p 0.12) |
 
 - **Halves (1996-2011 / 2012-2026):** B1 −0.16 / −0.02; B2 −0.11 / −0.04.
 - **B3:** the X2 trade makes −0.26% per trade (p 0.97; halves −0.42 / −0.11) and trails the
@@ -1886,7 +1886,7 @@ which averages (daily, weekly or monthly, of what length)?
 |---|---|---|---|
 | bounce (C1) | −5.62 (p 0.99) | −3.67 (p 0.93) | −2.18 (p 0.97) |
 | 95% CI | −10.49 to −0.90 | −8.82 to +1.13 | −5.71 to +0.02 |
-| no-edge (null) level | −0.28 | +0.38 | {{NC_POOL}} |
+| no-edge (null) level | −0.28 | +0.38 | +0.34 |
 | real − placebo (C2) | +1.54 (p 0.16) | +1.48 (p 0.19) | +0.73 (p 0.30) |
 | real − placebo within the same month | +2.59 (p 0.04) | +2.26 (p 0.06) | +0.50 (p 0.34) |
 | rising − falling (C4) | −1.37 (p 0.64) | +1.30 (p 0.36) | −2.50 (p 0.85) |
@@ -1923,7 +1923,7 @@ which averages (daily, weekly or monthly, of what length)?
 | leave-out (actual) | −0.40 | −0.36 | −0.24 | −0.00 | +0.11 |
 | leave-out (null) | +0.02 | +0.05 | 0.00 | −0.02 | −0.05 |
 | pool (actual) | −0.05 | +0.01 | +0.07 | +0.18 | +0.26 |
-| pool (null) | {{NG_P}} |
+| pool (null) | 0.00 | +0.02 | −0.02 | −0.01 | +0.01 |
 
 - **The registered baseline shows "deeper is better",** but the null has the same slope, only
   steeper, so the pattern is mechanical.
@@ -1957,7 +1957,16 @@ which averages (daily, weekly or monthly, of what length)?
 - **The market itself does not rebound after these touches.** The member pool's next 20 days
   are 0.04-0.25 pts below its average after touches of every one of the 34 averages, none
   significantly (`market_after_touches.csv`).
-- {{GRID_NULL}}
+- **The no-edge simulation on 8 averages reproduces the pattern** (`null_grid_summary.txt`;
+  D-SMA20, D-SMA50, W-SMA10, W-SMA100, W-SMA200, W-EMA100, M-SMA20, M-SMA24; 8 runs).
+  - With no edge, the registered baseline reports −0.30 to −0.51 for the three short averages
+    and +0.66 to +1.05 for the five long ones.
+  - The leave-out baseline (−0.08 to +0.13) and the pool baseline (−0.06 to +0.05) stay near
+    zero.
+  - Measured from their no-edge levels, all 8 averages are negative under the same-year
+    (−0.06 to −0.38) and leave-out (−0.07 to −0.31) baselines, and −0.03 to +0.16 against
+    the pool.
+  - The crypto rows of that file are too noisy at 8 runs to use.
 - **Real minus placebo:** −0.17 to +0.17 against the leave-out drift, and −0.09 to +0.12
   against the pool.
   - Nominal p < 0.05: four averages under leave-out (D-EMA100, W-EMA20, W-EMA100, M-EMA24),
@@ -2021,8 +2030,8 @@ touches. 20 days:
 
 | entry | same-year | leave-out | pool | null (same-year / leave-out / pool) |
 |---|---|---|---|---|
-| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.4) | +0.97 (CI −1.8 to +3.5) | +0.28 / −0.31 / {{NA_POOL}} |
-| E1, placebo lines | −0.45 | −1.23 | −0.58 | +1.04 / +0.18 / {{NA_PPOOL}} |
+| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.4) | +0.97 (CI −1.8 to +3.5) | +0.28 / −0.31 / −1.25 |
+| E1, placebo lines | −0.45 | −1.23 | −0.58 | +1.04 / +0.18 / −0.68 |
 | E2, real 200-day (n 106) | +1.88 (CI −3.2 to +7.3) | +2.85 (CI −2.8 to +8.5) | | −0.81 / −1.29 |
 | E2, strong bounce (n 6) | +4.28 (CI −4.3 to +19.3) | +5.88 (CI −2.1 to +20.0) | | |
 | E1 without 2009 (n 161) | −1.43 (CI −6.0 to +2.9) | −1.58 (CI −6.4 to +2.7) | +0.27 (CI −3.3 to +3.7) | |
@@ -2055,9 +2064,9 @@ touches. 20 days:
   - Much of the raw gap is timing. 13% of the placebo-line touches fall in the 2008 crash,
     against 4% of the real-line ones. 31% of the real-line touches fall in the 2009 rebound,
     against 22%.
-  - The null differences (all touches) are {{NA_NULLDIFF}}. None were simulated for first
+  - The null differences (all touches) are −0.75 / −0.49 / −0.57 for E1 and −1.09 / −0.85 for E2. None were simulated for first
     touches or within months.
-  - Adding them back to the within-month gaps leaves about {{AN_MATCH_ADJ}}.
+  - Adding them back to the within-month gaps leaves about +1.33 / +1.60 / +1.47 (p 0.11 / 0.08 / 0.08; `null_tests.txt`).
 - **This is the only place the 200-day line looks special, and much of it is timing.** It is
   one exploratory subset among many, from 75 months: a weak hint at most.
 - **HOOD's own record:** 15 touches of its 200-day from Nov 2022 to Jul 2026, 8 of them first

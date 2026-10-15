@@ -17,15 +17,15 @@ S&P members,0,ar_m_lo,real - placebo,-0.10702536948960471
 S&P members,0,ar_m_lo,rising - falling (B4),-0.3369284426213864
 S&P members,0,ar_m_lo,HOOD-like analog,2.17210354051991
 S&P members,0,ar_m_lo,"HOOD-like analog, placebo lines",0.3004595311183198
-S&P members,0,ar_pool,real line,-0.0949186112046627
-S&P members,0,ar_pool,line -2 ATR,0.14287353132005762
-S&P members,0,ar_pool,line -1 ATR,0.02664886356920809
-S&P members,0,ar_pool,line +1 ATR,-0.049119254482407976
-S&P members,0,ar_pool,line +2 ATR,-0.01913404495740911
-S&P members,0,ar_pool,real - placebo,-0.11729177358678629
-S&P members,0,ar_pool,rising - falling (B4),-0.09751152907444471
-S&P members,0,ar_pool,HOOD-like analog,-0.5455494248856078
-S&P members,0,ar_pool,"HOOD-like analog, placebo lines",-1.7904430533081082
+S&P members,0,ar_pool,real line,-0.09425335823368237
+S&P members,0,ar_pool,line -2 ATR,0.1435025859544989
+S&P members,0,ar_pool,line -1 ATR,0.027375301908044897
+S&P members,0,ar_pool,line +1 ATR,-0.0482612556513363
+S&P members,0,ar_pool,line +2 ATR,-0.01840399704177814
+S&P members,0,ar_pool,real - placebo,-0.11736536733785842
+S&P members,0,ar_pool,rising - falling (B4),-0.09761275182140691
+S&P members,0,ar_pool,HOOD-like analog,-0.5447379776057513
+S&P members,0,ar_pool,"HOOD-like analog, placebo lines",-1.7892449988684345
 S&P members,0,ar_e2,real line,-0.20356288420763444
 S&P members,0,ar_e2,line -2 ATR,0.618138117547342
 S&P members,0,ar_e2,line -1 ATR,0.229372483594775
@@ -76,13 +76,13 @@ crypto,0,ar_m_lo,line +1 ATR,0.31120121479034424
 crypto,0,ar_m_lo,line +2 ATR,-0.35613274574279785
 crypto,0,ar_m_lo,real - placebo,-0.10885298252105713
 crypto,0,ar_m_lo,rising - falling (B4),0.0520579069852829
-crypto,0,ar_pool,real line,-0.020624080672860146
-crypto,0,ar_pool,line -2 ATR,-0.6586995124816895
-crypto,0,ar_pool,line -1 ATR,1.2479424476623535
-crypto,0,ar_pool,line +1 ATR,0.2483411729335785
-crypto,0,ar_pool,line +2 ATR,-0.1434507519006729
-crypto,0,ar_pool,real - placebo,-0.2092503309249878
-crypto,0,ar_pool,rising - falling (B4),-0.6659414768218994
+crypto,0,ar_pool,real line,-0.02763076312839985
+crypto,0,ar_pool,line -2 ATR,-0.6680073738098145
+crypto,0,ar_pool,line -1 ATR,1.2389202117919922
+crypto,0,ar_pool,line +1 ATR,0.238067165017128
+crypto,0,ar_pool,line +2 ATR,-0.15086039900779724
+crypto,0,ar_pool,real - placebo,-0.20724932849407196
+crypto,0,ar_pool,rising - falling (B4),-0.6658090949058533
 crypto,0,ar_e2,real line,-1.5551860332489014
 crypto,0,ar_e2,line -2 ATR,0.6293724775314331
 crypto,0,ar_e2,line -1 ATR,0.3495813012123108
@@ -129,15 +129,15 @@ S&P members,1,ar_m_lo,real - placebo,0.09275628471447947
 S&P members,1,ar_m_lo,rising - falling (B4),0.14815310286533337
 S&P members,1,ar_m_lo,HOOD-like analog,-2.3071388141761418
 S&P members,1,ar_m_lo,"HOOD-like analog, placebo lines",-0.6947219328028542
-S&P members,1,ar_pool,real line,0.04981780171609977
-S&P members,1,ar_pool,line -2 ATR,-0.0013963965546490435
-S&P members,1,ar_pool,line -1 ATR,0.01232026331807692
-S&P members,1,ar_pool,line +1 ATR,-0.11272370621283588
-S&P members,1,ar_pool,line +2 ATR,0.08808099686775092
-S&P members,1,ar_pool,real - placebo,0.05396679433274118
-S&P members,1,ar_pool,rising - falling (B4),-0.07075616224740423
-S&P members,1,ar_pool,HOOD-like analog,-1.962012939695228
-S&P members,1,ar_pool,"HOOD-like analog, placebo lines",-0.9126125611137282
+S&P members,1,ar_pool,real line,0.050566607416862856
+S&P members,1,ar_pool,line -2 ATR,-0.0006202374870649009
+S&P members,1,ar_pool,line -1 ATR,0.013038039420083036
+S&P members,1,ar_pool,line +1 ATR,-0.11206506109517035
+S&P members,1,ar_pool,line +2 ATR,0.08878149951661889
+S&P members,1,ar_pool,real - placebo,0.054004263341617155
+S&P members,1,ar_pool,rising - falling (B4),-0.07088226922945724
+S&P members,1,ar_pool,HOOD-like analog,-1.9600637204001716
+S&P members,1,ar_pool,"HOOD-like analog, placebo lines",-0.9118862786236809
 S&P members,1,ar_e2,real line,-0.013567403055842711
 S&P members,1,ar_e2,line -2 ATR,0.4526696823119563
 S&P members,1,ar_e2,line -1 ATR,0.26318282052974
@@ -188,13 +188,13 @@ crypto,1,ar_m_lo,line +1 ATR,-0.07877541333436966
 crypto,1,ar_m_lo,line +2 ATR,-1.5373742580413818
 crypto,1,ar_m_lo,real - placebo,1.89643394947052
 crypto,1,ar_m_lo,rising - falling (B4),1.7858860492706299
-crypto,1,ar_pool,real line,1.3412569761276245
-crypto,1,ar_pool,line -2 ATR,-0.6813327074050903
-crypto,1,ar_pool,line -1 ATR,0.7501904964447021
-crypto,1,ar_pool,line +1 ATR,-0.32271307706832886
-crypto,1,ar_pool,line +2 ATR,-1.5745211839675903
-crypto,1,ar_pool,real - placebo,1.7785850763320923
-crypto,1,ar_pool,rising - falling (B4),1.5953222513198853
+crypto,1,ar_pool,real line,1.3383339643478394
+crypto,1,ar_pool,line -2 ATR,-0.6788796186447144
+crypto,1,ar_pool,line -1 ATR,0.7523941993713379
+crypto,1,ar_pool,line +1 ATR,-0.3262149691581726
+crypto,1,ar_pool,line +2 ATR,-1.5761345624923706
+crypto,1,ar_pool,real - placebo,1.7758145332336426
+crypto,1,ar_pool,rising - falling (B4),1.6019608974456787
 crypto,1,ar_e2,real line,0.14018365740776062
 crypto,1,ar_e2,line -2 ATR,-1.41062593460083
 crypto,1,ar_e2,line -1 ATR,0.7144105434417725
@@ -241,15 +241,15 @@ S&P members,2,ar_m_lo,real - placebo,0.04249428430653266
 S&P members,2,ar_m_lo,rising - falling (B4),-0.24425190355822243
 S&P members,2,ar_m_lo,HOOD-like analog,-1.2075818882212284
 S&P members,2,ar_m_lo,"HOOD-like analog, placebo lines",-0.8911562906372118
-S&P members,2,ar_pool,real line,0.04085414925369384
-S&P members,2,ar_pool,line -2 ATR,-0.02482439229857469
-S&P members,2,ar_pool,line -1 ATR,0.06673143946615485
-S&P members,2,ar_pool,line +1 ATR,0.06441644294424657
-S&P members,2,ar_pool,line +2 ATR,-0.004979724608721633
-S&P members,2,ar_pool,real - placebo,0.01448055062697218
-S&P members,2,ar_pool,rising - falling (B4),-0.3855144482971635
-S&P members,2,ar_pool,HOOD-like analog,-1.6147689549022575
-S&P members,2,ar_pool,"HOOD-like analog, placebo lines",-1.119422562416896
+S&P members,2,ar_pool,real line,0.04065096751687666
+S&P members,2,ar_pool,line -2 ATR,-0.024995046123691068
+S&P members,2,ar_pool,line -1 ATR,0.06653381463072092
+S&P members,2,ar_pool,line +1 ATR,0.06428891729510242
+S&P members,2,ar_pool,line +2 ATR,-0.005339384561048618
+S&P members,2,ar_pool,real - placebo,0.01449253998203614
+S&P members,2,ar_pool,rising - falling (B4),-0.38532015386469975
+S&P members,2,ar_pool,HOOD-like analog,-1.6163736096832713
+S&P members,2,ar_pool,"HOOD-like analog, placebo lines",-1.1204196636898154
 S&P members,2,ar_e2,real line,0.01275872969870117
 S&P members,2,ar_e2,line -2 ATR,0.5107623818969703
 S&P members,2,ar_e2,line -1 ATR,0.37122541656782815
@@ -300,13 +300,13 @@ crypto,2,ar_m_lo,line +1 ATR,-1.996207594871521
 crypto,2,ar_m_lo,line +2 ATR,0.553709864616394
 crypto,2,ar_m_lo,real - placebo,0.6434279084205627
 crypto,2,ar_m_lo,rising - falling (B4),-1.9011904001235962
-crypto,2,ar_pool,real line,-0.03739674761891365
-crypto,2,ar_pool,line -2 ATR,-0.5996583700180054
-crypto,2,ar_pool,line -1 ATR,-0.7443571090698242
-crypto,2,ar_pool,line +1 ATR,-1.7736011743545532
-crypto,2,ar_pool,line +2 ATR,0.31727471947669983
-crypto,2,ar_pool,real - placebo,0.6689012050628662
-crypto,2,ar_pool,rising - falling (B4),-2.650289535522461
+crypto,2,ar_pool,real line,-0.03603672236204147
+crypto,2,ar_pool,line -2 ATR,-0.6022726893424988
+crypto,2,ar_pool,line -1 ATR,-0.7469133734703064
+crypto,2,ar_pool,line +1 ATR,-1.7791082859039307
+crypto,2,ar_pool,line +2 ATR,0.31818440556526184
+crypto,2,ar_pool,real - placebo,0.6727101802825928
+crypto,2,ar_pool,rising - falling (B4),-2.65057373046875
 crypto,2,ar_e2,real line,-3.0285305976867676
 crypto,2,ar_e2,line -2 ATR,-2.2806036472320557
 crypto,2,ar_e2,line -1 ATR,-2.9312562942504883
@@ -353,15 +353,15 @@ S&P members,3,ar_m_lo,real - placebo,-0.011417044789694682
 S&P members,3,ar_m_lo,rising - falling (B4),0.10568783211426838
 S&P members,3,ar_m_lo,HOOD-like analog,0.893176328190183
 S&P members,3,ar_m_lo,"HOOD-like analog, placebo lines",0.9717383690943819
-S&P members,3,ar_pool,real line,-0.03643150739641709
-S&P members,3,ar_pool,line -2 ATR,-0.06279516385202258
-S&P members,3,ar_pool,line -1 ATR,0.04694329941059954
-S&P members,3,ar_pool,line +1 ATR,0.10023307290283809
-S&P members,3,ar_pool,line +2 ATR,0.0069456096389069666
-S&P members,3,ar_pool,real - placebo,-0.06161721387565039
-S&P members,3,ar_pool,rising - falling (B4),0.1021489514911263
-S&P members,3,ar_pool,HOOD-like analog,-1.0400395121306807
-S&P members,3,ar_pool,"HOOD-like analog, placebo lines",-0.6403805615980638
+S&P members,3,ar_pool,real line,-0.03502909538058093
+S&P members,3,ar_pool,line -2 ATR,-0.06143552245858404
+S&P members,3,ar_pool,line -1 ATR,0.04841010297120667
+S&P members,3,ar_pool,line +1 ATR,0.10156676427119692
+S&P members,3,ar_pool,line +2 ATR,0.008334172450883954
+S&P members,3,ar_pool,real - placebo,-0.06160171558132145
+S&P members,3,ar_pool,rising - falling (B4),0.10194646689994391
+S&P members,3,ar_pool,HOOD-like analog,-1.037089244032613
+S&P members,3,ar_pool,"HOOD-like analog, placebo lines",-0.6373097514875011
 S&P members,3,ar_e2,real line,-0.08345785520577001
 S&P members,3,ar_e2,line -2 ATR,0.40913834565444956
 S&P members,3,ar_e2,line -1 ATR,0.20859334447365488
@@ -412,13 +412,13 @@ crypto,3,ar_m_lo,line +1 ATR,1.458198070526123
 crypto,3,ar_m_lo,line +2 ATR,1.234676718711853
 crypto,3,ar_m_lo,real - placebo,1.697945237159729
 crypto,3,ar_m_lo,rising - falling (B4),4.627642631530762
-crypto,3,ar_pool,real line,2.5852408409118652
-crypto,3,ar_pool,line -2 ATR,1.1625639200210571
-crypto,3,ar_pool,line -1 ATR,-0.5776286125183105
-crypto,3,ar_pool,line +1 ATR,1.4426348209381104
-crypto,3,ar_pool,line +2 ATR,1.6712970733642578
-crypto,3,ar_pool,real - placebo,1.6904469728469849
-crypto,3,ar_pool,rising - falling (B4),5.075279712677002
+crypto,3,ar_pool,real line,2.569108486175537
+crypto,3,ar_pool,line -2 ATR,1.145174503326416
+crypto,3,ar_pool,line -1 ATR,-0.6004793047904968
+crypto,3,ar_pool,line +1 ATR,1.4265320301055908
+crypto,3,ar_pool,line +2 ATR,1.6463408470153809
+crypto,3,ar_pool,real - placebo,1.694647192955017
+crypto,3,ar_pool,rising - falling (B4),5.072821617126465
 crypto,3,ar_e2,real line,0.6823976635932922
 crypto,3,ar_e2,line -2 ATR,0.49347031116485596
 crypto,3,ar_e2,line -1 ATR,-3.728188991546631
@@ -465,15 +465,15 @@ S&P members,4,ar_m_lo,real - placebo,-0.042235870597034646
 S&P members,4,ar_m_lo,rising - falling (B4),0.09019052559830812
 S&P members,4,ar_m_lo,HOOD-like analog,2.2082176796195783
 S&P members,4,ar_m_lo,"HOOD-like analog, placebo lines",-0.688723377966449
-S&P members,4,ar_pool,real line,-0.08397198048636846
-S&P members,4,ar_pool,line -2 ATR,-0.055791128203730216
-S&P members,4,ar_pool,line -1 ATR,0.06219583652659003
-S&P members,4,ar_pool,line +1 ATR,-0.019922143038724065
-S&P members,4,ar_pool,line +2 ATR,-0.05307053363909072
-S&P members,4,ar_pool,real - placebo,-0.06738586707616906
-S&P members,4,ar_pool,rising - falling (B4),0.09815750070923546
-S&P members,4,ar_pool,HOOD-like analog,0.07482635774614668
-S&P members,4,ar_pool,"HOOD-like analog, placebo lines",-1.3208833640253297
+S&P members,4,ar_pool,real line,-0.08399646614370153
+S&P members,4,ar_pool,line -2 ATR,-0.05582972873068013
+S&P members,4,ar_pool,line -1 ATR,0.06211253262713259
+S&P members,4,ar_pool,line +1 ATR,-0.019974937332207753
+S&P members,4,ar_pool,line +2 ATR,-0.05314297969233389
+S&P members,4,ar_pool,real - placebo,-0.067348265580286
+S&P members,4,ar_pool,rising - falling (B4),0.09838531796853926
+S&P members,4,ar_pool,HOOD-like analog,0.07350336089800287
+S&P members,4,ar_pool,"HOOD-like analog, placebo lines",-1.3208104842524646
 S&P members,4,ar_e2,real line,-0.037381108360984655
 S&P members,4,ar_e2,line -2 ATR,0.49774859357306034
 S&P members,4,ar_e2,line -1 ATR,0.28851055203427706
@@ -524,13 +524,13 @@ crypto,4,ar_m_lo,line +1 ATR,0.4782099723815918
 crypto,4,ar_m_lo,line +2 ATR,-0.8179183006286621
 crypto,4,ar_m_lo,real - placebo,-0.6332328915596008
 crypto,4,ar_m_lo,rising - falling (B4),-3.7319324016571045
-crypto,4,ar_pool,real line,0.16177381575107574
-crypto,4,ar_pool,line -2 ATR,0.33169153332710266
-crypto,4,ar_pool,line -1 ATR,0.9378044009208679
-crypto,4,ar_pool,line +1 ATR,0.6631543636322021
-crypto,4,ar_pool,line +2 ATR,0.6275373101234436
-crypto,4,ar_pool,real - placebo,-0.48310789465904236
-crypto,4,ar_pool,rising - falling (B4),-3.266361713409424
+crypto,4,ar_pool,real line,0.16120363771915436
+crypto,4,ar_pool,line -2 ATR,0.3301216959953308
+crypto,4,ar_pool,line -1 ATR,0.9355469346046448
+crypto,4,ar_pool,line +1 ATR,0.6678235530853271
+crypto,4,ar_pool,line +2 ATR,0.6306280493736267
+crypto,4,ar_pool,real - placebo,-0.48470446467399597
+crypto,4,ar_pool,rising - falling (B4),-3.2755439281463623
 crypto,4,ar_e2,real line,-1.6137892007827759
 crypto,4,ar_e2,line -2 ATR,0.33787891268730164
 crypto,4,ar_e2,line -1 ATR,-0.44568347930908203
@@ -577,15 +577,15 @@ S&P members,5,ar_m_lo,real - placebo,0.1170586491947515
 S&P members,5,ar_m_lo,rising - falling (B4),0.21991021223636636
 S&P members,5,ar_m_lo,HOOD-like analog,-0.49041775878746413
 S&P members,5,ar_m_lo,"HOOD-like analog, placebo lines",-1.2279036466380338
-S&P members,5,ar_pool,real line,0.09903496056928354
-S&P members,5,ar_pool,line -2 ATR,0.10663103013933309
-S&P members,5,ar_pool,line -1 ATR,0.06476930492105265
-S&P members,5,ar_pool,line +1 ATR,-0.03593338320470086
-S&P members,5,ar_pool,line +2 ATR,-0.052995250253725236
-S&P members,5,ar_pool,real - placebo,0.08143183474737371
-S&P members,5,ar_pool,rising - falling (B4),0.02079433148782267
-S&P members,5,ar_pool,HOOD-like analog,-0.6929144968122987
-S&P members,5,ar_pool,"HOOD-like analog, placebo lines",-0.9732540596941109
+S&P members,5,ar_pool,real line,0.09783641509478883
+S&P members,5,ar_pool,line -2 ATR,0.10543994761486539
+S&P members,5,ar_pool,line -1 ATR,0.06340787680724981
+S&P members,5,ar_pool,line +1 ATR,-0.03723449685132251
+S&P members,5,ar_pool,line +2 ATR,-0.05435081135402457
+S&P members,5,ar_pool,real - placebo,0.0815378577637824
+S&P members,5,ar_pool,rising - falling (B4),0.020548354400732726
+S&P members,5,ar_pool,HOOD-like analog,-0.6934078946302367
+S&P members,5,ar_pool,"HOOD-like analog, placebo lines",-0.9736185657675377
 S&P members,5,ar_e2,real line,0.17750780252950327
 S&P members,5,ar_e2,line -2 ATR,0.5465879534438914
 S&P members,5,ar_e2,line -1 ATR,0.15136819680970998
@@ -636,13 +636,13 @@ crypto,5,ar_m_lo,line +1 ATR,0.3239772915840149
 crypto,5,ar_m_lo,line +2 ATR,0.5053406357765198
 crypto,5,ar_m_lo,real - placebo,2.45672869682312
 crypto,5,ar_m_lo,rising - falling (B4),1.3184531927108765
-crypto,5,ar_pool,real line,2.322999954223633
-crypto,5,ar_pool,line -2 ATR,-1.9028183221817017
-crypto,5,ar_pool,line -1 ATR,-1.1020071506500244
-crypto,5,ar_pool,line +1 ATR,0.7888864874839783
-crypto,5,ar_pool,line +2 ATR,0.856292724609375
-crypto,5,ar_pool,real - placebo,2.617753744125366
-crypto,5,ar_pool,rising - falling (B4),0.9151244759559631
+crypto,5,ar_pool,real line,2.3275575637817383
+crypto,5,ar_pool,line -2 ATR,-1.8965708017349243
+crypto,5,ar_pool,line -1 ATR,-1.094252347946167
+crypto,5,ar_pool,line +1 ATR,0.7943975925445557
+crypto,5,ar_pool,line +2 ATR,0.8573126196861267
+crypto,5,ar_pool,real - placebo,2.617182493209839
+crypto,5,ar_pool,rising - falling (B4),0.9163094758987427
 crypto,5,ar_e2,real line,0.060002006590366364
 crypto,5,ar_e2,line -2 ATR,-2.398090124130249
 crypto,5,ar_e2,line -1 ATR,-3.0754268169403076
@@ -689,15 +689,15 @@ S&P members,6,ar_m_lo,real - placebo,-0.03476459414050189
 S&P members,6,ar_m_lo,rising - falling (B4),0.42340707300940167
 S&P members,6,ar_m_lo,HOOD-like analog,-1.5534061721395396
 S&P members,6,ar_m_lo,"HOOD-like analog, placebo lines",-2.0317444483569655
-S&P members,6,ar_pool,real line,0.01943779517153077
-S&P members,6,ar_pool,line -2 ATR,0.12646776602051102
-S&P members,6,ar_pool,line -1 ATR,-0.05013537378117407
-S&P members,6,ar_pool,line +1 ATR,0.10532983951604191
-S&P members,6,ar_pool,line +2 ATR,0.11700596322196427
-S&P members,6,ar_pool,real - placebo,-0.05543808134676015
-S&P members,6,ar_pool,rising - falling (B4),0.25392507204985104
-S&P members,6,ar_pool,HOOD-like analog,-0.9462584083286376
-S&P members,6,ar_pool,"HOOD-like analog, placebo lines",-1.4584609470947534
+S&P members,6,ar_pool,real line,0.01931072649755411
+S&P members,6,ar_pool,line -2 ATR,0.1262562492863658
+S&P members,6,ar_pool,line -1 ATR,-0.05033054954654756
+S&P members,6,ar_pool,line +1 ATR,0.10527074844015
+S&P members,6,ar_pool,line +2 ATR,0.1169353288880118
+S&P members,6,ar_pool,real - placebo,-0.055433623619327035
+S&P members,6,ar_pool,rising - falling (B4),0.2537762611750846
+S&P members,6,ar_pool,HOOD-like analog,-0.9461029504799495
+S&P members,6,ar_pool,"HOOD-like analog, placebo lines",-1.4592749716883355
 S&P members,6,ar_e2,real line,-0.02027048991849821
 S&P members,6,ar_e2,line -2 ATR,0.677551728298697
 S&P members,6,ar_e2,line -1 ATR,0.18661649298117702
@@ -748,13 +748,13 @@ crypto,6,ar_m_lo,line +1 ATR,0.9909839630126953
 crypto,6,ar_m_lo,line +2 ATR,-2.799952268600464
 crypto,6,ar_m_lo,real - placebo,-0.8423383235931396
 crypto,6,ar_m_lo,rising - falling (B4),-0.3054065704345703
-crypto,6,ar_pool,real line,-0.6751830577850342
-crypto,6,ar_pool,line -2 ATR,1.1644773483276367
-crypto,6,ar_pool,line -1 ATR,0.7044155597686768
-crypto,6,ar_pool,line +1 ATR,1.7580095529556274
-crypto,6,ar_pool,line +2 ATR,-1.5008225440979004
-crypto,6,ar_pool,real - placebo,-1.1939268112182617
-crypto,6,ar_pool,rising - falling (B4),1.5282931327819824
+crypto,6,ar_pool,real line,-0.6978335976600647
+crypto,6,ar_pool,line -2 ATR,1.1652135848999023
+crypto,6,ar_pool,line -1 ATR,0.7027912139892578
+crypto,6,ar_pool,line +1 ATR,1.7467581033706665
+crypto,6,ar_pool,line +2 ATR,-1.5164387226104736
+crypto,6,ar_pool,real - placebo,-1.2092711925506592
+crypto,6,ar_pool,rising - falling (B4),1.5070769786834717
 crypto,6,ar_e2,real line,-3.2145087718963623
 crypto,6,ar_e2,line -2 ATR,0.6542728543281555
 crypto,6,ar_e2,line -1 ATR,-0.380934476852417
@@ -801,15 +801,15 @@ S&P members,7,ar_m_lo,real - placebo,0.06398030735924506
 S&P members,7,ar_m_lo,rising - falling (B4),-0.029004736159304764
 S&P members,7,ar_m_lo,HOOD-like analog,1.1534027867774534
 S&P members,7,ar_m_lo,"HOOD-like analog, placebo lines",0.8555959712728857
-S&P members,7,ar_pool,real line,-0.02070835202534685
-S&P members,7,ar_pool,line -2 ATR,-0.08353750909054251
-S&P members,7,ar_pool,line -1 ATR,-0.03761401214079053
-S&P members,7,ar_pool,line +1 ATR,-0.10384402730314146
-S&P members,7,ar_pool,line +2 ATR,-0.005188979046981623
-S&P members,7,ar_pool,real - placebo,0.03658184476745122
-S&P members,7,ar_pool,rising - falling (B4),0.030905413097331174
-S&P members,7,ar_pool,HOOD-like analog,-0.8170264281369256
-S&P members,7,ar_pool,"HOOD-like analog, placebo lines",-0.3492007588915499
+S&P members,7,ar_pool,real line,-0.0196020453460528
+S&P members,7,ar_pool,line -2 ATR,-0.08238848393932813
+S&P members,7,ar_pool,line -1 ATR,-0.036509651521731364
+S&P members,7,ar_pool,line +1 ATR,-0.10278046605982476
+S&P members,7,ar_pool,line +2 ATR,-0.004172805913703595
+S&P members,7,ar_pool,real - placebo,0.03660708201084987
+S&P members,7,ar_pool,rising - falling (B4),0.031044883880908886
+S&P members,7,ar_pool,HOOD-like analog,-0.8148871824807046
+S&P members,7,ar_pool,"HOOD-like analog, placebo lines",-0.3486174517832784
 S&P members,7,ar_e2,real line,-0.017256435027745688
 S&P members,7,ar_e2,line -2 ATR,0.322676765744336
 S&P members,7,ar_e2,line -1 ATR,0.19002266204517193
@@ -860,13 +860,13 @@ crypto,7,ar_m_lo,line +1 ATR,-0.7003150582313538
 crypto,7,ar_m_lo,line +2 ATR,1.2139049768447876
 crypto,7,ar_m_lo,real - placebo,1.650704026222229
 crypto,7,ar_m_lo,rising - falling (B4),-4.481631278991699
-crypto,7,ar_pool,real line,2.001382827758789
-crypto,7,ar_pool,line -2 ATR,0.36114561557769775
-crypto,7,ar_pool,line -1 ATR,-0.7595109939575195
-crypto,7,ar_pool,line +1 ATR,-0.251034677028656
-crypto,7,ar_pool,line +2 ATR,2.046643018722534
-crypto,7,ar_pool,real - placebo,1.6618732213974
-crypto,7,ar_pool,rising - falling (B4),-3.2114129066467285
+crypto,7,ar_pool,real line,2.008558511734009
+crypto,7,ar_pool,line -2 ATR,0.3596702218055725
+crypto,7,ar_pool,line -1 ATR,-0.7611262798309326
+crypto,7,ar_pool,line +1 ATR,-0.23333416879177094
+crypto,7,ar_pool,line +2 ATR,2.0537126064300537
+crypto,7,ar_pool,real - placebo,1.6634312868118286
+crypto,7,ar_pool,rising - falling (B4),-3.189337968826294
 crypto,7,ar_e2,real line,0.8953983187675476
 crypto,7,ar_e2,line -2 ATR,0.45346900820732117
 crypto,7,ar_e2,line -1 ATR,-1.5143941640853882
@@ -913,15 +913,15 @@ S&P members,8,ar_m_lo,real - placebo,-0.10669226780126242
 S&P members,8,ar_m_lo,rising - falling (B4),-0.23385489479574922
 S&P members,8,ar_m_lo,HOOD-like analog,0.5224060001903748
 S&P members,8,ar_m_lo,"HOOD-like analog, placebo lines",3.18142009618255
-S&P members,8,ar_pool,real line,-0.10736098970357752
-S&P members,8,ar_pool,line -2 ATR,0.03576900646753355
-S&P members,8,ar_pool,line -1 ATR,0.09696422619753348
-S&P members,8,ar_pool,line +1 ATR,0.0035823036009758223
-S&P members,8,ar_pool,line +2 ATR,-0.0076947992518598025
-S&P members,8,ar_pool,real - placebo,-0.13845536776407347
-S&P members,8,ar_pool,rising - falling (B4),-0.27393654190493455
-S&P members,8,ar_pool,HOOD-like analog,-1.1432209192740053
-S&P members,8,ar_pool,"HOOD-like analog, placebo lines",1.0672333256509297
+S&P members,8,ar_pool,real line,-0.10714817617754821
+S&P members,8,ar_pool,line -2 ATR,0.03590254416647086
+S&P members,8,ar_pool,line -1 ATR,0.09701762738481896
+S&P members,8,ar_pool,line +1 ATR,0.003656122864556014
+S&P members,8,ar_pool,line +2 ATR,-0.007654999280755145
+S&P members,8,ar_pool,real - placebo,-0.1383163376592284
+S&P members,8,ar_pool,rising - falling (B4),-0.2743678246603257
+S&P members,8,ar_pool,HOOD-like analog,-1.1428445762681447
+S&P members,8,ar_pool,"HOOD-like analog, placebo lines",1.067627921924132
 S&P members,8,ar_e2,real line,-0.18565694135916813
 S&P members,8,ar_e2,line -2 ATR,0.47747959083330865
 S&P members,8,ar_e2,line -1 ATR,0.44321789976998716
@@ -972,13 +972,13 @@ crypto,8,ar_m_lo,line +1 ATR,-0.13168951869010925
 crypto,8,ar_m_lo,line +2 ATR,1.0030115842819214
 crypto,8,ar_m_lo,real - placebo,-0.597428560256958
 crypto,8,ar_m_lo,rising - falling (B4),4.253795623779297
-crypto,8,ar_pool,real line,-1.732499361038208
-crypto,8,ar_pool,line -2 ATR,-0.7546852231025696
-crypto,8,ar_pool,line -1 ATR,-1.825609803199768
-crypto,8,ar_pool,line +1 ATR,-0.8865754008293152
-crypto,8,ar_pool,line +2 ATR,1.165724754333496
-crypto,8,ar_pool,real - placebo,-1.1686574220657349
-crypto,8,ar_pool,rising - falling (B4),3.6351370811462402
+crypto,8,ar_pool,real line,-1.728026032447815
+crypto,8,ar_pool,line -2 ATR,-0.7527967691421509
+crypto,8,ar_pool,line -1 ATR,-1.8291373252868652
+crypto,8,ar_pool,line +1 ATR,-0.88771653175354
+crypto,8,ar_pool,line +2 ATR,1.164366364479065
+crypto,8,ar_pool,real - placebo,-1.1631324291229248
+crypto,8,ar_pool,rising - falling (B4),3.644709348678589
 crypto,8,ar_e2,real line,-2.2606117725372314
 crypto,8,ar_e2,line -2 ATR,-0.22627697885036469
 crypto,8,ar_e2,line -1 ATR,-2.8090827465057373
@@ -1025,15 +1025,15 @@ S&P members,9,ar_m_lo,real - placebo,0.004534096750532219
 S&P members,9,ar_m_lo,rising - falling (B4),-0.05218486870324792
 S&P members,9,ar_m_lo,HOOD-like analog,0.39796003800921026
 S&P members,9,ar_m_lo,"HOOD-like analog, placebo lines",1.5601184677039166
-S&P members,9,ar_pool,real line,-0.07084817673856603
-S&P members,9,ar_pool,line -2 ATR,-0.0013534348738215838
-S&P members,9,ar_pool,line -1 ATR,-0.05526270096070786
-S&P members,9,ar_pool,line +1 ATR,-0.05859430980368793
-S&P members,9,ar_pool,line +2 ATR,0.010971124099348431
-S&P members,9,ar_pool,real - placebo,-0.04426162361231864
-S&P members,9,ar_pool,rising - falling (B4),-0.1080978215906653
-S&P members,9,ar_pool,HOOD-like analog,-1.1752690477994943
-S&P members,9,ar_pool,"HOOD-like analog, placebo lines",0.1750174705640017
+S&P members,9,ar_pool,real line,-0.06973046176850872
+S&P members,9,ar_pool,line -2 ATR,-0.0003946610165070564
+S&P members,9,ar_pool,line -1 ATR,-0.05419096221692096
+S&P members,9,ar_pool,line +1 ATR,-0.057627208540647214
+S&P members,9,ar_pool,line +2 ATR,0.011827343426768827
+S&P members,9,ar_pool,real - placebo,-0.044106395544676325
+S&P members,9,ar_pool,rising - falling (B4),-0.10782696408381366
+S&P members,9,ar_pool,HOOD-like analog,-1.1736160996681675
+S&P members,9,ar_pool,"HOOD-like analog, placebo lines",0.17571113012547515
 S&P members,9,ar_e2,real line,-0.07927068841323473
 S&P members,9,ar_e2,line -2 ATR,0.359491864049909
 S&P members,9,ar_e2,line -1 ATR,0.17301429513316213
@@ -1084,13 +1084,13 @@ crypto,9,ar_m_lo,line +1 ATR,-0.7155370116233826
 crypto,9,ar_m_lo,line +2 ATR,0.9486662149429321
 crypto,9,ar_m_lo,real - placebo,-1.4596946239471436
 crypto,9,ar_m_lo,rising - falling (B4),-0.2664273679256439
-crypto,9,ar_pool,real line,-1.4154561758041382
-crypto,9,ar_pool,line -2 ATR,-1.39226233959198
-crypto,9,ar_pool,line -1 ATR,0.36159271001815796
-crypto,9,ar_pool,line +1 ATR,-0.6186989545822144
-crypto,9,ar_pool,line +2 ATR,1.2187681198120117
-crypto,9,ar_pool,real - placebo,-1.3191642761230469
-crypto,9,ar_pool,rising - falling (B4),-0.9890617728233337
+crypto,9,ar_pool,real line,-1.4032400846481323
+crypto,9,ar_pool,line -2 ATR,-1.3815796375274658
+crypto,9,ar_pool,line -1 ATR,0.3725587725639343
+crypto,9,ar_pool,line +1 ATR,-0.6018564701080322
+crypto,9,ar_pool,line +2 ATR,1.2340989112854004
+crypto,9,ar_pool,real - placebo,-1.320432424545288
+crypto,9,ar_pool,rising - falling (B4),-0.9709333777427673
 crypto,9,ar_e2,real line,-4.175853729248047
 crypto,9,ar_e2,line -2 ATR,-0.9158109426498413
 crypto,9,ar_e2,line -1 ATR,-0.6373147368431091
@@ -1137,15 +1137,15 @@ S&P members,10,ar_m_lo,real - placebo,-0.013787861272281744
 S&P members,10,ar_m_lo,rising - falling (B4),0.1558137890027463
 S&P members,10,ar_m_lo,HOOD-like analog,-3.120939902577855
 S&P members,10,ar_m_lo,"HOOD-like analog, placebo lines",0.17786825397638042
-S&P members,10,ar_pool,real line,-0.019663031671353158
-S&P members,10,ar_pool,line -2 ATR,-0.057364402142991516
-S&P members,10,ar_pool,line -1 ATR,0.028788384291512252
-S&P members,10,ar_pool,line +1 ATR,0.07479824414188038
-S&P members,10,ar_pool,line +2 ATR,-0.0297919016806905
-S&P members,10,ar_pool,real - placebo,-0.02549248022460845
-S&P members,10,ar_pool,rising - falling (B4),0.3112261370291207
-S&P members,10,ar_pool,HOOD-like analog,-4.077195787483482
-S&P members,10,ar_pool,"HOOD-like analog, placebo lines",-1.8286349153999588
+S&P members,10,ar_pool,real line,-0.01867290305830197
+S&P members,10,ar_pool,line -2 ATR,-0.05624706071302027
+S&P members,10,ar_pool,line -1 ATR,0.029921412947429248
+S&P members,10,ar_pool,line +1 ATR,0.07586502376598236
+S&P members,10,ar_pool,line +2 ATR,-0.028750223705737175
+S&P members,10,ar_pool,real - placebo,-0.02559058740405596
+S&P members,10,ar_pool,rising - falling (B4),0.3115184555478915
+S&P members,10,ar_pool,HOOD-like analog,-4.076174645236534
+S&P members,10,ar_pool,"HOOD-like analog, placebo lines",-1.8272011961503458
 S&P members,10,ar_e2,real line,-0.0229961722861237
 S&P members,10,ar_e2,line -2 ATR,0.38897061283052786
 S&P members,10,ar_e2,line -1 ATR,0.3452822984595756
@@ -1196,13 +1196,13 @@ crypto,10,ar_m_lo,line +1 ATR,-1.1878877878189087
 crypto,10,ar_m_lo,line +2 ATR,-0.6893019676208496
 crypto,10,ar_m_lo,real - placebo,-2.363072633743286
 crypto,10,ar_m_lo,rising - falling (B4),8.318840980529785
-crypto,10,ar_pool,real line,-2.7801263332366943
-crypto,10,ar_pool,line -2 ATR,1.7976717948913574
-crypto,10,ar_pool,line -1 ATR,-1.719140648841858
-crypto,10,ar_pool,line +1 ATR,-1.003283977508545
-crypto,10,ar_pool,line +2 ATR,-0.2356906235218048
-crypto,10,ar_pool,real - placebo,-2.4324185848236084
-crypto,10,ar_pool,rising - falling (B4),7.0172295570373535
+crypto,10,ar_pool,real line,-2.777991533279419
+crypto,10,ar_pool,line -2 ATR,1.7962723970413208
+crypto,10,ar_pool,line -1 ATR,-1.7110188007354736
+crypto,10,ar_pool,line +1 ATR,-1.004633903503418
+crypto,10,ar_pool,line +2 ATR,-0.22895245254039764
+crypto,10,ar_pool,real - placebo,-2.433403253555298
+crypto,10,ar_pool,rising - falling (B4),7.035109996795654
 crypto,10,ar_e2,real line,-5.709196090698242
 crypto,10,ar_e2,line -2 ATR,0.6552873849868774
 crypto,10,ar_e2,line -1 ATR,-3.516758918762207
@@ -1249,15 +1249,15 @@ S&P members,11,ar_m_lo,real - placebo,0.1692299155603958
 S&P members,11,ar_m_lo,rising - falling (B4),0.4524226739679728
 S&P members,11,ar_m_lo,HOOD-like analog,-2.338626186010092
 S&P members,11,ar_m_lo,"HOOD-like analog, placebo lines",-0.32731613937902304
-S&P members,11,ar_pool,real line,0.16066286059333268
-S&P members,11,ar_pool,line -2 ATR,0.13100244984964007
-S&P members,11,ar_pool,line -1 ATR,0.16651678269931255
-S&P members,11,ar_pool,line +1 ATR,0.04091825437350831
-S&P members,11,ar_pool,line +2 ATR,-0.009051890468406766
-S&P members,11,ar_pool,real - placebo,0.08085824321264577
-S&P members,11,ar_pool,rising - falling (B4),0.22759116363572893
-S&P members,11,ar_pool,HOOD-like analog,-2.254747756362795
-S&P members,11,ar_pool,"HOOD-like analog, placebo lines",-0.17355961881774018
+S&P members,11,ar_pool,real line,0.16125712850950544
+S&P members,11,ar_pool,line -2 ATR,0.1314345787196482
+S&P members,11,ar_pool,line -1 ATR,0.1670955180328232
+S&P members,11,ar_pool,line +1 ATR,0.04149405475824259
+S&P members,11,ar_pool,line +2 ATR,-0.008403152029248382
+S&P members,11,ar_pool,real - placebo,0.08089026359313294
+S&P members,11,ar_pool,rising - falling (B4),0.22773724865842496
+S&P members,11,ar_pool,HOOD-like analog,-2.2536901358661647
+S&P members,11,ar_pool,"HOOD-like analog, placebo lines",-0.17192983161288325
 S&P members,11,ar_e2,real line,0.08864924282174654
 S&P members,11,ar_e2,line -2 ATR,0.5467708860671849
 S&P members,11,ar_e2,line -1 ATR,0.3389658247420156
@@ -1308,13 +1308,13 @@ crypto,11,ar_m_lo,line +1 ATR,3.710437297821045
 crypto,11,ar_m_lo,line +2 ATR,0.7567165493965149
 crypto,11,ar_m_lo,real - placebo,0.430853009223938
 crypto,11,ar_m_lo,rising - falling (B4),-0.4393310248851776
-crypto,11,ar_pool,real line,1.1019842624664307
-crypto,11,ar_pool,line -2 ATR,-1.555005669593811
-crypto,11,ar_pool,line -1 ATR,-0.8723493814468384
-crypto,11,ar_pool,line +1 ATR,3.56144118309021
-crypto,11,ar_pool,line +2 ATR,1.3059778213500977
-crypto,11,ar_pool,real - placebo,0.46817976236343384
-crypto,11,ar_pool,rising - falling (B4),0.30027663707733154
+crypto,11,ar_pool,real line,1.103515863418579
+crypto,11,ar_pool,line -2 ATR,-1.545956015586853
+crypto,11,ar_pool,line -1 ATR,-0.8701191544532776
+crypto,11,ar_pool,line +1 ATR,3.56404185295105
+crypto,11,ar_pool,line +2 ATR,1.3083150386810303
+crypto,11,ar_pool,real - placebo,0.46574798226356506
+crypto,11,ar_pool,rising - falling (B4),0.30134981870651245
 crypto,11,ar_e2,real line,-0.0471423864364624
 crypto,11,ar_e2,line -2 ATR,-1.0248041152954102
 crypto,11,ar_e2,line -1 ATR,-1.9258002042770386
@@ -1361,15 +1361,15 @@ S&P members,12,ar_m_lo,real - placebo,-0.13656776449547775
 S&P members,12,ar_m_lo,rising - falling (B4),-0.1092194556076667
 S&P members,12,ar_m_lo,HOOD-like analog,-0.03670179166927304
 S&P members,12,ar_m_lo,"HOOD-like analog, placebo lines",-0.7320186296550084
-S&P members,12,ar_pool,real line,-0.2518100817740793
-S&P members,12,ar_pool,line -2 ATR,-0.02928070430739891
-S&P members,12,ar_pool,line -1 ATR,-0.12338401113195614
-S&P members,12,ar_pool,line +1 ATR,-0.13907885408655524
-S&P members,12,ar_pool,line +2 ATR,-0.01960988870817792
-S&P members,12,ar_pool,real - placebo,-0.17281139497551498
-S&P members,12,ar_pool,rising - falling (B4),0.10631382696607572
-S&P members,12,ar_pool,HOOD-like analog,-1.085665133900165
-S&P members,12,ar_pool,"HOOD-like analog, placebo lines",-0.8558743602048285
+S&P members,12,ar_pool,real line,-0.2510899165911316
+S&P members,12,ar_pool,line -2 ATR,-0.0286307564092879
+S&P members,12,ar_pool,line -1 ATR,-0.12260975314258618
+S&P members,12,ar_pool,line +1 ATR,-0.13835012764208537
+S&P members,12,ar_pool,line +2 ATR,-0.01879737301306921
+S&P members,12,ar_pool,real - placebo,-0.17283464740197213
+S&P members,12,ar_pool,rising - falling (B4),0.1065576687115081
+S&P members,12,ar_pool,HOOD-like analog,-1.0851775903680032
+S&P members,12,ar_pool,"HOOD-like analog, placebo lines",-0.8548665510115007
 S&P members,12,ar_e2,real line,-0.2740897020901889
 S&P members,12,ar_e2,line -2 ATR,0.403084914436737
 S&P members,12,ar_e2,line -1 ATR,-0.014889570121323435
@@ -1420,13 +1420,13 @@ crypto,12,ar_m_lo,line +1 ATR,-0.8689338564872742
 crypto,12,ar_m_lo,line +2 ATR,-0.6450609564781189
 crypto,12,ar_m_lo,real - placebo,1.0737422704696655
 crypto,12,ar_m_lo,rising - falling (B4),-0.9921888709068298
-crypto,12,ar_pool,real line,0.41343727707862854
-crypto,12,ar_pool,line -2 ATR,1.0114872455596924
-crypto,12,ar_pool,line -1 ATR,-0.647338330745697
-crypto,12,ar_pool,line +1 ATR,-1.1589492559432983
-crypto,12,ar_pool,line +2 ATR,0.1604849100112915
-crypto,12,ar_pool,real - placebo,0.6021332740783691
-crypto,12,ar_pool,rising - falling (B4),0.17519207298755646
+crypto,12,ar_pool,real line,0.4140659272670746
+crypto,12,ar_pool,line -2 ATR,1.008255124092102
+crypto,12,ar_pool,line -1 ATR,-0.6489659547805786
+crypto,12,ar_pool,line +1 ATR,-1.1576604843139648
+crypto,12,ar_pool,line +2 ATR,0.16874274611473083
+crypto,12,ar_pool,real - placebo,0.6016340255737305
+crypto,12,ar_pool,rising - falling (B4),0.16673065721988678
 crypto,12,ar_e2,real line,-1.1900097131729126
 crypto,12,ar_e2,line -2 ATR,0.8295825719833374
 crypto,12,ar_e2,line -1 ATR,-1.4848781824111938
@@ -1473,15 +1473,15 @@ S&P members,13,ar_m_lo,real - placebo,-0.04949504347513818
 S&P members,13,ar_m_lo,rising - falling (B4),0.1154378683848792
 S&P members,13,ar_m_lo,HOOD-like analog,-1.396672830389398
 S&P members,13,ar_m_lo,"HOOD-like analog, placebo lines",0.6838319779045904
-S&P members,13,ar_pool,real line,-0.08633087174445389
-S&P members,13,ar_pool,line -2 ATR,-0.07152153836846498
-S&P members,13,ar_pool,line -1 ATR,-0.00272640463900485
-S&P members,13,ar_pool,line +1 ATR,0.06165559644740917
-S&P members,13,ar_pool,line +2 ATR,0.07267604672325917
-S&P members,13,ar_pool,real - placebo,-0.10431990526246505
-S&P members,13,ar_pool,rising - falling (B4),0.23532291618824092
-S&P members,13,ar_pool,HOOD-like analog,-1.6215194264609378
-S&P members,13,ar_pool,"HOOD-like analog, placebo lines",-0.6576716804130436
+S&P members,13,ar_pool,real line,-0.08622694863500861
+S&P members,13,ar_pool,line -2 ATR,-0.07143550221808484
+S&P members,13,ar_pool,line -1 ATR,-0.0025911160710695167
+S&P members,13,ar_pool,line +1 ATR,0.061726777758601796
+S&P members,13,ar_pool,line +2 ATR,0.07281454472873974
+S&P members,13,ar_pool,real - placebo,-0.1043238879259392
+S&P members,13,ar_pool,rising - falling (B4),0.2355342873194412
+S&P members,13,ar_pool,HOOD-like analog,-1.6235570669285584
+S&P members,13,ar_pool,"HOOD-like analog, placebo lines",-0.6570634758921969
 S&P members,13,ar_e2,real line,-0.10736697448180843
 S&P members,13,ar_e2,line -2 ATR,0.43054412530294395
 S&P members,13,ar_e2,line -1 ATR,0.28959171891070556
@@ -1532,13 +1532,13 @@ crypto,13,ar_m_lo,line +1 ATR,0.9984241724014282
 crypto,13,ar_m_lo,line +2 ATR,1.2625573873519897
 crypto,13,ar_m_lo,real - placebo,-0.832626223564148
 crypto,13,ar_m_lo,rising - falling (B4),0.5302481651306152
-crypto,13,ar_pool,real line,-0.01490971352905035
-crypto,13,ar_pool,line -2 ATR,0.6261852383613586
-crypto,13,ar_pool,line -1 ATR,0.6348899602890015
-crypto,13,ar_pool,line +1 ATR,1.7756439447402954
-crypto,13,ar_pool,line +2 ATR,1.775095820426941
-crypto,13,ar_pool,real - placebo,-1.246394157409668
-crypto,13,ar_pool,rising - falling (B4),0.1062779426574707
+crypto,13,ar_pool,real line,-0.007691109087318182
+crypto,13,ar_pool,line -2 ATR,0.6286376714706421
+crypto,13,ar_pool,line -1 ATR,0.6363305449485779
+crypto,13,ar_pool,line +1 ATR,1.7834240198135376
+crypto,13,ar_pool,line +2 ATR,1.7933586835861206
+crypto,13,ar_pool,real - placebo,-1.2469353675842285
+crypto,13,ar_pool,rising - falling (B4),0.13617901504039764
 crypto,13,ar_e2,real line,-2.0066990852355957
 crypto,13,ar_e2,line -2 ATR,0.8070684671401978
 crypto,13,ar_e2,line -1 ATR,-0.608565628528595
@@ -1585,15 +1585,15 @@ S&P members,14,ar_m_lo,real - placebo,-0.015370324855495617
 S&P members,14,ar_m_lo,rising - falling (B4),0.18966575653380063
 S&P members,14,ar_m_lo,HOOD-like analog,-0.7724089845604476
 S&P members,14,ar_m_lo,"HOOD-like analog, placebo lines",1.1006884942608226
-S&P members,14,ar_pool,real line,-0.05852633624523903
-S&P members,14,ar_pool,line -2 ATR,-0.014173315613450884
-S&P members,14,ar_pool,line -1 ATR,-0.04869704569379135
-S&P members,14,ar_pool,line +1 ATR,-0.14095871901958149
-S&P members,14,ar_pool,line +2 ATR,-0.0475151569453941
-S&P members,14,ar_pool,real - placebo,0.005871849180734954
-S&P members,14,ar_pool,rising - falling (B4),0.13273284309180097
-S&P members,14,ar_pool,HOOD-like analog,-0.25766470409242165
-S&P members,14,ar_pool,"HOOD-like analog, placebo lines",0.407956464951161
+S&P members,14,ar_pool,real line,-0.057945117605067084
+S&P members,14,ar_pool,line -2 ATR,-0.013589164880101284
+S&P members,14,ar_pool,line -1 ATR,-0.048012741758850785
+S&P members,14,ar_pool,line +1 ATR,-0.1404206676955653
+S&P members,14,ar_pool,line +2 ATR,-0.046905190805168945
+S&P members,14,ar_pool,real - placebo,0.005849503552824299
+S&P members,14,ar_pool,rising - falling (B4),0.1328033160432548
+S&P members,14,ar_pool,HOOD-like analog,-0.2572092505046179
+S&P members,14,ar_pool,"HOOD-like analog, placebo lines",0.4093596176861806
 S&P members,14,ar_e2,real line,-0.09589321322119376
 S&P members,14,ar_e2,line -2 ATR,0.48711585146134007
 S&P members,14,ar_e2,line -1 ATR,0.15837504798864496
@@ -1644,13 +1644,13 @@ crypto,14,ar_m_lo,line +1 ATR,2.2842626571655273
 crypto,14,ar_m_lo,line +2 ATR,0.7330628633499146
 crypto,14,ar_m_lo,real - placebo,1.4401352405548096
 crypto,14,ar_m_lo,rising - falling (B4),3.1211395263671875
-crypto,14,ar_pool,real line,2.794948101043701
-crypto,14,ar_pool,line -2 ATR,-1.5522063970565796
-crypto,14,ar_pool,line -1 ATR,1.511695146560669
-crypto,14,ar_pool,line +1 ATR,3.3355090618133545
-crypto,14,ar_pool,line +2 ATR,2.3998520374298096
-crypto,14,ar_pool,real - placebo,1.2236289978027344
-crypto,14,ar_pool,rising - falling (B4),-0.7768653631210327
+crypto,14,ar_pool,real line,2.9171061515808105
+crypto,14,ar_pool,line -2 ATR,-1.4256925582885742
+crypto,14,ar_pool,line -1 ATR,1.605686902999878
+crypto,14,ar_pool,line +1 ATR,3.5148277282714844
+crypto,14,ar_pool,line +2 ATR,2.576544761657715
+crypto,14,ar_pool,real - placebo,1.2003967761993408
+crypto,14,ar_pool,rising - falling (B4),-0.7776318192481995
 crypto,14,ar_e2,real line,0.7910038232803345
 crypto,14,ar_e2,line -2 ATR,-3.4158918857574463
 crypto,14,ar_e2,line -1 ATR,0.40042001008987427
@@ -1697,15 +1697,15 @@ S&P members,15,ar_m_lo,real - placebo,0.04283303872876544
 S&P members,15,ar_m_lo,rising - falling (B4),0.43721965624899334
 S&P members,15,ar_m_lo,HOOD-like analog,0.9172504755444941
 S&P members,15,ar_m_lo,"HOOD-like analog, placebo lines",0.6891217074620342
-S&P members,15,ar_pool,real line,0.08104297774699348
-S&P members,15,ar_pool,line -2 ATR,-0.10778277631194445
-S&P members,15,ar_pool,line -1 ATR,0.11327429896522748
-S&P members,15,ar_pool,line +1 ATR,0.0762397103065497
-S&P members,15,ar_pool,line +2 ATR,0.08542781692712834
-S&P members,15,ar_pool,real - placebo,0.03590038593917821
-S&P members,15,ar_pool,rising - falling (B4),0.2473589994417033
-S&P members,15,ar_pool,HOOD-like analog,-0.7633692426356775
-S&P members,15,ar_pool,"HOOD-like analog, placebo lines",-0.4479599610726778
+S&P members,15,ar_pool,real line,0.08138635942649051
+S&P members,15,ar_pool,line -2 ATR,-0.10725801074928298
+S&P members,15,ar_pool,line -1 ATR,0.11369694720976664
+S&P members,15,ar_pool,line +1 ATR,0.07649439773509184
+S&P members,15,ar_pool,line +2 ATR,0.0858475173500206
+S&P members,15,ar_pool,real - placebo,0.0358421623569849
+S&P members,15,ar_pool,rising - falling (B4),0.247666682023015
+S&P members,15,ar_pool,HOOD-like analog,-0.7637673669340194
+S&P members,15,ar_pool,"HOOD-like analog, placebo lines",-0.4474278735488554
 S&P members,15,ar_e2,real line,0.08418528962392956
 S&P members,15,ar_e2,line -2 ATR,0.2798695699104915
 S&P members,15,ar_e2,line -1 ATR,0.4045639676430651
@@ -1756,13 +1756,13 @@ crypto,15,ar_m_lo,line +1 ATR,0.24925465881824493
 crypto,15,ar_m_lo,line +2 ATR,0.95937579870224
 crypto,15,ar_m_lo,real - placebo,-1.2687487602233887
 crypto,15,ar_m_lo,rising - falling (B4),-2.3783512115478516
-crypto,15,ar_pool,real line,-0.7426825165748596
-crypto,15,ar_pool,line -2 ATR,-1.3352292776107788
-crypto,15,ar_pool,line -1 ATR,-0.8608866333961487
-crypto,15,ar_pool,line +1 ATR,0.5366184115409851
-crypto,15,ar_pool,line +2 ATR,0.8208670616149902
-crypto,15,ar_pool,real - placebo,-0.558699905872345
-crypto,15,ar_pool,rising - falling (B4),-1.0895636081695557
+crypto,15,ar_pool,real line,-0.7554262280464172
+crypto,15,ar_pool,line -2 ATR,-1.3304648399353027
+crypto,15,ar_pool,line -1 ATR,-0.86811363697052
+crypto,15,ar_pool,line +1 ATR,0.5326956510543823
+crypto,15,ar_pool,line +2 ATR,0.8057350516319275
+crypto,15,ar_pool,real - placebo,-0.5658034682273865
+crypto,15,ar_pool,rising - falling (B4),-1.098787784576416
 crypto,15,ar_e2,real line,-1.641364336013794
 crypto,15,ar_e2,line -2 ATR,-0.6263874769210815
 crypto,15,ar_e2,line -1 ATR,-0.7729633450508118

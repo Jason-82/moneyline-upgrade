@@ -412,7 +412,7 @@ def month_of(day: np.ndarray, block: int = 1) -> np.ndarray:
     return (d.astype("datetime64[M]").astype(np.int64)).astype(np.int64) // block
 
 
-def boot_mean(df: pd.DataFrame, col: str, B=2000, seed=0, block=1) -> tuple[float, float, int]:
+def boot_mean(df: pd.DataFrame, col: str, B=2000, seed=0, block=1, null=0.0) -> tuple[float, float, int]:
     """Mean of col with a month-block bootstrap (block = months per block): returns
     (mean, one-sided p of mean <= 0, n)."""
     x = df[[col]].assign(m=month_of(df.day.to_numpy(), block)).dropna()
@@ -424,10 +424,10 @@ def boot_mean(df: pd.DataFrame, col: str, B=2000, seed=0, block=1) -> tuple[floa
     pick = rng.integers(0, len(g), size=(B, len(g)))
     bm = s[pick].sum(1) / k[pick].sum(1)
     mean = s.sum() / k.sum()
-    return float(mean), float((bm <= 0).mean()), int(k.sum())
+    return float(mean), float((bm <= null).mean()), int(k.sum())
 
 
-def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=1, ci=False) -> tuple:
+def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=1, ci=False, null=0.0) -> tuple:
     """mean(a) - mean(b) with months resampled jointly; one-sided p of diff <= 0 (and the 95% CI if ci)."""
     xa = a[[col]].assign(m=month_of(a.day.to_numpy(), block)).dropna()
     xb = b[[col]].assign(m=month_of(b.day.to_numpy(), block)).dropna()
@@ -443,13 +443,13 @@ def boot_diff(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, block=
         bd = sa[pick].sum(1) / ka[pick].sum(1) - sb[pick].sum(1) / kb[pick].sum(1)
     d = sa.sum() / ka.sum() - sb.sum() / kb.sum()
     okb = np.isfinite(bd)
-    p = float((bd[okb] <= 0).mean()) if okb.any() else np.nan
+    p = float((bd[okb] <= null).mean()) if okb.any() else np.nan
     if ci:
         return float(d), p, float(np.quantile(bd[okb], .025)), float(np.quantile(bd[okb], .975))
     return float(d), p
 
 
-def boot_diff_matched(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0) -> tuple:
+def boot_diff_matched(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0, null=0.0) -> tuple:
     """mean(a) - mean(b) within the same calendar month: per-month differences over months that hold
     both, weighted by a's count, months resampled. Removes timing (a and b touching in different
     markets). Returns (diff, one-sided p of diff <= 0, 95% CI low, high)."""
@@ -463,7 +463,7 @@ def boot_diff_matched(a: pd.DataFrame, b: pd.DataFrame, col: str, B=2000, seed=0
     rng = np.random.default_rng(seed)
     pick = rng.integers(0, len(d), size=(B, len(d)))
     bd = (d[pick] * w[pick]).sum(1) / w[pick].sum(1)
-    return float((d * w).sum() / w.sum()), float((bd <= 0).mean()), float(np.quantile(bd, .025)), float(np.quantile(bd, .975))
+    return float((d * w).sum() / w.sum()), float((bd <= null).mean()), float(np.quantile(bd, .025)), float(np.quantile(bd, .975))
 
 
 def bh_fdr(p: np.ndarray, q=0.10) -> np.ndarray:
@@ -853,6 +853,41 @@ def null_run(R: int, mas=None) -> None:
                  f"ar_pool = close t to t+H minus the pool's mean over the same window (no costs, no fill).\n\n")
         fh.write(tab.to_string(index=False, float_format=lambda x: f"{x:,.3f}") + "\n")
     print((OUT / f"{tag}_summary.txt").read_text())
+    if not grid and (OUT / "events_stocks.parquet").exists():
+        null_tests()
+
+
+def null_tests() -> None:
+    """Actual statistics of the S&P member pool measured from their no-edge levels (null_summary.csv):
+    the gap and the one-sided bootstrap p of 'actual <= null level' (the null mean is treated as
+    known; its SE is in null_summary). Writes null_tests.txt / .csv. Run after the main and --null runs."""
+    nt = pd.read_csv(OUT / "null_summary.csv")
+    nt = nt[nt.pool == "S&P members"].set_index(["stat", "row"])["null_mean_%"] / 100
+    ev = pd.read_parquet(OUT / "events_stocks.parquet", columns=["ma", "line", "day", "vol60", "dd252", "falling", "rising",
+                                                                    "run"] + list(NULL_COLS))
+    e = ev[ev.ma == PRIMARY]; real = e[e.line == 0]; plac = e[e.line > 0]
+    an, an_p = analog(real), analog(plac)
+    rows = []
+
+    def add(test, col, actual, nl, p):
+        rows.append({"test": test, "baseline": col, "actual_%": actual * 100, "null_%": nl * 100,
+                     "actual_minus_null_%": (actual - nl) * 100, "p_vs_null": p})
+    for col in ("ar_m", "ar_m_lo", "ar_pool", "ar_e2", "ar_e2_lo", "x2_ex", "x2_ex_lo"):
+        nl = nt[(col, "real line")]; m, p, _ = boot_mean(real, col, null=nl); add("bounce, real 200-day", col, m, nl, p)
+        nl = nt[(col, "real - placebo")]; d, p = boot_diff(real, plac, col, null=nl); add("real - placebo", col, d, nl, p)
+        nl = nt[(col, "rising - falling (B4)")]; d, p = boot_diff(real[real.rising], real[real.falling], col, null=nl)
+        add("rising - falling (B4)", col, d, nl, p)
+        nl = nt[(col, "HOOD-like analog")]; m, p, _ = boot_mean(an, col, null=nl); add("HOOD-like analog", col, m, nl, p)
+        nl = nt[(col, "HOOD-like analog")] - nt[(col, "HOOD-like analog, placebo lines")]
+        d, p = boot_diff(an, an_p, col, null=nl); add("HOOD-like analog, real - placebo", col, d, nl, p)
+        dm, pm_, _, _ = boot_diff_matched(an, an_p, col, null=nl)
+        add("HOOD-like analog, real - placebo within the same month (null not month-matched)", col, dm, nl, pm_)
+    t = pd.DataFrame(rows); t.to_csv(OUT / "null_tests.csv", index=False)
+    with open(OUT / "null_tests.txt", "w") as fh:
+        fh.write("S&P member pool, daily 200-day SMA, 20 days: actual statistic vs its no-edge level from null_summary.csv.\n"
+                 "p_vs_null = month-block bootstrap share of draws at or below the null level (one-sided).\n\n")
+        fh.write(t.to_string(index=False, float_format=lambda x: f"{x:,.3f}") + "\n")
+    print((OUT / "null_tests.txt").read_text())
 
 
 def chart_line_check(stocks, spells, pool_s, s_end, ev_s, say) -> None:
@@ -1111,9 +1146,12 @@ if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv:
         print("python3 -m analysis_2026.ma_bounce            (writes analysis_2026/results_bounce/)\n"
               "python3 -m analysis_2026.ma_bounce --null 16  (no-edge simulation, primary average; run after the main run)\n"
-              "python3 -m analysis_2026.ma_bounce --null 8 --mas D-SMA20,W-SMA200  (no-edge levels for other averages)")
+              "python3 -m analysis_2026.ma_bounce --null 8 --mas D-SMA20,W-SMA200  (no-edge levels for other averages)\n"
+              "python3 -m analysis_2026.ma_bounce --null-tests  (actual vs no-edge level p-values; run by --null too)")
         sys.exit(0)
-    if "--null" in sys.argv:
+    if "--null-tests" in sys.argv:
+        null_tests()
+    elif "--null" in sys.argv:
         i = sys.argv.index("--null")
         reps = int(sys.argv[i + 1]) if len(sys.argv) > i + 1 and sys.argv[i + 1].isdigit() else 16
         mas = None

@@ -700,7 +700,7 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
     | | same-year (registered) | leave-out | pool (gross) |
     |---|---|---|---|
     | bounce (95% CI) | −0.09% (−0.84 to +0.53) | −0.24% (−1.00 to +0.42) | +0.07% (−0.12 to +0.24) |
-    | no-edge level | +0.22% | 0.00% | {{P_NULL}} |
+    | no-edge level | +0.22% | 0.00% | −0.02% |
     | real − placebo (95% CI) | −0.07 (−0.19 to +0.03) | −0.09 (−0.21 to +0.02) | −0.04 (−0.14 to +0.05) |
     | real − placebo, within the same month | −0.11 (−0.20 to −0.01) | −0.13 (−0.23 to −0.03) | −0.06 (−0.15 to +0.03) |
 
@@ -724,9 +724,11 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
       to +2.6.
   - **Trend.**
     - **B4:** touches of a rising 200-day beat touches of a falling one by 0.3-0.6 pts (p
-      0.08-0.17 depending on the baseline). Measured against each baseline's no-edge level,
-      the gap is {{B4_RANGE}}. That is a weak hint, not a pass. It appears with the 20-day
-      exit only (none with the X2 exit), and crypto shows nothing.
+      0.08-0.17 depending on the baseline).
+      - Measured against each baseline's no-edge level, the gap is +0.25 to +0.72 pts (p
+        0.05-0.13; `null_tests.txt`).
+      - That is a weak hint, not a pass. It appears with the 20-day exit only (none with the
+        X2 exit), and crypto shows nothing.
     - **Placebo lines:** touches of the lines above the average beat touches of the lines
       below it. Within the same month this is +0.22 pts vs the pool (p 0.003) and +0.10 vs
       the leave-out drift (p 0.13). It is post hoc and fits trend persistence, not support.
@@ -751,7 +753,7 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
   - It costs B4 0.31 pts.
   - The leave-out and pool baselines sit at about zero on the simulation.
   - Measured from its no-edge level, the stock 200-day touch is −0.3% (same-year), −0.24%
-    (leave-out) and {{P_FROM_NULL}} (pool) over 20 days.
+    (leave-out) and +0.09% (pool) over 20 days.
 - **Short vs long averages (stocks).**
   - Under the registered baseline, the 20-50-day and 10-week averages look bad (−0.5 to
     −0.7%) and the 100-200-week and 20-24-month averages look good (+0.2 to +0.7%).
@@ -761,7 +763,12 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
     - Against the pool all are between −0.00 and +0.17.
     - The market does not rebound after any of these touches: the member pool's next 20
       days are 0.04-0.25 pts below average, none significant.
-  - {{GRID_NULL}}
+  - The no-edge simulation, run on 8 of the averages (`--null 8 --mas ...`), confirms this.
+    - With no edge, the registered baseline reports −0.3 to −0.5% for the short averages and
+      +0.7 to +1.05% for the long ones. The leave-out and pool baselines stay within ±0.13.
+    - Measured from those no-edge levels, all 8 averages are negative: −0.06 to −0.38 under
+      same-year, −0.07 to −0.31 under leave-out.
+    - Against the pool they are −0.03 to +0.16.
 - **Exploratory, none survives multiple testing.**
   - Once you buy after the close is known, none of these improves the result:
     - confluence of several averages
@@ -783,7 +790,7 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
   - **Bought at the line, over 20 days:**
     - same-year +1.6% (CI −2.8 to +5.3), no-edge level +0.3
     - leave-out +2.2% (CI −2.8 to +6.4), no-edge level −0.3
-    - pool +1.0% (CI −1.8 to +3.5), no-edge level {{AN_POOL_NULL}}
+    - pool +1.0% (CI −1.8 to +3.5), no-edge level −1.2
   - **Bought after the bounce** (n 106): +1.9% (same-year, CI −3.2 to +7.3) / +2.8% (leave-out,
     CI −2.8 to +8.5). There is no pool figure for this entry. Only 6 past cases bounced as
     strongly as HOOD did, too few to measure.
@@ -798,7 +805,7 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
     22%.
     - Within the same month the gap is +0.6 / +1.1 / +0.9 pts (p 0.19-0.29).
     - For first touches it is about 0 (−0.04 / +0.04 / +0.31).
-    - After adding back the no-edge differences, about {{AN_MATCH_ADJ}} remains.
+    - After adding back the no-edge differences, about +1.3 to +1.6 pts (p 0.08-0.11; the null was not month-matched) remains.
     - A weak hint at most, from one exploratory subset among many.
   - **Individual outcomes vary widely:** the 20-day abnormal returns of these touches run from
     −18% to +19% (10th-90th percentile).
@@ -1006,7 +1013,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/style_rotation.py`, `analysis_2026/results_style/` | Style/sector mean-reversion study (R1-R3, E1-E3 pre-registered; section 5.13). Data in `data/ff/` (gitignored): linearmodels FF bundle (PyPI), French CSV mirrors on GitHub (anshhkrishna/factor-zoo-postpublication 25 portfolios 202606, Achintya1311 10 industries, ZachTheAnalyst 49 industries), Johnbrick123 / o-bensalah / qlib ETFs. `french_sections()` parses raw French CSVs. |
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
-| `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
+| `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages; `--null-tests` (seconds, also run by `--null`) writes `null_tests.txt`, each actual statistic against its no-edge level with a p-value. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |

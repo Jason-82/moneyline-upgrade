@@ -1,0 +1,46 @@
+S&P member pool, daily 200-day SMA, 20 days: actual statistic vs its no-edge level from null_summary.csv.
+p_vs_null = month-block bootstrap share of draws at or below the null level (one-sided).
+
+                                                                           test baseline  actual_%  null_%  actual_minus_null_%  p_vs_null
+                                                           bounce, real 200-day     ar_m    -0.089   0.222               -0.311      0.803
+                                                                 real - placebo     ar_m    -0.075   0.029               -0.104      0.977
+                                                          rising - falling (B4)     ar_m     0.408  -0.308                0.716      0.051
+                                                               HOOD-like analog     ar_m     1.586   0.282                1.304      0.285
+                                               HOOD-like analog, real - placebo     ar_m     2.036  -0.752                2.788      0.041
+HOOD-like analog, real - placebo within the same month (null not month-matched)     ar_m     0.580  -0.752                1.332      0.107
+                                                           bounce, real 200-day  ar_m_lo    -0.239  -0.003               -0.236      0.725
+                                                                 real - placebo  ar_m_lo    -0.095   0.001               -0.096      0.951
+                                                          rising - falling (B4)  ar_m_lo     0.602   0.083                0.519      0.126
+                                                               HOOD-like analog  ar_m_lo     2.250  -0.310                2.560      0.154
+                                               HOOD-like analog, real - placebo  ar_m_lo     3.483  -0.493                3.976      0.015
+HOOD-like analog, real - placebo within the same month (null not month-matched)  ar_m_lo     1.106  -0.493                1.599      0.083
+                                                           bounce, real 200-day  ar_pool     0.067  -0.023                0.090      0.185
+                                                                 real - placebo  ar_pool    -0.044  -0.030               -0.014      0.632
+                                                          rising - falling (B4)  ar_pool     0.300   0.052                0.248      0.121
+                                                               HOOD-like analog  ar_pool     0.971  -1.245                2.216      0.059
+                                               HOOD-like analog, real - placebo  ar_pool     1.550  -0.566                2.116      0.043
+HOOD-like analog, real - placebo within the same month (null not month-matched)  ar_pool     0.903  -0.566                1.468      0.081
+                                                           bounce, real 200-day    ar_e2    -0.194  -0.049               -0.145      0.673
+                                                                 real - placebo    ar_e2    -0.018   0.001               -0.019      0.571
+                                                          rising - falling (B4)    ar_e2     0.010  -0.444                0.454      0.179
+                                                               HOOD-like analog    ar_e2     1.884  -0.808                2.692      0.171
+                                               HOOD-like analog, real - placebo    ar_e2     2.439  -1.093                3.533      0.067
+HOOD-like analog, real - placebo within the same month (null not month-matched)    ar_e2    -0.625  -1.093                0.468      0.384
+                                                           bounce, real 200-day ar_e2_lo    -0.262  -0.122               -0.140      0.655
+                                                                 real - placebo ar_e2_lo    -0.039  -0.027               -0.012      0.553
+                                                          rising - falling (B4) ar_e2_lo     0.165  -0.024                0.189      0.366
+                                                               HOOD-like analog ar_e2_lo     2.846  -1.287                4.134      0.084
+                                               HOOD-like analog, real - placebo ar_e2_lo     4.130  -0.848                4.979      0.025
+HOOD-like analog, real - placebo within the same month (null not month-matched) ar_e2_lo     0.291  -0.848                1.139      0.255
+                                                           bounce, real 200-day    x2_ex    -0.259  -0.046               -0.213      0.943
+                                                                 real - placebo    x2_ex    -0.127   0.017               -0.144      1.000
+                                                          rising - falling (B4)    x2_ex    -0.194  -0.209                0.015      0.473
+                                                               HOOD-like analog    x2_ex     0.597   0.284                0.314      0.463
+                                               HOOD-like analog, real - placebo    x2_ex    -0.230  -0.312                0.082      0.495
+HOOD-like analog, real - placebo within the same month (null not month-matched)    x2_ex    -1.222  -0.312               -0.910      0.812
+                                                           bounce, real 200-day x2_ex_lo    -0.203   0.005               -0.207      0.928
+                                                                 real - placebo x2_ex_lo    -0.133   0.005               -0.138      0.998
+                                                          rising - falling (B4) x2_ex_lo    -0.052   0.069               -0.121      0.698
+                                                               HOOD-like analog x2_ex_lo     1.428   0.111                1.317      0.274
+                                               HOOD-like analog, real - placebo x2_ex_lo     0.696  -0.193                0.890      0.268
+HOOD-like analog, real - placebo within the same month (null not month-matched) x2_ex_lo    -0.726  -0.193               -0.533      0.679
