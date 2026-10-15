@@ -696,7 +696,7 @@ and FINDINGS has the full entry and tables.
     | | same-year (registered) | leave-out | pool (gross) |
     |---|---|---|---|
     | bounce (95% CI) | −0.09% (−0.84 to +0.53) | −0.24% (−1.00 to +0.42) | +0.06% (−0.13 to +0.23) |
-    | no-edge level | +0.22% | 0.00% | {{P_NULL}} |
+    | no-edge level | +0.22% | 0.00% | −0.02% |
     | real − placebo (95% CI) | −0.07 (−0.19 to +0.03) | −0.09 (−0.21 to +0.02) | −0.04 (−0.14 to +0.05) |
 
     - The pool figure is about 0.00% after the 0.06-point round-trip cost.
@@ -716,7 +716,7 @@ and FINDINGS has the full entry and tables.
       normal, with a CI of −6.0 to +2.5.
   - **Trend (B4):** touches of a rising 200-day beat touches of a falling one by 0.3-0.6
     pts, p 0.07-0.17 depending on the baseline.
-    - Measured against each baseline's no-edge level, the gap is {{B4_RANGE}}.
+    - Measured against each baseline's no-edge level, the gap is +0.26 to +0.72 pts (p 0.05-0.13).
     - That is a weak hint of trend persistence, not a pass. It appears with the 20-day exit
       only: with the X2 exit there is none.
     - Crypto shows nothing.
@@ -741,7 +741,7 @@ and FINDINGS has the full entry and tables.
   - It costs B4 0.31 pts.
   - The leave-out and pool baselines sit at about zero on the simulation.
   - Measured from its no-edge level, the stock 200-day touch is −0.3% (same-year), −0.24%
-    (leave-out) and {{P_FROM_NULL}} (pool) over 20 days.
+    (leave-out) and +0.08% (pool) over 20 days.
 - **Short vs long averages (stocks).**
   - Under the registered baseline, the 20-50-day and 10-week averages look bad (−0.5 to
     −0.7%) and the 100-200-week and 20-24-month averages look good (+0.2 to +0.7%).
@@ -772,7 +772,7 @@ and FINDINGS has the full entry and tables.
   - Bought at the line, over 20 days:
     - same-year +1.6% (CI −2.8 to +5.3), no-edge level +0.3
     - leave-out +2.3% (CI −2.8 to +6.5), no-edge level −0.3
-    - pool +0.9% (CI −1.8 to +3.4), no-edge level {{AN_POOL_NULL}}
+    - pool +0.9% (CI −1.8 to +3.4), no-edge level −1.2
   - Bought after the bounce (n 106): +1.9% / +2.9%. Only 6 past cases bounced as strongly
     as HOOD did, too few to measure.
   - The real 200-day beat the placebo lines by 1.6-3.5 pts (p 0.03-0.11 depending on the

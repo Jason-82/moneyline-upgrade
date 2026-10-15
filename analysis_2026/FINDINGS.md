@@ -1845,13 +1845,13 @@ which averages (daily, weekly or monthly, of what length)?
 | bounce (B1) | −0.09 (p 0.57) | −0.24 (p 0.73) | +0.06 (p 0.28) |
 | 95% CI | −0.84 to +0.53 | −1.00 to +0.42 | −0.13 to +0.23 |
 | effective n | ~740 | ~770 | ~7,200 |
-| no-edge (null) level | +0.22 | 0.00 | {{NS_POOL}} |
+| no-edge (null) level | +0.22 | 0.00 | −0.02 |
 | real − placebo (B2) | −0.07 (p 0.92) | −0.09 (p 0.95) | −0.04 (p 0.83) |
 | 95% CI of real − placebo | −0.19 to +0.03 | −0.21 to +0.02 | −0.14 to +0.05 |
 | first touches (n 23,495): bounce / real − placebo | −0.16 / −0.13 | −0.30 / −0.15 | +0.02 / −0.05 |
 | rising − falling 200-day (B4) | +0.41 (p 0.17) | +0.60 (p 0.09) | +0.31 (p 0.07) |
-| B4 null level | −0.31 | +0.08 | {{NS_B4_POOL}} |
-| B4 minus its null level | {{B4_ROW}} |
+| B4 null level | −0.31 | +0.08 | +0.05 |
+| B4 minus its null level | +0.72 (p 0.05) | +0.52 (p 0.13) | +0.26 (p 0.11) |
 
 - **Halves (1996-2011 / 2012-2026):** B1 −0.16 / −0.02; B2 −0.11 / −0.04.
 - **B3:** the X2 trade makes −0.26% per trade (p 0.97; halves −0.42 / −0.11). It trails the
@@ -1870,7 +1870,7 @@ which averages (daily, weekly or monthly, of what length)?
 |---|---|---|---|
 | bounce (C1) | −5.62 (p 0.99) | −3.67 (p 0.93) | −2.34 (p 0.98) |
 | 95% CI | −10.49 to −0.90 | −8.82 to +1.13 | −6.00 to −0.05 |
-| no-edge (null) level | −0.28 | +0.38 | {{NC_POOL}} |
+| no-edge (null) level | −0.28 | +0.38 | +0.33 |
 | real − placebo (C2) | +1.54 (p 0.16) | +1.48 (p 0.19) | +0.83 (p 0.28) |
 | rising − falling (C4) | −1.37 (p 0.64) | +1.30 (p 0.36) | −2.24 (p 0.83) |
 | without old LUNA: bounce | −4.48 (CI −8.13 to −0.37) | −2.38 (CI −6.32 to +2.20) | −1.18 (CI −2.69 to +0.10) |
@@ -1902,7 +1902,7 @@ which averages (daily, weekly or monthly, of what length)?
 | leave-out (actual) | −0.40 | −0.36 | −0.24 | −0.00 | +0.11 |
 | leave-out (null) | +0.02 | +0.05 | 0.00 | −0.02 | −0.05 |
 | pool (actual) | −0.06 | −0.00 | +0.06 | +0.17 | +0.25 |
-| pool (null) | {{NG_P}} |
+| pool (null) | 0.00 | +0.02 | −0.02 | −0.01 | +0.01 |
 
 - **The registered baseline shows "deeper is better",** but the null has the same slope, only
   steeper, so it is mechanical.
@@ -1989,8 +1989,8 @@ touches. 20 days:
 
 | entry | same-year | leave-out | pool | null (same-year / leave-out / pool) |
 |---|---|---|---|---|
-| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.5) | +0.94 (CI −1.8 to +3.4) | +0.28 / −0.31 / {{NA_POOL}} |
-| E1, placebo lines | −0.45 | −1.23 | −0.61 | +1.04 / +0.18 / {{NA_PPOOL}} |
+| E1, real 200-day | +1.59 (CI −2.8 to +5.3) | +2.25 (CI −2.8 to +6.5) | +0.94 (CI −1.8 to +3.4) | +0.28 / −0.31 / −1.25 |
+| E1, placebo lines | −0.45 | −1.23 | −0.61 | +1.04 / +0.18 / −0.68 |
 | E2, real 200-day (n 106) | +1.88 | +2.85 | | −0.81 / −1.29 |
 | E2, strong bounce (n 6) | +4.28 (CI −4.3 to +19.3) | +5.88 (CI −2.1 to +20.0) | | |
 
