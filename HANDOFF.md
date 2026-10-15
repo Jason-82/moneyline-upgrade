@@ -129,6 +129,30 @@ RED:   line = min(line[1], hi); if close > line → GREEN, line = lo (fresh band
 - The same parameters drive daily and weekly charts, for stocks and crypto alike.
   Weekly bars are Monday-labelled (`to_weekly()`).
 
+**The October 2026 update ("Bullmania™ MoneyLine") is a different indicator.**
+`moneyline_ref` and every backtest in this repo use the version above. The new one was
+examined on seven fresh daily exports (stocks and crypto; the files are private, not
+committed). What is known:
+
+- **Export columns:** it adds `Weekly Dir`, `Daily Dir`, `Confluence`, `ConfirmCount`,
+  `Direction` and `MoneyLine Level` (−1 = bull).
+- **Confirmation:** `Direction` always equals `Daily Dir`. Every flip (205 of 205) came
+  after exactly 5 consecutive closes beyond the level (input "Confirmation Candles = 5").
+  The weekly direction is shown, but it does not gate flips.
+- **The ATR plot** is Wilder RMA(14) on daily bars, exact to about 0.01%.
+- **The level is much wider than ATR10×2, and adaptive.**
+  - At a flip it starts about 4-5.5 ATR14 from hl2. Within a trend it ratchets in to
+    about 1-2.5 ATR14.
+  - The implied multiple falls when short-term ATR is high relative to long-term ATR.
+  - It sometimes lands exactly on an earlier high or low.
+- **The exact formula is not reproduced.** Dozens of candidates were tested (hl2, close,
+  body, extremes; daily and weekly ATRs; lags), and none explains more than about 80%
+  of the level.
+- **It flips about 1.5-2 times a year,** against about 7 for the old version.
+- **Consequence:** old-version results (sections 5.1-5.18) do not carry over to the new
+  indicator. Test it from exports (`Direction` column), as the original TradingView
+  backtests did, until it is replicated.
+
 ---
 
 ## 3. Data
