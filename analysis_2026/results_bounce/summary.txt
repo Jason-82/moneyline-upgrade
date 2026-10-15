@@ -138,56 +138,61 @@ SPX_LONG D-SMA200 150        -0.24        -0.14         1.07    50.67   46.00   
     TSLA D-SMA200  52         0.25         0.23         4.52    36.54   44.23   -1.54    -3.14     8.21
      VNQ D-SMA200  49        -0.39        -0.81         0.03    44.90   34.69   -0.74    -0.57     7.63
 
-Splits, daily 200-day SMA, real line (AR mid horizon):
-       pool      split             bucket     n  mean_AR_%    p  hit_%  X2_ex_%
-S&P members hold_close     broke at close 22431      -1.14 1.00  47.91    -1.34
-S&P members hold_close      held at close 19088       1.14 0.00  58.97     1.01
-S&P members   strength       (-inf, -0.5]  9343      -2.29 1.00  43.06    -2.43
-S&P members   strength        (-0.5, 0.0] 13088      -0.32 0.82  51.38    -0.55
-S&P members   strength         (0.0, 0.5] 12567       0.56 0.04  55.86     0.42
-S&P members   strength         (0.5, 1.0]  4465       1.67 0.00  62.02     1.51
-S&P members   strength         (1.0, inf]  2056       3.60 0.00  71.40     3.49
-S&P members first_test  < 60 closes above 22965      -0.21 0.71  52.29    -0.25
-S&P members first_test >= 60 closes above 18554       0.06 0.41  53.87    -0.27
-S&P members      depth       (-1.0, -0.4]   440       0.41 0.42  54.32    -0.25
-S&P members      depth       (-0.4, -0.2]  4204      -0.40 0.73  51.50    -0.42
-S&P members      depth       (-0.2, -0.1] 19549      -0.03 0.50  53.11    -0.25
-S&P members      depth       (-0.1, 0.01] 17326      -0.09 0.54  53.20    -0.22
-S&P members confluence             (0, 1]     2        NaN  NaN   0.00    -2.36
-S&P members confluence             (1, 2]    45      -1.09 0.81  46.67    -1.10
-S&P members confluence             (2, 4]   461      -0.65 0.76  49.89    -0.76
-S&P members confluence            (4, 40] 41011      -0.08 0.57  53.04    -0.25
-S&P members      trend    falling 200-day  7002      -0.43 0.79  51.56    -0.09
-S&P members      trend     rising 200-day 34507      -0.02 0.49  53.29    -0.29
-S&P members      trend            unknown    10       0.65 0.41  50.00     2.17
-     crypto hold_close     broke at close   440      -8.08 1.00  30.91    -7.88
-     crypto hold_close      held at close   611      -1.61 0.75  43.37    -0.65
-     crypto   strength       (-inf, -0.5]   150      -8.33 1.00  28.00   -10.67
-     crypto   strength        (-0.5, 0.0]   290      -7.95 1.00  32.41    -6.43
-     crypto   strength         (0.0, 0.5]   411      -5.00 0.97  38.69    -4.05
-     crypto   strength         (0.5, 1.0]   141       1.93 0.16  45.39     3.23
-     crypto   strength         (1.0, inf]    59      13.52 0.00  71.19    13.78
-     crypto first_test  < 60 closes above   621      -5.04 0.99  39.61    -6.60
-     crypto first_test >= 60 closes above   430      -3.28 0.90  36.05     0.55
-     crypto      depth       (-1.0, -0.4]   475      -5.93 0.96  33.68    -4.50
-     crypto      depth       (-0.4, -0.2]   462      -3.07 0.93  41.34    -2.81
-     crypto      depth       (-0.2, -0.1]   105      -3.17 0.91  42.86    -3.59
-     crypto      depth       (-0.1, 0.01]     9       3.39 0.16  55.56    -5.66
-     crypto confluence             (1, 2]     1        NaN  NaN 100.00   -17.40
-     crypto confluence             (2, 4]    21      -5.99 0.77  28.57    -5.90
-     crypto confluence            (4, 40]  1029      -4.31 0.98  38.29    -3.62
-     crypto      trend    falling 200-day   286      -4.55 0.94  39.16    -6.21
-     crypto      trend     rising 200-day   758      -4.17 0.96  37.99    -2.61
-     crypto      trend            unknown     7     -11.08 1.00  14.29   -15.42
+Splits, daily 200-day SMA, real line (AR mid horizon). CAUTION: 'hold_close' and 'strength' are only known at
+the touch day's close, so the E1 column (filled earlier, at the line) contains that day's own move; judge those
+rows by E2, which buys only after the close is known (crypto at the close, stocks at the next open):
+       pool      split             bucket     n  E1_AR_%  E1_p  E1_hit_%  X2_ex_%  E2_n  E2_AR_%  E2_p  E2_hit_%
+S&P members hold_close     broke at close 22431    -1.14  1.00     47.91    -1.34     0      NaN   NaN       NaN
+S&P members hold_close      held at close 19088     1.14  0.00     58.97     1.01 19088    -0.19  0.72     52.26
+S&P members   strength       (-inf, -0.5]  9343    -2.29  1.00     43.06    -2.43     0      NaN   NaN       NaN
+S&P members   strength        (-0.5, 0.0] 13088    -0.32  0.82     51.38    -0.55     0      NaN   NaN       NaN
+S&P members   strength         (0.0, 0.5] 12567     0.56  0.04     55.86     0.42 12567    -0.12  0.65     52.42
+S&P members   strength         (0.5, 1.0]  4465     1.67  0.00     62.02     1.51  4465    -0.29  0.81     52.05
+S&P members   strength         (1.0, inf]  2056     3.60  0.00     71.40     3.49  2056    -0.42  0.82     51.75
+S&P members first_test  < 60 closes above 22965    -0.21  0.71     52.29    -0.25 10549    -0.22  0.76     52.27
+S&P members first_test >= 60 closes above 18554     0.06  0.41     53.87    -0.27  8539    -0.16  0.66     52.25
+S&P members      depth       (-1.0, -0.4]   440     0.41  0.42     54.32    -0.25   179     0.76  0.39     55.87
+S&P members      depth       (-0.4, -0.2]  4204    -0.40  0.73     51.50    -0.42  1816    -0.55  0.81     51.87
+S&P members      depth       (-0.2, -0.1] 19549    -0.03  0.50     53.11    -0.25  8830    -0.07  0.56     52.72
+S&P members      depth       (-0.1, 0.01] 17326    -0.09  0.54     53.20    -0.22  8263    -0.27  0.83     51.79
+S&P members confluence             (0, 1]  1205     0.03  0.49     51.87    -0.03   434     0.92  0.10     55.30
+S&P members confluence             (1, 2]  4447    -0.17  0.68     52.24    -0.23  1784    -0.21  0.69     52.52
+S&P members confluence             (2, 3]  6336    -0.07  0.53     53.33    -0.25  2830    -0.37  0.83     51.02
+S&P members confluence            (3, 40] 29531    -0.08  0.56     53.09    -0.27 14040    -0.19  0.72     52.39
+S&P members      trend    falling 200-day  7002    -0.43  0.79     51.56    -0.09  3175    -0.20  0.64     53.29
+S&P members      trend     rising 200-day 34507    -0.02  0.49     53.29    -0.29 15905    -0.19  0.75     52.05
+S&P members      trend            unknown    10     0.65  0.41     50.00     2.17     8     0.27  0.46     62.50
+     crypto hold_close     broke at close   440    -8.08  1.00     30.91    -7.88     0      NaN   NaN       NaN
+     crypto hold_close      held at close   611    -1.61  0.75     43.37    -0.65   611    -6.41  0.99     35.68
+     crypto   strength       (-inf, -0.5]   150    -8.33  1.00     28.00   -10.67     0      NaN   NaN       NaN
+     crypto   strength        (-0.5, 0.0]   290    -7.95  1.00     32.41    -6.43     0      NaN   NaN       NaN
+     crypto   strength         (0.0, 0.5]   411    -5.00  0.97     38.69    -4.05   411    -7.31  0.99     35.04
+     crypto   strength         (0.5, 1.0]   141     1.93  0.16     45.39     3.23   141    -5.59  0.95     34.04
+     crypto   strength         (1.0, inf]    59    13.52  0.00     71.19    13.78    59    -2.05  0.70     44.07
+     crypto first_test  < 60 closes above   621    -5.04  0.99     39.61    -6.60   363    -7.03  1.00     35.26
+     crypto first_test >= 60 closes above   430    -3.28  0.90     36.05     0.55   248    -5.49  0.91     36.29
+     crypto      depth       (-1.0, -0.4]   475    -5.93  0.96     33.68    -4.50   266    -8.92  0.97     31.58
+     crypto      depth       (-0.4, -0.2]   462    -3.07  0.93     41.34    -2.81   275    -4.45  0.97     38.91
+     crypto      depth       (-0.2, -0.1]   105    -3.17  0.91     42.86    -3.59    67    -4.67  0.93     38.81
+     crypto      depth       (-0.1, 0.01]     9     3.39  0.16     55.56    -5.66     3      NaN   NaN     33.33
+     crypto confluence             (0, 1]    32    -4.27  0.73     37.50    -3.15    20    -7.63  0.88     45.00
+     crypto confluence             (1, 2]   163    -5.12  0.95     31.29    -4.99    87    -7.16  0.94     25.29
+     crypto confluence             (2, 3]   205    -6.79  0.97     35.12    -3.84   117    -9.71  0.98     35.04
+     crypto confluence            (3, 40]   651    -3.34  0.92     40.86    -3.32   387    -5.17  0.98     37.73
+     crypto      trend    falling 200-day   286    -4.55  0.94     39.16    -6.21   162    -5.75  0.98     35.19
+     crypto      trend     rising 200-day   758    -4.17  0.96     37.99    -2.61   444    -6.45  0.98     36.26
+     crypto      trend            unknown     7   -11.08  1.00     14.29   -15.42     5   -24.06  1.00      0.00
 
 HOOD-like analog (60-day vol >= 50%, >= 20% below the 52-week high, falling 200-day, >= 20 closes above):
-                     set horizon    n  mean_AR_%    p  median_%  hit_%  p10_%  p90_%
- HOOD-like, real 200-day  5 days  233       0.84 0.16      1.72  58.80 -10.11  11.32
- HOOD-like, real 200-day 20 days  233       1.63 0.24      2.66  57.94 -18.40  19.16
- HOOD-like, real 200-day 60 days  230       2.46 0.19      5.91  62.61 -26.74  24.98
-HOOD-like, placebo lines  5 days 1158      -0.10 0.54      0.77  54.40 -10.80  10.51
-HOOD-like, placebo lines 20 days 1155      -0.46 0.59      1.86  54.37 -22.50  19.08
-HOOD-like, placebo lines 60 days 1142      -0.65 0.59      3.81  56.39 -34.87  27.58
+                                                set horizon    n  mean_AR_%    p  median_%  hit_%  p10_%  p90_%
+    HOOD-like, real 200-day, limit at the line (E1)  5 days  233       0.84 0.16      1.72  58.80 -10.11  11.32
+    HOOD-like, real 200-day, limit at the line (E1) 20 days  233       1.63 0.24      2.66  57.94 -18.40  19.16
+    HOOD-like, real 200-day, limit at the line (E1) 60 days  230       2.46 0.19      5.91  62.61 -26.74  24.98
+                       HOOD-like, placebo lines, E1  5 days 1158      -0.10 0.54      0.77  54.40 -10.80  10.51
+                       HOOD-like, placebo lines, E1 20 days 1155      -0.46 0.59      1.86  54.37 -22.50  19.08
+                       HOOD-like, placebo lines, E1 60 days 1142      -0.65 0.59      3.81  56.39 -34.87  27.58
+ HOOD-like, real 200-day, buy after the bounce (E2) 20 days  106       1.88 0.24      1.08  52.83 -16.44  19.56
+HOOD-like, strong bounce (close >= 1 ATR above), E2 20 days    6       4.28 0.34     -0.20  33.33  -8.49  21.51
 
 Single-asset backtests (non-overlapping X2 trades, full equity per trade, cash earns T-bills):
    asset       ma  line      start  years  trades  trades_yr  exposure_%  cagr  maxdd  bh_cagr  bh_maxdd
