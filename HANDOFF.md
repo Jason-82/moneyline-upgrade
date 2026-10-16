@@ -139,10 +139,19 @@ committed). What is known:
 - **Confirmation:** `Direction` always equals `Daily Dir`. Every flip (205 of 205) came
   after exactly 5 consecutive closes beyond the level (input "Confirmation Candles = 5").
   The weekly direction is shown, but it does not gate flips.
-- **The ATR plot** is Wilder RMA(14) on daily bars, exact to about 0.01%.
+- **The ATR columns are not MoneyLine plots.**
+  - `LA1`, `LA2`, `ATR` and `ATR.1` belong to the **Larsson Line**, a separate paid
+    indicator that was on the same charts. Larsson-only exports carry exactly these
+    columns.
+  - So the MoneyLine's own ATR length is unknown.
+  - The Larsson Line's two lines are exactly EMA(32) and EMA(58) of the close (median
+    error 0 on three coins). Its red/green colouring is presumably their crossover,
+    which is unconfirmed.
+  - Only `Direction`, `Daily Dir`, `ConfirmCount` and `MoneyLine Level` were used to
+    evaluate the MoneyLine.
 - **The level is much wider than ATR10×2, and adaptive.**
-  - At a flip it starts about 4-5.5 ATR14 from hl2. Within a trend it ratchets in to
-    about 1-2.5 ATR14.
+  - Measured against Wilder ATR(14) as a yardstick, at a flip it starts about 4-5.5 ATR
+    from hl2. Within a trend it ratchets in to about 1-2.5 ATR.
   - The implied multiple falls when short-term ATR is high relative to long-term ATR.
   - It sometimes lands exactly on an earlier high or low.
 - **The exact formula is not reproduced.** Dozens of candidates were tested (hl2, close,
