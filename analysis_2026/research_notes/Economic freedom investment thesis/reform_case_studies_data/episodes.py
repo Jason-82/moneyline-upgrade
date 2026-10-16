@@ -77,3 +77,23 @@ print('GREK 2015-07->2026-09', fmt(r('RH_GREK','2015-07','2026-09')),'EEM',fmt(r
 print('GREK 2011-12->2015-07', fmt(r('RH_GREK','2011-12','2015-07')))
 print('TUR 2023-05->2026-09',fmt(r('RH_TUR','2023-05','2026-09')))
 print('INDA 2014-05->2024-05',fmt(r('RH_INDA','2014-05','2024-05')), 'EEM', fmt(r('RH_EEM','2014-05','2024-05')))
+
+# ---- Additional calculations cited in reform_case_studies.md ----
+print('\n--- extra ---')
+X=pd.read_csv(S+'monthly_prices.csv',index_col=0)
+RR=lambda c,a,b: X.loc[b,c]/X.loc[a,c]-1
+for lab,c,a,b in [('ARGT late-Kirchner','RH_ARGT','2012-06','2015-10'),('EEM same','RH_EEM','2012-06','2015-10'),
+                  ('ARGT Fernandez era','RH_ARGT','2019-08','2023-07'),('TUR 2023','RH_TUR','2022-12','2023-12'),
+                  ('TUR rate cuts','RH_TUR','2021-08','2021-12'),('EWZ Lula fear','TR_EWZ','2002-04','2002-09'),
+                  ('EWZ post-fear','TR_EWZ','2002-09','2003-12'),('EWW Sheinbaum','RH_EWW','2024-05','2024-06'),
+                  ('EPU Castillo','RH_EPU','2021-03','2021-07'),('EIDO 2025-26','RH_EIDO','2025-08','2026-09'),
+                  ('EWJ unhedged 2020-12..2024-06','TR_EWJ','2020-12','2024-06'),('DXJ hedged same','RH_DXJ','2020-12','2024-06'),
+                  ('EZA Nene','RH_EZA','2015-11','2015-12'),('MCHI peak-trough','RH_MCHI','2021-02','2022-10'),('KWEB peak-trough','RH_KWEB','2021-02','2022-10')]:
+    print(lab, a, b, f'{RR(c,a,b)*100:+.0f}%')
+# UK mini-budget (daily, dividend-adjusted local files)
+for t in ['EWU','EFA','SPY']:
+    d=pd.read_csv(f'/home/user/moneyline-upgrade/data/universe_pit_all/{t}.csv',parse_dates=['date']).set_index('date')['close']
+    base=d.loc['2022-09-22']
+    print('mini-budget',t,{k:f'{(d.loc[k]/base-1)*100:+.1f}%' for k in ['2022-09-27','2022-10-31','2023-09-22']})
+# Notes: RH_* = Robinhood monthly closes (split-adjusted, price-only; RH_EWJ has an unadjusted 2016 reverse split - do not use);
+# TR_* = local dividend-adjusted daily closes resampled to month-end. Data pulled 2026-10-16; last full month 2026-09.
