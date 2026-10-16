@@ -10,13 +10,15 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-15. Most recent additions:
+**Last updated:** 2026-10-16. Most recent additions:
 
+- the Larsson Line (EMA 32/58) long-history study (section 5.19), and a note on the new
+  October 2026 MoneyLine read from exports (section 2)
 - the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
 - the ten theory-driven strategies (section 5.16)
 - a pointer to the other instance's regime-switch study (section 5.17)
 
-Earlier the same day: sections 5.10-5.15, each adversarially audited. The rest was
+Earlier (2026-10-14/15): sections 5.10-5.15, each adversarially audited. The rest was
 reviewed by 41 agents on 2026-10-13.
 
 ---
@@ -563,6 +565,53 @@ FINDINGS has the full entry.
 - **Use:** don't hold C4 expecting to beat the S&P. If P3 is used at all, use it in a
   tax-advantaged account, at a modest allocation, with acceptance of whipsaws.
 
+### 5.19 The Larsson Line (EMA 32/58) on long histories — `analysis_2026/larsson.py`
+
+Pre-registered in `analysis_2026/LARSSON_PREREG.md`. Audited by three lenses plus confirm
+checks; FINDINGS has the full entry. The user's Larsson Line plots EMA(32) and EMA(58).
+The colour rule is unconfirmed:
+- LARSSON: green while EMA32 > EMA58
+- LARSSON-PRICE (sensitivity): green when the close is above both lines
+
+- **All five primary tests FAIL** (Sharpe gain, Holm across five):
+
+  | test | dSharpe | p |
+  |---|---|---|
+  | P1 S&P 1929-2026 vs buy & hold | +0.058 | 0.24 |
+  | P2 S&P point-in-time basket | +0.009 | 0.40 |
+  | P3 crypto top-20 basket | +0.154 | 0.18 |
+  | P4 vs old ML N=5 on stocks | +0.010 | 0.45 |
+  | P5 vs old ML N=1 on crypto | −0.360 | 0.95 |
+
+  The crypto tests can only detect gains of about 0.5 Sharpe.
+- **Stocks: an ordinary slow trend filter.**
+  - S&P 1929-2026:
+    - drawdown −35% vs −84% (−41% to −53% if the fill moves a day)
+    - Sharpe_xs 0.48 vs 0.42
+    - CAGR 8.7% vs 9.9%
+    - after tax (realised, audit engine) 6.6% vs 8.9%
+  - Since 1972 it adds nothing (Sharpe_xs 0.41 vs 0.44).
+  - 32/58 sits at the 31st percentile of 4,567 EMA pairs.
+- **Crypto: beaten by the old MoneyLine N=1.** Held baskets give −0.46 with the CI
+  excluding 0.
+  - The gain vs buy & hold halves with held baskets: +0.07.
+  - Per-coin medians flip with the start date.
+- **The colour rule matters on crypto only.**
+  - LARSSON-PRICE would pass P3 at study costs (+0.41, Holm 0.005).
+  - It fails with held baskets plus retail costs (Holm about 0.19) and at 0.95%.
+  - It is still below the old MoneyLine N=1. The edge is speed, like EMA15/30.
+- **The 200-day average:**
+  - best Sharpe_xs and pre-tax CAGR on the 1929-2026 index (p 0.049 unadjusted)
+  - not the best drawdown there (−51%, one 1932-33 whipsaw)
+  - not best after tax, or in 4 of 5 eras
+  - worst on crypto
+- **Tax conventions.**
+  - The pre-registered after-tax figures never tax buy & hold's dividends, and they tax
+    strategies' unrealised gains yearly.
+  - The index tables now carry a realisation-based column as well.
+- **Use:** no reason to prefer it over the old MoneyLine on crypto or over holding stocks
+  after tax. Confirm the colour rule with the user before reading the crypto result.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -594,6 +643,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 - "Indices get weekly insurance" (IWM fails).
 - "6-12% typical distance → 20-40% positions."
 - FINDINGS' dated "current state" snapshots.
+- Larsson pre-audit (2cf7aa7) readings:
+  - crypto basket buy & hold at 15.25% (daily-rebalanced; held: 20.6%)
+  - "LARSSON 18.4 vs buy & hold 10.8 after tax per coin" (depends on the start date)
+  - "buy & hold best after tax on 12/13 ETFs" (about 9/13 with coupons taxed yearly)
+  - LARSSON index drawdown "−35%" without the fill-day range
 
 ---
 
@@ -682,6 +736,9 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 
 4. Fresh **candle-mode** TradingView exports, so `moneyline_ref.py` can be checked on
    crypto.
+4b. The Larsson Line's colour rule: EMA32 vs EMA58 crossover, or price vs both lines?
+   On ETH and SOL today the two rules disagree. It decides how to read the crypto result
+   (section 5.19).
 5. The user's tax rates and risk budget; open the Agentic account; turn approvals on.
 6. Live MCP checks:
    - the crypto order route and fee
@@ -733,6 +790,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
+| `analysis_2026/larsson.py`, `analysis_2026/results_larsson/`, `analysis_2026/LARSSON_PREREG.md` | Larsson Line (EMA32/58) long-history study (section 5.19): S&P 500 1929-2026 and the pre-1928 Dow, 13 ETFs, 21 coins, point-in-time S&P and crypto top-20 baskets (daily-rebalanced and held), old MoneyLine and SMA200 comparators, realisation-based tax via `sso_gold.simulate`. `python3 -m analysis_2026.larsson` (about 30 min). Uses `data/sso_gold/`, `data/etf/`, `data/crypto_4h/`, `data/crypto_binance/` and `data/universe_pit_all/` (all gitignored). |
 | `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |

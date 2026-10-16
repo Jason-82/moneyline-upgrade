@@ -1348,3 +1348,202 @@ The fast ATR stop whipsaws a 2x position to death; only slow filters (150-300 da
   - in a taxable account at top rates the edge is about zero
   - if used at all: a tax-advantaged account, a modest allocation, a slow filter (200-day,
     perhaps a 2-3% band), and acceptance of whipsaws and multi-year underperformance
+
+---
+
+# 2026-10-16 — the Larsson Line (EMA 32/58) on long histories
+
+Pre-registered in `analysis_2026/LARSSON_PREREG.md` (7b324c0) before any run. Code in
+`analysis_2026/larsson.py`, results in `analysis_2026/results_larsson/`.
+
+The adversarial audit had three lenses (independent rebuild, look-ahead/conventions,
+statistics) plus a confirm stage:
+- It reproduced every number and found no look-ahead. Truncating the inputs at many cut
+  dates (index, Dow, ETFs, both baskets) changed no earlier signal.
+- It flagged conventions that move secondary numbers. These were fixed or added, and the
+  study rerun (8cb2284, 7205412).
+
+**The indicator.** The user's TradingView Larsson Line plots exactly EMA(32) and EMA(58) of
+the close (private exports, error 0). Its colour rule is **not confirmed**:
+- **LARSSON** (primary): green while EMA32 > EMA58.
+- **LARSSON-PRICE** (sensitivity): green once the close is above both lines, red once it
+  is below both.
+
+## Verdicts: all five primary tests FAIL
+
+Sharpe gain above T-bills, paired stationary bootstrap, Holm across five. MDE = the gain
+the test would detect 80% of the time at alpha 0.05.
+
+| | comparison | dSharpe | p | halves | Holm | MDE |
+|---|---|---|---|---|---|---|
+| P1 | S&P 500 1929-2026, LARSSON vs buy & hold | +0.058 | 0.238 | +0.20 / −0.09 | 0.95 | 0.21 |
+| P2 | S&P point-in-time basket vs EW buy & hold | +0.009 | 0.399 | +0.11 / −0.12 | 1.0 | 0.23 |
+| P3 | crypto top-20 basket vs EW buy & hold | +0.154 | 0.178 | +0.11 / +0.22 | 0.89 | 0.46 |
+| P4 | S&P basket vs old MoneyLine N=5 | +0.010 | 0.447 | +0.08 / −0.08 | 1.0 | 0.18 |
+| P5 | crypto basket vs old MoneyLine N=1 | −0.360 | 0.950 | −0.52 / −0.15 | 1.0 | 0.52 |
+
+- The verdicts survive:
+  - mean blocks 60-500 (smallest Holm p 0.66)
+  - a Newey-West t on the return difference (never positive)
+  - a HAC Sharpe test
+- The crypto tests can only detect very large gains.
+- The T-bill subtracted now matches the engine's cash leg. P2 moved from 0.391 to 0.399.
+
+## What the numbers say
+
+**S&P 500 index.** Total return; signal on the price index; fills at the next close;
+0.02% per side.
+
+| 1929-2026 | CAGR | after tax, pre-reg | after tax, realised | Sharpe_xs | maxDD | switches/yr |
+|---|---|---|---|---|---|---|
+| buy & hold | 9.93 | 9.68 | 8.95 | 0.42 | −83.6 | |
+| LARSSON | 8.74 | 5.78 | 6.57 | 0.48 | −35.5 | 3.2 |
+| LARSSON-PRICE | 8.95 | 5.92 | 6.21 | 0.52 | −41.8 | 12.5 |
+| SMA200 | 10.11 | 6.69 | 7.78 | 0.59 | −51.5 | 6.0 |
+
+- **Tax columns.**
+  - *After tax, pre-reg:* strategies pay 35% on each year's growth; buy & hold pays 20%
+    once at the end. That never taxes buy & hold's dividends.
+  - *After tax, realised* (audit), via `sso_gold.simulate`:
+    - FIFO lots; gains held over a year at 20%, otherwise 35%
+    - dividends at 20% and T-bill interest at 35% every year
+    - losses carried forward
+  - Both sides move:
+    - buy & hold 9.68 → 8.95
+    - SMA200 6.69 → 7.78
+    - LARSSON 5.78 → 6.57
+  - Buy & hold still wins after tax, by about 1.2 points over SMA200 (not 3.0) and 2.4
+    over LARSSON.
+- **Drawdown depends on the fill day.** LARSSON's −35.5% is a lucky draw. One day either
+  way gives −40.6% (fill at the signal close) or −46.0% (close t+2); close t+3 gives
+  −52.8%.
+- **Alpha on buy & hold** (monthly, NW t; not pre-registered):
+  - LARSSON +2.5%/yr (t 2.5, beta 0.41), mostly before 1972
+  - SMA200 +3.7%/yr (t 3.8), in both eras
+- **Since 1972, LARSSON adds nothing.** Sharpe_xs 0.41 vs buy & hold 0.44 (SMA200 0.54).
+- **1963-2026, with the old MoneyLine.** Each cell is CAGR / after tax realised /
+  Sharpe_xs / maxDD:
+  - buy & hold 10.81 / 9.90 / 0.44 / −55.2
+  - LARSSON 8.91 / 6.57 / 0.42 / −35.5
+  - LARSSON-PRICE 8.28 / 5.69 / 0.39 / −40.2
+  - SMA200 10.45 / 7.87 / 0.56 / −21.5
+  - old ML N=1 6.25 / 4.22 / 0.20 / −36.4
+  - old ML N=5 7.70 / 5.37 / 0.33 / −26.6
+- **Pre-1928 Dow, 1886-07..1927** (out of sample), same columns:
+  - buy & hold 7.97 / 6.69 / 0.41 / −38.7
+  - LARSSON 6.95 / 4.95 / 0.46 / −26.4
+  - LARSSON-PRICE 9.72 / 6.79 / 0.76 / −17.9
+  - SMA200 8.43 / 6.40 / 0.60 / −16.3
+- **32/58 is not special.**
+  - Among 4,567 EMA pairs on the index it sits at the 31st percentile of Sharpe_xs.
+  - The White reality check across 69 pairs vs buy & hold gives p 0.275.
+  - The neighbouring pairs in the study all land at 0.44-0.53.
+
+**ETFs (13, 2005-2026).**
+- **Sharpe_xs** medians: buy & hold 0.33, LARSSON 0.32, SMA200 0.34. LARSSON is better on
+  7/13.
+- **After tax, pre-reg** medians:
+  - buy & hold 6.15, SMA200 2.96, LARSSON 2.39
+  - old ML N=1 2.44, N=5 2.57
+- **Who wins after tax.** Buy & hold is best on 12/13 under the pre-registered rule. The
+  audit's estimate with bond and REIT distributions taxed yearly is about 9/13: TLT, IEF,
+  LQD and HYG flip.
+
+**Coins (21 survivors, 2018-2026).** Medians across coins depend on the start date.
+
+| after tax | LARSSON | buy & hold |
+|---|---|---|
+| median at a 120-bar start | 18.40 | 10.84 |
+| median at a common 200-bar start | 11.88 | 12.17 |
+
+- The median per-coin gain, LARSSON minus buy & hold after tax, is the better measure:
+  - +1.5 at 120 bars and +8.5 at 200
+  - −1.7 to +8.8 across 100-400 bars; negative for calendar starts in 2019-2020
+  - LARSSON is better on 12-13/21 coins (sign p 0.19-0.33)
+- The old MoneyLine N=1 beats LARSSON on 15/21 (median Sharpe −0.07).
+- SMA200 is the worst rule on crypto at every start date. EMA50/200 is as bad.
+
+**Baskets.** Pre-registered = daily-rebalanced equal weight. The audit added held sleeves:
+equal money on 1 January, then drifting. Each cell is CAGR / Sharpe_xs.
+
+| | S&P daily | S&P held | crypto daily | crypto held |
+|---|---|---|---|---|
+| buy & hold (EW) | 10.90 / 0.51 | 9.95 / 0.49 | 15.25 / 0.56 | 20.63 / 0.61 |
+| LARSSON | 6.51 / 0.52 | 6.46 / 0.50 | 29.60 / 0.71 | 27.49 / 0.68 |
+| LARSSON-PRICE | 5.27 / 0.41 | 5.14 / 0.39 | 44.51 / 0.96 | 41.18 / 0.90 |
+| old ML N=1 | 4.99 / 0.35 | 4.68 / 0.32 | 48.72 / 1.07 | 53.67 / 1.14 |
+| old ML N=5 | 6.62 / 0.51 | 6.43 / 0.49 | 34.59 / 0.81 | 42.83 / 0.93 |
+| SMA200 | 6.58 / 0.55 | 6.60 / 0.53 | 14.82 / 0.48 | 16.69 / 0.51 |
+
+- **Daily rebalancing.**
+  - It keeps buying collapsing coins: in the LUNA week, −43.8% vs −35.1% held.
+  - It flatters LARSSON's crypto gain. Held baskets give P3 +0.066 (p 0.31) and P5 −0.458
+    (95% CI excludes 0, in the old MoneyLine's favour).
+- **S&P basket drawdown.** LARSSON −19% vs −58% for buy & hold, at 3.5-4.4 points less
+  CAGR. In the second half (Nov 2013-2026), Sharpe_xs is LARSSON 0.48 vs buy & hold 0.60.
+- **Crypto at 0.95% per side** (daily construction), Sharpe_xs / after tax:
+  - LARSSON 0.64 / 17.3, LARSSON-PRICE 0.66 / 17.4
+  - old ML N=1 0.82 / 22.2, N=5 0.68 / 18.5
+  - SMA200 0.30 / 2.4; buy & hold 0.56 / 13.1
+
+## The colour rule matters on crypto
+
+These are secondary tests, not pre-registered, so they cannot change a verdict. With
+LARSSON-PRICE as the test rule:
+
+| test | result | outcome |
+|---|---|---|
+| P1 | +0.095, p 0.15; second half −0.14 | fail |
+| P2 | −0.107 | fail |
+| P4 | −0.107 | fail |
+| P5 | −0.108 (p 0.79): still below the old MoneyLine N=1 | fail |
+| **P3** | **+0.406, p 0.001, Holm 0.005, halves +0.44 / +0.37** | **would pass** |
+
+The P3 pass is fragile:
+
+| P3 variant | dSharpe | p | Holm-equivalent |
+|---|---|---|---|
+| held baskets | +0.290 | 0.017 | about 0.08; audit's 10-seed median Holm 0.074 |
+| retail costs 0.30/0.35% | +0.338 | 0.011 | about 0.05; 4/10 seeds fail |
+| held + retail | +0.228 | 0.039 | about 0.19 |
+| 0.95% per side | +0.099 | 0.21 | fail; second half −0.04 |
+
+- **Mechanism: speed.**
+  - LARSSON-PRICE switches about 18 times a coin-year, LARSSON about 5.
+  - An EMA15/30 crossover basket matches it (Sharpe_xs 0.96).
+  - The whole gain is lower volatility. The mean return is about the same as buy & hold.
+  - On crypto 2019-2026 Sharpe falls steadily as rules get slower.
+
+## Practical reading
+
+- **As a crossover,** the Larsson Line is an ordinary slow trend filter.
+  - On stocks: much smaller drawdowns, about the same Sharpe, lower CAGR, and clearly
+    lower after-tax return.
+  - Nothing about 32/58 is special, and the edge has faded since 1972.
+- **On crypto it trails the old MoneyLine N=1.** If the chart colours on price vs both
+  lines, it behaves like a faster filter. It did well on the crypto basket at low costs,
+  but not at Robinhood-like costs, and still not as well as the old MoneyLine.
+- **Ask the user which colour rule TradingView uses.** On ETH and SOL today the two rules
+  disagree.
+- **"A plain 200-day average beat them all" (said in chat) needs the metric named.**
+  - It holds for Sharpe_xs and pre-tax CAGR on the 1929-2026 index: best of all 59,501
+    EMA pairs the audit tried. Its edge vs buy & hold is p 0.049 unadjusted, Holm 0.094
+    with LARSSON.
+  - It does not hold for drawdown in 1929-2026: −51.5%, 7th of 9, from one 1932-33
+    whipsaw (−28.5% for 1934-2026).
+  - It does not hold after tax against buy & hold, in 4 of 5 eras, or on the Dow, where
+    LARSSON-PRICE was better.
+  - It does hold for 1963-2026 risk-adjusted return and drawdown (Sharpe_xs 0.56,
+    maxDD −21.5%).
+  - On crypto it is the worst rule.
+
+**Small items:**
+- The Dow window starts 1886-07-01, once SMA200 is warm.
+- The S&P universe filter uses future data to cut a few collapsed names. The effect is
+  under 0.002 Sharpe.
+- 24 members from 2001 have no price file, Enron and Global Crossing among them. The
+  effect is at most 0.19 CAGR points.
+- ETF and stock signals use dividend-adjusted closes, not the chart price the
+  pre-registration names. That moves single-ETF Sharpe by ±0.02-0.07 with no consistent
+  sign.
+- The daily-rebalanced buy & hold basket's own trades are uncosted: about 1%/yr on crypto.
