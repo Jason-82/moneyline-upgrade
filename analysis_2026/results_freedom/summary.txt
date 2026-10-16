@@ -1,0 +1,161 @@
+====================================================================================================
+PRE-REGISTERED TESTS (FREEDOM_PREREG.md): top third minus bottom third, USD, 12-month hold
+====================================================================================================
+id                                                        signal  first_Y  last_Y  months  avg_n  ann_mean_%  ann_vol_%  nw_t  p_one_sided  half1_%  half2_%  cut  p_holm  PASS
+S1                 change in economic freedom (Fraser EFW, 5-yr)     1997    2025     338  66.54       -1.62       8.21 -0.92         0.82    -0.82    -2.42 2011    1.00 False
+S2                        level of economic freedom (Fraser EFW)     1997    2025     338  67.18       -1.51       9.52 -0.73         0.77    -4.10     1.04 2011    1.00 False
+S3 change in tax burden score (Heritage, 5-yr; up = lower taxes)     2000    2025     302  68.03       -0.20       6.50 -0.13         0.55    -1.95     1.68 2013    1.00 False
+S4              change in manufacturing share of GDP (WDI, 5-yr)     1997    2025     338  60.76        2.00       8.28  1.12         0.13     1.46     2.52 2011    0.93 False
+S5  growth in electricity generation per person (OWID, 5-yr log)     1997    2025     338  65.98       -0.74       8.16 -0.38         0.65     2.93    -4.36 2011    1.00 False
+S6            change in economic freedom, Western countries only     1997    2025     338  20.39       -0.38       7.76 -0.26         0.60    -1.07     0.30 2011    1.00 False
+S7                    composite of S1, S3, S4, S5 (mean z-score)     1997    2025     338  67.36        1.22       7.95  0.68         0.25     0.81     1.64 2011    1.00 False
+
+Secondary (Hxb): Fama-MacBeth, country return on z(signal) with z(12m momentum) and z(48m reversal):
+id  s_coef_%/sd  mom_coef_%/sd  rev_coef_%/sd  s_nw_t  mom_nw_t  rev_nw_t  months
+S1        -0.06           0.26          -0.10   -0.95      3.11     -1.46     338
+S2        -0.07           0.28          -0.14   -0.83      3.13     -1.82     338
+S3         0.02           0.22          -0.12    0.35      2.70     -1.80     302
+S4         0.08           0.27          -0.11    1.32      2.93     -1.25     338
+S5         0.00           0.24          -0.12    0.03      2.72     -1.73     338
+S7        -0.01           0.27          -0.11   -0.14      3.11     -1.61     338
+
+====================================================================================================
+EXPLORATORY
+====================================================================================================
+                                           test  first_Y  last_Y  months  avg_n  ann_mean_%  ann_vol_%  nw_t  p_one_sided  half1_%  half2_%  cut
+                            S1 within developed     1997    2025     338  22.96        0.35       7.46  0.28         0.39     0.83    -0.13 2011
+                       S1 within emerging/other     1997    2025     338  43.58       -3.46      10.40 -1.82         0.97    -3.69    -3.23 2011
+        S1 long-only tilt (top third minus all)     1997    2025     338  66.54       -0.54       4.54 -0.57         0.72     0.38    -1.45 2011
+         S1 36-month hold (overlapping cohorts)     1997    2023     338  65.64       -0.51       7.37 -0.31         0.62    -0.60    -0.39 2011
+         S1 60-month hold (overlapping cohorts)     1997    2021     338  64.82       -0.45       7.07 -0.28         0.61    -1.27     1.00 2011
+                            S2 within developed     1997    2025     338  22.96       -0.63       9.64 -0.33         0.63    -0.85    -0.42 2011
+                       S2 within emerging/other     1997    2025     338  44.22       -2.74      12.19 -1.12         0.87    -4.39    -1.11 2011
+        S2 long-only tilt (top third minus all)     1997    2025     338  67.18       -0.70       4.66 -0.74         0.77    -1.88     0.47 2011
+         S2 36-month hold (overlapping cohorts)     1997    2023     338  66.35       -2.06       9.55 -0.97         0.83    -3.87     0.33 2011
+         S2 60-month hold (overlapping cohorts)     1997    2021     338  65.60       -2.21       9.59 -1.03         0.85    -3.58     0.22 2011
+                            S3 within developed     2000    2025     302  22.51       -2.69       5.96 -2.33         0.99    -4.98    -0.24 2013
+                       S3 within emerging/other     2000    2025     302  45.52        0.50       8.68  0.25         0.40    -1.10     2.21 2013
+        S3 long-only tilt (top third minus all)     2000    2025     302  68.03        0.36       3.96  0.42         0.34    -0.26     1.02 2013
+         S3 36-month hold (overlapping cohorts)     2000    2023     302  66.99        0.12       5.87  0.09         0.47    -0.80     1.26 2012
+         S3 60-month hold (overlapping cohorts)     2000    2021     302  66.19       -0.11       5.54 -0.08         0.53     0.00    -0.27 2011
+                            S7 within developed     1997    2025     338  22.96       -0.12       6.24 -0.11         0.54    -0.62     0.37 2011
+                       S7 within emerging/other     1997    2025     338  44.40        1.68      11.21  0.82         0.20     0.19     3.15 2011
+        S7 long-only tilt (top third minus all)     1997    2025     338  67.36        0.93       4.56  0.89         0.19     0.94     0.92 2011
+         S7 36-month hold (overlapping cohorts)     1997    2023     338  66.43        0.77       7.42  0.44         0.33    -0.25     2.10 2011
+         S7 60-month hold (overlapping cohorts)     1997    2021     338  65.58        0.55       7.31  0.31         0.38     0.53     0.57 2011
+            Heritage overall score, 5-yr change     2000    2025     302  68.03       -1.78       6.70 -1.04         0.85    -5.49     2.19 2013
+Heritage government-spending score, 5-yr change     2000    2025     302  68.03       -0.73       7.00 -0.49         0.69    -0.55    -0.93 2013
+ S1 on Fraser 2019 release (formations to 2019)     1997    2019     276  63.57       -0.47       7.72 -0.27         0.61     0.27    -1.62 2011
+ S2 on Fraser 2019 release (formations to 2019)     1997    2019     276  65.17       -1.93       8.98 -0.83         0.80    -5.12     3.03 2011
+           S1 on Fraser 2025 chain-linked panel     1997    2025     338  66.54       -1.55       7.93 -0.94         0.83    -0.99    -2.11 2011
+           S2 on Fraser 2025 chain-linked panel     1997    2025     338  67.18       -1.63       9.35 -0.79         0.79    -4.25     0.96 2011
+          S1 with Russia's JKP returns as given     1997    2025     338  66.54       -1.42       8.13 -0.80         0.79    -0.82    -2.02 2011
+          S7 with Russia's JKP returns as given     1997    2025     338  67.36        1.42       7.88  0.78         0.22     0.81     2.02 2011
+                     S1 on iShares country ETFs     1997    2025     341  24.81        1.40      10.56  0.70         0.24     6.54    -3.60 2011
+                     S2 on iShares country ETFs     1997    2025     341  24.81       -2.73      10.29 -1.60         0.95    -7.52     1.93 2011
+                     S3 on iShares country ETFs     2000    2025     305  25.59       -1.95       8.05 -1.61         0.95    -2.64    -1.22 2013
+                     S4 on iShares country ETFs     2001    2025     293  24.58        3.07       7.85  2.13         0.02     4.98     1.23 2013
+                     S5 on iShares country ETFs     1997    2025     341  24.81        0.75      11.44  0.33         0.37     4.95    -3.32 2011
+                     S7 on iShares country ETFs     1997    2025     341  24.81        1.50       9.87  0.87         0.19     4.52    -1.43 2011
+
+Current signals (as of Oct 2026: Fraser data 2023 (the 2026 report with 2024 data is not in the mirror), Heritage 2026 vs 2021, WDI/OWID 2024 vs 2019), sorted by the composite S7:
+      S2    S1    S3    S4    S5    S7   West     DM
+iso                                                 
+SAU 6.95  0.46  0.10  2.70  0.07  0.97  False  False
+DNK 8.02 -0.07 -0.30  3.41  0.15  0.72   True   True
+ARE 7.25  0.41 -0.10   NaN  0.09  0.68  False  False
+ZMB 6.24 -0.25  3.20  2.50  0.15  0.65  False  False
+GRC 7.15  0.12  0.00  0.89  0.24  0.64   True  False
+BRA 6.57 -0.02  0.50  2.05  0.14  0.60  False  False
+VNM 6.21  0.10  0.60  0.64  0.21  0.59  False  False
+OMN 6.61  0.04 -0.10  2.06  0.09  0.56  False  False
+SWE 7.56 -0.21  8.00  0.66 -0.01  0.50   True   True
+KWT 6.49 -0.08  0.00  1.62  0.10  0.42  False  False
+BHR 7.41  0.15 -0.10   NaN  0.06  0.36  False  False
+BWA 6.92  0.01 -0.30 -0.55  0.23  0.33  False  False
+PAK 5.62 -0.44  4.40  0.52  0.17  0.32  False  False
+CIV 6.08  0.02  4.00  0.61 -0.11  0.31  False  False
+MYS 7.56  0.00 -0.30  1.09  0.04  0.31  False  False
+NOR 7.35 -0.42  6.20 -0.09  0.12  0.29   True   True
+NLD 7.97  0.04  2.30  0.02 -0.02  0.26   True   True
+JOR 7.46  0.08 -0.60  0.14  0.06  0.24  False  False
+TWN 8.03  0.00 -0.30   NaN  0.07  0.20  False  False
+FIN 7.84 -0.07  0.40 -0.86  0.17  0.18   True   True
+ZAF 6.61  0.04  1.50  0.40 -0.09  0.17  False  False
+FRA 7.39 -0.12  3.90 -0.48 -0.02  0.16   True   True
+CHE 8.28 -0.08  0.50 -0.23  0.07  0.13   True   True
+THA 7.10  0.14 -0.70 -1.30  0.07  0.08  False  False
+CHN 6.13 -0.03 -3.30 -1.39  0.30  0.08  False  False
+LTU 7.57 -0.31 -8.40 -1.96  0.77  0.08  False  False
+QAT 6.71 -0.24  2.00 -0.22  0.04  0.06  False  False
+BGD 5.83 -0.10 -4.10  0.69  0.13  0.06  False  False
+CYP 7.75  0.00  0.60 -1.23  0.06  0.06  False  False
+IDN 6.96 -0.17 -2.20 -0.72  0.19 -0.01  False  False
+ISR 7.46 -0.17  0.20 -0.45  0.02 -0.05  False   True
+JAM 7.46 -0.05 -3.40  0.02  0.05 -0.05  False  False
+PRT 7.71 -0.05  0.60 -0.41 -0.10 -0.07   True   True
+MLT 7.82 -0.14 -0.10 -0.38 -0.01 -0.07  False  False
+KOR 7.53 -0.18 -1.50   NaN  0.06 -0.09  False  False
+ESP 7.73 -0.05 -3.50  0.01  0.03 -0.09   True   True
+MEX 6.91 -0.16 -0.70 -0.25 -0.01 -0.10  False  False
+ITA 7.38 -0.09 -0.60 -0.25 -0.07 -0.11   True   True
+PHL 7.05 -0.07  1.50 -2.84  0.11 -0.11  False  False
+MUS 7.73 -0.36 -2.00  0.60  0.07 -0.12  False  False
+USA 8.10 -0.20 -0.70 -0.55  0.03 -0.12   True   True
+KEN 6.68 -0.12 -2.40   NaN  0.04 -0.14  False  False
+CHL 7.65 -0.39  0.20  0.04  0.02 -0.14  False  False
+AUS 8.03 -0.27 -0.80 -0.09  0.01 -0.14   True   True
+HUN 7.07 -0.37  1.50 -1.52  0.11 -0.16  False  False
+COL 6.38 -0.23 -1.10 -0.83  0.07 -0.16  False  False
+IND 6.58  0.03 -7.50 -0.92  0.20 -0.18  False  False
+BEL 7.58 -0.02  4.10 -1.74 -0.22 -0.19   True   True
+AUT 7.57 -0.22  0.00 -1.74  0.08 -0.21   True   True
+CAN 7.92 -0.08 -1.30   NaN -0.08 -0.21   True   True
+TUN 5.88  0.00 -3.20   NaN -0.06 -0.25  False  False
+MAR 6.38 -0.17 -2.80 -0.47 -0.00 -0.25  False  False
+ISL 7.71 -0.09 -0.20 -1.22 -0.10 -0.27   True  False
+GHA 5.81 -0.63 -3.40 -0.09  0.24 -0.29  False  False
+PER 7.30 -0.40  0.00 -0.54 -0.01 -0.29  False  False
+EGY 5.08 -0.20 -1.20 -2.09  0.09 -0.30  False  False
+NGA 5.89 -0.81 -0.30  1.99 -0.08 -0.35  False  False
+POL 6.80 -0.36 -1.20 -1.26  0.04 -0.36  False  False
+DEU 7.84 -0.11  0.10 -1.56 -0.20 -0.45   True   True
+JPN 7.83 -0.18 -4.80   NaN -0.01 -0.47  False   True
+SGP 8.50 -0.25 -1.00 -3.07  0.07 -0.49  False   True
+HRV 6.94 -0.25 -9.00 -1.22  0.22 -0.51  False  False
+HKG 8.55 -0.52   NaN   NaN  0.02 -0.60  False   True
+GBR 7.88 -0.27 -3.20 -0.79 -0.17 -0.61   True   True
+NZL 8.33 -0.31 -4.50   NaN -0.04 -0.63   True   True
+ARG 4.48 -1.20 -2.60  1.55  0.07 -0.67  False  False
+CZE 7.61 -0.35 -0.30 -2.09 -0.18 -0.71  False  False
+TTO 6.65 -0.60 -3.40   NaN  0.02 -0.75  False  False
+EST 7.76 -0.23 -3.10 -1.58 -0.22 -0.75  False  False
+BGR 7.13 -0.41 -4.80   NaN -0.10 -0.87  False  False
+LKA 5.81 -0.97 -8.00  1.43 -0.01 -0.92  False  False
+TUR 5.44 -1.06 -1.20   NaN  0.10 -0.93  False  False
+ROU 7.32 -0.32 -5.20 -5.71 -0.08 -1.36  False  False
+PSE  NaN   NaN   NaN   NaN  0.10   NaN  False  False
+
+Western countries only, latest Fraser 5-yr change (S1) and Heritage tax-burden change (S3):
+       S1   S2    S3    S4    S5
+iso                             
+NOR -0.42 7.35  6.20 -0.09  0.12
+NZL -0.31 8.33 -4.50   NaN -0.04
+AUS -0.27 8.03 -0.80 -0.09  0.01
+GBR -0.27 7.88 -3.20 -0.79 -0.17
+AUT -0.22 7.57  0.00 -1.74  0.08
+SWE -0.21 7.56  8.00  0.66 -0.01
+USA -0.20 8.10 -0.70 -0.55  0.03
+FRA -0.12 7.39  3.90 -0.48 -0.02
+DEU -0.11 7.84  0.10 -1.56 -0.20
+ISL -0.09 7.71 -0.20 -1.22 -0.10
+ITA -0.09 7.38 -0.60 -0.25 -0.07
+CHE -0.08 8.28  0.50 -0.23  0.07
+CAN -0.08 7.92 -1.30   NaN -0.08
+FIN -0.07 7.84  0.40 -0.86  0.17
+DNK -0.07 8.02 -0.30  3.41  0.15
+ESP -0.05 7.73 -3.50  0.01  0.03
+PRT -0.05 7.71  0.60 -0.41 -0.10
+BEL -0.02 7.58  4.10 -1.74 -0.22
+NLD  0.04 7.97  2.30  0.02 -0.02
+GRC  0.12 7.15  0.00  0.89  0.24
