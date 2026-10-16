@@ -2171,3 +2171,164 @@ T-bills otherwise:
     is about −18% to +19% (−16% to +20% when bought after the bounce).
   - HOOD's own 15 past touches of its 200-day averaged −4.5% over 20 days (+14% over 60 days,
     mostly from April 2025, with its placebo lines doing about as well).
+
+# 2026-10-16 — investing by countries' policy direction (economic freedom, taxes, energy/industry)
+
+**The user's thesis:**
+- Some Western countries are drifting toward higher taxes, de-industrialization and less economic
+  freedom.
+- Others are moving toward lower taxes, more energy and industrial build-out, and more market freedom.
+- Overweighting the second group should pay. Flesh this out and suggest ways to invest in it.
+
+**What was done:**
+- **Research.** Six researchers covered the literature, reform case studies, Western and non-Western
+  policy trajectories (2015-2026), investable vehicles and reachable data. The notes are in
+  `analysis_2026/research_notes/Economic freedom investment thesis/`; the synthesized report is
+  `analysis_2026/reports/Economic freedom investment thesis.md`.
+- **Network limits.** The sandbox blocks fraserinstitute.org, heritage.org, the World Bank and
+  similar sites, so the research relied on search summaries. Many 2025-26 facts in the notes are
+  flagged as unverified.
+- **Pre-registered backtest.** `analysis_2026/FREEDOM_PREREG.md` (commit b100171), written before
+  any results; code in `analysis_2026/freedom_countries.py`; data from
+  `python3 -m analysis_2026.fetch_freedom_data`.
+  - The first run was committed before the audit.
+  - An audit with four lenses and skeptics confirmed 34 findings. None changed a verdict.
+
+**Data (third-party mirrors, cross-checked; see `data_sources.md`):**
+- **Fraser Economic Freedom of the World**, 2025 release (data 1970-2023), plus the 2024 and 2019
+  releases for vintage checks.
+- **Heritage Index of Economic Freedom**, 1995-2026, with components.
+- **Jensen-Kelly-Pedersen (JKP) country market returns**: all listed stocks, value-weighted, USD,
+  monthly, to 2025-12.
+- **World Bank WDI** manufacturing share of GDP.
+- **Our World in Data** electricity generation.
+- **iShares country ETF** monthly bars.
+
+**Design:**
+- **Formation:** at the end of October each year, 1997-2025.
+- **Universe:** JKP countries with ≥ 20 stocks and 12 months of history (about 50 in 1997, about 75
+  in 2025).
+  - Venezuela and Zimbabwe are excluded.
+  - Russia gets −100% in March 2022.
+- **Signals:** each uses only data public at formation.
+  - Fraser data year ≤ Y−2 (published around September of the following year).
+  - Heritage index year Y (published January-March Y).
+  - WDI and OWID data year Y−2.
+- **Portfolio:** the top third minus the bottom third, equal-weighted, held 12 months.
+- **Pass rule:** mean > 0, Newey-West t ≥ 2, positive in both halves, and survives Holm correction
+  across the seven tests.
+
+**Results: all seven pre-registered tests FAIL.**
+
+| | signal | %/yr | NW t | halves | one-sided 95% upper bound |
+|---|---|---|---|---|---|
+| S1 | 5-yr change in Fraser freedom | −1.62 | −0.92 | −0.82 / −2.42 | 1.3 |
+| S2 | Fraser level | −1.51 | −0.73 | −4.10 / +1.04 | 1.9 |
+| S3 | 5-yr change in Heritage tax burden (higher = lighter) | −0.20 | −0.13 | −1.95 / +1.68 | 2.25 |
+| S4 | 5-yr change in manufacturing % GDP | +2.00 | +1.12 | +1.46 / +2.52 | 4.9 |
+| S5 | 5-yr growth in electricity generation per person | −0.74 | −0.38 | +2.93 / −4.36 | 2.4 |
+| S6 | S1 within 22 Western countries | −0.38 | −0.26 | −1.07 / +0.30 | 2.0 |
+| S7 | composite z-score of S1, S3, S4, S5 | +1.11 | +0.63 | +1.23 / +0.99 | 4.0 |
+
+- **Fama-MacBeth regressions,** controlling for 12-month momentum and long-term reversal: no signal
+  reaches |t| 1.4. Momentum is t 2.7-3.1 in every regression.
+- **Power:** 80% power only for premia of about 4.4-5.2%/yr at 5% one-sided, and about 5-7% at the
+  Holm hurdle. Freedom, tax and electricity premia above 1.3-2.4%/yr are ruled out at 95%. Smaller
+  effects are not.
+- **Cohort dependence.** The 1997 cohort, held through the Asian and Russian crises, was in effect
+  long emerging-market reformers and short developed markets. It drives S1, S2, S4 and S7. Without
+  it:
+  - S1 is −0.4 (no edge);
+  - S2 is −3.1 (t −1.8);
+  - S4 is +3.3;
+  - S7 is +2.4.
+  - No sign flips when any single cohort is dropped.
+- **Audit corrections:**
+  - World Bank aggregate rows (WLD, HIC, EUU and others) had entered the S7 z-scores. The fix moves
+    S7 from +1.22 to +1.11.
+  - Unadjusted month-end closes in the ETF bars were repaired.
+  - Overlapping-hold labels were corrected.
+  - The reversal control was relabelled: months t−60 to t−13, which spans the same space as the
+    registered 60-month return.
+
+**Exploratory (40+ rows; none changes a verdict):**
+
+| variant | S1 | S4 | S7 |
+|---|---|---|---|
+| region-neutral, within DM and EM separately | −1.56 | +1.52 | +0.92 |
+| MSCI ACWI countries only | +0.28 | +1.13 | +0.15 |
+| markets with ≥ 50 stocks | −1.25 | +1.45 | −0.49 |
+| long-only tilt | −0.54 | +1.04 | +0.76 |
+| 36-month hold | −0.51 | +1.88 | +0.72 |
+| Fraser chain-linked panel | −1.55 | | +0.73 |
+| data repairs + multiple-rate regimes dropped | −1.47 | +2.14 | +0.87 |
+
+- The Western-only test on the chain-linked panel (S6) is +0.96 (t 0.6).
+- **S4 is the only signal positive in nearly every variant,** but the effect lives in small and
+  frontier markets.
+  - A 1-year WDI lag gives +3.11 (t 1.92).
+  - iShares ETFs over 2001-2025 give +3.07 (t 2.13, Holm p 0.10 across six ETF tests). On the same
+    country-years JKP gives the same number, so this is not an independent confirmation.
+  - The WDI data are today's revised vintage.
+- **S3 within developed markets is −2.69 (t −2.33):** countries whose measured tax burden lightened
+  did worse. This is fragile (2000-2011) and one of 40+ rows. Read it as no support for the tax leg,
+  not as evidence that tax cuts hurt.
+
+**Positive control (post hoc).** Sort on the 1-year Fraser change in data year d. The calendar-year
+long-short return in the years after d:
+
+| return year | %/yr | t |
+|---|---|---|
+| d (same year) | +3.65 | 2.68 |
+| d+1 (still before publication) | +4.82 | 2.85 |
+| d+2 (publication year) | +0.68 | 0.38 |
+| d+3 | −2.15 | −1.47 |
+
+- The literature's freedom-change effect is real in these data, but it is earned before an investor
+  could see the index.
+- Heritage tax-burden changes show no relation at any timing.
+- Manufacturing changes: +5.42 (t 3.26) in d+1, and +3.38 (t 1.82) in d+2.
+
+**The premise in the data:**
+- **The West lost less Fraser freedom than the rest of the world.** 2018→2023: West −0.13, rest of
+  the world −0.18, JKP universe −0.19.
+  - The West's entire decline is in the COVID data year: −0.25 in 2019→20, then +0.11 in 2020→23.
+  - The rest of the world was −0.16 in 2019→20, then −0.05 in 2020→23.
+- **Since 2020:**
+  - Greece +0.37, Netherlands +0.28, Luxembourg +0.26 and Spain +0.25 improved most.
+  - Norway (−0.25), Sweden, Australia, New Zealand and Iceland kept falling.
+- **The West's measured deterioration is fiscal:**
+  - government consumption and top marginal rates (Fraser 1A, 1D);
+  - Heritage government spending: −4.5 vs 0.0 for non-West countries, 2021→26.
+- **It is also an energy deterioration.** On electricity build-out, 11 Western countries are in the
+  bottom third today and 4 in the top.
+- **Not everything fits the premise:**
+  - Heritage tax burden improved: +0.5 vs −0.1.
+  - On the Fraser level, 14 Western countries are in the top third and none in the bottom.
+- **The global S1 sort shorts the West, but the West-only tests are flat.** It put 271 of 591 Western
+  country-years in the short leg and 54 in the long leg; the USA was in the short leg in 20 of 29
+  years. Yet S6 and S1 within developed markets are flat.
+- **Current ranking** (`current_ranking.csv`): descriptive only, because S7 failed.
+  - Top: Saudi Arabia, UAE, Denmark, Greece, Zambia, Vietnam, Brazil, Oman, Sweden, Kuwait.
+  - Bottom: Romania, Sri Lanka, Turkey, Bulgaria, Trinidad, Estonia, Argentina, Czechia, New
+    Zealand, UK, Hong Kong.
+  - The data end in 2023/24, before Argentina's reforms and the 2025-26 events.
+
+**Limits:**
+- Gradual published policy drift only. Avoiding tail events (capital controls, expropriation,
+  sanctions) cannot be tested: Venezuela and Zimbabwe are excluded, and Russia 2022 is the only
+  collapse in the sample.
+- Results are gross, pre-tax, equal-weighted long-short returns on all-listed-stock indices. The
+  investable version, a long-only ETF tilt, was small and insignificant.
+- Third-party data mirrors, and revised (not point-in-time) WDI and Fraser vintages.
+
+**Practical reading:**
+- Policy direction matters, but it is priced while it happens.
+- A rule that buys countries after the index shows improvement earns nothing.
+- What remains usable:
+  - a discretionary forecast of reforms before they are visible;
+  - country momentum, the one robust predictor here;
+  - valuation, untested here;
+  - avoiding markets heading toward capital controls or expropriation.
+- The report lays out vehicles, taxes and sizing for anyone who wants a modest, rules-based tilt
+  anyway.

@@ -10,14 +10,15 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-15. Most recent additions:
+**Last updated:** 2026-10-16. Most recent additions:
 
+- investing by countries' policy direction: economic freedom, taxes, energy/industry (section 5.20)
 - buying bounces at moving averages ("key levels", the user's HOOD 200-day example; section 5.19)
 - the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
 - the ten theory-driven strategies (section 5.16)
 - the regime-switch study (section 5.17)
 
-Sections 5.17 and 5.19 (with `regime_switch.py`, `ma_bounce.py` and their results) were
+Sections 5.17, 5.19 and 5.20 (with `regime_switch.py`, `ma_bounce.py`, `freedom_countries.py` and their results) were
 written on `claude/youthful-goldberg-31vs8h`. That branch already contains the working
 branch, so merging it is a fast-forward. Until that merge, the working branch does not have
 them.
@@ -64,6 +65,9 @@ reviewed by 41 agents on 2026-10-13.
      trades and on fill timing.
    - **Buying pullbacks to moving averages** (200-day and 33 others, stocks and crypto)
      has no edge, and no average acts as support (section 5.19).
+   - **Choosing countries by published policy direction** (economic freedom, tax burden,
+     manufacturing, electricity) has no edge after publication; markets price reforms while
+     they happen (section 5.20).
 5. **Market data in this cloud environment:**
    - **Blocked (403):** Yahoo, Alpha Vantage, Binance, Kraken, Coinbase, CoinGecko and
      robinhood.com.
@@ -180,6 +184,7 @@ committed). What is known:
 | `data/universe/members.csv` (gitignored, rebuild) | point-in-time S&P 500 membership spells | `screener.data.sp500_members(out)`, from fja05680/sp500 via raw.githubusercontent.com |
 | `data/macro/` (gitignored, rebuild) | S&P 500 daily OHLC 1950-2018 (real high/low from 1962), daily S&P total return and T-bill 1885-2025, UNRATE/VIX/T10Y2Y/PAYEMS | github.com/vijinho/sp500 (`csv/sp500.csv` → `gspc_1950_2018.csv`), github.com/SteelCerberus/us-market-data (`data/us_market_data.csv`), github.com/cyby2000/fred-relay (`data/*.csv`, a daily FRED mirror; FRED itself is blocked here). Built by `python3 -m analysis_2026.fetch_regime_data`. |
 | `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the `data/universe_pit_all/` row; built by `fetch_regime_data` |
+| `data/freedom/` (gitignored) | Fraser EFW 2025/2024/2019 releases, Heritage index 1995-2026, JKP country market returns (USD, 1926/1986-2025), WDI extract, OWID energy, iShares country ETF monthly bars | Third-party GitHub/S3 mirrors (provenance and cross-checks in `analysis_2026/research_notes/Economic freedom investment thesis/data_sources.md`). `python3 -m analysis_2026.fetch_freedom_data` rebuilds it (needs `pyreadr`). |
 | `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). `python3 -m analysis_2026.fetch_regime_data` rebuilds this folder, `data/macro/`, `data/raw_pit/` and `data/universe_pit_all/` (`--skip-pit` keeps the last two). |
 | `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
@@ -851,6 +856,87 @@ AUDIT CORRECTIONS lists every change; FINDINGS has the full entry and tables.
 - **Use:** don't treat a touch of any tested average (daily, weekly or monthly) as a buy
   signal or as support.
 
+### 5.20 Investing by countries' policy direction (freedom, taxes, energy/industry) — `analysis_2026/freedom_countries.py`
+
+**The user's thesis (2026-10-16).** Some Western countries are drifting toward higher taxes,
+de-industrialization and less economic freedom. Others are moving toward lower taxes, energy and
+industrial build-out, and more market freedom. Overweighting the second group should pay.
+
+**What was done.**
+- Six researchers covered the literature, reform case studies, Western and non-Western trajectories,
+  investable vehicles and data. Their notes are in `analysis_2026/research_notes/Economic freedom
+  investment thesis/`.
+- The synthesized report is `analysis_2026/reports/Economic freedom investment thesis.md`.
+- A backtest was pre-registered in `analysis_2026/FREEDOM_PREREG.md` (commit b100171), before any
+  results. The audit confirmed 34 findings and none changed a verdict. FINDINGS has the full entry.
+
+**Test design.**
+- Country stock returns in USD: Jensen-Kelly-Pedersen all-listed-stock indices, about 50-75 countries,
+  1997-2025.
+- Signals use only data public at the time: Fraser and Heritage are lagged to their publication
+  dates, WDI and OWID by 2 years.
+- Portfolio: long the top third, short the bottom third, rebalanced each October.
+
+**All seven pre-registered tests fail:**
+
+| signal | %/yr | t |
+|---|---|---|
+| change in Fraser economic freedom | −1.6 | −0.9 |
+| freedom level | −1.5 | |
+| Heritage tax-burden change ("lower taxes") | −0.2 | |
+| manufacturing-share change | +2.0 | 1.1 |
+| electricity build-out | −0.7 | |
+| Western-only freedom change | −0.4 | |
+| composite | +1.1 | 0.6 |
+
+- **Not just a statistical tie.** A freedom, tax or electricity premium above about 1.3-2.4%/yr is
+  ruled out. The design could only detect premia of about 4-6%/yr, so smaller effects remain open.
+- **Momentum is the only robust country predictor:** the prior 12-month return, t about 3 in
+  Fama-MacBeth regressions.
+- **One cohort dominates.** The October 1997 cohort (the Asian and Russian crises) drives the sign of
+  most signals. Without it, the freedom change is about 0 and the freedom level −3.1%/yr.
+
+**Why it fails: priced before publication.** Countries whose freedom improves do outperform, but only
+while the change happens: +3.7%/yr in the same year (t 2.7) and +4.8% the next year (t 2.9). Both
+come before Fraser publishes, about 21 months after the year ends. After publication the edge is
+gone: +0.7 (t 0.4), then −2.2.
+
+**The only hint is manufacturing.** A rising manufacturing share is positive in most variants: +3.1%
+with a 1-year lag (t 1.9), and +3.1% on iShares ETFs 2001-2025 (t 2.1, Holm p 0.10). But it is
+fragile:
+- It vanishes in ACWI-only and large-market universes and under value weights.
+- It rests on revised World Bank data.
+- It partly tracks shifts in sector mix rather than policy.
+
+**The premise, tested with data:**
+- **Fraser freedom fell in the West in 2018-23, but less than elsewhere:** −0.13 vs −0.18 for the
+  rest of the world.
+  - The West's whole drop is the COVID data year (−0.25 in 2019-20, then +0.11 in 2020-23). The rest
+    of the world kept falling.
+- **Where the West does lag:**
+  - government spending and top tax rates;
+  - electricity build-out: 11 Western countries in the bottom third, 4 in the top;
+  - manufacturing share.
+- **Where it does not:**
+  - Heritage tax-burden scores improved (+0.5 vs −0.1, 2021-26);
+  - freedom levels remain top-tier: 14 Western countries in the top third, none in the bottom.
+- **Western-only tests show nothing.** The global sort put the West in the short leg 46% of the time
+  (USA 20 of 29 years), yet within the West (−0.4%/yr) and within developed markets (+0.35%) the
+  tests are flat.
+
+**Use.**
+- Don't run a country rotation on published freedom, tax or energy scores.
+- Policy direction matters, but markets price it while it happens. Gains go to investors who
+  anticipate reform credibly, and that is a discretionary forecast, not a rule this repo can test.
+- What the evidence does support:
+  - country momentum;
+  - valuation awareness (untested here: no CAPE data);
+  - avoiding the tails (capital controls, expropriation, sanctions — Russia 2022), which this test
+    cannot measure.
+- The report lists vehicles and frictions: US-listed ETFs only (to avoid PFICs), the foreign tax
+  credit, and qualified-dividend rates that vary by fund.
+- `current_ranking.csv` is descriptive only. Its data end in 2023/24.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -988,8 +1074,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 - Market-data hosts and robinhood.com are blocked here (403); don't retry. WebSearch
   works.
 - Other agents work in parallel on separate branches:
-  - `claude/youthful-goldberg-31vs8h`: the regime-switch study (section 5.17) and the
-    moving-average bounce study (section 5.19). It contains the working branch, so merging it
+  - `claude/youthful-goldberg-31vs8h`: the regime-switch study (section 5.17), the
+    moving-average bounce study (section 5.19) and the country policy-direction study (section 5.20). It contains the working branch, so merging it
     is a fast-forward.
   - `codex/*`: crypto regime, crypto trend comparison, stock shadow trading, and `codex/theory-lab`
     (five strategies C1-C5, `THEORY_LAB_RESULTS.md`; its C4 is examined in section 5.18).
@@ -1024,6 +1110,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
 | `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages; `--null-tests` (seconds, also run by `--null`) writes `null_tests.txt`, each actual statistic against its no-edge level with a p-value. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
+| `analysis_2026/freedom_countries.py`, `analysis_2026/results_freedom/`, `analysis_2026/FREEDOM_PREREG.md` | Country policy direction vs USD stock returns: S1-S7 pre-registered (Fraser freedom change/level, Heritage tax burden, manufacturing share, electricity build-out, Western-only, composite; section 5.20). `python3 -m analysis_2026.freedom_countries` (about 1.5 min) writes `summary.txt` and CSVs. Data: `python3 -m analysis_2026.fetch_freedom_data` (seconds; writes `data/freedom/`, gitignored). Research notes and the synthesized report are in `analysis_2026/research_notes/Economic freedom investment thesis/` and `analysis_2026/reports/`. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
