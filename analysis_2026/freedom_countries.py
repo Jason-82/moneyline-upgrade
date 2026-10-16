@@ -237,14 +237,19 @@ def long_short(rets, nst, sigs: dict, name: str, H: int = 12, universe=None, min
         if len(m) == 0:
             continue
         R = rets.loc[m]
+        allm = R[list(x.index)].mean(axis=1)
         cohorts.append(pd.DataFrame({"Y": Y, "ls": R[top].mean(axis=1) - R[bot].mean(axis=1),
-                                     "tilt": R[top].mean(axis=1) - R[list(x.index)].mean(axis=1), "n": len(x)}, index=m))
+                                     "tilt": R[top].mean(axis=1) - allm,
+                                     "excl": R[[c for c in x.index if c not in bot]].mean(axis=1) - allm,
+                                     "vol_top": R[top].std().mean(), "vol_bot": R[bot].std().mean(),
+                                     "n": len(x)}, index=m))
     if not cohorts:
-        return pd.DataFrame(columns=["ls", "tilt", "n", "Y", "Ymin", "Ymax"])
+        return pd.DataFrame(columns=["ls", "tilt", "excl", "n", "Y", "Ymin", "Ymax"])
     c = pd.concat(cohorts)
     g = c.groupby(level=0)
-    return pd.DataFrame({"ls": g.ls.mean(), "tilt": g.tilt.mean(), "n": g.n.mean(), "Y": g.Y.max(),
-                         "Ymin": g.Y.min(), "Ymax": g.Y.max()})
+    return pd.DataFrame({"ls": g.ls.mean(), "tilt": g.tilt.mean(), "excl": g.excl.mean(), "vol_top": g.vol_top.mean(),
+                         "vol_bot": g.vol_bot.mean(), "n": g.n.mean(), "Y": g.Y.max(), "Ymin": g.Y.min(),
+                         "Ymax": g.Y.max()})
 
 
 def nw_t(x: np.ndarray, lags: int = 12) -> float:
@@ -370,6 +375,28 @@ def timing_ladder(rets: pd.DataFrame, nst: pd.DataFrame, panel: pd.DataFrame, co
 
 # ============================================================================ main
 
+def momentum_monthly(rets: pd.DataFrame, nst: pd.DataFrame, hold: int) -> pd.DataFrame:
+    """Country momentum formed every month (prior 12-month return, months t-12..t-1, >= 20 stocks), top
+    minus bottom third, held `hold` months with overlapping cohorts averaged."""
+    with np.errstate(divide="ignore"):
+        mom = np.log1p(rets).rolling(12).sum()
+    dates = rets.index[(rets.index >= "1996-10-31") & (rets.index < rets.index[-1])]
+    legs = []
+    for i, t in enumerate(dates):
+        x = mom.loc[t][(nst.loc[t] >= 20)].dropna()
+        x = x[np.isfinite(x)]
+        if len(x) < 15:
+            continue
+        k = len(x) // 3; rk = x.rank(method="first")
+        top = rk[rk > len(x) - k].index; bot = rk[rk <= k].index
+        m = rets.index[rets.index > t][:hold]
+        R = rets.loc[m]
+        legs.append(pd.DataFrame({"ls": R[top].mean(axis=1) - R[bot].mean(axis=1), "Y": t.year}, index=m))
+    c = pd.concat(legs); g = c.groupby(level=0)
+    return pd.DataFrame({"ls": g.ls.mean(), "tilt": np.nan, "n": np.nan, "Y": g.Y.max(), "Ymin": g.Y.min(),
+                         "Ymax": g.Y.max()})
+
+
 def region_neutral(rets, nst, sigs, name) -> pd.DataFrame:
     """Average of the within-developed and within-emerging long-shorts (removes the EM-vs-DM bet)."""
     em = [c for c in rets.columns if c not in DM]
@@ -444,6 +471,16 @@ def main():
         add(f"{k} long-only tilt (top third minus all)", long_short(rets, nst, sigs, k), "tilt")
         for H in (36, 60):
             add(f"{k} {H}-month hold (overlapping cohorts)", long_short(rets, nst, sigs, k, H=H))
+    for k in ("S1", "S2", "S3", "S7"):
+        add(f"{k} exclusion screen (all but the bottom third, minus all)", long_short(rets, nst, sigs, k), "excl")
+    for Y in years:                                     # prior 12-month return at the October formation
+        t0 = pd.Timestamp(f"{Y}-10-31")
+        with np.errstate(divide="ignore"):
+            sigs[Y]["MOM"] = np.expm1(np.log1p(rets.loc[:t0].tail(12)).sum(min_count=12)).reindex(sigs[Y].index)
+    add("12-month momentum, formed each October, held 12 months", long_short(rets, nst, sigs, "MOM"))
+    add("12-month momentum, October formation, long-only tilt", long_short(rets, nst, sigs, "MOM"), "tilt")
+    for H in (1, 3, 6, 12):
+        add(f"12-month momentum formed monthly, held {H} month(s)", momentum_monthly(rets, nst, H))
     big = nst.where(nst >= 50)
     for k in ("S1", "S4", "S7"):
         add(f"{k} markets with >= 50 stocks", long_short(rets, big, sigs, k))
@@ -494,8 +531,13 @@ def main():
             long_short(rr, nr, sigs, k, universe=WEST if k == "S6" else None, min_n=12 if k == "S6" else 15))
     exd = pd.DataFrame(ex)
     exd.to_csv(OUT / "exploratory.csv", index=False)
+    vt = pd.DataFrame([{"signal": k, "top_third_vol_%": lss[k].vol_top.mean() * np.sqrt(12) * 100,
+                        "bottom_third_vol_%": lss[k].vol_bot.mean() * np.sqrt(12) * 100} for k in ("S1", "S2", "S3", "S7")])
+    vt.to_csv(OUT / "volatility_by_third.csv", index=False)
     say(exd[["test", "first_Y", "last_Y", "months", "avg_n", "ann_mean_%", "nw_t", "half1_%", "half2_%"]].to_string(
         index=False, float_format=fmt))
+    say("\nAverage single-country volatility over the holding year, top vs bottom third (annualized, %):")
+    say(vt.to_string(index=False, float_format=fmt))
 
     er = etf_returns()
     en = pd.DataFrame(25, index=er.index, columns=er.columns)    # ETF universe: any listed ETF counts
