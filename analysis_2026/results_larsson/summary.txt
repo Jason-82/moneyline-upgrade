@@ -1,118 +1,259 @@
 S&P 500 INDEX 1929-01..2026-09 (total return; price-index signal; next-close fills; 0.02%/side)
-       signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs  switches/yr  exposure_%
-   BUY & HOLD    9.93    0.60   -83.65  97.43        9.68       0.42          NaN         NaN
-      LARSSON    8.74    0.76   -35.46  97.43        5.78       0.48         3.21       65.94
-LARSSON-PRICE    8.95    0.81   -41.75  97.43        5.92       0.52        12.53       63.22
-       SMA200   10.11    0.86   -51.49  97.43        6.69       0.59         5.90       67.89
-     EMA20/50    9.17    0.81   -43.14  97.43        6.07       0.52         4.30       64.64
-     EMA26/52    8.95    0.79   -36.79  97.43        5.92       0.50         3.78       65.09
-     EMA40/80    8.39    0.71   -45.11  97.43        5.56       0.44         2.30       67.37
-    EMA50/100    9.19    0.76   -56.17  97.43        6.09       0.49         1.59       67.96
-    EMA50/200    9.74    0.79   -44.10  97.43        6.45       0.53         1.04       70.07
+  CAGR_tax_% = pre-registered (strategies 35% on each year's growth; buy & hold 20% once at the end, so its dividends
+  are never taxed yearly). CAGR_tax_real_% = audit: FIFO lots, >1y gains 20% else 35%, dividends 20% and T-bill
+  interest 35% yearly, losses carried, sold at the end. alpha/beta: monthly regression on buy & hold, NW(12) t.
+       signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs  CAGR_tax_real_%  switches/yr  exposure_%  alpha_%/yr  alpha_t  beta
+   BUY & HOLD    9.93    0.60   -83.65  97.43        9.68       0.42             8.95          NaN         NaN         NaN      NaN   NaN
+      LARSSON    8.74    0.76   -35.46  97.43        5.78       0.48             6.57         3.20       65.94        2.46     2.53  0.41
+LARSSON-PRICE    8.95    0.81   -41.75  97.43        5.92       0.52             6.21        12.54       63.22        2.37     2.43  0.45
+       SMA200   10.11    0.86   -51.49  97.43        6.69       0.59             7.78         5.97       67.89        3.74     3.77  0.41
+     EMA20/50    9.17    0.81   -43.14  97.43        6.07       0.52             6.75         4.33       64.64        2.72     2.71  0.43
+     EMA26/52    8.95    0.79   -36.79  97.43        5.92       0.50             6.64         3.80       65.09        2.56     2.65  0.42
+     EMA40/80    8.39    0.71   -45.11  97.43        5.56       0.44             6.51         2.32       67.37        2.08     2.00  0.43
+    EMA50/100    9.19    0.76   -56.17  97.43        6.09       0.49             7.26         1.60       67.96        2.90     2.68  0.41
+    EMA50/200    9.74    0.79   -44.10  97.43        6.45       0.53             7.84         1.05       70.07        3.33     3.09  0.43
 
-S&P 500 BY ERA
-         era  BUY & HOLD CAGR  BUY & HOLD Sharpe  LARSSON CAGR  LARSSON Sharpe  LARSSON-PRICE CAGR  LARSSON-PRICE Sharpe  SMA200 CAGR  SMA200 Sharpe
-   1929-1949             3.81               0.25          6.35            0.43                8.43                  0.55         6.39           0.42
-   1950-1971            13.01               0.89         10.77            0.94               12.19                  1.18        12.91           1.17
-   1972-1989            11.73               0.29          9.69            0.18               12.35                  0.42        13.49           0.51
-   1990-2007            10.37               0.43          6.47            0.24                4.21                  0.06         8.64           0.41
-2008-2026-09            11.24               0.57         10.39            0.78                7.24                  0.56         9.31           0.71
-   1929-1971             8.42               0.40          8.59            0.57               10.34                  0.71         9.69           0.64
-1972-2026-09            11.11               0.44          8.86            0.41                7.88                  0.35        10.44           0.54
+S&P 500 BY ERA (Sharpe above T-bills)
+         era  BUY & HOLD CAGR  BUY & HOLD Sharpe_xs  LARSSON CAGR  LARSSON Sharpe_xs  LARSSON-PRICE CAGR  LARSSON-PRICE Sharpe_xs  SMA200 CAGR  SMA200 Sharpe_xs
+   1929-1949             3.81                  0.25          6.35               0.43                8.43                     0.55         6.39              0.42
+   1950-1971            13.01                  0.89         10.77               0.94               12.19                     1.18        12.91              1.17
+   1972-1989            11.73                  0.29          9.69               0.18               12.35                     0.42        13.49              0.51
+   1990-2007            10.37                  0.43          6.47               0.24                4.21                     0.06         8.64              0.41
+2008-2026-09            11.24                  0.57         10.39               0.78                7.24                     0.56         9.31              0.71
+   1929-1971             8.42                  0.40          8.59               0.57               10.34                     0.71         9.69              0.64
+1972-2026-09            11.11                  0.44          8.86               0.41                7.88                     0.35        10.44              0.54
+
+S&P 500 1929-2026 BY FILL DAY (signal at close t)
+       signal                              fill  CAGR_%  Sharpe_xs  maxDD_%
+      LARSSON close t (MOC at the signal close)    8.76       0.49   -40.58
+      LARSSON                close t+1 (as run)    8.74       0.48   -35.46
+      LARSSON                         close t+2    8.24       0.44   -46.02
+      LARSSON                         close t+3    8.18       0.43   -52.82
+LARSSON-PRICE close t (MOC at the signal close)   10.04       0.61   -46.60
+LARSSON-PRICE                close t+1 (as run)    8.95       0.52   -41.75
+LARSSON-PRICE                         close t+2    8.66       0.49   -43.59
+LARSSON-PRICE                         close t+3    8.04       0.44   -47.61
+       SMA200 close t (MOC at the signal close)   10.27       0.60   -47.51
+       SMA200                close t+1 (as run)   10.11       0.59   -51.49
+       SMA200                         close t+2    9.77       0.55   -50.37
+       SMA200                         close t+3    9.57       0.53   -52.72
 
 S&P 500 1963-2026 incl. the old MoneyLine (index highs/lows from 1962)
-    signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs
-BUY & HOLD   10.81    0.70   -55.19  63.66       10.43       0.44
-   LARSSON    8.91    0.82   -35.46  63.66        5.88       0.42
-OLD ML N=1    6.25    0.60   -36.39  63.66        4.12       0.20
-OLD ML N=5    7.70    0.75   -26.64  63.66        5.08       0.33
+       signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs  CAGR_tax_real_%  switches/yr
+   BUY & HOLD   10.81    0.70   -55.19  63.66       10.43       0.44             9.90          NaN
+      LARSSON    8.91    0.82   -35.46  63.66        5.88       0.42             6.57         3.20
+LARSSON-PRICE    8.28    0.83   -40.19  63.66        5.47       0.39             5.69        13.26
+       SMA200   10.45    0.97   -21.49  63.66        6.89       0.56             7.87         6.16
+   OLD ML N=1    6.25    0.60   -36.39  63.66        4.12       0.20             4.22        13.51
+   OLD ML N=5    7.70    0.75   -26.64  63.66        5.08       0.33             5.37         6.52
 
-PRE-1928 DOW COMPOSITE 1886-1927 (out of sample)
-    signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs
-BUY & HOLD    7.97    0.60   -38.69  40.95        7.41       0.41
-   LARSSON    6.95    0.76   -26.35  40.95        4.60       0.46
-    SMA200    8.43    0.90   -16.32  40.95        5.57       0.60
+PRE-1928 DOW COMPOSITE 1886-07..1927 (out of sample; 'years' = bars/252, the 1880s-1920s had Saturday sessions)
+       signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs  CAGR_tax_real_%
+   BUY & HOLD    7.97    0.60   -38.69  40.95        7.41       0.41             6.69
+      LARSSON    6.95    0.76   -26.35  40.95        4.60       0.46             4.95
+LARSSON-PRICE    9.72    1.07   -17.90  40.95        6.41       0.76             6.79
+       SMA200    8.43    0.90   -16.32  40.95        5.57       0.60             6.40
 
-PER-ASSET CLASS SUMMARY (median differences, LARSSON minus comparator; Sharpe above T-bills)
+PER-ASSET CLASS SUMMARY (median differences, LARSSON minus comparator; Sharpe above T-bills; 120-bar warm-up)
+  crypto21 = coins still trading in 2026 (survivors); only the P3 basket corrects for dead coins
    class                  comparison  assets Sharpe_better  sign_p  median_dSharpe  median_dCAGR  median_dCAGR_tax  median_dMaxDD
 crypto21    LARSSON minus BUY & HOLD      21         12/21   0.332           0.094        12.271             1.453         13.190
 crypto21    LARSSON minus OLD ML N=1      21          6/21   0.987          -0.073        -7.718            -3.932         -6.066
 crypto21    LARSSON minus OLD ML N=5      21          8/21   0.905          -0.051        -4.512            -3.270         -1.860
 crypto21        LARSSON minus SMA200      21         17/21   0.004           0.183        14.234            12.284          8.541
 crypto21 LARSSON minus LARSSON-PRICE      21          6/21   0.987          -0.086        -7.701            -6.365         -2.750
-   etf13    LARSSON minus BUY & HOLD      13          7/13   0.500           0.020        -1.497            -1.976         23.700
+   etf13    LARSSON minus BUY & HOLD      13          7/13   0.500           0.017        -1.497            -1.976         23.700
    etf13    LARSSON minus OLD ML N=1      13          9/13   0.133           0.180         2.261             1.647          2.941
-   etf13    LARSSON minus OLD ML N=5      13          7/13   0.500           0.026         0.072             0.009         -1.028
+   etf13    LARSSON minus OLD ML N=5      13          7/13   0.500           0.025         0.072             0.009         -1.028
    etf13        LARSSON minus SMA200      13          7/13   0.500           0.022         0.305             0.220          0.014
    etf13 LARSSON minus LARSSON-PRICE      13         10/13   0.046           0.106         1.770             1.133          3.760
 
-PER-ASSET SHARPE (above T-bills)
+SAME, COMMON 200-BAR START (audit: SMA200 has no value before bar 200, so it sat in T-bills for bars 120-199)
+   class                  comparison  assets Sharpe_better  sign_p  median_dSharpe  median_dCAGR  median_dCAGR_tax  median_dMaxDD
+crypto21    LARSSON minus BUY & HOLD      21         13/21   0.192           0.063        13.421             8.514         13.190
+crypto21    LARSSON minus OLD ML N=1      21          6/21   0.987          -0.086        -9.127            -5.666         -5.846
+crypto21    LARSSON minus OLD ML N=5      21          8/21   0.905          -0.058        -7.852            -5.486         -1.860
+crypto21        LARSSON minus SMA200      21         17/21   0.004           0.148        12.438            10.444          9.462
+crypto21 LARSSON minus LARSSON-PRICE      21          6/21   0.987          -0.089        -8.652            -6.763         -2.750
+   etf13    LARSSON minus BUY & HOLD      13          7/13   0.500           0.017        -1.497            -2.052         23.700
+   etf13    LARSSON minus OLD ML N=1      13          9/13   0.133           0.180         2.566             1.841          2.941
+   etf13    LARSSON minus OLD ML N=5      13          7/13   0.500           0.025         0.072             0.009         -1.028
+   etf13        LARSSON minus SMA200      13          7/13   0.500           0.022         0.305             0.220          0.014
+   etf13 LARSSON minus LARSSON-PRICE      13         10/13   0.046           0.110         1.770             1.209          3.760
+
+PER-ASSET MEDIAN LEVELS (a gap between medians is not the median gain; see the class summaries)
+   class  warmup               signal  CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+crypto21     120           BUY & HOLD   12.66       10.84       0.58   -94.28
+crypto21     120              LARSSON   27.71       18.40       0.68   -80.97
+crypto21     120       LARSSON @0.95%   23.54       15.07       0.64   -82.58
+crypto21     120        LARSSON-PRICE   35.35       24.24       0.80   -79.00
+crypto21     120 LARSSON-PRICE @0.95%   17.83       12.23       0.53   -86.76
+crypto21     120           OLD ML N=1   33.70       23.44       0.74   -73.64
+crypto21     120    OLD ML N=1 @0.95%   18.11       12.05       0.54   -80.23
+crypto21     120           OLD ML N=5   29.93       21.47       0.67   -79.37
+crypto21     120    OLD ML N=5 @0.95%   21.23       15.66       0.58   -84.10
+crypto21     120               SMA200    7.82        4.71       0.45   -87.73
+crypto21     120        SMA200 @0.95%   -2.17       -4.95       0.34   -91.43
+crypto21     200           BUY & HOLD   14.09       12.17       0.56   -94.28
+crypto21     200              LARSSON   17.54       11.88       0.53   -78.74
+crypto21     200       LARSSON @0.95%   12.69        8.47       0.47   -82.58
+crypto21     200        LARSSON-PRICE   28.52       19.69       0.68   -79.00
+crypto21     200 LARSSON-PRICE @0.95%    9.91        5.12       0.46   -86.76
+crypto21     200           OLD ML N=1   37.37       24.16       0.75   -73.03
+crypto21     200    OLD ML N=1 @0.95%   21.79       12.57       0.57   -79.81
+crypto21     200           OLD ML N=5   26.37       16.58       0.63   -79.36
+crypto21     200    OLD ML N=5 @0.95%   18.29       10.36       0.55   -84.10
+crypto21     200               SMA200    7.99        4.82       0.45   -87.73
+crypto21     200        SMA200 @0.95%   -2.26       -5.15       0.35   -91.43
+   etf13     120           BUY & HOLD    6.98        6.15       0.33   -53.40
+   etf13     120              LARSSON    3.63        2.39       0.32   -25.18
+   etf13     120        LARSSON-PRICE    3.80        2.52       0.31   -31.99
+   etf13     120           OLD ML N=1    3.73        2.44       0.29   -34.35
+   etf13     120           OLD ML N=5    3.90        2.57       0.32   -29.62
+   etf13     120               SMA200    4.46        2.96       0.34   -25.94
+   etf13     200           BUY & HOLD    6.33        5.54       0.33   -53.40
+   etf13     200              LARSSON    3.63        2.39       0.35   -25.18
+   etf13     200        LARSSON-PRICE    3.80        2.52       0.31   -31.99
+   etf13     200           OLD ML N=1    3.95        2.49       0.26   -34.35
+   etf13     200           OLD ML N=5    3.90        2.57       0.33   -29.62
+   etf13     200               SMA200    4.46        2.96       0.34   -25.94
+
+PER-ASSET SHARPE (above T-bills; 120-bar warm-up)
 signal          BUY & HOLD  LARSSON  LARSSON-PRICE  OLD ML N=1  OLD ML N=5  SMA200
 class    asset                                                                    
-crypto21 ADA          0.58     0.89           0.86        0.86        0.89    0.75
+crypto21 ADA          0.58     0.89           0.86        0.86        0.88    0.75
          ATOM         0.45     0.32           0.39        0.13        0.35    0.11
          AVAX         0.50     0.88           0.85        0.95        0.79    0.40
          BCH          0.47     0.52           0.11        0.32       -0.06    0.22
          BNB          0.98     0.92           1.03        0.90        1.07    0.83
          BTC          0.61     0.71           0.85        0.85        0.77    0.73
-         DOGE         0.77     0.73           0.82        0.74        0.62    0.71
+         DOGE         0.77     0.73           0.82        0.74        0.61    0.71
          DOT          0.20     0.55           0.50        0.62        0.63   -0.64
-         ETC          0.44     0.36           0.63        0.51        0.41    0.22
+         ETC          0.44     0.36           0.63        0.51        0.41    0.21
          ETH          0.57     0.70           0.87        0.86        0.94    0.75
-         FIL         -0.08     0.35           0.46        0.45        0.48   -0.64
-         LINK         0.87     0.70           0.83        1.01        0.67    0.47
+         FIL         -0.08     0.34           0.46        0.45        0.48   -0.65
+         LINK         0.86     0.70           0.83        1.01        0.67    0.47
          LTC          0.34     0.45           0.32        0.39        0.25    0.25
          MATIC        0.80     0.90           0.80        0.95        0.98    0.71
          NEAR         0.63     0.78           0.94        1.08        0.81    0.46
          SOL          1.18     1.34           1.47        1.55        1.46    1.16
-         TRX          0.75     0.46           0.50        0.47        0.40    0.45
+         TRX          0.75     0.46           0.50        0.47        0.39    0.45
          UNI          0.54     0.68           0.69        0.41        0.95   -0.59
          XLM          0.43     0.36           0.57        0.67        0.29    0.42
          XRP          0.64     0.22           0.29        0.61        0.52    0.30
          ZEC          0.89     0.67           0.92        0.82        0.79    0.48
 etf13    EEM          0.33     0.43           0.32        0.04        0.33    0.34
          EFA          0.30     0.44           0.31        0.02        0.14    0.42
-         GLD          0.56     0.48           0.37        0.35        0.56    0.50
-         HYG          0.35     0.31           0.63        0.34        0.32    0.48
-         IEF          0.21     0.37           0.24        0.17        0.31    0.18
-         IWM          0.38     0.32           0.21        0.13        0.35    0.25
-         LQD          0.26     0.28           0.39        0.44        0.26    0.37
-         QQQ          0.68     0.73           0.58        0.55        0.60    0.65
+         GLD          0.55     0.47           0.37        0.35        0.55    0.50
+         HYG          0.35     0.30           0.62        0.34        0.32    0.47
+         IEF          0.20     0.36           0.23        0.16        0.30    0.17
+         IWM          0.38     0.32           0.20        0.13        0.34    0.25
+         LQD          0.26     0.28           0.39        0.44        0.25    0.36
+         QQQ          0.68     0.72           0.58        0.54        0.60    0.65
          SLV          0.35     0.13           0.08        0.36        0.40    0.26
-         SPY          0.55     0.67           0.56        0.46        0.57    0.57
-         TIP          0.25     0.11           0.17       -0.00        0.05    0.13
-         TLT          0.14     0.22           0.00       -0.05        0.26    0.05
-         VNQ          0.32     0.18           0.15        0.29        0.20    0.19
+         SPY          0.55     0.67           0.56        0.45        0.56    0.56
+         TIP          0.24     0.10           0.16       -0.01        0.04    0.12
+         TLT          0.13     0.21          -0.00       -0.05        0.25    0.05
+         VNQ          0.32     0.18           0.15        0.29        0.19    0.18
 
-BASKETS (equal weight of each year's members; each member traded on its own signal)
+BASKETS, DAILY-REBALANCED EW (pre-registered construction: equal weight every day (each member on its own signal); study costs)
                  basket          signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs
-  S&P 500 PIT 2001-2026 BUY & HOLD (EW)   10.90    0.60   -58.24  25.69       10.01       0.52
 crypto top-20 2019-2026 BUY & HOLD (EW)   15.25    0.59   -90.78   7.75       13.14       0.56
-  S&P 500 PIT 2001-2026         LARSSON    6.51    0.72   -19.11  25.69        4.27       0.53
+  S&P 500 PIT 2001-2026 BUY & HOLD (EW)   10.90    0.60   -58.24  25.69       10.01       0.51
 crypto top-20 2019-2026         LARSSON   29.60    0.77   -68.72   7.75       20.63       0.71
+  S&P 500 PIT 2001-2026         LARSSON    6.51    0.72   -19.11  25.69        4.27       0.52
+crypto top-20 2019-2026   LARSSON-PRICE   44.51    1.02   -59.11   7.75       31.01       0.96
   S&P 500 PIT 2001-2026   LARSSON-PRICE    5.27    0.60   -27.80  25.69        3.46       0.41
-crypto top-20 2019-2026   LARSSON-PRICE   44.51    1.02   -59.11   7.75       31.01       0.97
-  S&P 500 PIT 2001-2026      OLD ML N=1    4.99    0.53   -33.80  25.69        3.27       0.36
 crypto top-20 2019-2026      OLD ML N=1   48.72    1.14   -50.28   7.75       33.48       1.07
-  S&P 500 PIT 2001-2026      OLD ML N=5    6.62    0.70   -22.45  25.69        4.33       0.52
+  S&P 500 PIT 2001-2026      OLD ML N=1    4.99    0.53   -33.80  25.69        3.27       0.35
 crypto top-20 2019-2026      OLD ML N=5   34.59    0.87   -59.61   7.75       23.89       0.81
-  S&P 500 PIT 2001-2026          SMA200    6.58    0.75   -22.33  25.69        4.32       0.55
+  S&P 500 PIT 2001-2026      OLD ML N=5    6.62    0.70   -22.45  25.69        4.33       0.51
 crypto top-20 2019-2026          SMA200   14.82    0.53   -77.21   7.75        9.65       0.48
-  S&P 500 PIT 2001-2026        EMA20/50    6.24    0.69   -20.30  25.69        4.09       0.50
+  S&P 500 PIT 2001-2026          SMA200    6.58    0.75   -22.33  25.69        4.32       0.55
 crypto top-20 2019-2026        EMA20/50   36.40    0.88   -70.80   7.75       25.38       0.82
-  S&P 500 PIT 2001-2026        EMA26/52    6.43    0.71   -19.99  25.69        4.22       0.52
+  S&P 500 PIT 2001-2026        EMA20/50    6.24    0.69   -20.30  25.69        4.09       0.50
 crypto top-20 2019-2026        EMA26/52   30.09    0.78   -70.90   7.75       21.12       0.72
-  S&P 500 PIT 2001-2026        EMA40/80    6.74    0.73   -17.74  25.69        4.42       0.55
+  S&P 500 PIT 2001-2026        EMA26/52    6.43    0.71   -19.99  25.69        4.22       0.52
 crypto top-20 2019-2026        EMA40/80   22.54    0.66   -71.36   7.75       15.62       0.61
-  S&P 500 PIT 2001-2026       EMA50/100    6.81    0.73   -19.67  25.69        4.48       0.55
+  S&P 500 PIT 2001-2026        EMA40/80    6.74    0.73   -17.74  25.69        4.42       0.54
 crypto top-20 2019-2026       EMA50/100   16.28    0.56   -74.01   7.75       11.09       0.51
-  S&P 500 PIT 2001-2026       EMA50/200    6.94    0.72   -23.77  25.69        4.56       0.54
+  S&P 500 PIT 2001-2026       EMA50/100    6.81    0.73   -19.67  25.69        4.48       0.54
 crypto top-20 2019-2026       EMA50/200    9.19    0.44   -78.39   7.75        5.70       0.38
+  S&P 500 PIT 2001-2026       EMA50/200    6.94    0.72   -23.77  25.69        4.56       0.54
+
+BASKETS, HELD (ANNUAL EW, DRIFTING) (audit: equal money per member on 1 January, then each sleeve drifts; study costs)
+                 basket          signal  CAGR_%  Sharpe  maxDD_%  years  CAGR_tax_%  Sharpe_xs
+crypto top-20 2019-2026 BUY & HOLD (EW)   20.63    0.65   -87.72   7.75       18.07       0.61
+  S&P 500 PIT 2001-2026 BUY & HOLD (EW)    9.95    0.58   -57.76  25.69        9.09       0.49
+crypto top-20 2019-2026         LARSSON   27.49    0.73   -72.31   7.75       19.08       0.68
+  S&P 500 PIT 2001-2026         LARSSON    6.46    0.69   -19.94  25.69        4.24       0.50
+crypto top-20 2019-2026   LARSSON-PRICE   41.18    0.96   -65.68   7.75       28.75       0.90
+  S&P 500 PIT 2001-2026   LARSSON-PRICE    5.14    0.58   -27.86  25.69        3.37       0.39
+crypto top-20 2019-2026      OLD ML N=1   53.67    1.20   -50.97   7.75       37.32       1.14
+  S&P 500 PIT 2001-2026      OLD ML N=1    4.68    0.50   -33.57  25.69        3.07       0.32
+crypto top-20 2019-2026      OLD ML N=5   42.83    0.99   -51.09   7.75       29.88       0.93
+  S&P 500 PIT 2001-2026      OLD ML N=5    6.43    0.67   -23.77  25.69        4.21       0.49
+crypto top-20 2019-2026          SMA200   16.69    0.56   -74.71   7.75       11.06       0.51
+  S&P 500 PIT 2001-2026          SMA200    6.60    0.73   -22.63  25.69        4.34       0.53
+crypto top-20 2019-2026        EMA20/50   34.82    0.85   -72.30   7.75       24.30       0.79
+  S&P 500 PIT 2001-2026        EMA20/50    6.13    0.66   -21.44  25.69        4.02       0.47
+crypto top-20 2019-2026        EMA26/52   28.51    0.75   -73.85   7.75       19.94       0.69
+  S&P 500 PIT 2001-2026        EMA26/52    6.34    0.68   -20.98  25.69        4.16       0.49
+crypto top-20 2019-2026        EMA40/80   22.47    0.65   -71.31   7.75       15.65       0.60
+  S&P 500 PIT 2001-2026        EMA40/80    6.69    0.71   -19.03  25.69        4.39       0.52
+crypto top-20 2019-2026       EMA50/100   15.67    0.55   -72.00   7.75       10.82       0.50
+  S&P 500 PIT 2001-2026       EMA50/100    6.80    0.71   -20.14  25.69        4.47       0.53
+crypto top-20 2019-2026       EMA50/200   12.83    0.50   -72.37   7.75        8.21       0.45
+  S&P 500 PIT 2001-2026       EMA50/200    6.92    0.70   -23.92  25.69        4.55       0.52
+
+CRYPTO BASKET COST SENSITIVITY (retail = altcoins.py 0.30% top 10 / 0.35% ranks 11-20; 0.95% = Robinhood-like)
+costs                                     study  retail  0.95%
+construction               signal                             
+daily-rebalanced EW        LARSSON        0.713   0.697  0.641
+                           LARSSON-PRICE  0.965   0.897  0.659
+                           OLD ML N=1     1.073   1.017  0.820
+                           OLD ML N=5     0.813   0.784  0.680
+                           SMA200         0.477   0.437  0.296
+held (annual EW, drifting) LARSSON        0.677   0.663  0.612
+                           LARSSON-PRICE  0.901   0.840  0.623
+                           OLD ML N=1     1.135   1.084  0.906
+                           OLD ML N=5     0.930   0.903  0.809
+                           SMA200         0.510   0.478  0.369
+costs                                     study  retail  0.95%
+construction               signal                             
+daily-rebalanced EW        LARSSON        20.63   19.94  17.33
+                           LARSSON-PRICE  31.01   27.98  17.42
+                           OLD ML N=1     33.48   30.85  22.21
+                           OLD ML N=5     23.89   22.68  18.53
+                           SMA200          9.65    7.98   2.36
+held (annual EW, drifting) LARSSON        19.08   18.44  16.08
+                           LARSSON-PRICE  28.75   26.00  15.68
+                           OLD ML N=1     37.32   34.82  26.50
+                           OLD ML N=5     29.88   28.70  24.65
+                           SMA200         11.06    9.66   4.79
 
 PRIMARY TESTS (Sharpe gain above T-bills; paired stationary bootstrap; Holm across five)
-                                              test  dSharpe  p_one_sided   half1   half2  p_holm  PASS                                        ci95
-          S&P 500 1929-2026: LARSSON vs buy & hold   0.0584       0.2380  0.1965 -0.0871  0.9520 False [-0.10708422941601432, 0.22619314738844487]
-          S&P PIT basket: LARSSON vs EW buy & hold   0.0114       0.3905  0.1121 -0.1199  1.0000 False  [-0.18636862283244351, 0.1701193745165241]
-    crypto top-20 basket: LARSSON vs EW buy & hold   0.1543       0.1770  0.1124  0.2252  0.8850 False   [-0.2096835843429714, 0.5120890688119173]
-      S&P PIT basket: LARSSON vs old MoneyLine N=5   0.0096       0.4435  0.0807 -0.0842  1.0000 False [-0.14337295555974758, 0.14360846508351208]
-crypto top-20 basket: LARSSON vs old MoneyLine N=1  -0.3601       0.9500 -0.5206 -0.1460  1.0000 False  [-0.7743568238144571, 0.04815527627520747]
+  mde80_a01 / a05 = Sharpe gain the test would detect 80% of the time at alpha 0.01 (first Holm step) / 0.05
+                                              test  dSharpe  p_one_sided   half1   half2  boot_sd  mde80_a01  mde80_a05  p_holm  PASS                                        ci95
+          S&P 500 1929-2026: LARSSON vs buy & hold   0.0584       0.2380  0.1965 -0.0871   0.0856     0.2711     0.2128  0.9520 False [-0.10708422941601432, 0.22619314738844487]
+          S&P PIT basket: LARSSON vs EW buy & hold   0.0092       0.3985  0.1104 -0.1227   0.0907     0.2872     0.2255  1.0000 False  [-0.19038152159748323, 0.1670342733459981]
+    crypto top-20 basket: LARSSON vs EW buy & hold   0.1539       0.1780  0.1123  0.2242   0.1841     0.5833     0.4579  0.8900 False  [-0.21015451829948384, 0.5112945629358241]
+      S&P PIT basket: LARSSON vs old MoneyLine N=5   0.0095       0.4465  0.0805 -0.0842   0.0733     0.2323     0.1823  1.0000 False [-0.14371828361450797, 0.14335907537136044]
+crypto top-20 basket: LARSSON vs old MoneyLine N=1  -0.3599       0.9500 -0.5206 -0.1458   0.2080     0.6590     0.5173  1.0000 False  [-0.7741171906186226, 0.04823081980321566]
+
+SECONDARY TESTS (audit; not pre-registered, never decide a pass; Holm within each five-test family)
+                        family key                                                                test  dSharpe  p_one_sided   half1   half2  boot_sd  mde80_a01  mde80_a05  p_holm would_pass
+         LARSSON, held baskets  P2                     S&P PIT basket: LARSSON vs EW buy & hold [held]   0.0145       0.3770  0.1234 -0.1251   0.0886     0.2808     0.2204  1.0000      False
+         LARSSON, held baskets  P3               crypto top-20 basket: LARSSON vs EW buy & hold [held]   0.0655       0.3145  0.0611  0.0774   0.1681     0.5326     0.4181  1.0000      False
+         LARSSON, held baskets  P4                 S&P PIT basket: LARSSON vs old MoneyLine N=5 [held]   0.0120       0.4370  0.0834 -0.0837   0.0719     0.2277     0.1787  1.0000      False
+         LARSSON, held baskets  P5           crypto top-20 basket: LARSSON vs old MoneyLine N=1 [held]  -0.4583       0.9895 -0.6183 -0.2544   0.2081     0.6591     0.5174  1.0000      False
+LARSSON-PRICE as the test rule  P1                      S&P 500 1929-2026: LARSSON-PRICE vs buy & hold   0.0951       0.1525  0.3176 -0.1445   0.0979     0.3103     0.2436  0.6100      False
+LARSSON-PRICE as the test rule  P2                      S&P PIT basket: LARSSON-PRICE vs EW buy & hold  -0.1074       0.9020 -0.0421 -0.1948   0.0726     0.2300     0.1805  1.0000      False
+LARSSON-PRICE as the test rule  P3                crypto top-20 basket: LARSSON-PRICE vs EW buy & hold   0.4055       0.0010  0.4403  0.3699   0.1471     0.4661     0.3659  0.0050       True
+LARSSON-PRICE as the test rule  P4                  S&P PIT basket: LARSSON-PRICE vs old MoneyLine N=5  -0.1070       0.9745 -0.0720 -0.1562   0.0525     0.1664     0.1307  1.0000      False
+LARSSON-PRICE as the test rule  P5            crypto top-20 basket: LARSSON-PRICE vs old MoneyLine N=1  -0.1083       0.7905 -0.1926 -0.0002   0.1284     0.4067     0.3193  1.0000      False
+   LARSSON-PRICE P3 robustness  P3   crypto basket: LARSSON-PRICE vs EW buy & hold [held, study costs]   0.2900       0.0165  0.3570  0.2052   0.1425     0.4514     0.3544     NaN        NaN
+   LARSSON-PRICE P3 robustness  P3 crypto basket: LARSSON-PRICE vs EW buy & hold [daily, retail costs]   0.3375       0.0105  0.3864  0.2786   0.1491     0.4723     0.3708     NaN        NaN
+   LARSSON-PRICE P3 robustness  P3  crypto basket: LARSSON-PRICE vs EW buy & hold [held, retail costs]   0.2284       0.0385  0.3096  0.1208   0.1452     0.4600     0.3611     NaN        NaN
+   LARSSON-PRICE P3 robustness  P3  crypto basket: LARSSON-PRICE vs EW buy & hold [daily, 0.95% costs]   0.0994       0.2085  0.1968 -0.0399   0.1602     0.5076     0.3985     NaN        NaN
+   LARSSON-PRICE P3 robustness   -        crypto basket: LARSSON-PRICE vs LARSSON [daily, study costs]   0.2516       0.0320  0.3279  0.1457   0.1387     0.4394     0.3450     NaN        NaN
