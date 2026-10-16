@@ -19,3 +19,6 @@ data/sso_gold/
 # large per-event outputs of the bounce study (regenerate with python3 -m analysis_2026.ma_bounce)
 analysis_2026/results_bounce/events_*.parquet
 data/universe_recent_raw/
+
+# economic-freedom thesis data (rebuild: python3 -m analysis_2026.fetch_freedom_data)
+data/freedom/
