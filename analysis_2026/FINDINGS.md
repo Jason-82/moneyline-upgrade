@@ -2232,8 +2232,8 @@ T-bills otherwise:
 
 - **Fama-MacBeth regressions,** controlling for 12-month momentum and long-term reversal: no signal
   reaches |t| 1.4. Momentum is t 2.7-3.1 in every regression.
-- **Power:** 80% power only for premia of about 4.4-5.2%/yr at 5% one-sided, and about 5-7% at the
-  Holm hurdle. Freedom, tax and electricity premia above 1.3-2.4%/yr are ruled out at 95%. Smaller
+- **Power:** 80% power only for premia of about 3.6-5.2%/yr at 5% one-sided, and about 4.8-6.8% at
+  the Holm hurdle. Freedom, tax and electricity premia above 1.3-2.4%/yr are ruled out at 95%. Smaller
   effects are not.
 - **Cohort dependence.** The 1997 cohort, held through the Asian and Russian crises, was in effect
   long emerging-market reformers and short developed markets. It drives S1, S2, S4 and S7. Without

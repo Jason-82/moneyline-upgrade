@@ -890,7 +890,8 @@ industrial build-out, and more market freedom. Overweighting the second group sh
 | composite | +1.1 | 0.6 |
 
 - **Not just a statistical tie.** A freedom, tax or electricity premium above about 1.3-2.4%/yr is
-  ruled out. The design could only detect premia of about 4-6%/yr, so smaller effects remain open.
+  ruled out. The design could only detect premia of about 3.6-5.2%/yr (4.8-6.8% at the Holm
+  hurdle), so smaller effects remain open.
 - **Momentum is the only robust country predictor:** the prior 12-month return, t about 3 in
   Fama-MacBeth regressions.
 - **One cohort dominates.** The October 1997 cohort (the Asian and Russian crises) drives the sign of
