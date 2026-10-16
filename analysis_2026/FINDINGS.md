@@ -2211,7 +2211,8 @@ T-bills otherwise:
   - Venezuela and Zimbabwe are excluded.
   - Russia gets −100% in March 2022.
 - **Signals:** each uses only data public at formation.
-  - Fraser data year ≤ Y−2 (published around September of the following year).
+  - Fraser data year ≤ Y−2 (data year t is published around September of t+2, so data year Y−2 is
+    public by September of Y).
   - Heritage index year Y (published January-March Y).
   - WDI and OWID data year Y−2.
 - **Portfolio:** the top third minus the bottom third, equal-weighted, held 12 months.
@@ -2242,7 +2243,8 @@ T-bills otherwise:
   - S2 is −3.1 (t −1.8);
   - S4 is +3.3;
   - S7 is +2.4.
-  - No sign flips when any single cohort is dropped.
+  - No sign of S1, S2, S4 or S7 flips when any single cohort is dropped. The near-zero S3 and S6 do
+    flip.
 - **Audit corrections:**
   - World Bank aggregate rows (WLD, HIC, EUU and others) had entered the S7 z-scores. The fix moves
     S7 from +1.22 to +1.11.
@@ -2284,14 +2286,18 @@ long-short return in the years after d:
 | d+2 (publication year) | +0.68 | 0.38 |
 | d+3 | −2.15 | −1.47 |
 
-- The literature's freedom-change effect is real in these data, but it is earned before an investor
-  could see the index.
+- The literature's same-year freedom-change effect appears in these data (positive in both halves),
+  and it is earned before an investor could see the index.
+- The year-after effect comes entirely from returns through 2012 (+10.42%/yr; −0.31 since 2013).
 - Heritage tax-burden changes show no relation at any timing.
-- Manufacturing changes: +5.42 (t 3.26) in d+1, and +3.38 (t 1.82) in d+2.
+- Manufacturing changes: +5.42 (t 3.26) in d+1 (+8.48 to 2012, +0.48 since), and +3.38 (t 1.82) in
+  d+2, after WDI publication (+2.67 / +4.48).
 
 **The premise in the data:**
-- **The West lost less Fraser freedom than the rest of the world.** 2018→2023: West −0.13, rest of
-  the world −0.18, JKP universe −0.19.
+- **Whether the West lost more or less Fraser freedom than the rest of the world depends on the
+  window.**
+  - 2018→2023: West −0.13, rest of the world −0.18, JKP universe −0.19.
+  - 2015→2023: West −0.13, rest −0.10.
   - The West's entire decline is in the COVID data year: −0.25 in 2019→20, then +0.11 in 2020→23.
   - The rest of the world was −0.16 in 2019→20, then −0.05 in 2020→23.
 - **Since 2020:**
@@ -2323,12 +2329,20 @@ long-short return in the years after d:
 - Third-party data mirrors, and revised (not point-in-time) WDI and Fraser vintages.
 
 **Practical reading:**
-- Policy direction matters, but it is priced while it happens.
+- Freedom changes coincide with returns, but in this post hoc check only before the index publishes
+  them.
 - A rule that buys countries after the index shows improvement earns nothing.
-- What remains usable:
-  - a discretionary forecast of reforms before they are visible;
-  - country momentum, the one robust predictor here;
-  - valuation, untested here;
-  - avoiding markets heading toward capital controls or expropriation.
+- What remains plausible but unproven:
+  - a discretionary forecast of reforms before they are visible.
+  - **country momentum.** Significant with monthly updating: +8.70%/yr held 1 month (t 3.28) and
+    +4.94 held 6 months (t 2.02). With annual formation it is not: +2.04 (t 0.68).
+  - **valuation**, untested here.
+  - **avoiding capital controls, expropriation and sanctions.** This test cannot measure it, and
+    measured direction would not have flagged Russia: in October 2021 it was in the top third on S1,
+    S3 and S7.
+- **Exclusion screens did not help.** Holding all but the bottom third on S1, S2 or S3 returned
+  −0.52, −0.40 and −0.27%/yr against holding all (t −1.15, −0.61, −0.68).
+- **Freer countries by level are less volatile:** 19.2% vs 24.7% single-country volatility, top vs
+  bottom third on S2. Countries improving fastest are more volatile (23.5% vs 21.3%).
 - The report lays out vehicles, taxes and sizing for anyone who wants a modest, rules-based tilt
   anyway.

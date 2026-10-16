@@ -366,10 +366,11 @@ def timing_ladder(rets: pd.DataFrame, nst: pd.DataFrame, panel: pd.DataFrame, co
             if len(x) < 15:
                 continue
             k = len(x) // 3; rk = x.rank(method="first")
-            ls.append(r[rk > len(x) - k].mean() - r[rk <= k].mean())
-        ls = np.array(ls)
-        t = ls.mean() / (ls.std(ddof=1) / np.sqrt(len(ls))) if len(ls) > 2 else np.nan
-        rows.append({"signal": col, "return_year": f"d+{off}", "years": len(ls), "ann_ls_%": ls.mean() * 100, "t": t})
+            ls.append((yr, r[rk > len(x) - k].mean() - r[rk <= k].mean()))
+        yrs = np.array([y for y, _ in ls]); v = np.array([x for _, x in ls])
+        t = v.mean() / (v.std(ddof=1) / np.sqrt(len(v))) if len(v) > 2 else np.nan
+        rows.append({"signal": col, "return_year": f"d+{off}", "years": len(v), "ann_ls_%": v.mean() * 100, "t": t,
+                     "returns_to_2012_%": v[yrs <= 2012].mean() * 100, "returns_2013_on_%": v[yrs >= 2013].mean() * 100})
     return pd.DataFrame(rows)
 
 

@@ -64,7 +64,8 @@ crises, has the biggest influence on S1, S2, S4 and S7.
 - In practice that cohort was long emerging-market "reformers" and short developed markets.
 - Without it: S1 is −0.4%/yr (t −0.24, so no edge); S2 is −3.1%/yr (t −1.8, freer countries did
   somewhat worse); S4 is +3.3%/yr; S7 is +2.4%/yr.
-- No signal's sign flips when any single cohort is dropped.
+- No sign of S1, S2, S4 or S7 flips when any single cohort is dropped. The near-zero S3 and S6 do
+  flip.
 
 ## Robustness (exploratory; none changes a verdict)
 

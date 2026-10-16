@@ -166,19 +166,19 @@ S7 on iShares country ETFs     1997    2025  24.74        0.53  0.34     2.73   
 Positive control (post hoc): countries sorted on the 1-year change in data year d, top-minus-bottom third of
 calendar-year USD returns in year d+offset. Fraser publishes year d around September of d+2; Heritage index
 year d (data through mid d-1) in early d; WDI around mid d+1:
-   signal return_year  years  ann_ls_%     t
-      efw         d+0     23      3.65  2.68
-      efw         d+1     23      4.82  2.85
-      efw         d+2     23      0.68  0.38
-      efw         d+3     22     -2.15 -1.47
-      tax        d+-1     31     -0.92 -0.54
-      tax         d+0     30     -0.89 -0.57
-      tax         d+1     29     -2.71 -1.57
-      tax         d+2     28      1.12  0.73
-manuf_gdp         d+0     34     -0.33 -0.23
-manuf_gdp         d+1     34      5.42  3.26
-manuf_gdp         d+2     33      3.38  1.82
-manuf_gdp         d+3     32      1.46  0.84
+   signal return_year  years  ann_ls_%     t  returns_to_2012_%  returns_2013_on_%
+      efw         d+0     23      3.65  2.68               3.91               3.38
+      efw         d+1     23      4.82  2.85              10.42              -0.31
+      efw         d+2     23      0.68  0.38               2.58              -0.78
+      efw         d+3     22     -2.15 -1.47              -1.20              -2.81
+      tax        d+-1     31     -0.92 -0.54              -1.46              -0.18
+      tax         d+0     30     -0.89 -0.57              -4.12               3.34
+      tax         d+1     29     -2.71 -1.57              -2.57              -2.90
+      tax         d+2     28      1.12  0.73              -0.39               2.86
+manuf_gdp         d+0     34     -0.33 -0.23               0.96              -2.68
+manuf_gdp         d+1     34      5.42  3.26               8.48               0.48
+manuf_gdp         d+2     33      3.38  1.82               2.67               4.48
+manuf_gdp         d+3     32      1.46  0.84               1.62               1.22
 
 Global S1 and the West: 54 of 591 Western country-years in the long third, 271 in the short third; USA in the short third in 20 of 29 formations. The premise-matching tests are S6 and S1 within developed markets.
 

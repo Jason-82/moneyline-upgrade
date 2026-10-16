@@ -66,8 +66,9 @@ reviewed by 41 agents on 2026-10-13.
    - **Buying pullbacks to moving averages** (200-day and 33 others, stocks and crypto)
      has no edge, and no average acts as support (section 5.19).
    - **Choosing countries by published policy direction** (economic freedom, tax burden,
-     manufacturing, electricity) has no edge after publication; markets price reforms while
-     they happen (section 5.20).
+     manufacturing, electricity) has no edge after publication. A post hoc check suggests
+     freedom gains are priced while they happen; tax-burden changes show no relation at any
+     timing (section 5.20).
 5. **Market data in this cloud environment:**
    - **Blocked (403):** Yahoo, Alpha Vantage, Binance, Kraken, Coinbase, CoinGecko and
      robinhood.com.
@@ -892,15 +893,24 @@ industrial build-out, and more market freedom. Overweighting the second group sh
 - **Not just a statistical tie.** A freedom, tax or electricity premium above about 1.3-2.4%/yr is
   ruled out. The design could only detect premia of about 3.6-5.2%/yr (4.8-6.8% at the Holm
   hurdle), so smaller effects remain open.
-- **Momentum is the only robust country predictor:** the prior 12-month return, t about 3 in
-  Fama-MacBeth regressions.
-- **One cohort dominates.** The October 1997 cohort (the Asian and Russian crises) drives the sign of
-  most signals. Without it, the freedom change is about 0 and the freedom level −3.1%/yr.
+- **Momentum is the only significant country predictor, and only at short horizons.**
+  - The prior 12-month return has t about 3 in monthly-updated Fama-MacBeth regressions.
+  - A momentum sort formed monthly earns +8.7%/yr held 1 month (t 3.3), +4.9% held 6 months (t 2.0)
+    and +2.9% held 12 months (t 1.3).
+  - Formed once a year and held 12 months, it earns +2.0%/yr (t 0.7).
+- **One cohort is the most influential, but it flips no sign.** The October 1997 cohort (the Asian
+  and Russian crises) moves S1, S2, S4 and S7 more than any other cohort.
+  - Dropping it, or any other single cohort, flips none of their signs. Only the near-zero S3 and S6
+    change sign when certain cohorts are dropped.
+  - Without 1997, the freedom change is about 0 (−0.4%/yr) and the freedom level −3.1%/yr.
 
-**Why it fails: priced before publication.** Countries whose freedom improves do outperform, but only
-while the change happens: +3.7%/yr in the same year (t 2.7) and +4.8% the next year (t 2.9). Both
-come before Fraser publishes, about 21 months after the year ends. After publication the edge is
-gone: +0.7 (t 0.4), then −2.2.
+**Why it likely fails (post hoc check): priced before publication.** Countries whose freedom
+improves outperformed while the change happened, before Fraser publishes about 21 months after the
+year ends:
+- **Same year:** +3.7%/yr (t 2.7), positive in both halves.
+- **Next year:** +4.8% (t 2.9), but all of it from returns through 2012 (+10.4%; −0.3% since 2013).
+- **After publication** the edge is gone: +0.7 (t 0.4), then −2.2.
+- **Tax-burden changes** show no relation at any timing.
 
 **The only hint is manufacturing.** A rising manufacturing share is positive in most variants: +3.1%
 with a 1-year lag (t 1.9), and +3.1% on iShares ETFs 2001-2025 (t 2.1, Holm p 0.10). But it is
@@ -910,10 +920,10 @@ fragile:
 - It partly tracks shifts in sector mix rather than policy.
 
 **The premise, tested with data:**
-- **Fraser freedom fell in the West in 2018-23, but less than elsewhere:** −0.13 vs −0.18 for the
-  rest of the world.
-  - The West's whole drop is the COVID data year (−0.25 in 2019-20, then +0.11 in 2020-23). The rest
-    of the world kept falling.
+- **Fraser freedom fell in the West in 2018-23 (−0.13).** Whether it fell more or less than
+  elsewhere depends on the start year: the rest of the world fell −0.18 from 2018 but −0.10 from 2015.
+  - The West's whole drop is the COVID data year: −0.25 in 2019-20 (rest −0.16), then +0.11 in
+    2020-23 (rest −0.05).
 - **Where the West does lag:**
   - government spending and top tax rates;
   - electricity build-out: 11 Western countries in the bottom third, 4 in the top;
@@ -927,13 +937,20 @@ fragile:
 
 **Use.**
 - Don't run a country rotation on published freedom, tax or energy scores.
-- Policy direction matters, but markets price it while it happens. Gains go to investors who
-  anticipate reform credibly, and that is a discretionary forecast, not a rule this repo can test.
-- What the evidence does support:
-  - country momentum;
-  - valuation awareness (untested here: no CAPE data);
-  - avoiding the tails (capital controls, expropriation, sanctions — Russia 2022), which this test
-    cannot measure.
+- Freedom changes coincide with returns, but (post hoc) only before the index publishes them.
+  Gains go to investors who anticipate reform credibly, and that is a discretionary forecast, not a
+  rule this repo can test.
+- Plausible but unproven:
+  - **Country momentum.** Significant only with monthly updating and holds of 1-6 months. Not
+    significant with annual rebalancing, and untested on ETFs after costs.
+  - **Valuation awareness.** Untested here: no CAPE data.
+  - **Avoiding discrete tail events** (capital controls, expropriation, sanctions — Russia 2022),
+    which this test cannot measure. Measured direction would not have flagged Russia: in October
+    2021 it ranked in the top third on S1, S3 and S7, though in the bottom third on the freedom
+    level.
+  - **Index-based screens did not help.** Dropping the bottom third on S1, S2 or S3 lost 0.3-0.5%/yr
+    (not significant). Freer countries by level were less volatile (19% vs 25%/yr single-country
+    volatility).
 - The report lists vehicles and frictions: US-listed ETFs only (to avoid PFICs), the foreign tax
   credit, and qualified-dividend rates that vary by fund.
 - `current_ranking.csv` is descriptive only. Its data end in 2023/24.
