@@ -571,7 +571,8 @@ Pre-registered in `analysis_2026/LARSSON_PREREG.md`. Audited by three lenses plu
 checks; FINDINGS has the full entry. The user's Larsson Line plots EMA(32) and EMA(58).
 The colour rule is unconfirmed:
 - LARSSON: green while EMA32 > EMA58
-- LARSSON-PRICE (sensitivity): green when the close is above both lines
+- LARSSON-PRICE (sensitivity): green once the close is above both lines, red once it is
+  below both, unchanged in between
 
 - **All five primary tests FAIL** (Sharpe gain, Holm across five):
 
@@ -580,37 +581,44 @@ The colour rule is unconfirmed:
   | P1 S&P 1929-2026 vs buy & hold | +0.058 | 0.24 |
   | P2 S&P point-in-time basket | +0.009 | 0.40 |
   | P3 crypto top-20 basket | +0.154 | 0.18 |
-  | P4 vs old ML N=5 on stocks | +0.010 | 0.45 |
+  | P4 vs old ML N=5 on stocks | +0.009 | 0.45 |
   | P5 vs old ML N=1 on crypto | −0.360 | 0.95 |
 
-  The crypto tests can only detect gains of about 0.5 Sharpe.
+  The crypto tests can only detect gains of about 0.6 Sharpe: 80% power at the 0.01 level
+  a Holm pass needs; about 0.5 at 0.05.
 - **Stocks: an ordinary slow trend filter.**
   - S&P 1929-2026:
-    - drawdown −35% vs −84% (−41% to −53% if the fill moves a day)
+    - drawdown −35% vs −84% (−41% to −46% if the fill moves a day either way; −53% two
+      days late)
     - Sharpe_xs 0.48 vs 0.42
     - CAGR 8.7% vs 9.9%
-    - after tax (realised, audit engine) 6.6% vs 8.9%
+    - after tax (realised, audit engine) 6.6% vs 9.0%
   - Since 1972 it adds nothing (Sharpe_xs 0.41 vs 0.44).
   - 32/58 sits at the 31st percentile of 4,567 EMA pairs.
 - **Crypto: beaten by the old MoneyLine N=1.** Held baskets give −0.46 with the CI
   excluding 0.
   - The gain vs buy & hold halves with held baskets: +0.07.
   - Per-coin medians flip with the start date.
-- **The colour rule matters on crypto only.**
+- **The colour rule changes a verdict only on crypto.** On stocks it moves results both
+  ways, but every test still fails.
   - LARSSON-PRICE would pass P3 at study costs (+0.41, Holm 0.005).
-  - It fails with held baskets plus retail costs (Holm about 0.19) and at 0.95%.
-  - It is still below the old MoneyLine N=1. The edge is speed, like EMA15/30.
+  - It fails with held baskets alone (Holm about 0.08) and is borderline with retail costs
+    (about 0.05; 4 of 10 seeds fail).
+  - It fails with both (about 0.19) and at 0.95%. The test is also post hoc.
+  - It is still below the old MoneyLine N=1 in every basket version (about even per coin).
+    The edge is speed, like EMA15/30.
 - **The 200-day average:**
   - best Sharpe_xs and pre-tax CAGR on the 1929-2026 index (p 0.049 unadjusted)
   - not the best drawdown there (−51%, one 1932-33 whipsaw)
   - not best after tax, or in 4 of 5 eras
-  - worst on crypto
+  - worst of the five main rules on crypto (EMA50/200 is as bad)
 - **Tax conventions.**
-  - The pre-registered after-tax figures never tax buy & hold's dividends, and they tax
-    strategies' unrealised gains yearly.
+  - The pre-registered after-tax figures tax buy & hold's dividends only once, at the end
+    (never yearly), and they tax the strategies' unrealised gains yearly.
   - The index tables now carry a realisation-based column as well.
 - **Use:** no reason to prefer it over the old MoneyLine on crypto or over holding stocks
-  after tax. Confirm the colour rule with the user before reading the crypto result.
+  after tax. On the pre-1928 Dow, LARSSON-PRICE roughly tied buy & hold after tax: 6.8 vs
+  6.7 realised. Confirm the colour rule with the user before reading the crypto result.
 
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
@@ -646,7 +654,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 - Larsson pre-audit (2cf7aa7) readings:
   - crypto basket buy & hold at 15.25% (daily-rebalanced; held: 20.6%)
   - "LARSSON 18.4 vs buy & hold 10.8 after tax per coin" (depends on the start date)
-  - "buy & hold best after tax on 12/13 ETFs" (about 9/13 with coupons taxed yearly)
+  - "buy & hold best after tax on 12/13 ETFs" (about 9-10/13 with coupons taxed yearly)
   - LARSSON index drawdown "−35%" without the fill-day range
 
 ---
@@ -737,7 +745,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 4. Fresh **candle-mode** TradingView exports, so `moneyline_ref.py` can be checked on
    crypto.
 4b. The Larsson Line's colour rule: EMA32 vs EMA58 crossover, or price vs both lines?
-   On ETH and SOL today the two rules disagree. It decides how to read the crypto result
+   On the user's exports to 2026-10-15 the two rules disagree on ETH and SOL (crossover
+   green, price rule red). It decides how to read the crypto result
    (section 5.19).
 5. The user's tax rates and risk budget; open the Agentic account; turn approvals on.
 6. Live MCP checks:

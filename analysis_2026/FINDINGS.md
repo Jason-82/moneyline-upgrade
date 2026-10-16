@@ -1364,7 +1364,7 @@ statistics) plus a confirm stage:
   study rerun (8cb2284, 7205412).
 
 **The indicator.** The user's TradingView Larsson Line plots exactly EMA(32) and EMA(58) of
-the close (private exports, error 0). Its colour rule is **not confirmed**:
+the close (private exports of BTC, ETH and SOL, median error 0). Its colour rule is **not confirmed**:
 - **LARSSON** (primary): green while EMA32 > EMA58.
 - **LARSSON-PRICE** (sensitivity): green once the close is above both lines, red once it
   is below both.
@@ -1379,14 +1379,15 @@ the test would detect 80% of the time at alpha 0.05.
 | P1 | S&P 500 1929-2026, LARSSON vs buy & hold | +0.058 | 0.238 | +0.20 / −0.09 | 0.95 | 0.21 |
 | P2 | S&P point-in-time basket vs EW buy & hold | +0.009 | 0.399 | +0.11 / −0.12 | 1.0 | 0.23 |
 | P3 | crypto top-20 basket vs EW buy & hold | +0.154 | 0.178 | +0.11 / +0.22 | 0.89 | 0.46 |
-| P4 | S&P basket vs old MoneyLine N=5 | +0.010 | 0.447 | +0.08 / −0.08 | 1.0 | 0.18 |
+| P4 | S&P basket vs old MoneyLine N=5 | +0.009 | 0.447 | +0.08 / −0.08 | 1.0 | 0.18 |
 | P5 | crypto basket vs old MoneyLine N=1 | −0.360 | 0.950 | −0.52 / −0.15 | 1.0 | 0.52 |
 
 - The verdicts survive:
   - mean blocks 60-500 (smallest Holm p 0.66)
   - a Newey-West t on the return difference (never positive)
   - a HAC Sharpe test
-- The crypto tests can only detect very large gains.
+- The crypto tests can only detect very large gains: about 0.6-0.7 Sharpe at the 0.01 level
+  the first Holm step needs (`mde80_a01` in verdicts.csv).
 - The T-bill subtracted now matches the engine's cash leg. P2 moved from 0.391 to 0.399.
 
 ## What the numbers say
@@ -1398,12 +1399,12 @@ the test would detect 80% of the time at alpha 0.05.
 |---|---|---|---|---|---|---|
 | buy & hold | 9.93 | 9.68 | 8.95 | 0.42 | −83.6 | |
 | LARSSON | 8.74 | 5.78 | 6.57 | 0.48 | −35.5 | 3.2 |
-| LARSSON-PRICE | 8.95 | 5.92 | 6.21 | 0.52 | −41.8 | 12.5 |
+| LARSSON-PRICE | 8.95 | 5.92 | 6.21 | 0.52 | −41.7 | 12.5 |
 | SMA200 | 10.11 | 6.69 | 7.78 | 0.59 | −51.5 | 6.0 |
 
 - **Tax columns.**
   - *After tax, pre-reg:* strategies pay 35% on each year's growth; buy & hold pays 20%
-    once at the end. That never taxes buy & hold's dividends.
+    once at the end. Its dividends are taxed only then, never yearly.
   - *After tax, realised* (audit), via `sso_gold.simulate`:
     - FIFO lots; gains held over a year at 20%, otherwise 35%
     - dividends at 20% and T-bill interest at 35% every year
@@ -1445,9 +1446,11 @@ the test would detect 80% of the time at alpha 0.05.
 - **After tax, pre-reg** medians:
   - buy & hold 6.15, SMA200 2.96, LARSSON 2.39
   - old ML N=1 2.44, N=5 2.57
-- **Who wins after tax.** Buy & hold is best on 12/13 under the pre-registered rule. The
-  audit's estimate with bond and REIT distributions taxed yearly is about 9/13: TLT, IEF,
-  LQD and HYG flip.
+- **Who wins after tax.** Buy & hold is best on 12/13 under the pre-registered rule; its one
+  loss is TLT, to old ML N=5. With bond and REIT distributions taxed yearly, the audit puts
+  it at about 9-10/13:
+  - IEF and HYG flip
+  - LQD flips only if the strategies stay on the pre-registered tax rule
 
 **Coins (21 survivors, 2018-2026).** Medians across coins depend on the start date.
 
@@ -1458,13 +1461,17 @@ the test would detect 80% of the time at alpha 0.05.
 
 - The median per-coin gain, LARSSON minus buy & hold after tax, is the better measure:
   - +1.5 at 120 bars and +8.5 at 200
-  - −1.7 to +8.8 across 100-400 bars; negative for calendar starts in 2019-2020
-  - LARSSON is better on 12-13/21 coins (sign p 0.19-0.33)
+  - −1.7 to +8.8 across 100-400 bars
+  - negative for calendar starts from Nov 2018 to Apr 2020, Jul to Nov 2022 and Jan 2023
+  - LARSSON is better after tax on 12/21 coins at both starts (sign p 0.33), and on
+    10-13/21 across 100-400 bars
 - The old MoneyLine N=1 beats LARSSON on 15/21 (median Sharpe −0.07).
-- SMA200 is the worst rule on crypto at every start date. EMA50/200 is as bad.
+- Of the five headline rules, SMA200 is the worst on crypto at every start date. EMA50/200
+  is about as bad per coin and worse in the basket.
 
-**Baskets.** Pre-registered = daily-rebalanced equal weight. The audit added held sleeves:
-equal money on 1 January, then drifting. Each cell is CAGR / Sharpe_xs.
+**Baskets.** The tests use equal weight rebalanced daily. The pre-registration says only
+"equal-weight"; daily rebalancing comes from the flip-delay code. The audit added held
+sleeves: equal money on 1 January, then drifting. Each cell is CAGR / Sharpe_xs.
 
 | | S&P daily | S&P held | crypto daily | crypto held |
 |---|---|---|---|---|
@@ -1486,7 +1493,7 @@ equal money on 1 January, then drifting. Each cell is CAGR / Sharpe_xs.
   - old ML N=1 0.82 / 22.2, N=5 0.68 / 18.5
   - SMA200 0.30 / 2.4; buy & hold 0.56 / 13.1
 
-## The colour rule matters on crypto
+## The colour rule changes a verdict only on crypto
 
 These are secondary tests, not pre-registered, so they cannot change a verdict. With
 LARSSON-PRICE as the test rule:
@@ -1503,11 +1510,20 @@ The P3 pass is fragile:
 
 | P3 variant | dSharpe | p | Holm-equivalent |
 |---|---|---|---|
-| held baskets | +0.290 | 0.017 | about 0.08; audit's 10-seed median Holm 0.074 |
-| retail costs 0.30/0.35% | +0.338 | 0.011 | about 0.05; 4/10 seeds fail |
+| held baskets | +0.290 | 0.017 | about 0.08 (fail); audit's 10-seed median Holm 0.074 |
+| retail costs 0.30/0.35% | +0.338 | 0.011 | about 0.05 (borderline); 4/10 seeds fail |
 | held + retail | +0.228 | 0.039 | about 0.19 |
 | 0.95% per side | +0.099 | 0.21 | fail; second half −0.04 |
 
+- **The pass is post hoc.** LARSSON-PRICE was not the pre-registered rule. Over 10 bootstrap
+  seeds Holm ranges up to 0.03, or 0.055 if both colour rules count as tries. It would
+  need confirming on data after September 2026.
+- **On stocks the price rule mostly did worse:**
+  - held S&P basket Sharpe_xs 0.39 vs 0.50
+  - worse on 10/13 ETFs
+  - P4 −0.107, CI excluding 0
+  - realised after tax on the index 6.21 vs 6.57 (1929) and 5.69 vs 6.57 (1963)
+  - It did better on the index before 1990 and on the Dow.
 - **Mechanism: speed.**
   - LARSSON-PRICE switches about 18 times a coin-year, LARSSON about 5.
   - An EMA15/30 crossover basket matches it (Sharpe_xs 0.96).
@@ -1523,11 +1539,11 @@ The P3 pass is fragile:
 - **On crypto it trails the old MoneyLine N=1.** If the chart colours on price vs both
   lines, it behaves like a faster filter. It did well on the crypto basket at low costs,
   but not at Robinhood-like costs, and still not as well as the old MoneyLine.
-- **Ask the user which colour rule TradingView uses.** On ETH and SOL today the two rules
-  disagree.
+- **Ask the user which colour rule TradingView uses.** On the user's exports to
+  2026-10-15, the two rules disagree on ETH and SOL: crossover green, price rule red.
 - **"A plain 200-day average beat them all" (said in chat) needs the metric named.**
-  - It holds for Sharpe_xs and pre-tax CAGR on the 1929-2026 index: best of all 59,501
-    EMA pairs the audit tried. Its edge vs buy & hold is p 0.049 unadjusted, Holm 0.094
+  - It holds for Sharpe_xs and pre-tax CAGR on the 1929-2026 index. Its Sharpe_xs beats
+    all 59,501 EMA pairs the audit tried; its CAGR beats all 4,567 in the smaller grid. Its edge vs buy & hold is p 0.049 unadjusted, Holm 0.094
     with LARSSON.
   - It does not hold for drawdown in 1929-2026: −51.5%, 7th of 9, from one 1932-33
     whipsaw (−28.5% for 1934-2026).
@@ -1535,15 +1551,19 @@ The P3 pass is fragile:
     LARSSON-PRICE was better.
   - It does hold for 1963-2026 risk-adjusted return and drawdown (Sharpe_xs 0.56,
     maxDD −21.5%).
-  - On crypto it is the worst rule.
+  - On crypto it is the worst of the five headline rules. EMA50/200 is worse in the basket.
 
 **Small items:**
-- The Dow window starts 1886-07-01, once SMA200 is warm.
+- The Dow window starts 1886-07-01, about six months after SMA200 has its first value
+  (1885-12-30). The gap is not explained. Starting 1886-01-01 lowers the CAGRs by 0.1-0.2
+  points and changes no ranking.
 - The S&P universe filter uses future data to cut a few collapsed names. The effect is
   under 0.002 Sharpe.
 - 24 members from 2001 have no price file, Enron and Global Crossing among them. The
   effect is at most 0.19 CAGR points.
 - ETF and stock signals use dividend-adjusted closes, not the chart price the
-  pre-registration names. That moves single-ETF Sharpe by ±0.02-0.07 with no consistent
-  sign.
+  pre-registration names.
+  - On SPY, the one ETF tested, the chart price moves Sharpe_xs by −0.07 to +0.05
+    depending on the rule, with no consistent sign.
+  - Bond ETFs (yields 3-6%) were not tested.
 - The daily-rebalanced buy & hold basket's own trades are uncosted: about 1%/yr on crypto.
