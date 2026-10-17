@@ -22,3 +22,4 @@ data/universe_recent_raw/
 
 # economic-freedom thesis data (rebuild: python3 -m analysis_2026.fetch_freedom_data)
 data/freedom/
+data/scalping/
