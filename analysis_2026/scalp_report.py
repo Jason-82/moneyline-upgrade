@@ -1,0 +1,55 @@
+"""
+Combine the scalping study's primary cells (analysis_2026/SCALPING_PREREG.md, "General rules") into verdicts.
+
+    python3 -m analysis_2026.scalp_report
+
+Reads results_scalping/{A,B,C}/primary_cells.csv (Part B's file also holds the four E cells), applies one Holm
+correction across all 36 primary tests, and writes results_scalping/verdicts.csv and verdicts.txt:
+  PASS          Holm-adjusted one-sided p < 0.05 and every cond_* column True
+  NO EDGE       one-sided (1 - 0.05/36) upper bound of the edge below the cell's threshold E
+  INCONCLUSIVE  neither
+Also reported: the one-sided 95% upper bound of the edge ("largest edge ruled out at 95%") and the MDE at 80% power.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+from analysis_2026 import scalp_stats as ss
+
+ROOT = Path(__file__).resolve().parent
+RES = ROOT / "results_scalping"
+
+
+def _q(level, df):
+    return stats.t.ppf(level, df) if np.isfinite(df) and df > 0 else stats.norm.ppf(level)
+
+
+def main():
+    parts = [pd.read_csv(RES / p / "primary_cells.csv") for p in ("A", "B", "C") if (RES / p / "primary_cells.csv").exists()]
+    c = pd.concat(parts, ignore_index=True)
+    if len(c) != ss.N_PRIMARY:
+        print(f"WARNING: {len(c)} primary cells found, {ss.N_PRIMARY} pre-registered")
+    c["p_holm"] = ss.holm(c["p_one_sided"].to_numpy())
+    conds = [k for k in c.columns if k.startswith("cond_")]
+    c["other_ok"] = c[conds].fillna(False).astype(bool).all(axis=1) if conds else True
+    df = c["edge_df"].astype(float).to_numpy()
+    c["edge_ub_strict"] = [e + _q(1 - ss.ALPHA / ss.N_PRIMARY, d) * s for e, s, d in zip(c.edge_estimate, c.edge_se, df)]
+    c["edge_ub95"] = [e + _q(0.95, d) * s for e, s, d in zip(c.edge_estimate, c.edge_se, df)]
+    c["edge_mde80"] = [(_q(1 - ss.ALPHA / ss.N_PRIMARY, d) + stats.norm.ppf(0.8)) * s for s, d in zip(c.edge_se, df)]
+    c["verdict"] = [ss.verdict(p, ok, ub, E) for p, ok, ub, E in zip(c.p_holm, c.other_ok, c.edge_ub_strict, c.threshold_E)]
+    c.to_csv(RES / "verdicts.csv", index=False)
+    cols = ["test_id", "estimate", "t", "p_one_sided", "p_holm", "other_ok", "edge_estimate", "edge_ub95",
+            "edge_ub_strict", "threshold_E", "edge_mde80", "verdict"]
+    with open(RES / "verdicts.txt", "w") as f:
+        f.write(f"{len(c)} primary cells; Holm across all; conditions: {', '.join(conds)}\n\n")
+        f.write(c[cols].to_string(index=False, float_format=lambda x: f"{x:.4g}"))
+        f.write("\n\n" + c.verdict.value_counts().to_string() + "\n")
+    print(open(RES / "verdicts.txt").read())
+
+
+if __name__ == "__main__":
+    main()
