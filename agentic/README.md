@@ -50,6 +50,15 @@ see the last bullet.
   ( set -C; printf '{"env": {"AGENTIC_PYTHON": "%s/.venv/Scripts/python.exe"}}\n' "$(pwd -W)" > .claude/settings.local.json )
   ```
 
+- **Install the Claude Code command-line app** (`claude`). The web version can't run the hooks or reach your
+  Robinhood login. From Git Bash, run `node --version`, then:
+  - **Node 22 or later:** `npm install -g @anthropic-ai/claude-code`. It updates itself.
+  - **Otherwise:** `winget install Anthropic.ClaudeCode`. Update it later with
+    `winget upgrade Anthropic.ClaudeCode`.
+
+  Open a **new** Git Bash window, then check with `claude --version` and `claude doctor`. If `claude` is still not
+  found, `which -a claude` shows where it went. The first `claude` run opens the browser to log in with your
+  claude.ai account (Pro, Max, Team or Enterprise).
 - **Claude Code**, started from the repo folder. The project `.claude/settings.json` has the rest; accept it when
   Claude Code asks. **Restart Claude Code** after creating `settings.local.json`, then check that `/hooks` lists the
   PreToolUse, PostToolUse and PostToolUseFailure hooks:
@@ -72,8 +81,10 @@ see the last bullet.
 
   It exits 1 on any FAIL. The state dir, config and account lines fail until section 2 is done. Fix every FAIL
   before you run `/moneyline`.
-- Connect Robinhood: `claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading`,
-  then `/mcp` to log in. The hooks guard any `mcp__*robinhood*` name; the deny list covers the server names
+- Connect Robinhood: `claude mcp list` first (your claude.ai account may already bring a Robinhood connector), then
+  `claude mcp add --scope user --transport http robinhood-trading https://agent.robinhood.com/mcp/trading`, then
+  `/mcp` in Claude Code → `robinhood-trading` → Authenticate (or `claude mcp login robinhood-trading`). User scope
+  keeps it out of the repo; never use `--scope project`, which writes `.mcp.json` into this public repo. The hooks guard any `mcp__*robinhood*` name; the deny list covers the server names
   `robinhood-trading`, `Robinhood`, `robinhood-for-agents` and the claude.ai connector's `claude_ai_Robinhood`.
   Use one of those.
 - In the Robinhood app: open the Agentic account, fund it with only what this sleeve may use, link crypto if

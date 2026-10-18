@@ -19,7 +19,7 @@ research environment. Verify in the app before relying on any detail.
 |---|---|
 | Product | **Agentic Trading**: beta since 2026-05-27, options added in June, crypto rolled out 2026-08-17 to 08-31. US only. |
 | Account | A separate **Agentic account**. The agent can *read* all your Robinhood accounts but *trades* only the Agentic account, using only funds deposited there. Cash or "limited margin" (no borrowing, no leverage, no shorting). Taxable individual account, not an IRA. |
-| Connect Claude | `claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading`, then `/mcp` to log in (OAuth). |
+| Connect Claude | `claude mcp add --scope user --transport http robinhood-trading https://agent.robinhood.com/mcp/trading`, then `/mcp` to log in (OAuth). |
 | Approvals | **Off by default for external agents like Claude.** Turn on under Agent Settings → Safety Controls → Trade approvals. With approvals on, the agent's order becomes a proposal that you approve in the app. |
 | Limits | No documented per-order, position or loss caps. **The funded balance is the only hard limit.** Disconnecting the agent does not cancel open orders, and crypto limit orders last 90 days. |
 | Stock data | `get_equity_historicals`: daily/weekly OHLCV, 10 symbols per call, `adjustment_type` = `split` (default) / `none` / `all`. Server-side SuperTrend indicator available (default 10 / ×3, adjustable). |
