@@ -108,6 +108,16 @@ was taken where one exists; none was changed after seeing a result):
     as a one-day return. On the null paths those multi-day jumps compounded to x1e8 moves and float32 overflow;
     a benchmark name's +1e8 return gave B4 null statistics of -8.4 and -104 (fractions) and a traded name's x12,949
     day gave B1-L3 a null of +0.010. Null panels re-run after the fix.
+    (second review, 2026-10-18; documentation only) Correction to the note above: those headline outliers did not
+    come from gap bars. In the old null 0 the only name with a > x1000 move over 1-6 sessions in 2007-08-08..09-05
+    is WNW, compounded entirely from its own daily (no-gap) glitch ratios, and old null 19's x12,949 CBE day is CBE's
+    real daily ratio of 2017-03-02 (no gap). Such ratios are still in the pool (2,420 of the 3,165 beyond x3 or /3
+    have no gap; 1,981 of them in 26 names such as VBIV, CBE, SBL, WNW, OEG, EMP, ABK, TLS, SGP, TIE), so the redraw
+    still yields non-finite and huge closes (null 0: 65 non-finite and 5,040 > 1e10 on real-bar days after the
+    change, against 41 and 6,338 before). The change is a reading of "daily bar" consistent with choice 6, not a
+    cure for those outliers. Because the pool shrank, every draw changed, so cond_null's flips (B1-L3 F->T, B2-L2
+    T->F, B2-L3 F->T) are a re-randomisation. No verdict depends on them: every B/E cell fails cond_halves, cond_br,
+    cond_winsor and cond_dropmonth.
 21. D3: capital is recycled at the close; each day K minus the entry cost of still-open positions is split
     equally across that day's orders (for B3/B4 the limit orders placed); caps 10% of the entry day's $
     volume (x f for limit fills), 4.9% of shares outstanding (B-R only; current snapshot, not point in time),
@@ -166,7 +176,10 @@ was taken where one exists; none was changed after seeing a result):
     was 1-74x the notional and 70 B-H primary trades had net returns of -100% to -8,500% (SGP 44, SBL 21, EMP 3,
     ARCH 2; B1-L1 22, B2-L1 18, B4-L1 11, E1-L1 6, B1/B2/B4-L2 13; B-R has 67 more). Effect on the primary estimates: B1-L1 -6.61% -> -6.28%, B2-L1 -8.71% ->
     -7.30%, E1-L1 -7.02% -> -6.75%, all other cells < 1 bp. The cost formula itself is unchanged; the floor only
-    stops a sale from paying to dispose of the shares.
+    stops a sale from paying to dispose of the shares. (second review) B-R's 67 trades (TPST, ORBS, ELPW, ATPC, NUWE,
+    ZSTK) have sigma20 of 7-9.4 after a single very large move in the window (e.g. TPST's ~x40 day on 2023-10-11),
+    so the registered impact term can exceed the notional on B-R bars too. Many floored B-H trades had gross
+    returns of +4,000% to +12,000% from SBL/SGP glitch reversals; they enter the net statistic at -100%.
 Points where the pre-registration could not be followed are listed in summary.txt (B-R and its universe
 not yet pulled; shares outstanding only in B-R; historical B-H fee schedules).
 """

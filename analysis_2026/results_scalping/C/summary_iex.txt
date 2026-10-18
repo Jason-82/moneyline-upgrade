@@ -1,0 +1,2 @@
+cost model: Part B cost_model.csv (B-R); b = 4.281, -0.555, 0.256, 0.719, S = 1.251
+panel names outside the B-R universe (exclusion rules (b)-(d) / scan flag, as in Part B), dropped from every cell: {'NGL': 'rule b', 'RLX': 'rule b'}
