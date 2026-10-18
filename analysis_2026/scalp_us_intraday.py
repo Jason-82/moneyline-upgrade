@@ -1465,12 +1465,11 @@ def orb(cf, say, Q=QBIG):
         ent = next((j for j in range(6, fx) if TR[j] and Cc[j] > orh), None)
         if ent is None:
             rows.append(base | {"reason": "no breakout", "band": band, "s": s}); continue
-        lt = Cc.copy()
         lt = pd.Series(np.where(TR[:nb], Cc[:nb], np.nan)).ffill().to_numpy()
         ext = next((j for j in range(ent + 1, fx + 1) if TR[j] and Cc[j] < orl), fx)
         q = min(Q, 0.25 * Cc[ent] * Vv[ent])
         rec = base | {"traded": True, "band": band, "s": s, "entry_bar": ent, "exit_bar": ext,
-                      "exit_kind": "range low" if ext < fx or (TR[fx] and Cc[fx] < orl) else "15:50 close"}
+                      "exit_kind": "range low" if (TR[ext] and Cc[ext] < orl) else "15:50 close"}
         for mm in (0.0, 1.0, 1.5, 2.0):
             for Y in (0.0, 0.5):
                 imp = Y * sig * math.sqrt(max(0.0, Q - sd.DEPTH[band]) / max(adv, 1000.0)) if Y else 0.0
@@ -1490,11 +1489,20 @@ def orb(cf, say, Q=QBIG):
     tr = R[R.traded]
     iso = pd.to_datetime(tr.date).dt.isocalendar()
     wk = (iso.year.astype(str) + "-" + iso.week.astype(str)).to_numpy()
+    bands = sorted(R.band.dropna().unique().astype(int)) if "band" in R else []
+    groups = [("all", None)] + [(f"L{b}" if b else "below L1", b) for b in bands]
     for col in [c for c in R.columns if c.startswith("r_m")]:
-        x = tr[col].to_numpy(float); ok = np.isfinite(x)
-        m, se, t, p, dfree = cluster2_t(x[ok], tr.symbol.to_numpy()[ok], wk[ok]) if ok.sum() >= 3 else (np.nan,) * 5
-        out.append({"variant": col, "n_events": len(R), "n_trades": int(ok.sum()), "mean_return": m, "se": se, "t": t,
-                    "p_one_sided": p, "df": dfree, "median_return": float(np.median(x[ok])) if ok.any() else np.nan})
+        for gname, b in groups:
+            if b is not None and col != "r_m1.5_Y0":
+                continue
+            gm = np.ones(len(tr), bool) if b is None else (tr.band.to_numpy() == b)
+            x = tr[col].to_numpy(float); ok = np.isfinite(x) & gm
+            m, se, t, p, dfree = cluster2_t(x[ok], tr.symbol.to_numpy()[ok], wk[ok]) if ok.sum() >= 3 else (np.nan,) * 5
+            nev = len(R) if b is None else int((R.band == b).sum())
+            out.append({"variant": col, "band": gname, "n_events": nev, "n_trades": int(ok.sum()), "mean_return": m,
+                        "se": se, "t": t, "p_one_sided": p, "df": dfree,
+                        "median_return": float(np.median(x[ok])) if ok.any() else np.nan,
+                        "share_events_traded": int(ok.sum()) / nev if nev else np.nan})
     return R, pd.DataFrame(out)
 
 
@@ -1657,6 +1665,38 @@ def run_tests():
     res5, pos5, _ = run(z5, lat=1)
     print("engine case 5 (latency):", pos5[["j0", "B"]].to_dict("records"))
     ok &= pos5.j0[0] == 4
+    # latency: the stale order posted while flat fills the rest of the $2,000 cap in the next bar
+    z6 = sess(); put(z6, 2, 10.0, 10.0, 10.0, 10.0, 1000); put(z6, 3, 10.0, 10.0, 10.0, 10.0, 1000)
+    put(z6, 4, 9.89, 9.89, 9.89, 9.89, 404)        # 25% x 9.89 x 404 = $998.9 -> 100 shares at 9.90
+    put(z6, 5, 9.89, 9.89, 9.89, 9.89, 10000)      # stale order (posted at the close of bar 3): the rest
+    r6, p6, _ = run(z6, lat=1)
+    print("engine case 6 (latency stale fill):", p6[["j0", "shares", "n_fills", "cost"]].to_dict("records"))
+    ok &= len(p6) == 1 and p6.j0[0] == 4 and p6.n_fills[0] == 2 and p6.shares[0] == 100 + math.floor((2000 - 990) / 9.90 + 1e-9)
+    # fees and the 15:50 remainder rule with impact
+    z7 = sess(); put(z7, 2, 10.0, 10.0, 10.0, 10.0, 1000); put(z7, 3, 9.89, 9.89, 9.89, 9.89, 10000)
+    put(z7, 70, 10.0, 10.0, 10.0, 10.0, 1)         # 25% of 1 share: no forced sale; last trade 10.00
+    zz = dict(z7); zz["WCL"] = np.zeros((1, K), bool); zz["WCH"] = np.zeros((1, K), bool)
+    zz["WCL"][zz["TR"]] = wcent(zz["L_"][zz["TR"]]); zz["WCH"][zz["TR"]] = wcent(zz["H"][zz["TR"]]); zz["NB"] = np.array([K])
+    U7 = pd.DataFrame({"s": [0.02], "lt0": [10.0], "sig": [0.04], "adv": [1e5], "sec": [20.6e-6], "taf": [0.000195],
+                       "tafcap": [9.79], "L": [FULL]})
+    r7, p7, h7 = run_c1(SimpleNamespace(dt=300, K=K), U7, zz, rec=True)
+    imp = 0.5 * 0.04 * math.sqrt(2020 / 1e5)
+    proc = 2020 * (1 - 1.5 * 0.02 - imp)
+    want = proc - 202 * 9.90 - (20.6e-6 * proc + 0.000195 * 202)
+    print(f"engine case 7 (fees, 15:50 rule): net {p7.net[0]:.6f} vs {want:.6f}; held at bar 10 {h7[0, 10]:.2f}")
+    ok &= abs(p7.net[0] - want) < 1e-6 and abs(h7[0, 10] - 1999.8) < 0.01 and h7[0, 76] == 0
+    # two positions in one session: a full limit exit, then a new buy from the next close
+    z8 = sess(); put(z8, 2, 10.0, 10.0, 10.0, 10.0, 1000); put(z8, 3, 9.89, 9.89, 9.89, 9.89, 10000)
+    put(z8, 4, 10.11, 10.11, 10.11, 10.11, 100000); put(z8, 5, 9.99, 9.99, 9.99, 9.99, 10000)
+    r8, p8, _ = run(z8)
+    print("engine case 8 (two positions):", p8[["j0", "B", "lim_sh", "shares"]].to_dict("records"))
+    ok &= len(p8) == 2 and p8.lim_sh[0] == 202 and p8.j0[1] == 5 and p8.B[1] == _fc(10.11 * 0.99)
+    # T_max = 12 bars: the forced sale starts 12 bars after the fill
+    z9 = sess(); put(z9, 2, 10.0, 10.0, 10.0, 10.0, 1000); put(z9, 3, 9.89, 9.89, 9.89, 9.89, 10000)
+    for k in range(4, 20):
+        put(z9, k, 9.95, 9.95, 9.95, 9.95, 100000)
+    p9 = run(z9, tmax=12)[1]
+    print("engine case 9 (T_max 12): exit bar", p9.j_exit[0]); ok &= p9.j_exit[0] == 15
     print("ALL TESTS PASSED" if ok else "SOME TESTS FAILED")
     return ok
 
@@ -1673,8 +1713,9 @@ def main(argv=None):
         sys.exit(0 if run_tests() else 1)
     out = (SCRATCH / "smoke_C") if a.smoke else OUT
     out.mkdir(parents=True, exist_ok=True)
-    say = say_factory(out / ("summary_controls.txt" if a.controls and not a.run else
-                             "summary_smoke.txt" if a.smoke else "summary.txt"))
+    say = say_factory(out / ("summary.txt" if a.run else "summary_smoke.txt" if a.smoke else
+                             "summary_controls.txt" if a.controls else "summary_events.txt" if a.events else
+                             "summary_iex.txt"))
     T0 = time.time()
     cf, cflag = cost_model(say)
     have_panel = (RH / "panel_c.csv").exists() and (RH / "m5_none.parquet").exists()
@@ -1714,11 +1755,23 @@ def main(argv=None):
         if not have_panel:
             say("panel_c.csv / m5_none.parquet missing: nothing to run"); return
         pan, ck5, P, U, ck1, ck15 = load_panel_data(cf, say)
+        ci = pd.read_csv(OUT / "controls_i.csv") if (OUT / "controls_i.csv").exists() else None
         say(f"window {U.attrs['w0']}..{U.attrs['w1']} ({U.attrs['n_sessions']} sessions, median {U.attrs['median_session']}),"
             f" {len(U):,} stock-sessions; s from 5-min EDGE in {(U.s_src == '5min').mean():.0%}")
+        say("Points where the pre-registration could not be followed as written (see the module docstring):")
+        say("  - intraday bars are unadjusted only (all C rules are within-session and s is relative); daily bars are"
+            " split-adjusted + unadjusted as registered")
         if U.attrs["w0"] != WIN0:
-            say(f"DEVIATION: retention had rolled past {WIN0}; the window starts at {U.attrs['w0']}")
-        ci = pd.read_csv(OUT / "controls_i.csv") if (OUT / "controls_i.csv").exists() else None
+            say(f"  - retention had rolled past {WIN0}: the window starts at {U.attrs['w0']}")
+        say(f"  - closing-quote model M: {cflag}")
+        say("  - Control (iii): no historical NBBO exists except the 2026-10-16 scanner close, so 4 of the 5 IEX days use"
+            " the NBBO-match proxy of C16")
+        if ck1 is None:
+            say("  - 1-minute bars missing: PASS condition 6 (cond_1min) not evaluable (left empty = not met)")
+        if ck15 is None:
+            say("  - 15-second bars missing: the 15-second rerun is not reported")
+        if ci is None:
+            say("  - controls_i.csv missing (run --controls first): cond_control_i left empty = not met")
         nii = pd.read_csv(OUT / "controls_ii.csv") if (OUT / "controls_ii.csv").exists() else None
         if nii is not None:
             nii = nii[nii.subset == "s x P >= $0.03"]
@@ -1733,9 +1786,14 @@ def main(argv=None):
         say(pd.DataFrame({"test_id": prim.test_id, "estimate": prim.estimate, "t": prim.t, "p_holm_within": p})
             .to_string(index=False))
     if a.events:
+        if not ((RH / "events.csv").exists() and (RH / "events_m5_none.parquet").exists()):
+            say("events.csv / events_m5_none.parquet missing: nothing to run"); return
         R, s = orb(cf, say)
-        R.to_parquet(TDIR / "e_orb_trades.parquet", index=False) if TDIR.exists() else None
+        TDIR.mkdir(parents=True, exist_ok=True)
+        R.to_parquet(TDIR / "e_orb_trades.parquet", index=False)
         s.to_csv(OUT / "e_orb.csv", index=False)
+        say(f"Part E intraday ORB leg (exploratory, survivor-biased): {len(R)} events, {int(R.traded.sum())} trades; "
+            f"reasons for no trade: {R.loc[~R.traded, 'reason'].value_counts().to_dict()}")
         say(s.to_string(index=False))
     if a.iex:
         control_iii(cf, say, a.workers)

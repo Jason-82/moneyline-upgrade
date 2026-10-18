@@ -695,6 +695,14 @@ def _inv_change(SF, SI, res, T, delta, eps, price):
 
 
 @njit(cache=True)
+def _grow(a):
+    """R7: the passive-fill markout buffer doubles when full (book-mode fills come from book updates as well)."""
+    b = np.empty(2 * a.shape[0])
+    b[:a.shape[0]] = a
+    return b
+
+
+@njit(cache=True)
 def engine(ev_t, ev_side, ev_st, ev_en, ev_pf, ev_pl, pr_px, pr_q,
            bk_t, bk_b, bk_bq, bk_a, bk_aq, nxt_s, nxt_b,
            ib, tb, ia, ta, tick, ref,
@@ -997,14 +1005,13 @@ def engine(ev_t, ev_side, ev_st, ev_en, ev_pf, ev_pl, pr_px, pr_q,
                             if lrem[sm] <= eps:
                                 lon[sm] = False
                             sg = 1.0 if sm == 0 else -1.0
-                            if nfr < M:
-                                fr_t[nfr] = T
-                                fr_s[nfr] = sg
-                                fr_p[nfr] = P * SCALE
-                                fr_q[nfr] = f
-                                nfr += 1
-                            else:
-                                res[R_FLAGS] = float(int(res[R_FLAGS]) | FLAG_MKFULL)
+                            if nfr >= fr_t.shape[0]:
+                                fr_t, fr_s, fr_p, fr_q = _grow(fr_t), _grow(fr_s), _grow(fr_p), _grow(fr_q)
+                            fr_t[nfr] = T
+                            fr_s[nfr] = sg
+                            fr_p[nfr] = P * SCALE
+                            fr_q[nfr] = f
+                            nfr += 1
                             if m0 > 0:
                                 res[R_MK0] += sg * (m0 - P) * SCALE * f
                                 res[R_MK0C] += P * SCALE * f
@@ -1065,12 +1072,13 @@ def engine(ev_t, ev_side, ev_st, ev_en, ev_pf, ev_pl, pr_px, pr_q,
                                 if lrem[s] <= eps:
                                     lon[s] = False
                                 sg = 1.0 if s == 0 else -1.0
-                                if nfr < M:
-                                    fr_t[nfr] = T
-                                    fr_s[nfr] = sg
-                                    fr_p[nfr] = P * SCALE
-                                    fr_q[nfr] = f
-                                    nfr += 1
+                                if nfr >= fr_t.shape[0]:
+                                    fr_t, fr_s, fr_p, fr_q = _grow(fr_t), _grow(fr_s), _grow(fr_p), _grow(fr_q)
+                                fr_t[nfr] = T
+                                fr_s[nfr] = sg
+                                fr_p[nfr] = P * SCALE
+                                fr_q[nfr] = f
+                                nfr += 1
                 bb = nb_
                 ba = na_
                 bq = bk_bq[k]
@@ -1544,8 +1552,93 @@ def tests():
                   f"Q3 bids one tick behind (99.9): not filled at 99.95, filled by 99.85 ({l2['bought_usd']:.2f})"))
     l3 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (2.9, 99.9, 4, -1), (20, 99.5, 1, -1)], delta=1.0)
     res.append(ok(l3["bought_usd"] == 0, "latency 1 s: an order decided at t=2 is not live at 2.9"))
+    # --- added in review: latency boundary, midnight cut-off, exit reference, crossed sweep, Q5 floor, sqrt walk
+    m1 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (2.2499, 99.9, 4, -1), (20, 99.5, 1, -1)])
+    m2 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (2.25, 99.9, 4, -1), (20, 99.5, 1, -1)])
+    res.append(ok(m1["bought_usd"] == 0 and close(m2["bought_usd"], 400.0), "a print at t+D-eps cannot fill; at t+D it can"))
+    m3 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (9.9, 99.9, 4, -1), (20, 99.5, 1, -1)])
+    m4 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (10.0, 99.9, 4, -1), (20, 99.5, 1, -1)])
+    res.append(ok(close(m3["bought_usd"], 400.0) and m4["bought_usd"] == 0, "orders live until 00:00, none fill at/after 00:00"))
+    kp = [(t, 100.0 if s < 0 else 100.5, 0.001, s) for t in range(100, 3601, 100) for s in (-1, 1)]
+    m5 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.9, 4, -1)] + kp + [(3603.4, 100.2, 1, -1), (3610, 99.8, 1, -1)],
+              t_close=3605, t_hard=6000)
+    res.append(ok(m5["n_tmax"] == 1 and close(m5["exit_usd"], 4 * 99.7),
+                  f"T_max exit: R ignores the seller print inside (t, t+D); R = min(100.0, 99.8) -> 99.7 ({m5['exit_usd'] / 4:.3f})"))
+    m6 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.8, 2, 1), (3, 99.9, 3, 1), (3, 100.0, 1, 1), (900, 99.5, 1, -1)],
+              t_hard=1400)
+    res.append(ok(m6["n_crossed"] == 1 and close(m6["crossed_usd"], 6 * 100.0), "crossing sweep: one fill, summed volume, worst price"))
+    m7 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (2.1, 100.0, 1, 1), (2.3, 99.9, 4, -1), (5, 100.2, 10, 1), (900, 99.5, 1, -1)],
+              strat=Q5, t_close=1000, t_hard=1400)
+    res.append(ok(close(m7["sold_usd"], 4 * 100.1), "Q5 offer = max(implied ask 100.0, fill + 1 tick) = 100.1"))
+    ntw = np.r_[np.full(5, 1000.0), np.full(5, 50.0), np.full(30, 1.0)]
+    wkw = np.r_[np.full(10, 0.001), np.zeros(30)]
+    m8 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.9, 4, -1), (20, 99.5, 1, -1)],
+              walk=(walk_table(ntw, wkw), walk_table(np.ones(1), np.zeros(1))))
+    w8 = max(0.001 * math.sqrt(4 * 99.5 / np.median(ntw[np.argsort(-ntw)[:10]])), 0.1 / 99.5)
+    res.append(ok(close(m8["exit_usd"], 4 * 99.5 * (1 - w8)), "exit walk: sqrt fallback when < 10 orders >= exit notional"))
+    # --- look-ahead: changing every print after t_close leaves every pre-close order and fill unchanged
+    rng2 = np.random.default_rng(7)
+    la = True
+    for _ in range(20):
+        tt = np.round(np.sort(rng2.uniform(0, 3000, 300)), 3)
+        mid, rows_ = 1000, []
+        for ti in tt:
+            mid += int(rng2.choice([-1, 0, 1])); sd = 1 if rng2.random() < 0.5 else -1
+            for j in range(int(rng2.integers(1, 4))):
+                rows_.append((float(ti), (mid + (1 if sd > 0 else 0) + sd * j) * 0.1, float(rng2.exponential(6)), sd))
+        rows2 = [(t, p + (5.0 if t > 1500 else 0), q * (3 if t > 1500 else 1), s) for t, p, q, s in rows_]
+        for st_ in (Q1, Q2, Q3, Q5, Q1LO):
+            a_, b_ = _run(rows_, strat=st_, t_close=1500.0, t_hard=4000.0), _run(rows2, strat=st_, t_close=1500.0, t_hard=4000.0)
+            la &= all(close(a_[c], b_[c], 1e-12) for c in ("maker_usd", "crossed_usd", "bought_usd", "sold_usd", "n_orders",
+                                                             "n_cancels", "n_tmax"))
+    res.append(ok(la, "look-ahead: prints after the close never change pre-close orders or fills (100 random tapes)"))
+    res.append(ok(_pipeline_test(), "pipeline: tick/walk from d-7..d-1, carry and size from d-1, next-day file, missing day"))
     print(f"{sum(res)}/{len(res)} engine tests passed")
     return all(res)
+
+
+def _pipeline_test() -> bool:
+    """run_segment on a fake archive (no network): what reaches the engine on each simulated day."""
+    d0, missing, calls = date(2025, 9, 1), {date(2025, 10, 2)}, []
+
+    def tape(d):
+        i = (d - d0).days
+        t0 = int(day_start_s(d)) * 10 ** 6
+        base, lastp, rows_ = 100.0 + 0.1 * (i % 3), 101.0 + 0.1 * (i % 7), []
+        for k_ in range(0, 1440, 2):
+            ts = t0 + (k_ * 60 + 5) * 10 ** 6
+            rows_ += [(base, ts, True), (base + 0.5, ts + 10 ** 6, False)]
+        if d == date(2025, 9, 23):
+            rows_.append((100.05, t0 + 3600 * 10 ** 6 + 7, True))       # off-grid on d-8 of 10-01
+        if d == date(2025, 10, 1):
+            rows_.append((100.03, t0 + 86000 * 10 ** 6, True))           # off-grid late on 10-01
+        rows_.append((lastp, t0 + 86370 * 10 ** 6, True))
+        rows_.sort(key=lambda r: r[1])
+        return "\n".join(f"{i * 100000 + j},{p:.8f},1.0,{p:.8f},{t},{b},True" for j, (p, t, b) in enumerate(rows_)).encode(), lastp
+
+    def spy(*a):
+        calls.append(dict(q=a[28], tick=a[19], ib=a[15], tb=a[16], nws=len(a[21]), tmax=float(a[0].max())))
+        return real(*a)
+    g = globals()
+    real, real_fetch = g["engine"], g["fetch_spot"]
+    g["engine"], g["fetch_spot"] = spy, (lambda s, d: None if d in missing else tape(d)[0])
+    out = SCRATCH / "tests_pipeline"
+    try:
+        run_segment("t", "TESTUSDT", [(0, "B")], [(Q1, 1000, F1, 0.25, 1.0)], pd.DataFrame(dict(sym=[], day=pd.to_datetime([]), close=[])),
+                    out_dir=out, limit_days=3)
+    finally:
+        g["engine"], g["fetch_spot"] = real, real_fetch
+    df = pd.read_parquet(out / "t" / "TESTUSDT" / "2025-10.parquet")
+    c1, c3 = calls
+    S = SCALE
+    l0930, l1001 = tape(date(2025, 9, 30))[1], tape(date(2025, 10, 1))[1]
+    r2 = df[df.day == "2025-10-02"].iloc[0]
+    return bool(len(calls) == 2 and c1["tick"] == int(round(0.1 / S)) and c3["tick"] == int(round(0.01 / S))
+                and abs(c1["q"] - 1000 / l0930) < 1e-9 and abs(c3["q"] - 1000 / l1001) < 1e-9
+                and c1["ib"] == int(round(l0930 / S)) and abs(c1["tb"] + 30) < 1e-6 and abs(c3["tb"] + 86430) < 1e-6
+                and c1["nws"] == 7 * 721 and c3["nws"] == 6 * 721 + 1 and c1["tmax"] < DAY < c3["tmax"] < 2 * DAY
+                and len(df) == 3 and (not r2.has_data) and int(r2.flag_bits) & FLAG_NODATA and r2.gross_usd == 0
+                and int(df[df.day == "2025-10-01"].iloc[0].flag_bits) & FLAG_NONEXT)
 
 
 # ============================================================================================ jobs
