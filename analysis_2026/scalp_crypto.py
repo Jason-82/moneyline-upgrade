@@ -132,8 +132,15 @@ Controls
       would cross on activation takes the displayed size as taker (post-only: rejected).
 
 ---------------------------------------------------------------------------------------------- Deviations
-(Places where the pre-registration could not be followed exactly; see also C2.)
-  D1  Robinhood currency pairs (A-RH) are read from data/scalping/rh/currency_pairs.json when it exists.
+(Places where the pre-registration could not be followed exactly.)
+  D1  Control (ii)/(iii): tick and walk come from the control day itself, not days d-7..d-1, and the session ends
+      at 23:50 with an in-file flatten instead of a next-day file (C2). Both legs use identical inputs, so the
+      trades-only minus true-book difference, which is all the control feeds into Part A, is not affected by it.
+  D2  A-RH needs data/scalping/rh/currency_pairs.json (a read-only get_currency_pairs response saved by an agent
+      session); until it exists the stratum is skipped and reported as missing.
+Notes (the draw as specified, not deviations)
+  N1  Band A ($50-200k) has only 1, 2 and 0 eligible pairs in 2025-10, -11 and -12, so min(k, n) yields 3 band-A
+      pair-months in the first quarter (33 in the first half vs 60 in the second); bands B-D are full.
 """
 from __future__ import annotations
 
@@ -202,7 +209,7 @@ FILL_NAME = {F1: "F1", F2: "F2", FIFO: "FIFO", FRONT: "FRONT"}
 
 RES_NAMES = ["gross_usd", "maker_usd", "taker_usd", "crossed_usd", "exit_usd", "n_maker", "n_crossed", "n_exits",
              "filled_usd", "max_inv_usd", "mk60_usd", "mk60_cov_usd", "mk300_usd", "mk300_cov_usd", "exit_cost_usd",
-             "n_orders", "n_cancels", "n_orders_filled", "flags", "n_tmax", "n_postonly_cancel", "eod_inv_usd",
+             "n_orders", "n_cancels", "n_orders_filled", "flag_bits", "n_tmax", "n_postonly_cancel", "eod_inv_usd",
              "bought_usd", "sold_usd", "mk0_usd", "mk0_cov_usd"]
 (R_GROSS, R_MAKER, R_TAKER, R_CROSSED, R_EXIT, R_NMF, R_NCF, R_NEX, R_FILLED, R_MAXINV, R_MK60, R_MK60C, R_MK300,
  R_MK300C, R_EXCOST, R_NORD, R_NCAN, R_NOF, R_FLAGS, R_NTMAX, R_NPOC, R_EODINV, R_BOUGHT, R_SOLD, R_MK0,
@@ -1353,6 +1360,7 @@ def run_segment(stratum: str, sym: str, months: list[tuple[int, str]], configs, 
                         o[R_FLAGS] = float(int(o[R_FLAGS]) | FLAG_NONEXT)
                     r = dict(base, config=nm)
                     r.update(zip(RES_NAMES, o.tolist()))
+                    r["n_fills"] = r["n_maker"] + r["n_crossed"]
                     rows.setdefault(mo, []).append(r)
                 timing["sim"] += time.time() - t_
                 timing["sim_days"] += 1
@@ -1493,7 +1501,7 @@ def tests():
     res.append(ok(i1["n_orders"] >= 2 and i2["n_orders"] == 0, "quote state carried from the previous day; stale => no quote"))
     # --- J: stopped trading valuation when no print follows the exit
     j1 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.9, 4, -1)])
-    res.append(ok(int(j1["flags"]) & FLAG_STOPPED and close(j1["exit_usd"], 4 * 99.9 * (1 - 0.6 / 100.2)),
+    res.append(ok(int(j1["flag_bits"]) & FLAG_STOPPED and close(j1["exit_usd"], 4 * 99.9 * (1 - 0.6 / 100.2)),
                   "stopped trading: last seller print x (1 - implied spread)"))
     # --- K: Q1-LO never sells coins it does not hold; Q1 does (pre-held coins)
     tk = [(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 100.6, 5, 1), (20, 99.5, 1, -1), (21, 100.7, 1, 1)]
@@ -1502,10 +1510,768 @@ def tests():
     # --- L: 25% participation; Q3 one tick behind; latency 1 s
     l1 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.9, 4, -1), (20, 99.5, 1, -1)], part=0.25)
     res.append(ok(close(l1["bought_usd"], 1 * 100.0), "25% participation takes a quarter of the through volume"))
-    l2 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.9, 4, -1), (4, 99.85, 4, -1), (20, 99.5, 1, -1)], strat=Q3)
+    l2 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (3, 99.95, 4, -1), (4, 99.85, 4, -1), (20, 99.5, 1, -1)], strat=Q3)
     res.append(ok(close(l2["bought_usd"], 4 * 99.9) and l2["n_maker"] == 1,
-                  f"Q3 bids one tick behind (99.9): filled only by the 99.85 print ({l2['bought_usd']:.2f})"))
+                  f"Q3 bids one tick behind (99.9): not filled at 99.95, filled by 99.85 ({l2['bought_usd']:.2f})"))
     l3 = _run([(1, 100.0, 1, -1), (2, 100.5, 1, 1), (2.9, 99.9, 4, -1), (20, 99.5, 1, -1)], delta=1.0)
     res.append(ok(l3["bought_usd"] == 0, "latency 1 s: an order decided at t=2 is not live at 2.9"))
     print(f"{sum(res)}/{len(res)} engine tests passed")
     return all(res)
+
+
+# ============================================================================================ jobs
+SCRATCH = Path("/tmp/claude-0/-home-user-moneyline-upgrade/5e565363-4044-518a-a642-8a4d3835a58f/scratchpad")
+_K = None
+
+
+def _segments(months: list[tuple[int, str]]) -> list[list[tuple[int, str]]]:
+    out = []
+    for m, b in sorted(months):
+        if out and out[-1][-1][0] == m - 1:
+            out[-1].append((m, b))
+        else:
+            out.append([(m, b)])
+    return out
+
+
+def arh_rule(d: date) -> bool:
+    return (d - P0).days % 7 == 0
+
+
+def jobs(stratum: str) -> list[tuple]:
+    k, excl, elig, dr, arh = universe(write=True)
+    if stratum == "main":
+        js = [("main", s, seg) for s, g in dr.groupby("sym") for seg in _segments(list(zip(g.m, g.band)))]
+    else:
+        if arh is None:
+            return []
+        e = elig[elig.eligible & elig.sym.isin(arh.sym[~arh.excluded])]
+        js = [("arh", s, seg) for s, g in e.groupby("sym") for seg in _segments(list(zip(g.m, g.band)))]
+    return sorted(js, key=lambda j: (-len(j[2]), j[1]))
+
+
+def _done(stratum, sym, m, names) -> bool:
+    p = DATA / stratum / sym / f"{MONTHS[m]:%Y-%m}.parquet"
+    if not p.exists():
+        return False
+    try:
+        c = pd.read_parquet(p, columns=["config"]).config
+    except Exception:
+        return False
+    return set(names) <= set(c)
+
+
+def run_job(job) -> dict:
+    global _K
+    stratum, sym, months = job
+    configs = MAIN_CONFIGS if stratum == "main" else ARH_CONFIGS
+    names = [cfg_name(*c) for c in configs]
+    todo = [(m, b) for m, b in months if not _done(stratum, sym, m, names)]
+    if _K is None:
+        _K = load_klines()
+    t0 = time.time()
+    tim = dict(download=0.0, parse=0.0, sim=0.0, events=0, sim_days=0)
+    for seg in _segments(todo):
+        t = run_segment(stratum, sym, seg, configs, _K, sim_rule=arh_rule if stratum == "arh" else None)
+        for c_ in tim:
+            tim[c_] += t[c_]
+    tim.update(job=f"{stratum} {sym} {len(months)}m ({len(todo)} to do)", wall=time.time() - t0)
+    return tim
+
+
+def run_all(stratum: str = "main", workers: int = 4):
+    js = jobs(stratum)
+    if not js:
+        print(f"{stratum}: nothing to run" + (" (data/scalping/rh/currency_pairs.json not found)" if stratum == "arh" else ""))
+        return
+    DATA.mkdir(parents=True, exist_ok=True)
+    log = open(DATA / f"run_{stratum}.log", "a")
+    print(f"{stratum}: {len(js)} jobs, {sum(len(j[2]) for j in js)} pair-months, {workers} workers", flush=True)
+    t0 = time.time()
+    with cf.ProcessPoolExecutor(workers) as ex:
+        futs = {ex.submit(run_job, j): j for j in js}
+        for i, f in enumerate(cf.as_completed(futs), 1):
+            try:
+                r = f.result()
+                msg = (f"[{i}/{len(js)}] {r['job']}: wall {r['wall']:.0f}s download {r['download']:.0f}s parse "
+                       f"{r['parse']:.0f}s sim {r['sim']:.0f}s events x configs {r['events']:,}")
+            except Exception as e:  # keep going; a rerun retries the missing pair-months
+                msg = f"[{i}/{len(js)}] FAILED {futs[f]}: {e!r}"
+            print(msg, f"(elapsed {time.time() - t0:.0f}s)", flush=True)
+            log.write(msg + "\n"); log.flush()
+
+
+def smoke():
+    """2 drawn pairs x 3 days with the full warm-up (30 prior days for the split stats, 7 for the tick/walk)."""
+    k, excl, elig, dr, arh = universe(write=True)
+    picks = [dr[(dr.m == 0) & (dr.band == "B")].iloc[0], dr[(dr.m == 0) & (dr.band == "D")].iloc[0]]
+    out = SCRATCH / "smoke_A"
+    for r in picks:
+        t0 = time.time()
+        t = run_segment("smoke", r.sym, [(int(r.m), r.band)], MAIN_CONFIGS, k, out_dir=out, limit_days=3)
+        df = pd.read_parquet(out / "smoke" / r.sym / f"{MONTHS[int(r.m)]:%Y-%m}.parquet")
+        days = 30 + 3 + 1
+        print(f"{r.sym} (band {r.band}): {days} files, wall {time.time() - t0:.1f}s; download {t['download']:.1f}s, "
+              f"parse {t['parse']:.1f}s, sim {t['sim']:.1f}s for {t['sim_days']} days x {len(MAIN_CONFIGS)} configs "
+              f"({t['events'] / max(t['sim'], 1e-9) / 1e6:.2f}M order-events/s); rows {len(df)}, "
+              f"events/day {df.n_events.mean():,.0f}; flags {sorted(set(df.flag_bits.astype(int)))}")
+        print("   columns:", ", ".join(df.columns[:12]), "...")
+
+
+# ============================================================================================ Control (i): synthetic GM market
+@njit(cache=True)
+def synth_market(seed, S, alpha, lam_a, lam_v, sizes, qmean, ddeep, tau, p0t, tk, H, t_end):
+    """One synthetic day (C1). Prices in ticks internally, int 1e-8 units on output. Returns trades
+    (t_us, px, qty, ibm) and book updates (t, bid, bid qty, ask, ask qty)."""
+    np.random.seed(seed)
+    INF = 1e30
+    nvm = int((t_end + H + 100) * lam_v * 3 + 100)
+    vt = np.empty(nvm)
+    vc = np.empty(nvm, np.int64)
+    t = 0.0
+    nv = 0
+    c = 0
+    while nv < nvm:
+        t += np.random.exponential(1.0 / lam_v)
+        if t > t_end + H + 10:
+            break
+        c += 1 if np.random.random() < 0.5 else -1
+        vt[nv] = t
+        vc[nv] = c
+        nv += 1
+    vt = vt[:nv]
+    vc = vc[:nv]
+    nam = int(t_end * lam_a * 2 + 100)
+    nlev = 64
+    tr_t = np.empty(nam * 4)
+    tr_p = np.empty(nam * 4, np.int64)
+    tr_q = np.empty(nam * 4)
+    tr_s = np.empty(nam * 4, np.bool_)
+    ntr = 0
+    nbm = nam + 4 * nv + 16
+    bk_t = np.empty(nbm)
+    bk_b = np.empty(nbm, np.int64)
+    bk_bq = np.empty(nbm)
+    bk_a = np.empty(nbm, np.int64)
+    bk_aq = np.empty(nbm)
+    nbk = 0
+    Bs = p0t
+    b = Bs
+    a = Bs + S
+    px0 = p0t * tk * SCALE
+    qb = np.random.exponential(qmean) / px0
+    qa = np.random.exponential(qmean) / px0
+    tpb = INF
+    tpa = INF
+    iv = 0
+    ta_next = np.random.exponential(1.0 / lam_a)
+    bk_t[0] = 0.0; bk_b[0] = b * tk; bk_bq[0] = qb; bk_a[0] = a * tk; bk_aq[0] = qa
+    nbk = 1
+    while True:
+        t_v = vt[iv] if iv < nv else INF
+        T = min(min(t_v, ta_next), min(tpb, tpa))
+        if T >= t_end:
+            break
+        if t_v == T:
+            Bs = p0t + vc[iv]
+            iv += 1
+            if b > Bs:
+                b = Bs
+                qb = np.random.exponential(qmean) / (b * tk * SCALE)
+            if a < Bs + S:
+                a = Bs + S
+                qa = np.random.exponential(qmean) / (a * tk * SCALE)
+            tpb = T + tau if b < Bs else INF
+            tpa = T + tau if a > Bs + S else INF
+        elif tpb == T:
+            tpb = INF
+            if b < Bs:
+                b = Bs
+                qb = np.random.exponential(qmean) / (b * tk * SCALE)
+        elif tpa == T:
+            tpa = INF
+            if a > Bs + S:
+                a = Bs + S
+                qa = np.random.exponential(qmean) / (a * tk * SCALE)
+        else:
+            ta_next = T + np.random.exponential(1.0 / lam_a)
+            if np.random.random() < alpha:
+                j = np.searchsorted(vt, T + H, side="right") - 1
+                fut = p0t + (vc[j] if j >= 0 else 0)
+                sd = 1 if fut > Bs else (-1 if fut < Bs else (1 if np.random.random() < 0.5 else -1))
+            else:
+                sd = 1 if np.random.random() < 0.5 else -1
+            N = sizes[np.random.randint(0, sizes.shape[0])]
+            rem = N / px0
+            if sd < 0:
+                lev = b
+                avail = qb
+                for _ in range(nlev):
+                    take = min(rem, avail)
+                    if ntr < tr_t.shape[0]:
+                        tr_t[ntr] = T; tr_p[ntr] = lev * tk; tr_q[ntr] = take; tr_s[ntr] = True
+                        ntr += 1
+                    rem -= take
+                    if lev == b:
+                        qb -= take
+                    if rem <= 1e-12:
+                        break
+                    lev -= 1
+                    avail = ddeep / (lev * tk * SCALE)
+                if qb <= 1e-12:
+                    qb = np.random.exponential(qmean) / (b * tk * SCALE)
+            else:
+                lev = a
+                avail = qa
+                for _ in range(nlev):
+                    take = min(rem, avail)
+                    if ntr < tr_t.shape[0]:
+                        tr_t[ntr] = T; tr_p[ntr] = lev * tk; tr_q[ntr] = take; tr_s[ntr] = False
+                        ntr += 1
+                    rem -= take
+                    if lev == a:
+                        qa -= take
+                    if rem <= 1e-12:
+                        break
+                    lev += 1
+                    avail = ddeep / (lev * tk * SCALE)
+                if qa <= 1e-12:
+                    qa = np.random.exponential(qmean) / (a * tk * SCALE)
+        if nbk < nbm:
+            bk_t[nbk] = T; bk_b[nbk] = b * tk; bk_bq[nbk] = qb; bk_a[nbk] = a * tk; bk_aq[nbk] = qa
+            nbk += 1
+    return (np.rint(tr_t[:ntr] * 1e6).astype(np.int64), tr_p[:ntr], tr_q[:ntr], tr_s[:ntr],
+            bk_t[:nbk], bk_b[:nbk], bk_bq[:nbk], bk_a[:nbk], bk_aq[:nbk])
+
+
+def pilot_sizes(syms) -> np.ndarray:
+    """Taker-order notionals of pilot pairs (already seen; used only as a size distribution)."""
+    out = []
+    for s in syms:
+        for f in sorted(PILOT_TRADES.glob(f"{s}-trades-*.zip")):
+            z = zipfile.ZipFile(f)
+            t = parse_trades(z.read(z.namelist()[0]))
+            out.append(build_events(t["t_us"], t["ibm"], t["px"], t["quote"])[6])
+    return np.concatenate(out)
+
+
+def run_book_day(tr, bk, strats_fills, tick, ref, t_close, configs_size=1000.0, delta=0.25, p_ref=None):
+    """Run strategies on one day with both a trade tape and a true book. strats_fills: list of (strat, fill, mode)."""
+    ev_tu, side, st, en, pf, pl, nt, wk = build_events(tr["t_us"], tr["ibm"], tr["px"], tr["quote"])
+    t0 = (tr["t_us"][0] // (86400 * 10 ** 6)) * 86400 * 10 ** 6 if tr.get("day0") is None else tr["day0"]
+    ev_t = (ev_tu - t0) / 1e6
+    ns, nb = next_side(side)
+    s_ = side < 0
+    ws = walk_table(nt[s_].astype(np.float64), wk[s_])
+    wb = walk_table(nt[~s_].astype(np.float64), wk[~s_])
+    bt = (bk["t_us"] - t0) / 1e6
+    pr = p_ref if p_ref is not None else tr["px"][0] * SCALE
+    out = []
+    for strat, fill, mode in strats_fills:
+        r = engine(ev_t, side, st, en, pf, pl, tr["px"], tr["qty"], bt, bk["bid"], bk["bq"], bk["ask"], bk["aq"], ns, nb,
+                   -1, -1e9, -1, -1e9, int(tick), int(ref), *ws, *wb, strat, configs_size / pr, delta, fill, 1.0,
+                   mode, 1 if mode == 1 else 0, t_close, DAY + 1.0, MIN_NOTIONAL)
+        out.append(r)
+    return out
+
+
+def control_i(days_a=20, days_c=10):
+    """Control (i): Q1/Q2/Q5 under F1, F2 and the true queue on synthetic no-information (alpha 0) and informed
+    (alpha 0.3) markets with spreads of 1, 3 and 10 ticks."""
+    sizes = {"A-like (150 orders/h)": (pilot_sizes([s + "USDT" for s in ("GNO", "XVS", "REQ", "KNC")]), 150 / 3600, days_a),
+             "C-like (1000 orders/h)": (pilot_sizes([s + "USDT" for s in ("TRB", "RUNE", "GALA", "ETC")]), 1000 / 3600, days_c)}
+    tk = int(0.0005 / SCALE)                 # $0.0005 tick on a $1 price: 5 bp
+    p0t = int(1.0 / SCALE) // tk
+    runs = [(s, f, m) for s in (Q1, Q2, Q5) for f, m in ((F1, 0), (F2, 0), (FIFO, 1))]
+    rows = []
+    for sp_name, (sz, lam_a, nd) in sizes.items():
+        for S in (1, 3, 10):
+            for alpha in (0.0, 0.3):
+                for dd in range(nd):
+                    seed = SEED + 1000 * S + int(alpha * 10) * 100 + dd + (0 if lam_a < 0.1 else 50000)
+                    tt, tp, tq, ts, bt, bb, bq, ba, aq = synth_market(seed, S, alpha, lam_a, 1 / 30, sz, 1000.0, 2000.0,
+                                                                      2.0, p0t, tk, 60.0, DAY)
+                    tr = dict(t_us=tt, px=tp, qty=tq, ibm=ts, quote=tq * tp * SCALE, day0=0)
+                    bk = dict(t_us=np.rint(bt * 1e6).astype(np.int64), bid=bb, bq=bq, ask=ba, aq=aq)
+                    out = run_book_day(tr, bk, runs, tk, p0t * tk, DAY - 600, p_ref=1.0)
+                    for (s, f, m), r in zip(runs, out):
+                        rows.append(dict(market=sp_name, S=S, alpha=alpha, day=dd, strat=STRAT_NAME[s], fill=FILL_NAME[f],
+                                         half_spread_bp=S * 5 / 2, **dict(zip(RES_NAMES, r))))
+    df = pd.DataFrame(rows)
+    g = df.groupby(["market", "S", "alpha", "strat", "fill"])
+    bp = lambda a, b: 1e4 * a.sum() / b.sum() if b.sum() > 0 else np.nan  # noqa: E731
+    summ = g.apply(lambda x: pd.Series(dict(
+        half_spread_bp=x.half_spread_bp.iloc[0], fills_per_day=(x.n_maker + x.n_crossed).mean(),
+        filled_usd_day=x.filled_usd.mean(), mk0_bp=bp(x.mk0_usd, x.mk0_cov_usd), mk60_bp=bp(x.mk60_usd, x.mk60_cov_usd),
+        mk60_se_bp=np.std(1e4 * x.mk60_usd / x.mk60_cov_usd.where(x.mk60_cov_usd > 0), ddof=1) / math.sqrt(len(x)),
+        mk300_bp=bp(x.mk300_usd, x.mk300_cov_usd), gross_bp=bp(x.gross_usd, x.filled_usd),
+        net02_bp=bp(x.gross_usd - 2e-4 * x.taker_usd, x.filled_usd), gross_usd_day=x.gross_usd.mean(),
+        exit_share_of_taker=x.exit_usd.sum() / max(x.taker_usd.sum(), 1e-9))), include_groups=False).reset_index()
+    q = summ[(summ.strat == "Q1") & (summ.fill == "FIFO") & (summ.alpha == 0)].copy()
+    q["dev_bp"] = q.mk60_bp - q.half_spread_bp
+    q["pass"] = (q.dev_bp.abs() <= np.maximum(3 * q.mk60_se_bp, 0.2 * q.half_spread_bp))
+    RES.mkdir(parents=True, exist_ok=True)
+    df.to_csv(RES / "control_i_days.csv", index=False)
+    summ.to_csv(RES / "control_i.csv", index=False)
+    q.to_csv(RES / "control_i_check.csv", index=False)
+    return summ, q
+
+
+# ============================================================================================ Control (ii)/(iii): USD-M true book
+def um_days() -> list[date]:
+    n = (UM_RANGE[1] - UM_RANGE[0]).days + 1
+    cand = [UM_RANGE[0] + timedelta(days=i) for i in range(n) if UM_RANGE[0] + timedelta(days=i) != UM_EXCLUDED]
+    pick = np.random.default_rng(SEED).choice(np.array(cand, dtype=object), size=20, replace=False)
+    return sorted(pick.tolist())
+
+
+def _um_fetch(sym, d):
+    kb = f"data/futures/um/daily/bookTicker/{sym}/{sym}-bookTicker-{d:%Y-%m-%d}.zip"
+    kt = f"data/futures/um/daily/trades/{sym}/{sym}-trades-{d:%Y-%m-%d}.zip"
+    with cf.ThreadPoolExecutor(2) as ex:
+        fb, ft = ex.submit(s3_get_zip_csv, kb), ex.submit(s3_get_zip_csv, kt)
+        return fb.result(), ft.result()
+
+
+CTRL_RUNS = [(Q1, F1, 0), (Q1, FIFO, 1), (Q1, FRONT, 1), (Q2, F1, 0), (Q2, FIFO, 1), (Q5, F1, 0), (Q5, FIFO, 1)]
+
+
+def _um_one(job):
+    sym, d = job
+    out = DATA / "control_ii" / f"{d:%Y-%m-%d}_{sym}.parquet"
+    if out.exists():
+        return pd.read_parquet(out)
+    bb, bt = _um_fetch(sym, d)
+    base = dict(day=pd.Timestamp(d), sym=sym)
+    if bb is None or bt is None:
+        df = pd.DataFrame([dict(base, missing=("bookTicker " if bb is None else "") + ("trades" if bt is None else ""))])
+    else:
+        tr = parse_trades(bt, futures=True)
+        bk = parse_book(bb)
+        del bb, bt
+        tr["day0"] = int(day_start_s(d)) * 10 ** 6
+        keep = bk["ask"] > bk["bid"]
+        bk = {k_: v[keep] for k_, v in bk.items()}
+        _, g1 = price_grid(tr["px"])
+        ref = int(tr["px"][0])
+        g = math.gcd(int(g1), int(price_grid(np.r_[bk["bid"][::20], bk["ask"][::20], ref])[1]))
+        out_r = run_book_day(tr, bk, CTRL_RUNS, g, ref, DAY - 600)
+        rows = [dict(base, missing="", strat=STRAT_NAME[s], leg=("trades-only " + FILL_NAME[f]) if m == 0 else ("true book " + FILL_NAME[f]),
+                     n_trades=len(tr["px"]), n_book=len(bk["bid"]), day_usd=float(tr["quote"].sum()), tick=g,
+                     **dict(zip(RES_NAMES, r))) for (s, f, m), r in zip(CTRL_RUNS, out_r)]
+        df = pd.DataFrame(rows)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(out, index=False)
+    return df
+
+
+def control_ii(workers=3):
+    days = um_days()
+    jobs_ = [(s, d) for d in days for s in UM_SYMS]
+    t0 = time.time()
+    dfs = []
+    with cf.ProcessPoolExecutor(workers) as ex:
+        for i, df in enumerate(ex.map(_um_one, jobs_), 1):
+            dfs.append(df)
+            if i % 17 == 0:
+                print(f"  control (ii): {i}/{len(jobs_)} symbol-days, {time.time() - t0:.0f}s", flush=True)
+    df = pd.concat(dfs, ignore_index=True)
+    miss = df[df.missing.fillna("") != ""][["day", "sym", "missing"]]
+    df = df[df.missing.fillna("") == ""].copy()
+    df["net02"] = df.gross_usd - 2e-4 * df.taker_usd
+    rows, bias = [], {}
+    for s in ("Q1", "Q2", "Q5"):
+        a = df[(df.strat == s) & (df.leg == "trades-only F1")].set_index(["day", "sym"])
+        b = df[(df.strat == s) & (df.leg == "true book FIFO")].set_index(["day", "sym"])
+        j = a.join(b, lsuffix="_to", rsuffix="_tr", how="inner")
+        pooled = 1e4 * (j.net02_to.sum() / j.filled_usd_to.sum() - j.net02_tr.sum() / j.filled_usd_tr.sum())
+        jj = j[(j.filled_usd_to > 0) & (j.filled_usd_tr > 0)]
+        per = 1e4 * (jj.net02_to / jj.filled_usd_to - jj.net02_tr / jj.filled_usd_tr)
+        mean_d = float(per.mean())
+        se_d = float(per.std(ddof=1) / math.sqrt(len(per))) if len(per) > 1 else np.nan
+        bias[s] = max(pooled, mean_d)
+        rows.append(dict(strat=s, symbol_days=len(j), symbol_days_both_filled=len(jj),
+                         to_net_bp=1e4 * j.net02_to.sum() / j.filled_usd_to.sum(), true_net_bp=1e4 * j.net02_tr.sum() / j.filled_usd_tr.sum(),
+                         to_gross_bp=1e4 * j.gross_usd_to.sum() / j.filled_usd_to.sum(), true_gross_bp=1e4 * j.gross_usd_tr.sum() / j.filled_usd_tr.sum(),
+                         pooled_diff_bp=pooled, mean_symday_diff_bp=mean_d, se_mean_diff_bp=se_d, bias_bp=bias[s],
+                         correction_applied=bias[s] > 0.5,
+                         to_filled_usd_day=j.filled_usd_to.mean(), true_filled_usd_day=j.filled_usd_tr.mean(),
+                         to_fills_day=(j.n_maker_to + j.n_crossed_to).mean(), true_fills_day=(j.n_maker_tr + j.n_crossed_tr).mean(),
+                         to_net_usd_day=j.net02_to.mean(), true_net_usd_day=j.net02_tr.mean(),
+                         to_mk60_bp=1e4 * j.mk60_usd_to.sum() / j.mk60_cov_usd_to.sum(), true_mk60_bp=1e4 * j.mk60_usd_tr.sum() / j.mk60_cov_usd_tr.sum()))
+    summ = pd.DataFrame(rows)
+    # (iii) front of the queue at every new level vs the back of the displayed queue
+    f = df[(df.strat == "Q1") & (df.leg == "true book FRONT")].set_index(["day", "sym"])
+    b = df[(df.strat == "Q1") & (df.leg == "true book FIFO")].set_index(["day", "sym"])
+    j = f.join(b, lsuffix="_front", rsuffix="_fifo", how="inner")
+    iii = pd.DataFrame([dict(symbol_days=len(j), front_net_bp=1e4 * j.net02_front.sum() / j.filled_usd_front.sum(),
+                             fifo_net_bp=1e4 * j.net02_fifo.sum() / j.filled_usd_fifo.sum(),
+                             front_net_usd_day=j.net02_front.mean(), fifo_net_usd_day=j.net02_fifo.mean(),
+                             speed_value_usd_day=(j.net02_front - j.net02_fifo).mean(),
+                             speed_value_se=(j.net02_front - j.net02_fifo).std(ddof=1) / math.sqrt(len(j)),
+                             front_filled_usd_day=j.filled_usd_front.mean(), fifo_filled_usd_day=j.filled_usd_fifo.mean())])
+    by_sym = df.groupby(["sym", "strat", "leg"]).apply(lambda x: pd.Series(dict(
+        days=len(x), net_bp=1e4 * x.net02.sum() / max(x.filled_usd.sum(), 1e-9), filled_usd_day=x.filled_usd.mean(),
+        net_usd_day=x.net02.mean())), include_groups=False).reset_index()
+    RES.mkdir(parents=True, exist_ok=True)
+    summ.to_csv(RES / "control_ii.csv", index=False)
+    iii.to_csv(RES / "control_iii.csv", index=False)
+    by_sym.to_csv(RES / "control_ii_by_symbol.csv", index=False)
+    miss.to_csv(RES / "control_ii_missing.csv", index=False)
+    pd.DataFrame([dict(day=d) for d in days]).to_csv(RES / "control_ii_days.csv", index=False)
+    bias.update(Q3=bias["Q1"], Q1LO=bias["Q1"])
+    (RES / "control_ii_bias.json").write_text(json.dumps(bias, indent=1))
+    return summ, iii, miss
+
+
+# ============================================================================================ analysis
+def load_rows(stratum: str, data_dir: Path = DATA) -> pd.DataFrame:
+    fs = sorted((data_dir / stratum).glob("*/*.parquet"))
+    if not fs:
+        return pd.DataFrame()
+    df = pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
+    df["day"] = pd.to_datetime(df["day"])
+    df["half"] = np.where(df.month <= "2026-03", 1, 2)
+    df["n_fills"] = df.n_maker + df.n_crossed
+    return df
+
+
+def net(u: pd.DataFrame, fm=0.0, ft=2.0) -> np.ndarray:
+    return (u.gross_usd - fm * 1e-4 * u.maker_usd - ft * 1e-4 * u.taker_usd).to_numpy()
+
+
+def spy_after_tax(start="2025-10-01", end="2026-09-30") -> float:
+    try:
+        p = pd.read_parquet(SPY_PRICES)
+        s = p[(p.ticker == "SPY") & (p.date >= start) & (p.date <= end)].sort_values("date")
+        r = s.adj.iloc[-1] / s.adj.iloc[0] - 1
+        return float(r * (1 - 0.20) if r > 0 else r)
+    except Exception:
+        return np.nan
+
+
+def listing_dates(syms, path: Path) -> pd.Series:
+    have = pd.read_csv(path).set_index("sym").first_month if path.exists() else pd.Series(dtype=str)
+    todo = [s for s in syms if s not in have.index]
+
+    def one(s):
+        try:
+            _, ks = s3_ls(f"data/spot/monthly/klines/{s}/1d/")
+            ms = sorted(k.split("-1d-")[-1][:7] for k, _ in ks if k.endswith(".zip"))
+            return s, ms[0] if ms else ""
+        except Exception:
+            return s, ""
+    if todo:
+        with cf.ThreadPoolExecutor(16) as ex:
+            new = dict(ex.map(one, todo))
+        have = pd.concat([have, pd.Series(new)])
+        have.rename("first_month").rename_axis("sym").reset_index().to_csv(path, index=False)
+    return have
+
+
+def cell_stats(u: pd.DataFrame, size: float, fm=0.0, ft=2.0, spy=np.nan, boot=True) -> dict:
+    """Every per-cell number of the pre-registration (Part A 'Reported for every cell' + general rules)."""
+    x = net(u, fm, ft)
+    n = len(u)
+    if n < 3:
+        return dict(n_units=n)
+    m, se, t, p, dfree = SS.cluster2_t(x, u.sym.to_numpy(), u.week.to_numpy())
+    fil = u.filled_usd.to_numpy()
+    R, Rse, Rdf = SS.ratio_cluster2(x, fil, u.sym.to_numpy(), u.week.to_numpy())
+    Sf = fil.sum()
+    gross_bp = 1e4 * u.gross_usd.sum() / Sf if Sf > 0 else np.nan
+    act = u.n_fills.to_numpy() > 0
+    daysum = pd.Series(x).groupby(u.day.to_numpy()).sum()
+    mon = pd.Series(x).groupby(u.month.to_numpy()).mean()
+    mt = mon.mean() / (mon.std(ddof=1) / math.sqrt(len(mon))) if len(mon) > 2 and mon.std(ddof=1) > 0 else np.nan
+    mp = float(1 - SS.stats.t.cdf(mt, len(mon) - 1)) if np.isfinite(mt) else np.nan
+    bp_ = np.nan
+    if boot:
+        rng = np.random.default_rng(SEED)
+        dsum = pd.Series(x).groupby(u.day.to_numpy()).agg(["sum", "size"])
+        ss, cc = dsum["sum"].to_numpy(), dsum["size"].to_numpy()
+        idx = rng.integers(0, len(ss), size=(4999, len(ss)))
+        bm = ss[idx].sum(1) / cc[idx].sum(1)
+        bp_ = SS.boot_p(m, bm)
+    cap = 4 * size
+    sd = float(np.std(x, ddof=1))
+    ann = 365 * m / cap
+    port = pd.Series(x).groupby(u.day.to_numpy()).mean()
+    exit_pnl = (u.exit_cost_usd - ft * 1e-4 * u.exit_usd).sum()
+    out = dict(
+        n_units=n, n_pairs=u.sym.nunique(), n_days=u.day.nunique(), mean_usd=m, se=se, t=t, p_one_sided=p, df=dfree,
+        mde_usd=SS.mde(se, dfree), share_active=float(act.mean()), mean_active_usd=float(x[act].mean()) if act.any() else np.nan,
+        edge_bp=1e4 * R, edge_se_bp=1e4 * Rse, edge_df=Rdf,
+        edge_ub_bp=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf), edge_ub95_bp=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf, level=0.95),
+        edge_lo95_bp=1e4 * R - SS.stats.t.ppf(0.975, Rdf) * 1e4 * Rse, edge_hi95_bp=1e4 * R + SS.stats.t.ppf(0.975, Rdf) * 1e4 * Rse,
+        gross_bp=gross_bp, fee_bp=gross_bp - 1e4 * R if np.isfinite(R) else np.nan, net_bp=1e4 * R,
+        filled_usd_day=fil.mean(), maker_usd_day=u.maker_usd.mean(), taker_usd_day=u.taker_usd.mean(),
+        crossed_usd_day=u.crossed_usd.mean(), exit_usd_day=u.exit_usd.mean(),
+        maker_share_filled=u.maker_usd.sum() / Sf if Sf > 0 else np.nan,
+        q01=np.quantile(x, .01), q05=np.quantile(x, .05), q25=np.quantile(x, .25), q50=np.quantile(x, .5),
+        q75=np.quantile(x, .75), q95=np.quantile(x, .95), q99=np.quantile(x, .99), worst_pairday=x.min(),
+        worst_day=str(daysum.idxmin().date()), worst_day_usd=float(daysum.min()),
+        fill_rate=u.n_orders_filled.sum() / max(u.n_orders.sum(), 1), share_pair_volume=Sf / max(u.day_qv.sum(), 1e-9),
+        fills_per_day=u.n_fills.mean(), max_inv_usd=u.max_inv_usd.max(), mean_max_inv_usd=u.max_inv_usd.mean(),
+        mk60_bp=1e4 * u.mk60_usd.sum() / max(u.mk60_cov_usd.sum(), 1e-9), mk300_bp=1e4 * u.mk300_usd.sum() / max(u.mk300_cov_usd.sum(), 1e-9),
+        exit_pnl_usd_day=exit_pnl / n, exit_pnl_share_of_net=exit_pnl / x.sum() if x.sum() != 0 else np.nan,
+        passive_pnl_usd_day=(x.sum() - exit_pnl) / n,
+        month_t=mt, month_p=mp, boot_p=bp_, capital_usd=cap, ann_return=ann, sharpe_pair=m / sd * math.sqrt(365) if sd > 0 else np.nan,
+        sharpe_portfolio=port.mean() / port.std(ddof=1) * math.sqrt(365) if port.std(ddof=1) > 0 else np.nan,
+        ann_return_after_tax=ann * (1 - 0.35) if ann > 0 else ann, spy_after_tax=spy,
+        route="bot on a crypto-venue API (not Robinhood)", orders_per_day=u.n_orders.mean(), cancels_per_day=u.n_cancels.mean(),
+        stopped_pairdays=int(((u.flag_bits.astype(int) & FLAG_STOPPED) > 0).sum()),
+        nodata_pairdays=int((~u.has_data).sum()))
+    for r_ in (0.10, 0.25, 0.50):
+        mu = r_ * cap / 365
+        out[f"months_t2_at_{int(r_ * 100)}pct"] = (2 * sd / mu) ** 2 / 30.44
+    return out
+
+
+def _bias() -> dict:
+    p = RES / "control_ii_bias.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+def primary_cells(df: pd.DataFrame, bias: dict) -> pd.DataFrame:
+    rows = []
+    for s in (Q1, Q2, Q5):
+        for b in BANDS:
+            u = df[(df.config == PRIMARY[s]) & (df.band == b)]
+            u1 = df[(df.config == DELTA1[s]) & (df.band == b)]
+            tid = f"A-{STRAT_NAME[s]}-{b}"
+            r = dict(test_id=tid, part="A", statistic_name="mean net $ per pair-day (fee 0/2, $1k, F1, 250 ms)",
+                     edge_name="net bp per $ filled", threshold_E=E_THRESH, friend_relevant=s == Q5, n_units=len(u))
+            if len(u) < 3:
+                rows.append(r)
+                continue
+            x = net(u)
+            m, se, t, p, dfree = SS.cluster2_t(x, u.sym.to_numpy(), u.week.to_numpy())
+            R, Rse, Rdf = SS.ratio_cluster2(x, u.filled_usd.to_numpy(), u.sym.to_numpy(), u.week.to_numpy())
+            h1, h2 = x[u.half.to_numpy() == 1], x[u.half.to_numpy() == 2]
+            md, dd = SS.drop_worst(x, u.day.dt.strftime("%Y-%m-%d").to_numpy())
+            bb_ = float(bias.get(STRAT_NAME[s], np.nan))
+            corr = bb_ if (np.isfinite(bb_) and bb_ > 0.5) else 0.0
+            xc = x - corr * 1e-4 * u.filled_usd.to_numpy()
+            mc, sec, tc, pc_, dfc = SS.cluster2_t(xc, u.sym.to_numpy(), u.week.to_numpy())
+            Rc, Rsec, Rdfc = SS.ratio_cluster2(xc, u.filled_usd.to_numpy(), u.sym.to_numpy(), u.week.to_numpy())
+            x1 = net(u1) if len(u1) else np.array([np.nan])
+            r.update(estimate=m, se=se, df=dfree, t=t, p_one_sided=p, edge_estimate=1e4 * R, edge_se=1e4 * Rse, edge_df=Rdf,
+                     cond_halves=bool(len(h1) and len(h2) and h1.mean() > 0 and h2.mean() > 0),
+                     cond_delta1s=bool(np.nanmean(x1) > 0), cond_dropworst=bool(md > 0),
+                     cond_biascorr=bool(mc > 0) if np.isfinite(bb_) else False,
+                     share_active=float((u.n_fills > 0).mean()),
+                     mde=SS.mde(se, dfree), edge_ub=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf),
+                     edge_ub95=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf, level=0.95),
+                     mean_half1=h1.mean() if len(h1) else np.nan, mean_half2=h2.mean() if len(h2) else np.nan,
+                     n_half1=len(h1), n_half2=len(h2), mean_delta1s=float(np.nanmean(x1)), n_delta1s=len(u1),
+                     mean_dropworst=md, dropped_day=dd, bias_bp=bb_, bias_bp_applied=corr,
+                     bias_available=bool(np.isfinite(bb_)), corr_estimate=mc, corr_se=sec, corr_t=tc, corr_p_one_sided=pc_,
+                     corr_df=dfc, corr_edge_estimate=1e4 * Rc, corr_edge_se=1e4 * Rsec, corr_edge_df=Rdfc,
+                     corr_edge_ub=SS.upper_bound(1e4 * Rc, 1e4 * Rsec, Rdfc))
+            rows.append(r)
+    cols = ["test_id", "part", "statistic_name", "estimate", "se", "df", "t", "p_one_sided", "edge_name", "edge_estimate",
+            "edge_se", "edge_df", "threshold_E", "cond_halves", "cond_delta1s", "cond_dropworst", "cond_biascorr",
+            "n_units", "share_active"]
+    out = pd.DataFrame(rows)
+    return out[[c for c in cols if c in out] + [c for c in out if c not in cols]]
+
+
+def _splits(df: pd.DataFrame, ages: pd.Series) -> pd.DataFrame:
+    """Split labels per pair-day, all measured before the month (I3)."""
+    pm = df.groupby(["sym", "month", "band"]).agg(st=("pre_spread_ticks", "first"), sv=("pre_spread_to_vol", "first"),
+                                                  vol=("pre_vol_daily", "first")).reset_index()
+
+    def terc(v):
+        r = v.rank(method="first")
+        return pd.cut(r, 3, labels=["T1 low", "T2", "T3 high"]) if v.notna().sum() >= 3 else pd.Series(np.nan, index=v.index)
+    pm["spread_vol_tercile"] = pm.groupby("band").sv.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
+    pm["vol_tercile"] = pm.groupby("band").vol.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
+    pm["tick_class"] = np.where(pm.st <= 1.5, "tick-constrained (<=1.5 ticks)", np.where(pm.st >= 3, "wide (>=3 ticks)",
+                                                                                         np.where(pm.st.notna(), "1.5-3 ticks", None)))
+    fm = pd.to_datetime(pm.sym.map(ages).fillna("") + "-01", errors="coerce")
+    age = (pd.to_datetime(pm.month + "-01") - fm).dt.days / 365.25
+    pm["listing_age"] = np.where(age < 1, "<1 y", np.where(age < 3, "1-3 y", np.where(age >= 3, ">=3 y", None)))
+    return df.merge(pm.drop(columns=["st", "sv", "vol"]), on=["sym", "month", "band"], how="left")
+
+
+def analyze(data_dir: Path = DATA, res_dir: Path | None = None, boot=True):
+    global RES
+    if res_dir is not None:
+        RES = res_dir
+    RES.mkdir(parents=True, exist_ok=True)
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 60); pd.set_option("display.max_rows", 500)
+    log = open(RES / "summary.txt", "w")
+
+    def say(*a):
+        s = " ".join(str(x) for x in a); print(s); log.write(s + "\n"); log.flush()
+    df = load_rows("main", data_dir)
+    if df.empty:
+        say("no Part A pair-day results under", data_dir / "main"); return
+    bias = _bias()
+    spy = spy_after_tax()
+    ages = listing_dates(sorted(df.sym.unique()), RES / "listing_dates.csv") if res_dir is None else pd.Series(dtype=str)
+    df = _splits(df, ages)
+    size_of = {cfg_name(*c): c[1] for c in MAIN_CONFIGS + ARH_CONFIGS}
+    say("Part A: passive quoting on illiquid Binance spot pairs (SCALPING_PREREG.md). Units = pair-days.")
+    say(f"pair-days per config: {df.groupby('config').size().min():,} - {df.groupby('config').size().max():,}; "
+        f"pairs {df.sym.nunique()}; control (ii) bias (bp per $ filled): {bias}")
+    # ---------------------------------------------------------------- primary cells
+    pc = primary_cells(df, bias)
+    pc.to_csv(RES / "primary_cells.csv", index=False)
+    prov = pc[["test_id", "p_one_sided"]].copy()
+    prov["p_holm_within_A_provisional"] = SS.holm(prov.p_one_sided.to_numpy())
+    prov.to_csv(RES / "primary_cells_provisional_holm_within_A.csv", index=False)
+    say("\nPRIMARY CELLS (Holm across all 36 tests is applied by the combine script):")
+    say(pc[[c for c in pc.columns[:19] if c not in ("part", "statistic_name", "edge_name")]].to_string(index=False))
+    # ---------------------------------------------------------------- per-cell report, fee ladder, sensitivities
+    rep, ladder, sens, cap_rows = [], [], [], []
+    for s in (Q1, Q2, Q5):
+        for b in BANDS:
+            u = df[(df.config == PRIMARY[s]) & (df.band == b)]
+            if len(u) < 3:
+                continue
+            rep.append(dict(cell=f"A-{STRAT_NAME[s]}-{b}", **cell_stats(u, 1000, spy=spy, boot=boot)))
+            Sm, St, Sg, Sf = u.maker_usd.sum(), u.taker_usd.sum(), u.gross_usd.sum(), u.filled_usd.sum()
+            for (fm, ft), nm in list(zip(FEES, FEE_NAMES)) + [((r_, 2.0), f"{r_}/2 maker rebate") for r_ in REBATES]:
+                x = net(u, fm, ft)
+                ladder.append(dict(cell=f"A-{STRAT_NAME[s]}-{b}", fee=nm, maker_bp=fm, taker_bp=ft, net_usd_pairday=x.mean(),
+                                   net_bp_per_filled=1e4 * x.sum() / Sf if Sf > 0 else np.nan,
+                                   breakeven_maker_bp_at_taker2=1e4 * (Sg - 2e-4 * St) / Sm if Sm > 0 else np.nan))
+    pd.DataFrame(rep).to_csv(RES / "cell_report.csv", index=False)
+    pd.DataFrame(ladder).to_csv(RES / "fee_ladder.csv", index=False)
+    for c in sorted(df.config.unique()):
+        for b in BANDS:
+            u = df[(df.config == c) & (df.band == b)]
+            if len(u) < 3:
+                continue
+            st = cell_stats(u, size_of.get(c, 1000), spy=spy, boot=False)
+            sens.append(dict(config=c, band=b, **{k_: st[k_] for k_ in ("n_units", "mean_usd", "se", "t", "p_one_sided",
+                                                                        "edge_bp", "edge_se_bp", "gross_bp", "net_bp",
+                                                                        "filled_usd_day", "share_active", "fill_rate",
+                                                                        "share_pair_volume", "mk60_bp", "mk300_bp")}))
+            if c.split("_")[2] == "F1" and c.endswith("250ms_100"):
+                cap_rows.append(dict(config=c, strat=c.split("_")[0], size=size_of.get(c), band=b,
+                                     filled_usd_day=st["filled_usd_day"], net_usd_day=st["mean_usd"],
+                                     gross_usd_day=u.gross_usd.mean(), share_pair_volume=st["share_pair_volume"],
+                                     max_inv_usd=st["max_inv_usd"]))
+    sens = pd.DataFrame(sens); sens.to_csv(RES / "sensitivities.csv", index=False)
+    capd = pd.DataFrame(cap_rows); capd.to_csv(RES / "capacity.csv", index=False)
+    say("\nCELL REPORT (primary settings):")
+    say(pd.DataFrame(rep)[["cell", "n_units", "mean_usd", "edge_bp", "gross_bp", "fee_bp", "filled_usd_day", "share_active",
+                           "fill_rate", "mk60_bp", "mk300_bp", "exit_pnl_usd_day", "month_t", "boot_p", "ann_return"]].to_string(index=False))
+    say("\nCAPACITY (F1, 250 ms, 100%):"); say(capd.to_string(index=False))
+    # ---------------------------------------------------------------- kill rule (F2 at fee 0/2)
+    kr = sens[sens.config.isin([F2CFG[s] for s in (Q1, Q2, Q5, Q3)])][["config", "band", "mean_usd", "edge_bp"]]
+    kill = bool(len(kr) and (kr.mean_usd <= 0).all())
+    kr = kr.assign(le_zero=kr.mean_usd <= 0); kr.to_csv(RES / "kill_rule.csv", index=False)
+    say(f"\nKILL RULE (every strategy and band <= 0 under F2 at fee 0/2): {kill}"); say(kr.to_string(index=False))
+    # ---------------------------------------------------------------- splits and the exploratory conditional cell
+    sp = []
+    for s in (Q1, Q2, Q5):
+        for b in BANDS:
+            u0 = df[(df.config == PRIMARY[s]) & (df.band == b)]
+            for var in ("tick_class", "spread_vol_tercile", "vol_tercile", "listing_age", "weekend"):
+                lab = (u0.dow >= 5).map({True: "weekend", False: "weekday"}) if var == "weekend" else u0[var]
+                for g, u in u0.groupby(lab.to_numpy(), dropna=True):
+                    if len(u) < 3:
+                        continue
+                    st = cell_stats(u, 1000, boot=False)
+                    sp.append(dict(cell=f"A-{STRAT_NAME[s]}-{b}", split=var, group=g, **{k_: st[k_] for k_ in (
+                        "n_units", "mean_usd", "se", "p_one_sided", "edge_bp", "edge_se_bp", "filled_usd_day", "share_active")}))
+    pd.DataFrame(sp).to_csv(RES / "splits.csv", index=False)
+    cc = []
+    for b in list(BANDS) + ["all"]:
+        u = df[(df.config == PRIMARY[Q2]) & (df.spread_vol_tercile == "T3 high") & ((df.band == b) if b != "all" else True)]
+        if len(u) >= 3:
+            cc.append(dict(cell=f"A-Q2 top spread/vol tercile, band {b}", **cell_stats(u, 1000, spy=spy, boot=boot)))
+    pd.DataFrame(cc).to_csv(RES / "conditional_cell.csv", index=False)
+    st_ = df[df.config.isin(PRIMARY.values()) & ((df.flag_bits.astype(int) & FLAG_STOPPED) > 0)]
+    st_[["config", "sym", "band", "day", "gross_usd", "exit_usd"]].to_csv(RES / "stopped_pairdays.csv", index=False)
+    df[df.config == PRIMARY[Q1]].groupby(["month", "band"]).agg(pair_days=("sym", "size"), pairs=("sym", "nunique"),
+                                                                 nodata=("has_data", lambda v: int((~v).sum()))
+                                                                 ).reset_index().to_csv(RES / "units.csv", index=False)
+    # ---------------------------------------------------------------- A-RH stratum (exploratory, outside Holm)
+    ar = load_rows("arh", data_dir)
+    if not ar.empty:
+        rows = []
+        for s in (Q1, Q2, Q5, Q1LO):
+            for b in sorted(ar.band.unique()) + ["all"]:
+                u = ar[(ar.config == PRIMARY[s]) & ((ar.band == b) if b != "all" else True)]
+                if len(u) < 3:
+                    continue
+                st = cell_stats(u, 1000, spy=spy, boot=boot)
+                x = net(u)
+                u1 = ar[(ar.config == DELTA1[s]) & ((ar.band == b) if b != "all" else True)]
+                md, _ = SS.drop_worst(x, u.day.dt.strftime("%Y-%m-%d").to_numpy())
+                bb_ = float(bias.get(STRAT_NAME[s], np.nan)); corr = bb_ if (np.isfinite(bb_) and bb_ > 0.5) else 0.0
+                h = u.half.to_numpy()
+                rows.append(dict(cell=f"A-RH-{STRAT_NAME[s]}-{b}", **st,
+                                 cond_halves=bool((h == 1).any() and (h == 2).any() and x[h == 1].mean() > 0 and x[h == 2].mean() > 0),
+                                 cond_delta1s=bool(len(u1) and net(u1).mean() > 0), cond_dropworst=md > 0,
+                                 cond_biascorr=bool((x - corr * 1e-4 * u.filled_usd.to_numpy()).mean() > 0),
+                                 f2_mean_usd=net(ar[(ar.config == F2CFG[s]) & ((ar.band == b) if b != "all" else True)]).mean()))
+        pd.DataFrame(rows).to_csv(RES / "arh_cells.csv", index=False)
+        say("\nA-RH STRATUM (exploratory, every 7th day):")
+        say(pd.DataFrame(rows)[["cell", "n_units", "mean_usd", "se", "p_one_sided", "edge_bp", "share_active"]].to_string(index=False))
+    else:
+        say("\nA-RH stratum: no results (needs data/scalping/rh/currency_pairs.json, then --run --stratum arh)")
+    ci = RES / "control_i_check.csv"
+    if ci.exists():
+        say("\nCONTROL (i) no-information level (Q1, true queue, alpha 0): 60-s markout vs half-spread (bp)")
+        say(pd.read_csv(ci)[["market", "S", "half_spread_bp", "mk60_bp", "mk60_se_bp", "pass"]].to_string(index=False))
+        c1 = pd.read_csv(RES / "control_i.csv")
+        say("Engine no-information level (alpha 0): net bp per $ filled at fee 0/2 by fill model")
+        say(c1[c1.alpha == 0].pivot_table(index=["market", "S", "strat"], columns="fill", values="net02_bp").round(2).to_string())
+    log.close()
+    return pc
+
+
+# ============================================================================================ CLI
+def main():
+    ap = argparse.ArgumentParser(description="Part A: passive quoting on illiquid Binance spot pairs")
+    ap.add_argument("--universe", action="store_true", help="exclusions, eligibility, draws (no trades read)")
+    ap.add_argument("--tests", action="store_true", help="engine unit tests on hand-built tapes")
+    ap.add_argument("--controls", action="store_true", help="Control (i) synthetic market, (ii)+(iii) USD-M true book")
+    ap.add_argument("--smoke", action="store_true", help="2 drawn pairs x 3 days, timing only")
+    ap.add_argument("--run", action="store_true", help="simulate every drawn pair-month (incremental)")
+    ap.add_argument("--stratum", choices=["main", "arh", "both"], default="both")
+    ap.add_argument("--analyze", action="store_true", help="primary_cells.csv and the reporting tables")
+    ap.add_argument("--workers", type=int, default=4)
+    a = ap.parse_args()
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 40); pd.set_option("display.max_rows", 300)
+    if not any((a.universe, a.tests, a.controls, a.smoke, a.run, a.analyze)):
+        print(__doc__.split("------")[0]); return
+    if a.universe:
+        k, excl, elig, dr, arh = universe(write=True)
+        print(f"exclusions {len(excl)} ({excl.reason.value_counts().to_dict()}); draws {len(dr)} pair-months, "
+              f"{dr.sym.nunique()} pairs, fallback slots {int(dr.fallback.sum())}; A-RH pairs "
+              f"{'n/a (no currency_pairs.json)' if arh is None else int((~arh.excluded).sum())}")
+        print(dr.groupby(["month", "band"]).size().unstack().fillna(0).astype(int).to_string())
+    if a.tests:
+        if not tests():
+            sys.exit(1)
+    if a.controls:
+        summ, q = control_i()
+        print("Control (i): Q1 under the true queue at alpha = 0 (60-s markout vs half-spread, bp)")
+        print(q[["market", "S", "half_spread_bp", "mk0_bp", "mk60_bp", "mk60_se_bp", "dev_bp", "pass"]].round(3).to_string(index=False))
+        print(summ[["market", "S", "alpha", "strat", "fill", "fills_per_day", "mk60_bp", "gross_bp", "net02_bp"]].round(2).to_string(index=False))
+        s2, iii, miss = control_ii(workers=min(a.workers, 3))
+        print("Control (ii): trades-only F1 vs true-book FIFO, net bp per $ filled at fee 0/2")
+        print(s2.round(3).to_string(index=False))
+        print("Control (iii): front of the queue vs back of the displayed queue (Q1)")
+        print(iii.round(3).to_string(index=False))
+        print(f"missing symbol-days: {len(miss)}")
+    if a.smoke:
+        smoke()
+    if a.run:
+        if a.stratum in ("main", "both"):
+            run_all("main", a.workers)
+        if a.stratum in ("arh", "both"):
+            run_all("arh", a.workers)
+    if a.analyze:
+        analyze()
+
+
+if __name__ == "__main__":
+    main()

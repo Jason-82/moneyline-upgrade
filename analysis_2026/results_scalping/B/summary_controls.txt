@@ -1,0 +1,3 @@
+B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (29s)
+rule (e): 239 unknown symbols flagged as funds (69s)
+trailing statistics: 59s
