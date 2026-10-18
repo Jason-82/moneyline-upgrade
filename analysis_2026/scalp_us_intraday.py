@@ -223,6 +223,16 @@ def load_bars(path, symbols=None) -> pd.DataFrame:
     return d.reset_index(drop=True)
 
 
+def trim_flat(d: pd.DataFrame) -> pd.DataFrame:
+    """Drop sessions before the first one with a real (non-interpolated, traded) bar in any name: Robinhood returns
+    flat interpolated bars for requests outside retention."""
+    real = ~d.interpolated.astype(bool) & (d.volume > 0)
+    if not real.any():
+        return d.iloc[:0]
+    day = d.begins_at.dt.tz_convert(NY).dt.normalize()
+    return d[day >= day[real].min()].reset_index(drop=True)
+
+
 def wcent(x):
     """Whole-cent price: |100x - round(100x)| < 1e-6."""
     x = np.asarray(x, float)
@@ -1566,7 +1576,7 @@ def load_panel_data(cf, say):
     pan = panel_symbols()
     syms = sorted(pan.ticker)
     t0 = time.time()
-    b5 = load_bars(RH / "m5_none.parquet", syms)
+    b5 = trim_flat(load_bars(RH / "m5_none.parquet", syms))
     ck5 = build_clock(b5, 300)
     say(f"5-minute bars: {len(b5):,} rows, {ck5.N} names, {ck5.D} sessions ({ck5.dates[0].date()}..{ck5.dates[-1].date()}),"
         f" {ck5.n_dropped} off-clock bars dropped, early-close sessions: "
@@ -1579,11 +1589,11 @@ def load_panel_data(cf, say):
     U = make_units(ck5, P, say=say)
     ck1 = ck15 = None
     if (RH / "m1_none.parquet").exists():
-        b1 = load_bars(RH / "m1_none.parquet", syms)
+        b1 = trim_flat(load_bars(RH / "m1_none.parquet", syms))
         ck1 = build_clock(b1, 60)
         say(f"1-minute bars: {len(b1):,} rows, {ck1.N} names, {ck1.D} sessions ({ck1.dates[0].date()}..{ck1.dates[-1].date()})")
     if (RH / "s15_none.parquet").exists():
-        b15 = load_bars(RH / "s15_none.parquet", syms)
+        b15 = trim_flat(load_bars(RH / "s15_none.parquet", syms))
         ck15 = build_clock(b15, 15)
         say(f"15-second bars: {len(b15):,} rows, {ck15.N} names, {ck15.D} sessions")
     return pan, ck5, P, U, ck1, ck15
