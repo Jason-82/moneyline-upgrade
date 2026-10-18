@@ -2360,7 +2360,8 @@ long-short return in the years after d:
 - **Research.** Four fact-checked notes in `analysis_2026/research_notes/Scalping and market making/`.
   - The literature says the spread pays for adverse selection, inventory risk and fees.
   - Net liquidity-provision profit in US stocks is about 1-2 bp even at 100 ms.
-  - Under 1% of day traders are reliably profitable.
+  - Under 1% of Taiwanese day traders are reliably profitable net of fees, and 97% of persistent Brazilian
+    day traders lost money.
 - **Pre-registration.** `analysis_2026/SCALPING_PREREG.md` (85e5d19), before any test-sample result, revised
   after a 3-lens adversarial review.
   - 36 primary tests in one Holm family.
@@ -2370,12 +2371,15 @@ long-short return in the years after d:
   - Binance spot trades (S3 archive; aggressor flag on every print).
   - qlib US daily 2001-2020.
   - Robinhood read-only data pulled by agents: a scanner universe of 3,485 low-volume stocks, daily bars
-    2023-2026, and 5-minute/1-minute/15-second bars for a random 118-name panel.
+    2023-2026, 5-minute and 1-minute bars for a random 118-name panel, and 15-second bars for 40 of those
+    names.
   - All of it is gitignored under `data/scalping/`.
 - **Engines and audit.** Engines `scalp_crypto.py`, `scalp_us_daily.py` and `scalp_us_intraday.py` were
   reviewed adversarially before the full runs. The results were then audited with a skeptic per part.
-  - Two numerical fixes: sale proceeds floored at zero (70 qlib glitch trades had lost over 100%), and the
-    null redraw pool.
+  - Two fixes: sale proceeds floored at zero (70 qlib glitch trades had lost over 100%), and Part C's markout
+    and half-hour tables restricted to eligible stock-sessions (C26). The null redraw pool also now drops
+    gap-spanning bars; the skeptic found this is a reading of "daily bar", not a fix for the absurd null
+    values, and no verdict depends on it.
   - No verdict changed.
 
 **Controls (run before reading results):**
@@ -2383,7 +2387,9 @@ long-short return in the years after d:
   - In a synthetic Glosten-Milgrom market, Q1 under a true queue earns the half-spread (2.57 vs 2.5 bp;
     24.85 vs 25 bp).
   - On 322 real USD-M futures symbol-days with the true book, the trades-only F1 fill rule is within 0.10,
-    0.34 and 0.37 bp per $ of a FIFO queue for Q1, Q2 and Q5. No correction is needed.
+    0.34 and 0.37 bp per $ of a FIFO queue for Q1, Q2 and Q5. No correction is needed under the registered rule,
+    but every validation symbol had at least 370 taker orders an hour, against medians of 89 and 163 in bands
+    A and B, so the check does not cover the thinnest pairs.
 - **Part B (daily):** the known-answer check passes. B1 gross on S&P 500 PIT 2001-2010 is +6.2 bp, NW t 2.78.
 - **Part C (intraday):** the Roll-market positive control FAILS in every band. The registered C1 rule cannot
   earn the spread from bars without quotes, so its cells are capped at INCONCLUSIVE.
@@ -2399,11 +2405,12 @@ D $5-50M daily volume):**
 | Q2 step inside | −16.65 | −13.02 | −7.54 | −4.51 |
 | Q5 friend's rule | −17.56 | −12.04 | −6.78 | −4.65 |
 
-- **Size of the loss.** t is −4.8 to −16.0; the strict upper bound is at or below −3.2 bp, against E = +1 bp.
+- **Size of the loss.** t is −4.8 to −16.0; the strict upper bound is at most −3.18 bp, against E = +1 bp.
   Q5 loses $18.6 / $22.8 / $25.7 / $40.5 per pair-day.
-- **Decomposition** (Q1): spread captured +6.0/+3.9/+2.4/+1.3; adverse move to 300 s −19.2/−14.3/−8.3/−4.8;
+- **Decomposition** (Q1): spread captured +5.9/+3.9/+2.3/+1.3; adverse move to 300 s −19.2/−14.3/−8.3/−4.8;
   forced exits −3.1/−2.0/−0.8/−0.2 bp.
-- **Kill rule:** touch fills (F2) are ≤ 0 in every cell, so the kill rule fired.
+- **Kill rule:** touch fills (F2) are ≤ 0 in every cell, so the kill rule fired. It is a point-estimate rule:
+  under F2 the strict upper bound of Q5-B is +3.39 bp (Q5-D +0.06).
 - **Break-even:** needs a maker rebate of 6-24 bp per maker $.
 - **Larger orders are worse:** at $25k, Q1 is −31/−29/−18/−8.6 bp.
 - **Speed doesn't save it.** Being first in queue on the futures validation days still loses −1.9 bp (FIFO −2.4).
@@ -2426,8 +2433,8 @@ D $5-50M daily volume):**
 - **Pure gross** (no spread, no impact), B1: +101/+24/+8/+3. That is +44 in L1 without about 26 qlib glitch names.
   - A synthetic no-information market gives +84/+25/+11/+4 from bounce alone.
   - The gross is all overnight (close to open).
-- **Break-even** at zero impact needs spreads at 9-36% of the estimate. The estimate is 1.2-2.2× the 2026
-  closing quotes.
+- **Break-even** at zero impact needs true spreads below 2-36% of the estimate (B1 17/9/4/2%, B2 36/10/6/3%,
+  E1 10/6/5/6%; at most about 8% without the glitch names). The estimate is 1.2-2.2× the 2026 closing quotes.
 - **Exploratory, all negative:**
   - B4 with open-price improvement −93/−43/−26/−19;
   - thin ETFs vs a matched liquid twin (B6): −49 to −290;
@@ -2443,7 +2450,7 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 
 **Part D (capacity, B-R medians):**
 - **Round-trip cost** at 10% of ADV: 6.5-7.8% (L1), 3.6-4.9% (L2), 2.5-3.6% (L3), 2.0-2.9% (L4).
-- **D3:** every strategy has return ≤ 0 already at $10k deployed. $1M aimed at B1-L1 keeps about $420k working.
+- **D3:** every daily strategy (B1-B4, E1) has return ≤ 0 already at $10k deployed. $1M aimed at B1-L1 keeps about $420k working.
 - **D4:** for a buyer of 5-100% of ADV, paper beats realized by a median 1-5 points in L1-L4. Realized after 5
   days is about −6 to −9% (L1).
 - **D2 (B-R):** after 3×-volume top-decile up days, 20-day band excess is −4.1% (L1, t −4.0), −4.9% (L2,
@@ -2452,18 +2459,22 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 **Caveats:**
 - Part A covers Binance.com books only, which US persons cannot use.
 - F1 may be pessimistic in the thinnest pairs. A tick-scaled correction could lift Q5-B to about +2 bp, worth
-  about $4 a day.
+  about $4 a day, and would put the strict upper bounds of Q5-A (+6.8 bp) and Q5-B (+5.7 bp) above E = +1 bp.
+  Those two NO EDGE verdicts therefore assume F1 is roughly faithful in thin books (at 30% informed flow no
+  cell crosses).
 - The inventory cap is not enforced for in-flight orders (edges ±0.8 bp when enforced).
 - Both US samples are survivor-biased upward for these long-only rules.
 - qlib glitch names distort gross diagnostics.
-- Exploratory or descriptive and provisional where incomplete: the A-RH stratum (Robinhood-listed coins) and
-  the IEX validation (C-iii).
+- IEX tick-level check (C-iii, descriptive): on 27 L4 name-days with IEX at the NBBO, C1 on IEX ticks lost $46.8
+  per name-day (−0.77% per $ bought, 15% positive) vs −0.86% per $ for the bars on the same days.
+- Exploratory and provisional where incomplete: the A-RH stratum (Robinhood-listed coins).
 - Sources are mostly search summaries.
 
 **Practical reading:**
-- Bid-ask capture at retail speed loses to adverse selection before fees, and slow liquidity provision in
-  thin stocks cannot pay its spreads.
+- In crypto, bid-ask capture at retail speed loses to adverse selection before fees, and slow liquidity
+  provision in thin stocks cannot pay its spreads. The intraday stock test (Part C) was inconclusive: bars
+  without quotes cannot test bid-ask capture in US stocks either way.
 - Capital adds impact and ownership-filing limits, not capacity.
-- The friend's gains most likely reflect luck in a strong market, attention trades, or marks his own buying
-  created.
+- If the friend's gains are real, they more plausibly reflect luck in a strong market, attention trades that
+  happened to work, or marks his own buying created, than a repeatable edge; his trades were not examined.
 - To judge him: 12+ months of closed-trade statements, net, at liquidation value, against the S&P 500.

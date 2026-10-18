@@ -187,7 +187,7 @@ committed). What is known:
 | `data/macro/` (gitignored, rebuild) | S&P 500 daily OHLC 1950-2018 (real high/low from 1962), daily S&P total return and T-bill 1885-2025, UNRATE/VIX/T10Y2Y/PAYEMS | github.com/vijinho/sp500 (`csv/sp500.csv` → `gspc_1950_2018.csv`), github.com/SteelCerberus/us-market-data (`data/us_market_data.csv`), github.com/cyby2000/fred-relay (`data/*.csv`, a daily FRED mirror; FRED itself is blocked here). Built by `python3 -m analysis_2026.fetch_regime_data`. |
 | `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the `data/universe_pit_all/` row; built by `fetch_regime_data` |
 | `data/freedom/` (gitignored) | Fraser EFW 2025/2024/2019 releases, Heritage index 1995-2026, JKP country market returns (USD, 1926/1986-2025), WDI extract, OWID energy, iShares country ETF monthly bars | Third-party GitHub/S3 mirrors (provenance and cross-checks in `analysis_2026/research_notes/Economic freedom investment thesis/data_sources.md`). `python3 -m analysis_2026.fetch_freedom_data` rebuilds it (needs `pyreadr`). |
-| `data/scalping/` (gitignored) | Scalping study (section 5.21): qlib US daily panel 1999-2024 (`qlib/panel.parquet`); Nasdaq/NYSE symbol directories with ETF flags (`ref/`); Binance daily klines for all USDT pairs 2025-01..2026-09 (`binance/klines_1d.parquet`); Robinhood read-only market data saved by agents (`rh/`: scanner universe of 4,150 low-volume US stocks, daily bars 2023-07-03..2026-10-16 split-adjusted and unadjusted for 3,485 names, 5-minute/1-minute/15-second bars for the 118-name Part C panel, event-day 5-minute bars); per-unit simulation results (`A/`, `B/`, `C/`); pilot data (`rh_pilot/`, `binance_pilot/`, `iex_pilot/`) | `python3 -m analysis_2026.fetch_scalping_data qlib\|etf\|klines` rebuilds the downloadable parts. The Robinhood parts can only be re-pulled by an agent session through the Robinhood MCP (read-only `preview_scan` and `get_equity_historicals`; save raw responses under `rh/*_raw/`, then `fetch_scalping_data rh-combine`). Intraday retention is rolling (5-minute ~7.5 months, 1-minute ~6 weeks, 15-second ~4 sessions), so those pulls cannot be repeated for the same window. |
+| `data/scalping/` (gitignored) | Scalping study (section 5.21): qlib US daily panel 1999-12..2024-04, effectively a Nov-2020 snapshot (`qlib/panel.parquet`); Nasdaq/NYSE symbol directories with ETF flags (`ref/`); Binance daily klines for all USDT pairs 2025-01..2026-09 (`binance/klines_1d.parquet`); Robinhood read-only market data saved by agents (`rh/`: scanner listing of 4,150 low-volume US securities (3,485 common stocks after dropping funds, SPACs, preferreds and warrants), daily bars 2023-07-03..2026-10-16 split-adjusted and unadjusted for 3,485 names, 5-minute and 1-minute bars for the 120-name Part C panel (118 used) and 15-second bars for 40 of them, event-day 5-minute bars); per-unit simulation results (`A/`, `B/`, `C/`); pilot data (`rh_pilot/`, `binance_pilot/`, `iex_pilot/`) | `python3 -m analysis_2026.fetch_scalping_data qlib\|etf\|klines` rebuilds the downloadable parts. The Robinhood parts can only be re-pulled by an agent session through the Robinhood MCP (read-only `preview_scan` and `get_equity_historicals`; save raw responses under `rh/*_raw/`, then `fetch_scalping_data rh-combine`). Intraday retention is rolling (5-minute ~7.5 months, 1-minute ~6 weeks, 15-second ~4 sessions), so those pulls cannot be repeated for the same window. |
 | `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). `python3 -m analysis_2026.fetch_regime_data` rebuilds this folder, `data/macro/`, `data/raw_pit/` and `data/universe_pit_all/` (`--skip-pit` keeps the last two). |
 | `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
@@ -974,8 +974,9 @@ strategy, which variants are worth testing, and does large capital help?
   - NO EDGE: the strict upper bound below an economic threshold;
   - INCONCLUSIVE.
 - **Build and audit.** Engines were built by agents and reviewed adversarially before the full runs (34 issues
-  fixed). Results were then audited by part, with a skeptic on each auditor. Two numerical bugs were fixed;
-  no verdict changed.
+  fixed). Results were then audited by part, with a skeptic on each auditor. One numerical bug (negative
+  sale proceeds) and one reporting filter (Part C markout tables, fix C26) were fixed, and the null redraw
+  pool was re-read to drop gap-spanning bars; no verdict changed.
 - **Report:** `analysis_2026/reports/Scalping and market making.md`.
 
 **Data.**
@@ -995,18 +996,23 @@ strategy, which variants are worth testing, and does large capital help?
 
 **Why.**
 - **Crypto: adverse selection.**
-  - A resting quote captures +1.3 to +6.0 bp of spread per fill (Q1, bands D to A).
-  - It then loses 4.8-19.2 bp to the move over the next 5 minutes; forced taker exits are 5-28% of the loss.
-  - Even optimistic touch fills lose in every cell (the registered kill rule fired).
+  - A resting quote captures +1.3 to +5.9 bp of spread per fill (Q1, bands D to A).
+  - It then loses 4.8-19.2 bp to the move over the next 5 minutes; forced taker exits are 5-20% of the loss
+    (Q1; up to 28% for Q5).
+  - Even optimistic touch fills have a negative point estimate in every cell (the registered kill rule
+    fired), but under touch fills Q5-B's strict upper bound is +3.4 bp (Q5-D +0.06).
   - Larger orders lose more.
   - Break-even would need a maker rebate of 6-24 bp.
   - On real futures books, being first in the queue still lost (−1.9 vs −2.4 bp).
-- **US daily: no reversal beyond bid-ask bounce.**
+- **US daily: no reversal beyond bid-ask bounce worth trading.**
+  - The registered skip-a-day check is negative everywhere, because choice 7 keeps impact in its "gross". With
+    zero cost and without the ~26 glitch names, only B1-L2 (+5 bp, t 2.9), B2-L2 (+14 bp, t 2.7) and B2-L1
+    (+10 bp, t 2.0) are positive.
   - B1's gross is +1.0/+0.2/+0.1/+0.03% in L1-L4 (+0.44% in L1 excluding ~26 qlib glitch names). A synthetic
-    no-information market with the same spreads gives +0.84/+0.25/+0.11/+0.04% from bounce alone, and the
-    gross sits entirely in the overnight leg.
-  - With zero impact, B1/B2/E1 would need true spreads below 9-36% of the estimate. The estimate is 1.2-2.2×
-    actual closing quotes.
+    no-information market with each band's median spread gives +0.84/+0.25/+0.11/+0.04% from bounce alone,
+    and the gross sits entirely in the overnight leg.
+  - With zero impact, B1/B2/E1 would need true spreads below 2-36% of the estimate (at most 36% in L1 and 10%
+    in L2-L4; about 8% at most without the ~26 glitch names). The estimate is 1.2-2.2× actual closing quotes.
   - B3 and B4 lose before any cost.
   - 2023-2026 is worse; high-VIX periods are worse.
 - **Part C cannot test bid-ask capture.** Without quotes, the registered C1 rule loses about as much in a
@@ -1015,11 +1021,11 @@ strategy, which variants are worth testing, and does large capital help?
   would be NO EDGE.
 - **Size works against it (Part D).**
   - A 10%-of-ADV round trip costs 6.5-7.8% (L1) to 2.0-2.9% (L4).
-  - Every strategy is negative from $10k to $5M deployed, and $1M aimed at the L1 reversal keeps only about
+  - Every daily strategy (B1-B4, E1) is negative from $10k to $5M deployed, and $1M aimed at the L1 reversal keeps only about
     $420k working.
   - Large buyers' marks overstate realized P&L by a median of 1-5 points (L1-L4).
-  - In 2023-2026, thin stocks gave back 3-5% within 20 days after high-volume up days (t −2.8 to −5.1). The
-    2001-2020 data show no such give-back.
+  - In 2023-2026, thin stocks in L1-L3 gave back 3-5% within 20 days after high-volume up days (t −2.8 to
+    −5.1; L4 −1.2%, not significant). The 2001-2020 data show no such give-back.
 - **Exploratory, all negative:**
   - thin ETFs bought on dislocation vs a matched liquid ETF: −0.5% to −2.9%;
   - opening-range breakouts on 1,492 gap-up event days: net −5.1%; the +1.8% gross is one halted stock,
@@ -1031,16 +1037,25 @@ strategy, which variants are worth testing, and does large capital help?
   make it −67 to −95 bp per $ filled.
 - **F1 fill rule in thin pairs:** in the thinnest pairs (bands A/B) it may be pessimistic. A tick-scaled
   synthetic correction could lift Q5-B to about +2 bp (upper bound about +6 bp), which is about $4 a day per
-  pair.
+  pair. It would also lift Q5-A's strict upper bound to about +7 bp (point estimate −0.3), so both
+  friend-relevant NO EDGE verdicts in bands A/B assume F1 is roughly faithful in thin books; the real-book
+  check (Control ii) covers only books with at least 370 taker orders an hour (band medians 89 and 163). With
+  30% informed flow no cell crosses.
 - **Inventory cap:** not enforced for in-flight orders on fast days; enforcing it moves edges by at most
   ±0.8 bp.
-- **US data:** both US samples are survivor-biased (upward for these long-only rules). qlib glitch names
-  inflate L1 gross diagnostics.
+- **US data:** both US samples are survivor-biased (upward for these long-only rules). In B-H the
+  pre-registered on-grid price rule also drops 14% of L1-L4 name-days, mostly names about to forward-split
+  (future winners): a small downward bias of about 0.5 bp a day, mostly netted out by band excess. qlib
+  glitch names inflate L1 gross diagnostics.
 - **Audit fixes:** sale proceeds are floored at zero (choice 34: B1-L1 −6.6% → −6.3%); the null redraw pool
-  is reworked (choice 20).
+  now drops gap-spanning bars (choice 20), a reading of "daily bar" rather than a bug fix: the absurd null
+  values came from glitch ratios still in the pool, and no verdict depends on it.
 - **Part E intraday leg:** its event filter uses same-day volume (registered look-ahead).
-- **Not run in full:** the A-RH stratum (Robinhood-listed coins) and the IEX validation (Control C-iii) are
-  exploratory or descriptive and are reported in `results_scalping/` as provisional.
+- **IEX tick-level check (Control C-iii, descriptive):** on 27 L4 name-days where IEX was at the NBBO, C1 on real
+  IEX ticks with a back-of-queue model lost $46.8 per name-day (−0.77% per $ bought; 15% positive), against
+  −0.86% per $ for the bar version on the same days.
+- **Not run in full:** the A-RH stratum (Robinhood-listed coins) is exploratory and reported in
+  `results_scalping/A/arh_cells.csv` as provisional where incomplete.
 - **Sources:** literature and fee rates come mostly from search summaries.
 
 **Use.**
@@ -1230,7 +1245,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/regime_switch.py`, `analysis_2026/results_regime/` | Why the indicator trails buy & hold (red-spell decomposition, H-A1) and regime switching B&H/indicator (H-B1 to H-B5; section 5.17). `python3 -m analysis_2026.regime_switch` (about 4 min; needs numba and pyarrow) and `--sensitivity`. Two large outputs (`partA_spells_stocks.csv`, `basket_stocks_slots.csv`) are gitignored. |
 | `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages; `--null-tests` (seconds, also run by `--null`) writes `null_tests.txt`, each actual statistic against its no-edge level with a p-value. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
 | `analysis_2026/freedom_countries.py`, `analysis_2026/results_freedom/`, `analysis_2026/FREEDOM_PREREG.md` | Country policy direction vs USD stock returns: S1-S7 pre-registered (Fraser freedom change/level, Heritage tax burden, manufacturing share, electricity build-out, Western-only, composite; section 5.20). `python3 -m analysis_2026.freedom_countries` (about 1.5 min) writes `summary.txt` and CSVs. Data: `python3 -m analysis_2026.fetch_freedom_data` (seconds; writes `data/freedom/`, gitignored). Research notes and the synthesized report are in `analysis_2026/research_notes/Economic freedom investment thesis/` and `analysis_2026/reports/`. |
-| `analysis_2026/scalp_crypto.py`, `scalp_us_daily.py`, `scalp_us_intraday.py`, `scalp_stats.py`, `scalp_report.py`, `fetch_scalping_data.py`, `rh_bars.py`; `analysis_2026/SCALPING_PREREG.md`; `analysis_2026/results_scalping/` | Scalping / bid-ask capture study (section 5.21). Part A crypto passive quoting on the Binance spot trade archive (`python3 -m analysis_2026.scalp_crypto --controls`, `--run --stratum main\|arh --workers 2` (~1 h, download-bound; use <= 2 workers, BTC/ETH days need ~4 GB), `--analyze`); Parts B/E/D daily US stocks (`python3 -m analysis_2026.scalp_us_daily --run --nulls 20`, ~30 min, ~8 GB peak); Part C 5-minute bars and Part E's intraday leg (`python3 -m analysis_2026.scalp_us_intraday --run`, `--events`, `--iex`); `python3 -m analysis_2026.scalp_report` applies the study-wide Holm across the 36 primary cells and writes `results_scalping/verdicts.csv/.txt`. Report: `analysis_2026/reports/Scalping and market making.md`; notes: `analysis_2026/research_notes/Scalping and market making/`. |
+| `analysis_2026/scalp_crypto.py`, `scalp_us_daily.py`, `scalp_us_intraday.py`, `scalp_stats.py`, `scalp_report.py`, `fetch_scalping_data.py`, `rh_bars.py`; `analysis_2026/SCALPING_PREREG.md`; `analysis_2026/results_scalping/` | Scalping / bid-ask capture study (section 5.21). Part A crypto passive quoting on the Binance spot trade archive (`python3 -m analysis_2026.scalp_crypto --controls`, `--run --stratum main --workers 2` (~1 h, download-bound; rerun after any out-of-memory failure, since runs are incremental) and `--run --stratum arh --workers 1` (slower; the largest pair-months need 5+ GB, and 2 workers failed 58 of 71 A-RH jobs), `--analyze`); Parts B/E/D daily US stocks (`python3 -m analysis_2026.scalp_us_daily --run --nulls 20`, ~30 min, ~8 GB peak); Part C 5-minute bars and Part E's intraday leg (`python3 -m analysis_2026.scalp_us_intraday --run`, `--events`, `--iex`); `python3 -m analysis_2026.scalp_report` applies the study-wide Holm across the 36 primary cells and writes `results_scalping/verdicts.csv/.txt`. Report: `analysis_2026/reports/Scalping and market making.md`; notes: `analysis_2026/research_notes/Scalping and market making/`. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
