@@ -1,0 +1,81 @@
+{
+  "_comment": "Template. `python3 -m agentic init` copies it to private/agentic/config.json (gitignored). Fill in the account numbers there, never here. live=false is shadow mode: plans are written and previewed, but the hook blocks every place_* call.",
+  "account": {
+    "account_number": "FILL-IN-PRIVATE-CONFIG-ONLY",
+    "rhs_account_number": "FILL-IN-PRIVATE-CONFIG-ONLY",
+    "approvals_required": true
+  },
+  "live": false,
+  "capital": {
+    "_comment": "The sleeve deploys min(agentic account total value, max_usd).",
+    "max_usd": 1000
+  },
+  "limits": {
+    "max_order_usd": 500,
+    "max_day_usd": 1500,
+    "max_asset_frac": 0.30,
+    "max_crypto_frac": 0.60,
+    "min_order_usd": 5
+  },
+  "tax": {"st_rate": 0.35, "lt_rate": 0.20},
+  "wash_sale_block_symbols": [],
+  "modes": {
+    "_comment_immediate": "full position on the first close beyond the line (N=1)",
+    "immediate": [{"weight": 1.0, "n_entry": 1, "n_exit": 1}],
+    "_comment_split": "half on the first close beyond the line, the other half after 5 consecutive closes beyond it",
+    "split": [{"weight": 0.5, "n_entry": 1, "n_exit": 1}, {"weight": 0.5, "n_entry": 5, "n_exit": 5}],
+    "confirm5": [{"weight": 1.0, "n_entry": 5, "n_exit": 5}]
+  },
+  "assets": [
+    {
+      "name": "ETH",
+      "class": "crypto",
+      "enabled": true,
+      "alloc_frac": 0.25,
+      "mode": "immediate",
+      "signal": {"source": "computed", "feed": "coinbase", "symbol": "ETH-USD"},
+      "vehicle": {"type": "equity", "symbol": "ETHA", "fractional": true},
+      "_comment": "Signal from Coinbase ETH-USD daily candles (TradingView COINBASE:ETHUSD); traded through the spot ETF at ~0 cost in the next NYSE session (gate.py: ETH = TRADE via ETF)."
+    },
+    {
+      "name": "SOL",
+      "class": "crypto",
+      "enabled": false,
+      "alloc_frac": 0.10,
+      "mode": "immediate",
+      "signal": {"source": "computed", "feed": "coinbase", "symbol": "SOL-USD"},
+      "vehicle": {"type": "crypto", "symbol": "SOL"},
+      "_comment": "PROBATION in gate.py (short history). Direct crypto costs ~0.95% per side on Robinhood's default route; check with preview_crypto_order, or switch the vehicle to a spot SOL ETF."
+    },
+    {
+      "name": "BTC",
+      "class": "crypto",
+      "enabled": false,
+      "alloc_frac": 0.20,
+      "mode": "immediate",
+      "signal": {"source": "computed", "feed": "coinbase", "symbol": "BTC-USD"},
+      "vehicle": {"type": "crypto", "symbol": "BTC"},
+      "_comment": "NO-SIGNAL in gate.py (holding beat the signal after tax)."
+    },
+    {
+      "name": "SPY",
+      "class": "equity",
+      "enabled": false,
+      "alloc_frac": 0.20,
+      "mode": "split",
+      "signal": {"source": "computed", "feed": "robinhood", "symbol": "SPY"},
+      "vehicle": {"type": "equity", "symbol": "SPY", "fractional": true},
+      "_comment": "Stocks: the 5-close delay helped in the flip-delay study (section 5.15), but no timing rule beat holding after tax."
+    },
+    {
+      "name": "ETH-TV",
+      "class": "crypto",
+      "enabled": false,
+      "alloc_frac": 0.25,
+      "mode": "split",
+      "signal": {"source": "tv_export", "path": "private/tv_exports/COINBASE_ETHUSD_1D*.csv"},
+      "vehicle": {"type": "equity", "symbol": "ETHA", "fractional": true},
+      "_comment": "Follows the NEW (Oct 2026) TradingView MoneyLine from a fresh daily CSV export (Direction / ConfirmCount / MoneyLine Level columns). Enable this OR the computed ETH entry, not both."
+    }
+  ]
+}

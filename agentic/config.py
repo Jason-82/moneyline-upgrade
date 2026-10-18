@@ -1,0 +1,167 @@
+"""Configuration and state paths. Standard library only: the Claude Code hooks import this module.
+
+The real config lives at <state>/config.json (default state dir: <repo>/private/agentic, gitignored; override with the
+AGENTIC_STATE_DIR environment variable). agentic/config.example.json is the committed template (`python3 -m agentic
+init` copies it). The config holds account numbers, so it must never be committed.
+"""
+from __future__ import annotations
+
+import copy
+import json
+import os
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+EXAMPLE = Path(__file__).resolve().parent / "config.example.json"
+
+DEFAULT_MODES = {
+    "immediate": [{"weight": 1.0, "n_entry": 1, "n_exit": 1}],
+    "split": [{"weight": 0.5, "n_entry": 1, "n_exit": 1}, {"weight": 0.5, "n_entry": 5, "n_exit": 5}],
+    "confirm5": [{"weight": 1.0, "n_entry": 5, "n_exit": 5}],
+}
+
+DEFAULT_LIMITS = {
+    "max_order_usd": 500.0,          # per order notional cap
+    "max_day_usd": 1500.0,           # placed notional per calendar day (ET), buys and sells
+    "max_asset_frac": 0.30,          # of capital, per asset
+    "max_crypto_frac": 0.60,         # of capital, all crypto-signal assets together (they flip red together)
+    "min_order_usd": 5.0,            # skip smaller trades
+    "rebalance_band_frac": 0.25,     # trade only if |target - current| > band x the asset's full allocation
+    "equity_collar_frac": 0.005,     # limit = ask x (1 + collar) for buys, bid x (1 - collar) for sells
+    "crypto_collar_frac": 0.01,
+    "collar_ladder": [1, 2, 4],      # multipliers for plan --attempt 1/2/3
+    "max_collar_frac": 0.03,
+    "quote_max_age_min": 15,         # captured quotes older than this cannot be used for a plan
+    "snapshot_max_age_min": 30,      # positions / portfolio / open orders captures
+    "plan_valid_min_crypto": 360,    # crypto plans expire after 6 h
+    "min_bars": 300,                 # history needed before a signal is trusted
+}
+
+VALID_CLASSES = ("crypto", "equity")
+VALID_SOURCES = ("computed", "tv_export")
+VALID_FEEDS = ("coinbase", "robinhood", "yfinance", "csv")
+VALID_VEHICLES = ("crypto", "equity")
+
+
+class ConfigError(ValueError):
+    pass
+
+
+def state_dir() -> Path:
+    return Path(os.environ.get("AGENTIC_STATE_DIR") or (REPO / "private" / "agentic"))
+
+
+def paths(base: Path | None = None) -> dict[str, Path]:
+    b = Path(base) if base is not None else state_dir()
+    return {
+        "base": b,
+        "config": b / "config.json",
+        "inbox": b / "inbox",                # raw Robinhood MCP tool results, saved by the PostToolUse hook
+        "signals": b / "signals",            # signals_<YYYY-MM-DD>.json
+        "plans": b / "plans",                # plan_<plan_id>.json
+        "plan_current": b / "plan_current.json",
+        "digests": b / "digests",
+        "journal": b / "journal.jsonl",      # every place/cancel/preview call and its result
+        "ledger": b / "ledger.json",         # placed notional per day
+        "positions_ref": b / "positions_reconciled.json",
+        "hook_log": b / "hook.log",
+        "STOP": b / "STOP",                  # kill switch: no new orders at all
+        "FLATTEN": b / "FLATTEN",            # sells toward zero only
+        "BLOCK_BUYS": b / "BLOCK_BUYS",      # set by reconcile/data checks; exits still allowed
+    }
+
+
+def ensure_dirs(base: Path | None = None) -> dict[str, Path]:
+    p = paths(base)
+    for k in ("base", "inbox", "signals", "plans", "digests"):
+        p[k].mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def _merge(default: dict, override: dict) -> dict:
+    out = copy.deepcopy(default)
+    for k, v in (override or {}).items():
+        out[k] = v
+    return out
+
+
+def validate(cfg: dict) -> dict:
+    """Fill defaults and check the structure. Returns a new dict; raises ConfigError."""
+    if not isinstance(cfg, dict):
+        raise ConfigError("config must be a JSON object")
+    c = copy.deepcopy(cfg)
+    c["limits"] = _merge(DEFAULT_LIMITS, c.get("limits", {}))
+    modes = _merge(DEFAULT_MODES, {k: v for k, v in c.get("modes", {}).items() if not k.startswith("_")})
+    for name, tranches in modes.items():
+        if not isinstance(tranches, list) or not tranches:
+            raise ConfigError(f"mode {name}: needs a non-empty list of tranches")
+        tot = 0.0
+        for t in tranches:
+            if not {"weight", "n_entry", "n_exit"} <= set(t):
+                raise ConfigError(f"mode {name}: each tranche needs weight, n_entry, n_exit")
+            if not (0 < float(t["weight"]) <= 1) or int(t["n_entry"]) < 1 or int(t["n_exit"]) < 1:
+                raise ConfigError(f"mode {name}: weight in (0, 1], n_entry/n_exit >= 1")
+            tot += float(t["weight"])
+        if abs(tot - 1.0) > 1e-9:
+            raise ConfigError(f"mode {name}: tranche weights must sum to 1 (got {tot})")
+    c["modes"] = modes
+    c["live"] = bool(c.get("live", False))
+    acct = c.setdefault("account", {})
+    acct.setdefault("approvals_required", True)
+    c.setdefault("tax", {"st_rate": 0.35, "lt_rate": 0.20})
+    c.setdefault("wash_sale_block_symbols", [])
+    cap = c.setdefault("capital", {})
+    if float(cap.get("max_usd", 0)) <= 0:
+        raise ConfigError("capital.max_usd must be > 0 (the most this sleeve may deploy)")
+    names = set()
+    alloc = 0.0
+    for a in c.get("assets", []):
+        n = a.get("name")
+        if not n or n in names:
+            raise ConfigError(f"asset name missing or duplicated: {n!r}")
+        names.add(n)
+        if a.get("class") not in VALID_CLASSES:
+            raise ConfigError(f"{n}: class must be one of {VALID_CLASSES}")
+        if a.get("mode", "immediate") not in modes:
+            raise ConfigError(f"{n}: unknown mode {a.get('mode')!r}; defined: {sorted(modes)}")
+        a.setdefault("mode", "immediate")
+        a.setdefault("enabled", False)
+        s = a.get("signal") or {}
+        if s.get("source", "computed") not in VALID_SOURCES:
+            raise ConfigError(f"{n}: signal.source must be one of {VALID_SOURCES}")
+        s.setdefault("source", "computed")
+        if s["source"] == "computed" and s.get("feed") not in VALID_FEEDS:
+            raise ConfigError(f"{n}: signal.feed must be one of {VALID_FEEDS}")
+        if s["source"] == "tv_export" and not s.get("path"):
+            raise ConfigError(f"{n}: tv_export needs signal.path (a glob of TradingView CSV exports)")
+        if s["source"] == "tv_export" and a["mode"] not in ("immediate", "split", "confirm5"):
+            raise ConfigError(f"{n}: tv_export supports modes immediate / split / confirm5 only")
+        if not s.get("symbol") and s.get("feed") != "csv" and s["source"] == "computed":
+            raise ConfigError(f"{n}: signal.symbol missing")
+        a["signal"] = s
+        v = a.get("vehicle") or {}
+        if v.get("type") not in VALID_VEHICLES or not v.get("symbol"):
+            raise ConfigError(f"{n}: vehicle needs type in {VALID_VEHICLES} and a symbol")
+        v.setdefault("fractional", False)
+        a["vehicle"] = v
+        f = float(a.get("alloc_frac", 0))
+        if not (0 <= f <= c["limits"]["max_asset_frac"] + 1e-12):
+            raise ConfigError(f"{n}: alloc_frac must be within [0, max_asset_frac={c['limits']['max_asset_frac']}]")
+        a["alloc_frac"] = f
+        if a["enabled"]:
+            alloc += f
+    if alloc > 1.0 + 1e-9:
+        raise ConfigError(f"enabled assets allocate {alloc:.2f} > 1.0 of capital")
+    return c
+
+
+def load_config(path: str | Path | None = None) -> dict:
+    p = Path(path) if path else paths()["config"]
+    if not p.exists():
+        raise ConfigError(f"no config at {p}; run `python3 -m agentic init` and edit it")
+    return validate(json.loads(p.read_text()))
+
+
+def tranches_for(asset: dict, cfg: dict) -> list[dict]:
+    return [dict(weight=float(t["weight"]), n_entry=int(t["n_entry"]), n_exit=int(t["n_exit"]))
+            for t in cfg["modes"][asset["mode"]]]
