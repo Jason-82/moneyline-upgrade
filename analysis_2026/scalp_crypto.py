@@ -9,7 +9,8 @@ Part A of the scalping study: passive quoting on illiquid Binance spot pairs
     python3 -m analysis_2026.scalp_crypto --run [--workers 4]   # every drawn pair-month, then the A-RH stratum if
                                                                 #   data/scalping/rh/currency_pairs.json exists
     python3 -m analysis_2026.scalp_crypto --run --stratum arh   # only the A-RH stratum
-    python3 -m analysis_2026.scalp_crypto --analyze             # primary_cells.csv and every reporting table
+    python3 -m analysis_2026.scalp_crypto --analyze             # primary_cells.csv and every reporting table; refuses
+                                                                #   incomplete/stale results (--allow-incomplete: provisional)
 
 Outputs: analysis_2026/results_scalping/A/ (small tables), data/scalping/A/ (per pair-day parquet, gitignored).
 Holm across the study's 36 tests and the final verdicts are applied by the combine script, not here.
@@ -73,7 +74,9 @@ Engine
       sell orders (Q5, Q1-LO) are capped at the coins held when they go live (the exchange's balance check).
   E3  T_max: the timer starts when inventory turns non-zero, at fill + D ("timers go live at fill + D");
       a sign flip without passing through zero does not reset it; the flatten is decided at expiry and
-      executed at + D for the inventory then held.
+      executed at + D for the inventory then held. Because cap-side cancels also take effect only at fill + D, an
+      order already in flight can carry |inv| past 3q for at most D (checked: never at D -> 0; on random tapes up to
+      3.9q at D = 1 s); this is the pre-registered latency, not a sizing error.
   E4  Crossed fills: size = min(remaining, participation x volume of the order's prints at/through our
       price), price = the worst of those prints for us. If one aggressor order could both cross one of our
       quotes and fill the other, only the crossing (it comes first in the sweep) is counted.
@@ -99,6 +102,9 @@ Engine
   E12 Markouts: passive (maker) fills only, signed P&L to the valid implied mid at fill + 60 s / + 300 s
       (fills whose mid is invalid then are excluded and the covered notional is stored).
   E13 Taker-exit P&L = (exit price - implied mid at the decision) x quantity, signed, plus its taker fee.
+  E14 Fills and post-only cancels use only prints while the order is live (as written): a print inside an order's
+      latency window neither fills nor rejects it on activation. For Q2 this is also the conservative reading (a
+      post-only bid rejected because the ask had dropped to it would escape the adverse fill that usually follows).
 Inference and reporting
   I1  Control (ii) bias per strategy = the larger of (a) pooled sum(net)/sum(filled) trades-only minus
       true-book and (b) the mean over symbol-days of the same difference; if it exceeds +0.5 bp the WHOLE
@@ -107,11 +113,13 @@ Inference and reporting
       script can apply "a cell whose verdict changes under the correction is INCONCLUSIVE".
   I2  Drop-worst-day groups pair-days by UTC calendar day across all pairs of the cell.
   I3  Splits use the 30 days before the month: median pre-trade implied spread in ticks (tick = gcd over the
-      30 days), spread (bp) / SD of 60-s implied-mid log changes (bp); terciles within band across that
-      band's pair-months; volatility = SD of daily kline log returns over the same 30 days; listing age from
+      30 days), spread (bp) / SD of 60-s implied-mid log changes (bp); terciles within each band-month cross-section
+      of drawn pairs (R5); volatility = SD of daily kline log returns over the same 30 days; listing age from
       the first monthly kline in the archive, bucketed <1 y, 1-3 y, >=3 y.
   I4  Day-block bootstrap: 4,999 resamples of UTC days (seed 20261018), p as in the general rules.
-      Month-level t: the 12 monthly means of net $ per pair-day, Student t with 11 df.
+      Month-level t: the monthly means of net $ per pair-day, Student t with (months - 1) df: 11 df, except band A,
+      which has no pair in 2025-12 (N1) and so 11 months and 10 df.
+  I6  MDE = (z_{1-0.05/36} + z_0.80) x SE, the pre-registered formula (mde); the Student-t version is kept as mde_t.
   I5  Capital = 4 x order size per pair; annualized return = 365 x mean net $ per pair-day / capital;
       Sharpe = mean/SD of net $ per pair-day x sqrt(365) (one pair as one account); also the band-portfolio
       version (daily mean over pairs). SPY: adjusted close from data/universe_recent_raw, 20% LT tax.
@@ -130,6 +138,25 @@ Controls
       size at activation, depleted only by prints at our price (no cancels ahead); any trade-through fills
       at least its through volume; a book that crosses our resting order fills it as maker; an order that
       would cross on activation takes the displayed size as taker (post-only: rejected).
+Review fixes (adversarial code review before any primary result was computed; no rule was changed)
+  R1  fetch_spot confirms a missing file against the bucket listing: a transient 403/404 on a file the archive holds
+      raises (the job fails and a rerun retries it) instead of becoming a zero pair-day.
+  R2  Every cached parquet (pair-months and Control (ii) symbol-days) carries engine_version, a hash of the simulation
+      source; a cache made by other code is recomputed (--run, --controls) and --analyze refuses mixed versions.
+  R3  --analyze checks that every drawn pair-month is present, in its drawn band, with every configuration on every
+      day (completeness.csv) and stops otherwise, so a failed job cannot silently drop pair-months; days whose trades
+      file (or next-day file) is absent although the klines show volume are listed (nodata_with_kline_volume.csv)
+      and kept as specified.
+  R4  A non-finite pair-day result raises instead of being dropped by the cluster code's finite filter.
+  R5  Split terciles were cut over the whole year's pair-months of a band, which uses later months' distribution;
+      they are now cut within each band-month (values known before the month). This affects only the exploratory
+      splits and the exploratory conditional cell.
+  R6  flags.csv: pair-days per config and band with each engine flag (stopped trading, queue overflow, residual
+      inventory, missing day / next-day file).
+  R7  The passive-fill markout buffer grows instead of dropping fills (it overflowed on 81 true-book Control (ii)
+      symbol-days, truncating only their markouts).
+  U6  load_klines drops 3 exact duplicate sym-day rows of the archive (AXS 2026-02-10, UMA 2026-07-15, USDP
+      2026-07-17); this moves n_klines by 1 for 11 pair-months and changes no eligibility, band or draw.
 
 ---------------------------------------------------------------------------------------------- Deviations
 (Places where the pre-registration could not be followed exactly.)

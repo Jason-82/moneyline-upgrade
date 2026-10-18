@@ -21,13 +21,21 @@ universe.csv (the 2026-10-16 closing NBBO, Control (iii)). Pilot fall-backs: dat
 and the pilot-40 daily CSV. The closing-quote model's coefficients come from results_scalping/B/cost_model.csv
 when Part B fitted it on B-R; otherwise they are refitted here with Part B's own code (scalp_us_daily).
 
-Outputs: analysis_2026/results_scalping/C/ (primary_cells.csv with the 4 C1 cells, cell_report.csv,
-sensitivities.csv, illusion.csv, markouts.csv, by_halfhour.csv, rerun_1min.csv, rerun_15s.csv,
-b34_confirmation.csv, controls_i.csv, controls_i_params.csv, controls_ii.csv, controls_iii_iex.csv, e_orb.csv,
-summary.txt) and per-unit / per-trade parquet under data/scalping/C/. primary_cells.csv holds no verdict: Holm
-over all 36 tests is applied by scalp_report.py. Columns cond_* are the PASS conditions 2-6 plus the Control (i)
-cap (cond_control_i); force_inconclusive = True when PASS condition 6's sign check fails ("If not, the verdict
-is INCONCLUSIVE", which also rules out NO EDGE).
+Outputs: analysis_2026/results_scalping/C/
+  --run       primary_cells.csv (the 4 C1 cells), cell_report.csv (activity, per-trade bp, exits, markouts, capital,
+              Sharpe, tax, SPY, orders/day, months of record, no-edge level), sensitivities.csv (T_max 12, latency,
+              m = 0/1/2, $10k, IBKR fee, C1-open/-close, range trades, $1-3 stocks, spread/vol terciles, halves),
+              illusion.csv, markouts.csv, by_halfhour.csv, rerun_1min.csv, rerun_15s.csv, b34_confirmation.csv,
+              summary.txt; data/scalping/C/units.parquet (every stock-session, every variant) and trades_primary.parquet
+  --controls  controls_i.csv (+ _params, + _diagnostics: exit decomposition and variants that are NOT the control),
+              controls_ii.csv, summary_controls.txt
+  --events    e_orb.csv, e_orb_no_edge.csv (the ORB engine on the Roll market), data/scalping/C/e_orb_trades.parquet
+  --iex       controls_iii_iex.csv (IEX extracts cached under data/scalping/C/iex/)
+primary_cells.csv holds no verdict: Holm over all 36 tests is applied by scalp_report.py. Columns cond_* are PASS
+conditions 2-6 plus the Control (i) cap (cond_control_i); an empty cond_* could not be evaluated and counts as not
+met. force_inconclusive = True when PASS condition 6's sign check fails ("If not, the verdict is INCONCLUSIVE",
+which also rules out NO EDGE): the combine script must honour it. Run --controls before --run (cond_control_i and
+the no-edge level are read from controls_i.csv).
 
 ------------------------------------------------------------------------------------------------- the rule
 Clock: bars labelled by start time (UTC -> America/New_York); regular session 09:30-16:00 (13:00 on early-close
@@ -127,6 +135,11 @@ Where the pre-registration is silent or ambiguous, the reading less likely to gi
      traded close below the range low, else at the 15:50 bar's close (carried last trade); s = Part B's daily
      s as of d-1 (no 20-session intraday history exists for event names); sell fees as in C. The rule as
      written has no impact term; a Y = 0.5 impact variant (Part B's leg cost at Q, both legs) is also shown.
+     Its no-edge level (General rules) is the ORB rule on every stock-session of Control (i)'s Roll markets.
+ C18 Reruns at 1 minute / 15 seconds use only sessions from the first session with a real bar at that resolution
+     (Robinhood returns flat interpolated bars outside retention). B3/B4 confirmation: Part B's own B-R fills
+     (scalp_us_daily.b3_trades / b4_trades on the prepared B-R panel) for panel names with fill days in the window;
+     "confirmed" = some traded 5-minute bar of the fill day with a whole-cent low <= limit - $0.01.
 Deviations from the pre-registration (also written to summary.txt): intraday bars are unadjusted only
 (all C rules are within-session and s is relative); the window start moves to the first available session if
 retention has rolled past 2026-03-02; Control (iii)'s NBBO match is proxied on 4 of the 5 days (C16).
@@ -246,18 +259,6 @@ def build_clock(d: pd.DataFrame, dt: int, symbols=None):
     return ck
 
 
-def subset_clock(ck, syms=None, dsel=None):
-    syms = ck.syms if syms is None else np.array(syms, dtype=object)
-    ii = pd.Index(ck.syms).get_indexer(syms)
-    dd = np.arange(ck.D) if dsel is None else np.asarray(dsel)
-    out = SimpleNamespace(**{k: getattr(ck, k) for k in ("dt", "K")})
-    out.syms = syms; out.dates = ck.dates[dd]; out.L = ck.L[dd]; out.NB = ck.NB[dd]; out.N = len(syms); out.D = len(dd)
-    out.n_dropped = 0
-    for a in ("O", "H", "L_", "C", "V", "TR", "WCL", "WCH"):
-        setattr(out, a, getattr(ck, a)[ii][:, dd])
-    return out
-
-
 # ============================================================================ EDGE with NaN bars, session stats
 
 @njit(cache=True)
@@ -372,6 +373,8 @@ def cost_model(say=print):
         flag = f"refitted here on B-R with scalp_us_daily.fit_cost_model (n_fit {c['n_fit']}); Part B's file was a stand-in"
         del BR
     if cf is None:
+        if not f.exists():
+            raise RuntimeError("no cost model: run Part B (scalp_us_daily) or pull the B-R daily bars first")
         c = pd.read_csv(f).set_index("item").value
         cf = {k: float(c[k]) for k in ("b0", "b1", "b2", "b3", "S")}; flag = "STAND-IN: " + str(c.get("fit_sample"))
     say(f"cost model: {flag}; b = {cf['b0']:.3f}, {cf['b1']:.3f}, {cf['b2']:.3f}, {cf['b3']:.3f}, S = {cf['S']:.3f}")
@@ -380,14 +383,12 @@ def cost_model(say=print):
 
 def _daily_long_br(symbols):
     """Unadjusted + split-adjusted Robinhood daily bars -> Part B's long frame, and the B-R calendar."""
-    cols = ["symbol", "begins_at", "open", "high", "low", "close", "volume", "interpolated", "session"]
     s = sd._rh_daily(RH / "daily_split.parquet")
     u = sd._rh_daily(RH / "daily_none.parquet")
     dates = pd.DatetimeIndex(np.sort(s.loc[~s.interpolated.astype(bool), "date"].unique()))
     s = s[s.ticker.isin(set(symbols))]; u = u[u.ticker.isin(set(symbols))]
     m = s.merge(u[["ticker", "date", "open", "high", "low", "close", "interpolated"]], on=["ticker", "date"],
                 suffixes=("", "_u"), how="left")
-    del cols
     return _long_from_merged(m), dates
 
 
@@ -801,7 +802,9 @@ def rerun_other(ck_o, U5, P):
     """1-minute / 15-second rerun on the 5-minute units that overlap the finer data (same s, P, band, clock
     times); the carried last trade is taken at the finer resolution where it exists, else the 5-minute one."""
     sym_ok = U5.sym.isin(set(ck_o.syms)).to_numpy()
-    d_ok = U5.date.isin(set(ck_o.dates)).to_numpy()
+    real_d = ck_o.dates[ck_o.TR.any(axis=(0, 2))]                # flat interpolated days outside retention excluded
+    d_ok = (U5.date.isin(set(ck_o.dates)) & (U5.date >= real_d.min()) & (U5.date <= real_d.max())).to_numpy() \
+        if len(real_d) else np.zeros(len(U5), bool)
     Uo = U5[sym_ok & d_ok].copy()
     Uo["ic"] = pd.Index(ck_o.syms).get_indexer(Uo.sym)
     Uo["dc"] = ck_o.dates.get_indexer(Uo.date)
@@ -816,7 +819,7 @@ def rerun_other(ck_o, U5, P):
 
 
 def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=None, null_ii=None, b34=None,
-            quick=False, label="C"):
+            quick=False):
     """Primary cells, PASS conditions 2-6, and every reported table."""
     X = gather(ck5, U)
     runs, pos, held, secs = variant_runs(ck5, U, X, quick=quick)
@@ -900,6 +903,11 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
              if mk.any() else np.nan,
              "route": ROUTE, "s_median": float(np.nanmedian(U.s.to_numpy()[mk])) if mk.any() else np.nan,
              "share_s_from_5min": float((U.s_src.to_numpy()[mk] == "5min").mean()) if mk.any() else np.nan}
+        if ctrl_i is not None:
+            ci = ctrl_i[(ctrl_i.band == f"L{k}") & (ctrl_i.case == "median spread")]
+            if len(ci):
+                r |= {"no_edge_level_control_i_usd": float(ci.estimate.iloc[0]),
+                      "no_edge_level_control_i_bp_per_$": 1e4 * float(ci.edge_estimate.iloc[0])}
         r |= capital_stats(U, prim, held, mk) | spy
         rep.append(r)
         # ---- sensitivities and splits
@@ -907,7 +915,7 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
             if v == "primary":
                 continue
             sens.append({"variant": v, "band": f"L{k}", "subset": "s x P >= $0.03"} | stats_of(U, runs[v], mk))
-        mr = masks[k] if False else band_masks(U, tick3=False)[k]
+        mr = band_masks(U, tick3=False)[k]
         sens.append({"variant": "range trades (1-2 ticks)", "band": f"L{k}", "subset": "s x P < $0.03"}
                     | stats_of(U, prim, mr))
         p13 = mk & (U.P.to_numpy() >= 1) & (U.P.to_numpy() < 3)
@@ -1005,6 +1013,8 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
         uu = U.drop(columns=["ic", "dc", "row"]).copy()
         for v, r in runs.items():
             uu[f"net_{v}"] = r.net.to_numpy()
+            if v in ("q10k", "latency", "tmax12"):
+                uu[f"bought_{v}"] = r.bought.to_numpy()
         uu["bought"] = prim.bought.to_numpy(); uu["n_fills"] = prim.n_fills.to_numpy(); uu["n_pos"] = prim.n_pos.to_numpy()
         uu.to_parquet(tdir / "units.parquet", index=False)
         if pos is not None:
@@ -1442,49 +1452,36 @@ def control_iii(cf, say, workers=4):
 
 # ============================================================================ Part E: intraday ORB leg
 
-def orb(cf, say, Q=QBIG):
-    ev = pd.read_csv(RH / "events.csv", parse_dates=["date"])
-    bars = load_bars(RH / "events_m5_none.parquet", set(ev.symbol))
-    ck = build_clock(bars, 300)
-    P = daily_for(sorted(set(ev.symbol)), cf)
-    sec_, taf_, cap_ = fees_for(ev.date)
-    rows = []
-    for e, ev_ in enumerate(ev.itertuples()):
-        a = np.where(ck.syms == ev_.symbol)[0]; d = ck.dates.get_indexer([ev_.date])[0]
-        base = {"symbol": ev_.symbol, "date": ev_.date, "traded": False}
-        if not len(a) or d < 0 or ev_.symbol not in P.tix:
-            rows.append(base | {"reason": "no bars"}); continue
-        a = a[0]; r = P.tix[ev_.symbol]; t = P.dates.get_indexer([ev_.date])[0]
-        s = float(P.SPR[r, t]); sig = float(np.nan_to_num(P.SIG20[r, t])); adv = float(np.nan_to_num(P.ADV[r, t]))
-        band = int(P.BAND[r, t])
-        nb = ck.NB[d]; fx = (ck.L[d] - 300) // 300 - 1
-        TR, Hh, Ll, Cc, Vv = ck.TR[a, d], ck.H[a, d], ck.L_[a, d], ck.C[a, d], ck.V[a, d]
-        if not TR[:6].any() or not np.isfinite(s):
-            rows.append(base | {"reason": "no opening-range trade or no s", "band": band}); continue
-        orh, orl = np.nanmax(Hh[:6]), np.nanmin(Ll[:6])
-        ent = next((j for j in range(6, fx) if TR[j] and Cc[j] > orh), None)
-        if ent is None:
-            rows.append(base | {"reason": "no breakout", "band": band, "s": s}); continue
-        lt = pd.Series(np.where(TR[:nb], Cc[:nb], np.nan)).ffill().to_numpy()
-        ext = next((j for j in range(ent + 1, fx + 1) if TR[j] and Cc[j] < orl), fx)
-        q = min(Q, 0.25 * Cc[ent] * Vv[ent])
-        rec = base | {"traded": True, "band": band, "s": s, "entry_bar": ent, "exit_bar": ext,
-                      "exit_kind": "range low" if (TR[ext] and Cc[ext] < orl) else "15:50 close"}
-        for mm in (0.0, 1.0, 1.5, 2.0):
-            for Y in (0.0, 0.5):
-                imp = Y * sig * math.sqrt(max(0.0, Q - sd.DEPTH[band]) / max(adv, 1000.0)) if Y else 0.0
-                pin = Cc[ent] * (1 + mm * s / 2 + imp)
-                sh = math.floor(q / pin + 1e-9)
-                if sh < 1:
-                    rec[f"r_m{mm:g}_Y{Y:g}"] = np.nan; continue
-                pout = lt[ext] * (1 - mm * s / 2 - imp)
-                proc = sh * pout
-                fee = (sec_[e] * proc if proc > 500 else 0.0) + (min(taf_[e] * sh, cap_[e]) if sh > 50 else 0.0)
-                rec[f"r_m{mm:g}_Y{Y:g}"] = (proc - fee) / (sh * pin) - 1
-                if mm == 1.5 and Y == 0.0:
-                    rec["cost_usd"] = sh * pin; rec["net_usd"] = proc - fee - sh * pin
-        rows.append(rec)
-    R = pd.DataFrame(rows)
+def orb_day(TR, Hh, Ll, Cc, Vv, nb, L, s, sig, adv, band, sec, taf, tafcap, Q=QBIG):
+    """Part E ORB on one name-day of 5-minute clock bars (C17). Returns a dict (no trade: 'reason')."""
+    fx = (L - 300) // 300 - 1
+    if not TR[:6].any() or not np.isfinite(s):
+        return {"traded": False, "reason": "no opening-range trade or no s"}
+    orh, orl = np.nanmax(Hh[:6]), np.nanmin(Ll[:6])
+    ent = next((j for j in range(6, fx) if TR[j] and Cc[j] > orh), None)
+    if ent is None:
+        return {"traded": False, "reason": "no breakout"}
+    lt = pd.Series(np.where(TR[:nb], Cc[:nb], np.nan)).ffill().to_numpy()
+    ext = next((j for j in range(ent + 1, fx + 1) if TR[j] and Cc[j] < orl), fx)
+    q = min(Q, 0.25 * Cc[ent] * Vv[ent])
+    rec = {"traded": True, "entry_bar": ent, "exit_bar": ext,
+           "exit_kind": "range low" if (TR[ext] and Cc[ext] < orl) else "15:50 close"}
+    for mm in (0.0, 1.0, 1.5, 2.0):
+        for Y in (0.0, 0.5):
+            imp = Y * sig * math.sqrt(max(0.0, Q - sd.DEPTH[band]) / max(adv, 1000.0)) if Y else 0.0
+            pin = Cc[ent] * (1 + mm * s / 2 + imp)
+            sh = math.floor(q / pin + 1e-9)
+            if sh < 1:
+                rec[f"r_m{mm:g}_Y{Y:g}"] = np.nan; continue
+            proc = sh * lt[ext] * (1 - mm * s / 2 - imp)
+            fee = (sec * proc if proc > 500 else 0.0) + (min(taf * sh, tafcap) if sh > 50 else 0.0)
+            rec[f"r_m{mm:g}_Y{Y:g}"] = (proc - fee) / (sh * pin) - 1
+            if mm == 1.5 and Y == 0.0:
+                rec["cost_usd"] = sh * pin; rec["net_usd"] = proc - fee - sh * pin
+    return rec
+
+
+def orb_summary(R):
     out = []
     tr = R[R.traded]
     iso = pd.to_datetime(tr.date).dt.isocalendar()
@@ -1503,7 +1500,58 @@ def orb(cf, say, Q=QBIG):
                         "se": se, "t": t, "p_one_sided": p, "df": dfree,
                         "median_return": float(np.median(x[ok])) if ok.any() else np.nan,
                         "share_events_traded": int(ok.sum()) / nev if nev else np.nan})
-    return R, pd.DataFrame(out)
+    return pd.DataFrame(out)
+
+
+def orb(cf, say, Q=QBIG):
+    """Part E intraday leg on the pulled event days (exploratory)."""
+    ev = pd.read_csv(RH / "events.csv", parse_dates=["date"])
+    bars = load_bars(RH / "events_m5_none.parquet", set(ev.symbol))
+    ck = build_clock(bars, 300)
+    P = daily_for(sorted(set(ev.symbol)), cf)
+    sec_, taf_, cap_ = fees_for(ev.date)
+    rows = []
+    for e, ev_ in enumerate(ev.itertuples()):
+        a = np.where(ck.syms == ev_.symbol)[0]; d = ck.dates.get_indexer([ev_.date])[0]
+        base = {"symbol": ev_.symbol, "date": ev_.date}
+        if not len(a) or d < 0 or ev_.symbol not in P.tix or not ck.TR[a[0], d].any():
+            rows.append(base | {"traded": False, "reason": "no bars"}); continue
+        a = a[0]; r = P.tix[ev_.symbol]; t = P.dates.get_indexer([ev_.date])[0]
+        band = int(P.BAND[r, t])
+        rec = orb_day(ck.TR[a, d], ck.H[a, d], ck.L_[a, d], ck.C[a, d], ck.V[a, d], ck.NB[d], ck.L[d],
+                      float(P.SPR[r, t]), float(np.nan_to_num(P.SIG20[r, t])), float(np.nan_to_num(P.ADV[r, t])), band,
+                      sec_[e], taf_[e], cap_[e], Q)
+        rows.append(base | {"band": band, "s": float(P.SPR[r, t])} | rec)
+    R = pd.DataFrame(rows)
+    return R, orb_summary(R)
+
+
+def orb_no_edge(params, cf, say, Q=QBIG):
+    """The ORB engine's no-edge level (General rules): the Roll market of Control (i) (median spread), every
+    stock-session of the 160 test sessions, unchanged rule and costs."""
+    rows = []
+    for k in (1, 2, 3, 4):
+        pk = params[k]
+        names = roll_ticks(BAND_PRICE[k], BAND_QSPREAD[k] / 2, pk["sigma_5m"], pk["p_traded"], BAND_ADV_MID[k],
+                           30, 160, 80, seed=20261018 + 10 * k)
+        dates = pd.bdate_range("2025-01-06", periods=240)
+        P = daily_panel(ticks_to_daily(names, dates), dates, cf, f"Roll L{k}")
+        ck = ticks_to_clock(names, dates, 300)
+        for a in range(ck.N):
+            r = P.tix[ck.syms[a]]
+            for d in range(80, ck.D):
+                rec = orb_day(ck.TR[a, d], ck.H[a, d], ck.L_[a, d], ck.C[a, d], ck.V[a, d], ck.NB[d], ck.L[d],
+                              float(P.SPR[r, d]), float(np.nan_to_num(P.SIG20[r, d])), float(np.nan_to_num(P.ADV[r, d])),
+                              int(P.BAND[r, d]), 20.6e-6, 0.000195, 9.79, Q)
+                rows.append({"symbol": ck.syms[a], "date": dates[d], "band": int(P.BAND[r, d]), "roll_band": f"L{k}"} | rec)
+    R = pd.DataFrame(rows)
+    out = []
+    for k in (1, 2, 3, 4):
+        Rk = R[R.roll_band == f"L{k}"]
+        sk = orb_summary(Rk)
+        sk = sk[sk.band == "all"].assign(roll_market=f"L{k}")
+        out.append(sk)
+    return pd.concat(out, ignore_index=True)
 
 
 # ============================================================================ data assembly
@@ -1792,6 +1840,17 @@ def main(argv=None):
         TDIR.mkdir(parents=True, exist_ok=True)
         R.to_parquet(TDIR / "e_orb_trades.parquet", index=False)
         s.to_csv(OUT / "e_orb.csv", index=False)
+        pf = OUT / "controls_i_params.csv"
+        if pf.exists():
+            pp = pd.read_csv(pf)
+            pp = pp[pp.case == "median spread"]
+            params = {int(r.band[1]): {"sigma_5m": r.sigma_5m, "p_traded": r.p_traded_target} for r in pp.itertuples()}
+            ne = orb_no_edge(params, cf, say)
+            ne.to_csv(OUT / "e_orb_no_edge.csv", index=False)
+            say("ORB no-edge level (Roll market of Control (i), all stock-sessions):")
+            say(ne[["roll_market", "variant", "n_trades", "mean_return", "t"]].to_string(index=False))
+        else:
+            say("controls_i_params.csv missing: run --controls first for the ORB no-edge level")
         say(f"Part E intraday ORB leg (exploratory, survivor-biased): {len(R)} events, {int(R.traded.sum())} trades; "
             f"reasons for no trade: {R.loc[~R.traded, 'reason'].value_counts().to_dict()}")
         say(s.to_string(index=False))
