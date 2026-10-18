@@ -1,5 +1,5 @@
 {
-  "_comment": "Template. `python3 -m agentic init` copies it to private/agentic/config.json (gitignored). Fill in the account numbers there, never here. live=false is shadow mode: plans are written and previewed, but the hook blocks every place_* call.",
+  "_comment": "Template. `.venv/Scripts/python.exe -m agentic init` (Git Bash) copies it to private/agentic/config.json (gitignored). Fill in the account numbers there, never here. live=false is shadow mode: plans are written and previewed, but the hook blocks every place_* call.",
   "account": {
     "account_number": "FILL-IN-PRIVATE-CONFIG-ONLY",
     "rhs_account_number": "FILL-IN-PRIVATE-CONFIG-ONLY",
@@ -25,10 +25,10 @@
     "class_max_frac": {"crypto": 0.60, "equity": 1.0}
   },
   "entry": {
-    "_comment": "Joining a green run late (HANDOFF 5.4). join_recent: buy a green tranche only within max_join_bars bars of its own green flip (and, with max_join_rise_frac, at most that far above the flip close). join: any time. fresh_only: join_recent, and only flips on or after start_date (null = the first live plan's date). An asset may override any key with its own \"entry\". Held positions are never sold because their run is old.",
+    "_comment": "Joining a green run late (README section 9). join_recent: buy a green tranche only within max_join_bars bars of its own green flip and while its close is at most max_join_rise_frac above the flip close (0.50 = 50%; null = no rise cap). join: any time. fresh_only: join_recent, and only flips on or after start_date (null = the first live plan's date). An asset may override any key with its own \"entry\". Held positions are never sold because their run is old or has risen far.",
     "policy": "join_recent",
     "max_join_bars": 20,
-    "max_join_rise_frac": null,
+    "max_join_rise_frac": 0.50,
     "start_date": null
   },
   "tax": {"st_rate": 0.35, "lt_rate": 0.20},
@@ -47,7 +47,7 @@
       "class": "crypto",
       "enabled": true,
       "alloc_frac": 0.25,
-      "mode": "immediate",
+      "mode": "split",
       "signal": {"source": "computed", "feed": "coinbase", "symbol": "ETH-USD"},
       "vehicle": {"type": "equity", "symbol": "ETHA", "fractional": true},
       "_comment": "Signal from Coinbase ETH-USD daily candles (TradingView COINBASE:ETHUSD); traded through the spot ETF at ~0 cost in the next NYSE session (gate.py: ETH = TRADE via ETF)."
@@ -57,7 +57,7 @@
       "class": "crypto",
       "enabled": false,
       "alloc_frac": 0.10,
-      "mode": "immediate",
+      "mode": "split",
       "signal": {"source": "computed", "feed": "coinbase", "symbol": "SOL-USD"},
       "vehicle": {"type": "crypto", "symbol": "SOL"},
       "_comment": "PROBATION in gate.py (short history). Direct crypto costs ~0.95% per side on Robinhood's default route; check with preview_crypto_order, or switch the vehicle to a spot SOL ETF."
@@ -67,7 +67,7 @@
       "class": "crypto",
       "enabled": false,
       "alloc_frac": 0.20,
-      "mode": "immediate",
+      "mode": "split",
       "signal": {"source": "computed", "feed": "coinbase", "symbol": "BTC-USD"},
       "vehicle": {"type": "crypto", "symbol": "BTC"},
       "_comment": "NO-SIGNAL in gate.py (holding beat the signal after tax)."

@@ -52,3 +52,40 @@ def test_state_dir_relative_resolves_against_repo(monkeypatch, tmp_path):
     assert config.state_dir() == tmp_path / "abs"
     monkeypatch.delenv("AGENTIC_STATE_DIR")
     assert config.state_dir() == REPO / "private" / "agentic"
+
+
+def test_entry_rise_cap_default_is_050():
+    """Default max_join_rise_frac 0.50 (agentic/README.md section 9): filled when the key or the block is missing,
+    an explicit null (the earlier example's value) keeps the cap off, and an asset may set its own."""
+    assert config.DEFAULT_ENTRY["max_join_rise_frac"] == 0.50
+    assert config.validate(example())["entry"]["max_join_rise_frac"] == 0.50
+    raw = example()
+    del raw["entry"]
+    assert config.validate(raw)["entry"]["max_join_rise_frac"] == 0.50
+    raw["entry"] = {"policy": "join_recent", "max_join_rise_frac": None}
+    assert config.validate(raw)["entry"]["max_join_rise_frac"] is None
+    raw["assets"][0]["entry"] = {"max_join_rise_frac": 0.3}
+    assert config.validate(raw)["assets"][0]["entry"] == {"max_join_rise_frac": 0.3}
+    for bad in (-0.5, "50%", True, float("inf")):
+        raw["entry"] = {"max_join_rise_frac": bad}
+        with pytest.raises(config.ConfigError, match="max_join_rise_frac"):
+            config.validate(raw)
+
+
+def test_json_saved_with_a_utf8_bom_is_read(tmp_path):
+    """Regression: Windows Notepad's "UTF-8 with BOM" made load_config (and the hook's reads) raise JSONDecodeError,
+    so every command failed and the hook blocked previews and places. The BOM is now skipped; the content is checked
+    exactly as before."""
+    from agentic import hooks, ledger
+    raw = example()
+    f = tmp_path / "config.json"
+    f.write_bytes(b"\xef\xbb\xbf" + json.dumps(raw).encode("utf-8"))
+    assert config.load_config(f) == config.validate(raw)
+    assert hooks.read_json(f) == raw == ledger.read_json(f, None)
+    raw["live"] = "false"                                          # validation is unchanged
+    f.write_bytes(b"\xef\xbb\xbf" + json.dumps(raw).encode("utf-8"))
+    with pytest.raises(config.ConfigError, match="true or false"):
+        config.load_config(f)
+    f.write_bytes(b"\xef\xbb\xbf{not json")
+    with pytest.raises(ValueError):
+        config.load_config(f)

@@ -3,17 +3,82 @@
 All `now_utc` arguments accept an aware datetime (any zone), a naive datetime taken as UTC, a pandas Timestamp, or
 None for the current time. Limitation: half days (13:00 ET closes) are treated as full sessions, so a half-day bar is
 held back until 16:20 ET and `market_open` reports the afternoon as open.
+
+`ET` is zoneinfo's America/New_York when a tz database is available (the `tzdata` package or the system's), else
+`USEastern`, a built-in tzinfo with the 2007+ US rule. Windows has no system tz database, so a Python without the
+`tzdata` package (e.g. the interpreter running the hooks) would otherwise fail at import. `ET_SOURCE` says which.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone, tzinfo
 from functools import lru_cache
-from zoneinfo import ZoneInfo
 
 from agentic.config import DEFAULT_LIMITS
 
-ET = ZoneInfo("America/New_York")
 UTC = timezone.utc
+_HOUR, _ZERO = timedelta(hours=1), timedelta(0)
+
+
+class USEastern(tzinfo):
+    """US Eastern time with the post-2007 DST rule: EDT (UTC-4) from the second Sunday of March 02:00 local to the
+    first Sunday of November 02:00 local, else EST (UTC-5). PEP 495 folds as zoneinfo does: in the spring gap
+    (02:00-03:00) fold=0 reads the wall time as EST and fold=1 as EDT; in the repeated hour (01:00-02:00 in November)
+    fold=0 is the first (EDT) occurrence and fold=1 the second (EST). Dates before 2007 also get this rule."""
+    STD, DST = timedelta(hours=-5), timedelta(hours=-4)
+
+    @staticmethod
+    def transitions(year: int) -> tuple[datetime, datetime]:
+        """Naive local wall times of the year's DST start (2:00 EST) and end (2:00 EDT)."""
+        mar8, nov1 = date(year, 3, 8), date(year, 11, 1)
+        start = datetime.combine(mar8 + timedelta(days=(6 - mar8.weekday()) % 7), time(2))
+        end = datetime.combine(nov1 + timedelta(days=(6 - nov1.weekday()) % 7), time(2))
+        return start, end
+
+    def dst(self, dt):
+        if dt is None:
+            return None
+        start, end = self.transitions(dt.year)
+        wall = dt.replace(tzinfo=None, fold=0)
+        if start + _HOUR <= wall < end - _HOUR:
+            return _HOUR
+        if start <= wall < start + _HOUR:                 # 02:00-03:00 does not exist on the spring-forward day
+            return _HOUR if dt.fold else _ZERO
+        if end - _HOUR <= wall < end:                     # 01:00-02:00 happens twice on the fall-back day
+            return _ZERO if dt.fold else _HOUR
+        return _ZERO
+
+    def utcoffset(self, dt):
+        return None if dt is None else self.STD + self.dst(dt)
+
+    def tzname(self, dt):
+        return None if dt is None else "EDT" if self.dst(dt) else "EST"
+
+    def fromutc(self, dt):
+        if dt.tzinfo is not self:
+            raise ValueError("fromutc: dt.tzinfo is not self")
+        utc = dt.replace(tzinfo=None)
+        start, end = self.transitions(utc.year)
+        if start - self.STD <= utc < end - self.DST:      # 07:00 UTC in March to 06:00 UTC in November
+            return (utc + self.DST).replace(tzinfo=self, fold=0)
+        wall = utc + self.STD
+        return wall.replace(tzinfo=self, fold=1 if end - _HOUR <= wall < end else 0)
+
+    def __repr__(self) -> str:
+        return "USEastern()"
+
+    def __reduce__(self):
+        return USEastern, ()
+
+
+def _eastern() -> tuple[tzinfo, str]:
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo("America/New_York"), "zoneinfo"
+    except Exception:              # ZoneInfoNotFoundError: no tz database (Windows without the tzdata package)
+        return USEastern(), "fallback"
+
+
+ET, ET_SOURCE = _eastern()
 SESSION_OPEN = time(9, 30)
 SESSION_CLOSE = time(16, 0)
 CLOSE_SETTLED = time(16, 20)     # closing prints settle a little after 16:00

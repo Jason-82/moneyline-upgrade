@@ -120,7 +120,8 @@ def _check_trade(cfg: dict, p: dict, short: str, ti: dict, now) -> tuple[bool, s
         return False, "missing ref_id: copy the plan params verbatim"
     plan = H.read_json(p["plan_current"])
     if not isinstance(plan, dict):
-        return False, "no plan_current.json: run `python3 -m agentic plan`"
+        from agentic.config import cli_command
+        return False, f"no plan_current.json: run `{cli_command()} plan`"
     bad = _plan_problem(plan, now)
     if bad:
         return False, bad

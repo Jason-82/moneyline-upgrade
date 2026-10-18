@@ -3,6 +3,7 @@ subprocesses with crafted hook JSON on stdin, plus .claude/settings.json."""
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -707,7 +708,9 @@ def test_settings_registers_hooks_and_denies_unused_write_tools():
         for tool in ("Bash", "mcp__github__create_issue", "Edit"):
             assert not m.search(tool)
         (h,) = entry["hooks"]
-        assert h["type"] == "command" and f"$CLAUDE_PROJECT_DIR/agentic/hooks/{script.name}" in h["command"]
+        want = f'"${{AGENTIC_PYTHON:-python3}}" -I "${{CLAUDE_PROJECT_DIR}}/agentic/hooks/{script.name}"'
+        assert h["type"] == "command" and "shell" not in h        # Git Bash on Windows, sh elsewhere
+        assert h["command"] == (want + " || exit 2" if script == PRE else want), h["command"]
     deny = s["permissions"]["deny"]
     unused = ["place_option_order", "review_option_order", "cancel_option_order", "exercise_option",
               "cancel_option_exercise", "create_alert", "update_alert", "delete_alert", "mark_alerts_read",
@@ -715,30 +718,64 @@ def test_settings_registers_hooks_and_denies_unused_write_tools():
               "add_to_watchlist", "remove_from_watchlist", "add_option_to_watchlist", "remove_option_from_watchlist",
               "follow_watchlist", "unfollow_watchlist"]
     servers = ("robinhood-trading", "Robinhood", "robinhood-for-agents", "claude_ai_Robinhood")
-    guard = {"Bash(python3 -m agentic resume:*)", "Bash(python3 -m agentic run --replan:*)",
-             "Bash(python3 -m agentic plan --replan:*)", "Edit(private/agentic/**)", "Write(private/agentic/**)"}
+    guard = {"Bash(*agentic resume*)", "Bash(*agentic*--replan*)",     # any interpreter path in front
+             "Edit(private/agentic/**)", "Write(private/agentic/**)"}
     expected = {f"mcp__{srv}__{t}" for srv in servers for t in unused} | guard
-    assert set(deny) == expected and len(deny) == 85
+    assert set(deny) == expected and len(deny) == 84
     used = ("place_equity", "place_crypto", "cancel_equity", "cancel_crypto", "get_", "review_equity", "preview_crypto")
     assert not any(t in d for d in deny for t in used)
     for script in (PRE, POST):
         assert hooks.RH_TOOL.pattern == re.search(r'RH_TOOL = re.compile\(r"([^"]+)"', script.read_text()).group(1)
 
 
+if os.name == "nt":                                # Claude Code runs hooks in Git Bash (never WSL's bash.exe)
+    from agentic.doctor import find_git_bash
+    SHELL = find_git_bash()[0]
+else:
+    SHELL = shutil.which("bash") or ("/bin/sh" if os.path.exists("/bin/sh") else None)
+
+
+@pytest.mark.skipif(SHELL is None, reason="no bash or sh")
 def test_settings_commands_run_through_the_shell(state):
     s = json.loads(SETTINGS.read_text())
     pre_cmd = s["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
-    env = dict(os.environ, AGENTIC_STATE_DIR=str(state), CLAUDE_PROJECT_DIR=str(REPO))
+    env = {k: v for k, v in os.environ.items() if k != "AGENTIC_PYTHON"}
+    env.update(AGENTIC_STATE_DIR=str(state), CLAUDE_PROJECT_DIR=str(REPO))
 
-    def sh(cmd, event):
-        return subprocess.run(["/bin/sh", "-c", cmd], input=json.dumps(event).encode(), env=env,
+    def sh(cmd, event, **extra):
+        return subprocess.run([SHELL, "-c", cmd], input=json.dumps(event).encode(), env=dict(env, **extra),
                               capture_output=True, timeout=60).returncode
-    assert sh(pre_cmd, ev("get_portfolio", {"account_number": ACCT})) == 0
-    assert sh(pre_cmd, ev("place_equity_order", params())) == 2
-    assert sh(pre_cmd.replace("pre_tool_use.py", "missing.py"), ev("get_portfolio", {})) == 2   # broken install
+    if shutil.which("python3"):                                           # AGENTIC_PYTHON unset: python3 on PATH
+        assert sh(pre_cmd, ev("get_portfolio", {"account_number": ACCT})) == 0
+    assert sh(pre_cmd, ev("get_portfolio", {"account_number": ACCT}), AGENTIC_PYTHON=sys.executable) == 0
+    assert sh(pre_cmd, ev("place_equity_order", params()), AGENTIC_PYTHON=sys.executable) == 2
+    assert sh(pre_cmd.replace("pre_tool_use.py", "missing.py"), ev("get_portfolio", {}),
+              AGENTIC_PYTHON=sys.executable) == 2                         # broken install
+    missing = str(state / "no-such-python.exe")
+    assert sh(pre_cmd, ev("get_portfolio", {}), AGENTIC_PYTHON=missing) == 2       # wrong AGENTIC_PYTHON: fail closed
     post_cmd = s["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
-    assert sh(post_cmd, ev("get_portfolio", {"account_number": ACCT}, {"data": {}})) == 0
+    assert sh(post_cmd, ev("get_portfolio", {"account_number": ACCT}, {"data": {}}), AGENTIC_PYTHON=sys.executable) == 0
     assert len(list((state / "inbox").glob("*_get_portfolio.json"))) == 1
+    assert sh(post_cmd, ev("get_portfolio", {}, {"data": {}}), AGENTIC_PYTHON=missing) not in (0, 2)  # non-blocking
+
+
+@pytest.mark.skipif(SHELL is None or os.name == "nt", reason="needs bash/sh and symlinks")
+def test_settings_commands_survive_spaces_in_paths(state, tmp_path):
+    """Windows user folders often contain a space (C:/Users/First Last/...): both the project dir and AGENTIC_PYTHON
+    are quoted in the hook command."""
+    s = json.loads(SETTINGS.read_text())
+    pre_cmd = s["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    spaced = tmp_path / "First Last"
+    spaced.mkdir()
+    (spaced / "moneyline upgrade").symlink_to(REPO, target_is_directory=True)
+    (spaced / "py thon").symlink_to(sys.executable)
+    env = dict(os.environ, AGENTIC_STATE_DIR=str(state), CLAUDE_PROJECT_DIR=str(spaced / "moneyline upgrade"),
+               AGENTIC_PYTHON=str(spaced / "py thon"))
+    for event, want in ((ev("get_portfolio", {"account_number": ACCT}), 0), (ev("place_equity_order", params()), 2)):
+        r = subprocess.run([SHELL, "-c", pre_cmd], input=json.dumps(event).encode(), env=env, capture_output=True,
+                           timeout=60)
+        assert r.returncode == want, r.stderr
+    assert "BLOCKED by agentic hook (place_equity_order)" in r.stderr.decode()
 
 
 # ------------------------------------------------------------------ helpers
@@ -765,3 +802,34 @@ def test_norm_unwrap_and_classify():
                                         "cancel_equity_order", "review_option_order", "get")] == \
         ["read", "read", "simulate", "trade", "cancel", "other", "other"]
     assert hooks.scrub(f"x {ACCT} 1234567 12345", [ACCT]) == "x *** *** 12345"
+
+
+@pytest.mark.skipif(SHELL is None, reason="no bash or sh")
+def test_config_and_plan_saved_with_a_utf8_bom_are_read(state):
+    """Regression: a config.json saved as "UTF-8 with BOM" (a Windows Notepad option) made the hook block every
+    preview and place with a JSONDecodeError. The BOM is skipped; every check still applies. Run through the real
+    settings command, as Claude Code does."""
+    ready(state)
+    for name in ("config.json", "plan_current.json", "ledger.json"):
+        f = state / name
+        if name == "ledger.json":
+            f.write_text(json.dumps({today(): 100.0}))
+        f.write_bytes(b"\xef\xbb\xbf" + f.read_bytes())
+    pre_cmd = json.loads(SETTINGS.read_text())["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    env = dict(os.environ, AGENTIC_STATE_DIR=str(state), CLAUDE_PROJECT_DIR=str(REPO), AGENTIC_PYTHON=sys.executable)
+
+    def sh(event):
+        return subprocess.run([SHELL, "-c", pre_cmd], input=json.dumps(event).encode(), env=env, capture_output=True,
+                              timeout=60)
+    prev = {k: v for k, v in params().items() if k != "ref_id"}
+    for event, want in ((ev("review_equity_order", prev), 0), (ev("place_equity_order", params()), 0),
+                        (ev("place_equity_order", params(quantity="13")), 2),               # not the plan's order
+                        (ev("review_equity_order", dict(prev, account_number="OTHERACCT1")), 2)):
+        r = sh(event)
+        assert r.returncode == want, r.stderr
+        assert b"BOM" not in r.stderr and b"hook error" not in r.stderr
+    write_config(state, max_day_usd=350)                             # the ledger's 100 still counts with a BOM
+    f = state / "config.json"
+    f.write_bytes(b"\xef\xbb\xbf" + f.read_bytes())
+    r = sh(ev("place_equity_order", params()))
+    assert r.returncode == 2 and b"max_day_usd" in r.stderr, r.stderr

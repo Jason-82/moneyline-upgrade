@@ -1,4 +1,5 @@
-"""`python3 -m agentic <command>`: the operator's entry point (SPEC section 12; runbook in agentic/README.md).
+"""`.venv/Scripts/python.exe -m agentic <command>` (Git Bash): the operator's entry point (SPEC section 12; runbook
+in agentic/README.md).
 
 Exit codes: 0 ok, 1 something needs attention (signal errors, plan errors, reconcile mismatch), 2 cannot run
 (no config, no signals, missing data, bad arguments).
@@ -14,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agentic import ledger
-from agentic.config import EXAMPLE, REPO, ConfigError, ensure_dirs, load_config, paths, validate
+from agentic.config import EXAMPLE, REPO, ConfigError, cli_command, ensure_dirs, load_config, paths, validate
 
 UTC = timezone.utc
 CRYPTO_COST, ETF_COST = 0.0095, 0.0002        # per side: Robinhood direct crypto (default route), spot ETF / stock
@@ -31,9 +32,9 @@ def _now() -> datetime:
 
 def _rel(f: Path) -> str:
     try:
-        return str(Path(f).relative_to(paths()["base"]))
+        return Path(f).relative_to(paths()["base"]).as_posix()       # forward slashes: Git Bash on Windows
     except ValueError:
-        return str(f)
+        return Path(f).as_posix()
 
 
 def _placeholder(v) -> bool:
@@ -61,13 +62,14 @@ def cmd_init(args) -> int:
     if base.is_relative_to(REPO) and not base.is_relative_to(REPO / "private"):
         print(f"WARNING: {base} is inside the public repo but not under private/: make sure git ignores it")
     print("next: fill in account.account_number and account.rhs_account_number there (from get_accounts, the "
-          "account with agentic_allowed=true), choose assets and modes, then run `python3 -m agentic fetch-list`")
+          f"account with agentic_allowed=true), choose assets and modes, then run `{cli_command()} doctor` and "
+          f"`{cli_command()} fetch-list`")
     return 0
 
 
 def cmd_flag(args) -> int:
     name = args.cmd.upper()
-    reason = f"{ledger.iso_z(_now())} " + (" ".join(args.reason) or f"set by `python3 -m agentic {args.cmd}`")
+    reason = f"{ledger.iso_z(_now())} " + (" ".join(args.reason) or f"set by `{cli_command()} {args.cmd}`")
     prior = ledger.read_flags().get(name)                # keep e.g. a STOP reason written by the hook
     ledger.set_flag(name, f"{prior}\n{reason}" if prior else reason)
     if name == "STOP":
@@ -130,7 +132,7 @@ def cmd_status(args) -> int:
             print(f"  {a['name']:<9} bar {a.get('bar_date')}  target {a.get('target_frac')}  "
                   f"prev {a.get('prev_target_frac')}{'  NEW' if a.get('changed') else ''}{err}")
     else:
-        print("signals: none yet (`python3 -m agentic signals`)")
+        print(f"signals: none yet (`{cli_command()} signals`)")
     plan = ledger.read_json(p["plan_current"], None)
     if isinstance(plan, dict):
         vu = ledger.parse_ts(plan.get("valid_until"))
@@ -225,7 +227,7 @@ def cmd_fetch_list(args) -> int:
           "\"cursor\" set to that value, verbatim, until \"next\" is empty.")
     for i, c in enumerate(calls, 1):
         print(f"{i:>2}. {c['tool']} {json.dumps(c['params'])}    # {c['why']}")
-    print("Then run: python3 -m agentic run")
+    print(f"Then run: {cli_command()} run")
     return 0
 
 
@@ -329,7 +331,7 @@ def _plan(args, cfg, now) -> tuple[dict | None, int]:
         return None, 1
     sig, f = latest_signals()
     if sig is None:
-        print("no signals file: run `python3 -m agentic signals` (or `run`)", file=sys.stderr)
+        print(f"no signals file: run `{cli_command()} signals` (or `run`)", file=sys.stderr)
         return None, 2
     snap = build_snapshot(paths()["inbox"], cfg, now)
     plan = make_plan(sig, snap, cfg, now, attempt=attempt)
@@ -339,7 +341,7 @@ def _plan(args, cfg, now) -> tuple[dict | None, int]:
     print(f"plan: {_rel(pf)} (copied to plan_current.json); signals: {f.name}")
     if plan["orders"] or plan["cancels"]:
         print("Do not re-run `plan` while these orders await approval or fills: a new plan cancels them. "
-              "Use `python3 -m agentic calls` to show this plan again.")
+              f"Use `{cli_command()} calls` to show this plan again.")
     return plan, 1 if plan["errors"] else 0
 
 
@@ -385,10 +387,15 @@ def cmd_run(args) -> int:
     return max(rc_sig, rc_rec, rc_plan)
 
 
+def cmd_doctor(args) -> int:
+    from agentic.doctor import run
+    return run()
+
+
 def cmd_calls(args) -> int:
     plan = ledger.read_json(paths()["plan_current"], None)
     if not isinstance(plan, dict):
-        print("no plan_current.json: run `python3 -m agentic plan`", file=sys.stderr)
+        print(f"no plan_current.json: run `{cli_command()} plan`", file=sys.stderr)
         return 2
     vu = ledger.parse_ts(plan.get("valid_until"))
     if vu is None or _now() >= vu:
@@ -426,7 +433,7 @@ def cmd_backtest(args) -> int:
     try:
         cfg = load_config()
     except ConfigError:
-        cfg = validate(json.loads(EXAMPLE.read_text()))
+        cfg = validate(json.loads(EXAMPLE.read_text(encoding="utf-8")))
         print("(no config in the state dir: using agentic/config.example.json)")
     asset = _find_asset(cfg, args)
     modes = {k: v for k, v in cfg["modes"].items() if not k.startswith("_")}
@@ -470,7 +477,7 @@ def cmd_backtest(args) -> int:
 # ------------------------------------------------------------------ parser
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="python3 -m agentic", description="MoneyLine execution on the Robinhood agentic "
+    ap = argparse.ArgumentParser(prog=cli_command(), description="MoneyLine execution on the Robinhood agentic "
                                  "account. Runbook: agentic/README.md. State: private/agentic (or AGENTIC_STATE_DIR).")
     sub = ap.add_subparsers(dest="cmd", required=True, metavar="command")
     sub.add_parser("init", help="create the state dirs; copy the example config if missing").set_defaults(func=cmd_init)
@@ -493,6 +500,8 @@ def build_parser() -> argparse.ArgumentParser:
             s.add_argument("--all", action="store_true", help=argparse.SUPPRESS)
         s.set_defaults(func=fn)
     sub.add_parser("calls", help="show the current plan's exact tool calls again").set_defaults(func=cmd_calls)
+    sub.add_parser("doctor", help="check the install: Python, packages, AGENTIC_PYTHON, config, hooks, Git Bash "
+                   "(README section 1)").set_defaults(func=cmd_doctor)
     s = sub.add_parser("reconcile", help="compare captured positions with expected; BLOCK_BUYS on mismatch")
     s.add_argument("--accept", action="store_true", help="adopt the captured positions as the new baseline")
     s.set_defaults(func=cmd_reconcile)
@@ -518,7 +527,20 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
+def _utf8_output() -> None:
+    """Windows: output to a pipe or file (Git Bash, Claude Code's Bash tool, cron.log) defaults to the ANSI code page,
+    which cannot encode every character in a digest or an error. Write UTF-8 and never fail on a character."""
+    if os.name != "nt":
+        return
+    for s in (sys.stdout, sys.stderr):
+        try:
+            s.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 def main(argv=None) -> int:
+    _utf8_output()
     args = build_parser().parse_args(argv)
     try:
         return int(args.func(args) or 0)

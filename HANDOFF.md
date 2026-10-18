@@ -10,7 +10,7 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-18. Most recent additions:
+**Last updated:** 2026-10-19. Most recent additions:
 
 - `agentic/`: MoneyLine execution on the Robinhood Agentic account (section 8, `agentic/README.md`)
 - the Larsson Line (EMA 32/58) long-history study (section 5.19), and a note on the new
@@ -298,6 +298,8 @@ per run.
 - Medians (`late_entry()`) are negative in most buckets, just as the median at-flip
   trade is, because the gains come from a few large runs.
 - Entering within ~3 weeks of the flip earns about the same as entering on the flip.
+- Broader check by rise since the flip (21 coins, 13 ETFs, 293 stocks; FINDINGS 2026-10-19): no penalty for
+  bigger rises on crypto within 20 bars, no reliable premium; stocks more than 50% up did worse (fragile).
 - **The earlier claim that late entry is *better* was wrong:** it measured exits one
   bar early.
 
@@ -711,10 +713,15 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
     results, keeps the journal and the ledger, and writes STOP if an order skips approval.
   - **Signal:** the old MoneyLine computed from OHLC (exact replica), by the user's choice, so no daily exports
     are needed. `tv_export` remains available for the new indicator.
-  - **Modes** (per asset): `immediate`, `split` (half at N=1, half at N=5) and `confirm5`.
+  - **Modes** (per asset): `immediate`, `split` (half at N=1, half at N=5) and `confirm5`. Default **split** for crypto and
+    stocks (FINDINGS 2026-10-19: never the worst, shallower drawdowns; immediate is 2-4 pts/yr ahead in the dead-coin
+    basket at low cost, within noise).
   - **Allocation:** `slots` (default 5 × 20%, `crypto_first`, crypto cap 0.60) or `fixed`.
-  - **Entry policy:** `join_recent` (default; join only within 20 bars of the green flip), `join`, or
-    `fresh_only`.
+  - **Entry policy:** `join_recent` (default; join only within 20 bars of the green flip and at most 50% above the
+    flip close; risk controls, FINDINGS 2026-10-19), `join`, or `fresh_only`.
+  - **Windows + Git Bash** setup with `AGENTIC_PYTHON` in `.claude/settings.local.json`, a time-zone fallback,
+    `python -m agentic doctor` (checks the install and live-tests the guard hook) and a Task Scheduler script
+    (`agentic/windows/`).
   - **The sleeve sells only shares it bought itself.**
   - **Status:** shadow mode (`live: false`) by default. Not yet run against the real Robinhood MCP; the connector
     failed to connect in the cloud session. Mode backtests are in `analysis_2026/results_agentic_modes/`.

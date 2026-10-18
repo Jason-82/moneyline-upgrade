@@ -82,7 +82,7 @@ def load_captures(inbox_dir) -> list[dict]:
         return out
     for f in sorted(d.glob("*.json")):
         try:
-            c = json.loads(f.read_text())
+            c = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
         if not isinstance(c, dict) or "tool" not in c:

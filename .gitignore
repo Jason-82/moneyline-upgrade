@@ -1,4 +1,8 @@
 __pycache__/
+.venv/
+
+# per-machine Claude Code settings (agentic/README.md section 1: AGENTIC_PYTHON holds a local path)
+.claude/settings.local.json
 
 # downloaded price data and scan outputs (keep out of the public repo)
 data/universe/

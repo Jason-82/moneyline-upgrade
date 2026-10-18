@@ -10,6 +10,7 @@ import math
 import os
 import re
 import tempfile
+import time
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -130,7 +131,7 @@ def strip_accounts(params) -> dict | None:
 
 def read_json(path, default=None):
     try:
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8-sig") as f:      # a UTF-8 BOM (Windows Notepad) is skipped, not an error
             return json.load(f)
     except FileNotFoundError:
         return default
@@ -143,7 +144,14 @@ def write_json_atomic(path, obj) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(obj, f)                         # ASCII escapes: lone surrogates cannot break the write
-        os.replace(tmp, path)
+        for i in range(10):                           # Windows: the replace fails while another process has the
+            try:                                      # file open (the CLI, an antivirus scan); retry briefly
+                os.replace(tmp, path)
+                break
+            except PermissionError:
+                if i == 9:
+                    raise
+                time.sleep(0.05 * (i + 1))
     except BaseException:
         try:
             os.unlink(tmp)
@@ -156,7 +164,7 @@ def append_line(path, line: str) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     data = (line if line.endswith("\n") else line + "\n").encode("utf-8", "backslashreplace")
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_BINARY", 0), 0o600)   # Windows: no \r\n
     with os.fdopen(fd, "ab") as f:
         f.write(data)
 

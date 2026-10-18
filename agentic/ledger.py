@@ -17,15 +17,16 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from agentic import calendar as cal
 from agentic.config import paths
 
 UTC = timezone.utc
-ET = ZoneInfo("America/New_York")
+ET = cal.ET                   # zoneinfo America/New_York, or the built-in US Eastern rule without a tz database
 FLAGS = ("STOP", "FLATTEN", "BLOCK_BUYS")
 ACCOUNT_KEYS = ("account_number", "rhs_account_number")
 QTY_TOL = 1e-6
@@ -64,16 +65,39 @@ def num(x) -> float | None:
     return v if v == v else None
 
 
+def replace_file(src, dst, tries: int = 10) -> None:
+    """os.replace, retried briefly on PermissionError: on Windows a replace fails while another process (a hook, an
+    antivirus or search-indexer scan) has the destination open."""
+    for i in range(tries):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise
+            time.sleep(0.05 * (i + 1))
+
+
 def write_json(path: Path, obj) -> None:
+    """Atomic write (a unique temp file in the same directory, then replace), UTF-8, '\\n' line endings."""
+    path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=1, sort_keys=True, default=str))
-    os.replace(tmp, path)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(json.dumps(obj, indent=1, sort_keys=True, default=str))
+        replace_file(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def read_json(path: Path, default):
     try:
-        return json.loads(Path(path).read_text())
+        return json.loads(Path(path).read_text(encoding="utf-8-sig"))      # with or without a UTF-8 BOM
     except (OSError, ValueError):
         return default
 
@@ -94,7 +118,7 @@ def append_journal(entry: dict, base=None, now_utc=None) -> dict:
     e.setdefault("ts", iso_z(now_utc))
     p = paths(base)["journal"]
     p.parent.mkdir(parents=True, exist_ok=True)
-    with open(p, "a", encoding="utf-8") as fh:
+    with open(p, "a", encoding="utf-8", newline="\n") as fh:      # \n endings, like the hooks' binary appends
         fh.write(json.dumps(e, sort_keys=True, default=str) + "\n")
     return e
 
@@ -220,7 +244,7 @@ def read_flags(base=None) -> dict[str, str]:
     for f in FLAGS:
         if p[f].exists():
             try:
-                out[f] = p[f].read_text(errors="replace").strip()
+                out[f] = p[f].read_text(encoding="utf-8", errors="replace").strip()
             except OSError:
                 out[f] = ""
     return out
@@ -231,7 +255,7 @@ def set_flag(name: str, reason: str = "", base=None) -> Path:
         raise ValueError(f"unknown flag {name!r}; one of {FLAGS}")
     f = paths(base)[name]
     f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(reason.strip() + "\n")
+    f.write_text(reason.strip() + "\n", encoding="utf-8")
     return f
 
 

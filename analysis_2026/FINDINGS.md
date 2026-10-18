@@ -1567,3 +1567,63 @@ The P3 pass is fragile:
     depending on the rule, with no consistent sign.
   - Bond ETFs (yields 3-6%) were not tested.
 - The daily-rebalanced buy & hold basket's own trades are uncosted: about 1%/yr on crypto.
+
+---
+
+# 2026-10-19 — execution mode and late-entry checks for the agentic sleeve (exploratory)
+
+Not pre-registered. These checks set the defaults in `agentic/` and decide no study verdict.
+
+## Split vs immediate vs confirm5 on crypto
+
+Script: `analysis_2026/results_agentic_modes/split_crypto.py`, output `split_crypto.txt`. Old MoneyLine;
+`split` = 50% at N=1 + 50% at N=5.
+
+| test | after tax: immediate / split / confirm5 | split vs immediate |
+|---|---|---|
+| 21 coins one by one, 0.15%/side | median 22.7 / 25.7 / 21.1 | better on 14/21; shallower drawdown on 17/21 |
+| 21 coins one by one, 0.95%/side | 12.1 / 18.4 / 15.7 | better on 16/21 |
+| Top-20 basket incl. dead coins 2019-2026, held, study costs | 37.3 / 34.9 / 29.9 | immediate ahead; see below |
+| same basket, 0.95% | 26.5 / 26.8 / 24.7 | a tie |
+
+- **The basket at study costs:**
+  - Sharpe 1.14 / 1.08 / 0.93
+  - max drawdown −51 / −49 / −51
+  - split vs immediate dSharpe −0.06, p 0.79: not significant either way
+- **Split beats confirm5 in every version** (p 0.027 at study costs).
+- **Default:** split for crypto and stocks. It is never the worst mode, has shallower drawdowns in most tests, and
+  ties or wins at Robinhood-like costs. Immediate's 2-4 point lead in the strictest test is within noise.
+
+## Late entries into green runs, by rise since the flip
+
+Script: `analysis_2026/results_late_entry/late_rise.py`.
+- **Method:** entry decided at close d, filled at the next open; exit at the open after the red-flip close.
+- **Data:** 21 coins, 13 ETFs, 293 sampled S&P stocks.
+- **Measure:** pooled geometric mean per trade for entries 1-20 bars after the flip, with run-clustered 95% CIs.
+
+| rise since flip | crypto | stocks |
+|---|---|---|
+| at the flip | 3.6% | 0.4% |
+| 10-20% | 4.3% | 0.3% |
+| 20-35% | 6.8% | 1.0% |
+| 35-50% | 8.7% | 2.9% |
+| more than 50% | 12.1% [−2.2, 28.5] | −3.3% [−6.0, −0.5] |
+
+**Independent re-check** (own code, `moneyline_ref`): point estimates match to 4 decimals.
+
+- **Crypto: no penalty for bigger rises, but no reliable premium either.**
+  - Without each bucket's 10 best runs, the 10-50% buckets earn 1.1 / 0.7 / −0.6%, against 1.6% at the flip.
+  - Only 11 of 21 coins individually show the higher means.
+  - Under N=5, and after 2021, some buckets fall below the flip.
+- **Stocks: more than 50% up is worse at N=1, but fragile.**
+  - The interval crosses 0 within each half of the sample, and after dropping the 3 worst runs.
+  - At N=5 the sign flips: +2.5% [−6.1, 11.9].
+- **Entries more than 20 bars after the flip:**
+  - stocks: clearly weaker, −0.39 log points [−0.54, −0.24]
+  - ETFs: weaker, not significant
+  - crypto pooled: not weaker (3.9 vs 3.6%), but weaker per coin (14 of 21) and negative without the 3 best runs
+
+**Defaults:** `join_recent` with `max_join_bars` 20 and `max_join_rise_frac` 0.50. These are risk controls, not a
+measured edge.
+- The cap blocks 3% of crypto entries and 0.2% of stock entries.
+- A tighter cap (0.10-0.20) would have blocked 14-26% of crypto entries, which averaged 6-8%.

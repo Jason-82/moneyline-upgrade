@@ -1,8 +1,8 @@
 """Configuration and state paths. Standard library only: the Claude Code hooks import this module.
 
 The real config lives at <state>/config.json (default state dir: <repo>/private/agentic, gitignored; override with the
-AGENTIC_STATE_DIR environment variable). agentic/config.example.json is the committed template (`python3 -m agentic
-init` copies it). The config holds account numbers, so it must never be committed.
+AGENTIC_STATE_DIR environment variable). agentic/config.example.json is the committed template
+(`.venv/Scripts/python.exe -m agentic init` copies it). The config holds account numbers, so it must never be committed.
 """
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import copy
 import json
 import math
 import os
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -48,13 +49,31 @@ ALLOC_METHODS = ("fixed", "slots")
 PRIORITIES = ("crypto_first", "equity_first", "newest_flip", "config_order")
 
 # Joining a green run that started before we act (HANDOFF 5.4). Global block; an asset may override any key.
-DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": None, "start_date": None}
+# max_join_rise_frac 0.50: no new buy once the close is more than 50% above the flip close (README section 9,
+# analysis_2026/results_late_entry); null turns the cap off.
+DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
 # "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing.
 DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first"}
 
 
 class ConfigError(ValueError):
     pass
+
+
+def cli_command() -> str:
+    """The command that runs the CLI with the current interpreter, for messages to the user and to Claude (a Git Bash
+    command on Windows, a POSIX shell command elsewhere, run from the repo root): the repo venv's interpreter as a
+    relative path (`.venv/Scripts/python.exe -m agentic`), else on Windows this interpreter's path with forward
+    slashes (`python3` there is often the Microsoft Store stub), else `python3 -m agentic`."""
+    exe = Path(os.path.abspath(sys.executable or "python3"))
+    try:
+        return f"{exe.relative_to(REPO).as_posix()} -m agentic"
+    except ValueError:
+        pass
+    if os.name == "nt" and sys.executable:
+        p = exe.as_posix()
+        return f'"{p}" -m agentic' if " " in p else f"{p} -m agentic"
+    return "python3 -m agentic"
 
 
 def state_dir() -> Path:
@@ -281,8 +300,8 @@ def validate(cfg: dict) -> dict:
 def load_config(path: str | Path | None = None) -> dict:
     p = Path(path) if path else paths()["config"]
     if not p.exists():
-        raise ConfigError(f"no config at {p}; run `python3 -m agentic init` and edit it")
-    return validate(json.loads(p.read_text()))
+        raise ConfigError(f"no config at {p}; run `{cli_command()} init` and edit it")
+    return validate(json.loads(p.read_text(encoding="utf-8-sig")))     # -sig: Notepad's "UTF-8 with BOM" too
 
 
 def tranches_for(asset: dict, cfg: dict) -> list[dict]:

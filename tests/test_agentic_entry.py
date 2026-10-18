@@ -137,6 +137,21 @@ def test_rise_cap():
     assert entry.tranche_entry(tr(True, 3, close=10.0), 11.0, e, CB) is None                # exactly +10%
     assert "up 10.5% since the green flip" in entry.tranche_entry(tr(True, 3, close=10.0), 11.05, e, CB)
     assert entry.tranche_entry(tr(True, 3, close=10.0), 11.05, dict(e, policy="join"), CB) is None
+    off = dict(cfgmod.DEFAULT_ENTRY, max_join_rise_frac=None)                                # null: no rise cap
+    assert entry.tranche_entry(tr(True, 3, close=10.0), 30.0, off, CB) is None
+
+
+def test_default_rise_cap_is_50_percent():
+    """The default (README section 9, analysis_2026/results_late_entry): +40% may join, +60% waits."""
+    e = dict(cfgmod.DEFAULT_ENTRY)
+    assert e["max_join_rise_frac"] == 0.50 and e["max_join_bars"] == 20
+    assert entry.tranche_entry(tr(True, 5, close=10.0), 14.0, e, CB) is None                 # +40%
+    assert entry.tranche_entry(tr(True, 5, close=10.0), 15.0, e, CB) is None                 # exactly +50%
+    assert entry.tranche_entry(tr(True, 5, close=10.0), 16.0, e, CB) == (
+        "up 60.0% since the green flip 2026-10-13 (max 50%): waiting for the next flip")
+    assert "too late" in entry.tranche_entry(tr(True, 21, close=10.0), 14.0, e, CB)          # bars still apply
+    no_fc = dict(tr(True, 5), flip_close=None)                                                 # cannot check: no buy
+    assert entry.tranche_entry(no_fc, 14.0, e, CB) == "no flip close to check max_join_rise_frac against"
 
 
 def test_entry_frac_is_per_tranche_and_capped_at_target():
@@ -171,7 +186,7 @@ def test_example_config_uses_slots_and_join_recent():
     c = cfgmod.validate(example())
     assert c["allocation"] == {"method": "slots", "slot_frac": 0.20, "priority": "crypto_first",
                                "class_max_frac": {"crypto": 0.60, "equity": 1.0}}
-    assert c["entry"] == {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": None, "start_date": None}
+    assert c["entry"] == {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
 
 
 def test_defaults_when_blocks_are_absent():
@@ -180,7 +195,9 @@ def test_defaults_when_blocks_are_absent():
     raw["limits"]["max_crypto_frac"] = 0.45
     c = cfgmod.validate(raw)
     assert c["allocation"]["method"] == "fixed" and c["allocation"]["class_max_frac"] == {"crypto": 0.45, "equity": 1.0}
-    assert c["entry"]["policy"] == "join_recent" and c["entry"]["max_join_bars"] == 20
+    assert c["entry"] == {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
+    raw["entry"] = {"max_join_rise_frac": None}                                 # an explicit null turns the cap off
+    assert cfgmod.validate(raw)["entry"]["max_join_rise_frac"] is None
 
 
 def test_old_max_crypto_frac_values_still_load():
@@ -271,6 +288,13 @@ def test_rise_cap_in_the_plan():
     s = S("SOL", tr(True, 3, close=10.0), close=11.5)
     assert "up 15.0% since the green flip" in why(plan([s], cfg("SOL", entry_={"max_join_rise_frac": 0.10})), "SOL")
     assert set(bought(plan([s], cfg("SOL", entry_={"max_join_rise_frac": 0.20})))) == {"SOL"}
+    up40, up60 = S("ETH", tr(True, 3, close=10.0), close=14.0), S("SOL", tr(True, 3, close=10.0), close=16.0)
+    p = plan([up40, up60], cfg("ETH", "SOL"))                                   # default cap 0.50
+    assert set(bought(p)) == {"ETH"} and "up 60.0% since the green flip" in why(p, "SOL")
+    p = plan([up40, up60], cfg("ETH", "SOL", entry_={"max_join_rise_frac": None}))
+    assert set(bought(p)) == {"ETH", "SOL"}
+    p = plan([up60], cfg("SOL"), eq={"SOLQ": pos(75)})                          # half held: kept, not topped up
+    assert sold(p) == {} and bought(p) == {} and "up 60.0% since the green flip" in why(p, "SOL")
 
 
 def test_split_buys_only_the_fresh_tranche():

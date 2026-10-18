@@ -15,7 +15,7 @@ from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 
 from agentic import calendar as cal
 from agentic import entry, ledger
-from agentic.config import VALID_CLASSES, paths
+from agentic.config import VALID_CLASSES, cli_command, paths
 from agentic.snapshot import code_for, mid, pair_for, quote_problem
 
 EQUITY_PARAMS = ("account_number", "symbol", "side", "type", "quantity", "dollar_amount", "limit_price", "stop_price",
@@ -627,7 +627,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             etf, it["notes"] = entry.entry_frac(it["sig"], ecfg, start)
             it["etf"], it["flip"] = min(etf, it["tf"]), entry.newest_flip(it["sig"], ecfg, start)
         if not status.get("baseline"):
-            msg = "no reconciled positions baseline: run `python3 -m agentic run` (it reconciles first)"
+            msg = f"no reconciled positions baseline: run `{cli_command()} run` (it reconciles first)"
             if msg not in errors:
                 errors.append(msg)
             skipped.append(dict(asset=name, reason=msg))
@@ -819,7 +819,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         elif vk in blocked:
             kept.remove(po)
             skipped.append(dict(asset=po["asset"], reason=f"{po['key']}: {po['params']['symbol']} has an open order; "
-                                                          f"cancel first, {CANCEL_MSG} (`python3 -m agentic plan "
+                                                          f"cancel first, {CANCEL_MSG} (`{cli_command()} plan "
                                                           f"--attempt {attempt}`)"))
         elif po["params"]["ref_id"] in used:
             kept.remove(po)

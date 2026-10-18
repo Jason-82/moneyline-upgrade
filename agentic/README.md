@@ -13,35 +13,89 @@ which git ignores. Never commit anything from there, and never put account numbe
 
 ## 1. Install
 
-- Python 3.11+ with `pandas` and `numpy`. On a Python that refuses `pip install` (Homebrew, PEP 668), use a venv:
-  `python3 -m venv .venv && .venv/bin/pip install pandas numpy`, and run that interpreter. `yfinance` is optional
-  (the `yfinance` feed only).
-- Claude Code, run from the repo root. The project `.claude/settings.json` already has everything; accept it when
-  Claude Code asks, then check that `/hooks` lists the PreToolUse, PostToolUse and PostToolUseFailure hooks:
+These steps are for **Windows with Git Bash**: run every command in Git Bash, from the repo folder. macOS and Linux:
+see the last bullet.
+
+- **Python 3.11+** from [python.org](https://www.python.org/downloads/windows/). In the installer, tick **Add
+  python.exe to PATH**. It also installs the `py` launcher. Do not use `python3` on Windows: that name is often the
+  Microsoft Store stub.
+- **Git for Windows** ([git-scm.com](https://git-scm.com/download/win)), which includes Git Bash. It is required:
+  Claude Code runs its Bash tool and these hooks in Git Bash. Without it, Claude Code runs hooks in PowerShell,
+  where the hook command cannot run, so the guard does not work.
+- **The repo and its venv:**
+
+  ```bash
+  git clone https://github.com/Jason-82/moneyline-upgrade.git && cd moneyline-upgrade    # or `git pull` in your clone
+  py -3 -m venv .venv && .venv/Scripts/python.exe -m pip install pandas numpy tzdata
+  ```
+
+  Windows has no time-zone database, so `tzdata` provides one. The code also has a built-in US Eastern fallback,
+  but install `tzdata` anyway. `yfinance` is optional (the `yfinance` feed only). Every command in this README runs
+  the venv's interpreter: `.venv/Scripts/python.exe -m agentic ...`. After `source .venv/Scripts/activate`, plain
+  `python -m agentic ...` works too.
+- **Tell the hooks which Python to use.** The hook commands in `.claude/settings.json` run
+  `"${AGENTIC_PYTHON:-python3}"`, so set `AGENTIC_PYTHON` in `.claude/settings.local.json`. That file is for this PC
+  only, and the repo's `.gitignore` keeps it out of git. Use your own path, with forward slashes:
+
+  ```json
+  {"env": {"AGENTIC_PYTHON": "C:/Users/<you>/moneyline-upgrade/.venv/Scripts/python.exe"}}
+  ```
+
+  Claude Code copies `env` values literally: `~`, `$HOME` and `%USERPROFILE%` are not expanded. If the file does
+  not exist yet, this writes it with the right path (`pwd -W` prints the repo folder as `C:/...`). If it already
+  exists (Claude Code keeps your "don't ask again" approvals there), the command refuses with `cannot overwrite
+  existing file` and changes nothing: add the `"env"` key to that file by hand instead.
+
+  ```bash
+  ( set -C; printf '{"env": {"AGENTIC_PYTHON": "%s/.venv/Scripts/python.exe"}}\n' "$(pwd -W)" > .claude/settings.local.json )
+  ```
+
+- **Claude Code**, started from the repo folder. The project `.claude/settings.json` has the rest; accept it when
+  Claude Code asks. **Restart Claude Code** after creating `settings.local.json`, then check that `/hooks` lists the
+  PreToolUse, PostToolUse and PostToolUseFailure hooks:
   - the guard hooks (`agentic/hooks/`) for every Robinhood MCP tool, and the PostToolUseFailure hook, so a place
     call that fails or times out is journaled (the order may exist) and counted against `max_day_usd`
   - deny rules for the option, alert, scan and watchlist write tools
   - deny rules so the agent cannot undo a STOP or replace a plan with placed orders, or edit the plan the hook
-    trusts: `python3 -m agentic resume`, `run --replan`, `plan --replan`, and Edit/Write on `private/agentic/**`.
-    `resume` also refuses to run without a terminal, so only you can clear a flag.
+    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit/Write on
+    `private/agentic/**`. `resume` also refuses to run without a terminal, so only you can clear a flag. These
+    Bash deny rules also turn off Claude Code's PowerShell tool on Windows. That is fine: everything here runs in
+    Git Bash.
+- **Check the install:** `.venv/Scripts/python.exe -m agentic doctor`. It prints one PASS, WARN or FAIL line for
+  each check:
+  - Python, pandas, numpy and the time-zone source
+  - `AGENTIC_PYTHON`, read from `settings.local.json`, so your Git Bash does not need it set, and that it can
+    import pandas and numpy (`/moneyline` runs every command with it)
+  - the state dir, and the config and account numbers (never shown)
+  - that git ignores the private files, the hook registration and Git Bash
+  - a live test of the PreToolUse hook: an unplanned order must be blocked and a read allowed
+
+  It exits 1 on any FAIL. The state dir, config and account lines fail until section 2 is done. Fix every FAIL
+  before you run `/moneyline`.
 - Connect Robinhood: `claude mcp add robinhood-trading --transport http https://agent.robinhood.com/mcp/trading`,
   then `/mcp` to log in. The hooks guard any `mcp__*robinhood*` name; the deny list covers the server names
   `robinhood-trading`, `Robinhood`, `robinhood-for-agents` and the claude.ai connector's `claude_ai_Robinhood`.
   Use one of those.
 - In the Robinhood app: open the Agentic account, fund it with only what this sleeve may use, link crypto if
   needed, and turn on Agent Settings → Safety Controls → **Trade approvals**.
+- **macOS/Linux:** `python3 -m venv .venv && .venv/bin/python -m pip install pandas numpy tzdata`, then use
+  `.venv/bin/python` wherever this README says `.venv/Scripts/python.exe`. `AGENTIC_PYTHON` is optional there:
+  without it the hooks run `python3`, and they need only the standard library. `/moneyline` runs the CLI with that
+  `python3` too, so it needs pandas and numpy, or set `AGENTIC_PYTHON` to the full path of `.venv/bin/python`
+  (`doctor` checks).
 
 ## 2. Init and config
 
 ```bash
-python3 -m agentic init        # creates private/agentic/ and copies config.example.json to config.json
+.venv/Scripts/python.exe -m agentic init      # creates private/agentic/ and copies config.example.json to config.json
 ```
 
-Edit `private/agentic/config.json`:
+Edit `private/agentic/config.json`, then run `.venv/Scripts/python.exe -m agentic doctor` again: once the account
+numbers are in, every line should PASS.
 
 - `account.account_number` and `account.rhs_account_number` come from `get_accounts`: use the entry with
   `agentic_allowed: true`. Stock tools take `account_number`; crypto tools take the numeric `rhs_account_number`.
-  `python3 -m agentic fetch-list` tells Claude to call `get_accounts` while these are still `FILL-IN`.
+  The `fetch-list` command tells Claude to call `get_accounts` while these are still `FILL-IN`.
 - `live: false` is shadow mode: plans are written and previewed, and the hook blocks every `place_*` call.
   `live`, `approvals_required`, `enabled` and `fractional` must be JSON `true`/`false`; a quoted `"false"` is a
   config error.
@@ -54,7 +108,7 @@ Edit `private/agentic/config.json`:
   entries by `priority` `crypto_first`, `class_max_frac` crypto 0.60) or `fixed` (per-asset `alloc_frac`; the
   default when the block is missing). `slot_frac` must be at most `max_asset_frac`.
 - `entry` (section 9): `policy` `join_recent` (default), `join` or `fresh_only`; `max_join_bars` (20),
-  `max_join_rise_frac` (null or e.g. 0.10), `start_date` (null or `YYYY-MM-DD`). An asset may override any key
+  `max_join_rise_frac` (0.50; null = no cap; section 9), `start_date` (null or `YYYY-MM-DD`). An asset may override any key
   with its own `"entry": {...}`. **Upgrading:** a config without an `entry` block now gets `join_recent`, so an
   asset that has been green for more than 20 bars and that the sleeve does not hold is no longer bought (add
   `"entry": {"policy": "join"}` for the old behaviour). Signals files from before this change have no flip ages:
@@ -80,8 +134,8 @@ Edit `private/agentic/config.json`:
   ```
 
 - **Keeping both modes ready:** only one enabled asset may trade a given vehicle. To watch the other mode daily,
-  add a disabled twin, such as `ETH-SPLIT` with `mode: split`. `python3 -m agentic signals --all` shows both
-  targets. Switching is a one-word config change.
+  add a disabled twin, such as `ETH-SPLIT` with `mode: split`. `.venv/Scripts/python.exe -m agentic signals --all`
+  shows both targets. Switching is a one-word config change.
 - `wash_sale_block_symbols`: tickers the planner must never buy (section 10).
 - **The sleeve owns only its own shares.** The first reconcile adopts the account's positions as the baseline, but
   shares already held then belong to you, not the sleeve: the plan never sells them, even on a red signal or under
@@ -91,32 +145,45 @@ Edit `private/agentic/config.json`:
 
 ## 3. Daily runbook
 
-### Phase 1: crypto signals from cron (no Robinhood access)
+### Phase 1: crypto signals on a schedule (no Robinhood access)
 
-The Coinbase daily bar closes at 00:00 UTC. At 00:10 UTC:
+The Coinbase daily bar closes at 00:00 UTC. A scheduled job computes the crypto signals soon after, so the digest is
+ready before you run `/moneyline`. It is optional: `run` in phase 2 computes the signals anyway.
+
+**Windows: Task Scheduler, set up from Git Bash.** In the repo folder:
+
+```bash
+bash agentic/windows/crypto_signals.sh                     # run the job once by hand; output goes to cron.log
+bash agentic/windows/schedule_crypto_signals.sh install    # a daily task at 20:15 local time
+bash agentic/windows/schedule_crypto_signals.sh status     # the task, its last result and the end of cron.log
+bash agentic/windows/schedule_crypto_signals.sh remove     # delete the task
+```
+
+- `install` registers a task named `moneyline-crypto-signals`. It runs Git Bash's `bash.exe` on
+  `agentic/windows/crypto_signals.sh`, which goes to the repo folder, runs `.venv/Scripts/python.exe -m agentic
+  signals --class crypto` and appends everything to `private/agentic/cron.log`. Running `install` again replaces
+  the task, and `--dry-run` prints the `schtasks` command instead of running it.
+- **20:15 assumes the PC is on US Eastern time.** That is 00:15 UTC in summer (EDT) and 01:15 UTC in winter (EST),
+  after the close in both. On another time zone, choose a local time that is at least 00:10 UTC all year and pass
+  it as `install --time HH:MM`: for example `--time 19:15` on US Central, `--time 17:15` on US Pacific or
+  `--time 01:15` in the UK.
+- Git Bash turns `schtasks` flags such as `/Create` into paths, so the script runs it with `MSYS_NO_PATHCONV=1`. Do
+  the same if you call `schtasks` yourself.
+- The task runs only while you are logged on and the PC is awake, and a console window flashes while it runs. A
+  missed run is not repeated.
+
+**macOS/Linux:** use cron instead (`crontab -e`). If your cron ignores `CRON_TZ`, use a local time from 20:05 to
+23:59 US Eastern. On a Mac the machine must be awake, and cron needs Full Disk Access when the repo is under
+`~/Documents` or `~/Desktop`.
 
 ```cron
 CRON_TZ=UTC
-10 0 * * * cd /path/to/moneyline-upgrade && /path/to/python3 -m agentic signals --class crypto >> private/agentic/cron.log 2>&1 || echo "moneyline signals failed: see private/agentic/cron.log"
+10 0 * * * cd /path/to/moneyline-upgrade && .venv/bin/python -m agentic signals --class crypto >> private/agentic/cron.log 2>&1 || echo "moneyline signals failed: see private/agentic/cron.log"
 ```
 
-- **Linux and macOS:** use `crontab -e`, with the absolute path of the interpreter that has pandas (`which
-  python3` in the shell where `python3 -c "import pandas"` works, e.g. `/opt/homebrew/bin/python3` or the venv's
-  `.venv/bin/python`). On macOS, `/usr/bin/python3` is Apple's 3.9 and cannot run this. If your cron ignores
-  `CRON_TZ`, use local time; any time from 20:05 to 23:59 US Eastern is after the 00:00 UTC close in both summer
-  and winter. On a Mac, the machine must be awake, and cron needs Full Disk Access (System Settings → Privacy &
-  Security) when the repo is under `~/Documents` or `~/Desktop`.
-- **Windows Task Scheduler:** create a daily task at a local time after 00:00 UTC (for US Eastern, 20:05-23:59).
-  - Program: `py`
-  - Arguments: `-m agentic signals --class crypto`
-  - Start in: the repo folder
-  - Or from a command prompt:
-    `schtasks /Create /SC DAILY /ST 20:15 /TN moneyline-signals /TR "cmd /c cd /d C:\path\to\moneyline-upgrade && py -m agentic signals --class crypto >> private\agentic\cron.log 2>&1"`
-
-The job writes `signals/signals_<UTC date>.json` and `digests/digest_<date>_crypto.txt`, and prints the digest. It
-exits 1 if any enabled asset has a signal error. Everything it prints goes to `cron.log`, so the `|| echo ...`
-part is what reaches cron mail (if your system delivers it; on a Mac it lands in the local `/var/mail`). Swap in
-`osascript -e 'display notification "moneyline signals failed"'` for a Mac notification. Stock signals on the
+The job writes `signals/signals_<UTC date>.json` and `digests/digest_<date>_crypto.txt` under `private/agentic/`,
+and prints the digest into `cron.log`. It exits 1 if any enabled asset has a signal error. Task Scheduler then shows
+Last Run Result 0x1 (see `status`), and the cron line's `|| echo` reaches cron mail. Stock signals on the
 `robinhood` feed need fresh Claude captures, so they are computed in phase 2.
 
 ### Phase 2: `/moneyline` in Claude Code
@@ -126,11 +193,12 @@ part is what reaches cron mail (if your system delivers it; on a Mac it lands in
 | stocks/ETFs, and crypto signals traded through an ETF | a trading day after 9:45 ET | 15:45 ET that session |
 | direct crypto (`vehicle.type: crypto`) | any time after 00:00 UTC | 6 hours |
 
-`/moneyline` (`.claude/commands/moneyline.md`) makes Claude:
+`/moneyline` (`.claude/commands/moneyline.md`) makes Claude do the following. Claude runs each command as
+`"${AGENTIC_PYTHON:-python3}" -m agentic ...`, and stops if `AGENTIC_PYTHON` is not set on Windows (section 1).
 
-1. run `python3 -m agentic fetch-list` and make exactly those read calls (the PostToolUse hook saves each result
-   to `private/agentic/inbox/`)
-2. run `python3 -m agentic run`: signals, reconcile, plan
+1. run `fetch-list` and make exactly those read calls (the PostToolUse hook saves each result to
+   `private/agentic/inbox/`)
+2. run `run`: signals, reconcile, plan
 3. preview each order, then place it with the plan's params verbatim (shadow mode: previews only)
 4. read the orders back and report every state
 
@@ -141,18 +209,18 @@ Rules of thumb:
 - Do not re-run `plan` or `run` while orders await approval or fills. A new plan would cancel the old plan's open
   orders, or duplicate proposals the broker does not list yet. So `plan` refuses while the current plan is valid
   and has placed orders. `--attempt N+1` (a re-quote) is allowed, and `--replan` overrides (you only, never
-  Claude). `python3 -m agentic calls` shows the current plan's calls again.
+  Claude). `.venv/Scripts/python.exe -m agentic calls` shows the current plan's calls again.
 - If an approved limit order hasn't filled after 15 minutes (stocks/ETFs) or 30 minutes (crypto): run
   `/moneyline --attempt 2` (`--attempt 3` at most). Each attempt widens the collar and makes new `ref_id`s. The
   attempt-N plan first lists a cancel for the old order and holds the new one back; after the cancel, re-fetch
-  orders, then positions, then quotes, and run `python3 -m agentic plan --attempt N` again (the same N; plain
-  `plan` also keeps N while the current plan is holding orders back). That second plan has the wider-collar order.
+  orders, then positions, then quotes, and run `plan --attempt N` again (the same N; plain `plan` also keeps N
+  while the current plan is holding orders back). That second plan has the wider-collar order.
   An exit that still won't fill is yours to handle in the app.
 - The planner checks the captured positions against the baseline plus this system's fills. If they disagree (for
   example, positions were captured before an order filled), that asset is skipped with an error, buys and sells
   alike: re-fetch orders, then positions. `fetch-list` lists orders before positions for this reason.
-- `python3 -m agentic status` shows flags, the last signals and plan, today's placed notional and the journal tail,
-  with no account numbers.
+- `.venv/Scripts/python.exe -m agentic status` shows flags, the last signals and plan, today's placed notional and
+  the journal tail, with no account numbers.
 
 ## 4. Shadow mode first (`live: false`, 4-8 weeks)
 
@@ -190,11 +258,14 @@ notes:
 
 | command | effect |
 |---|---|
-| `python3 -m agentic stop "reason"` | STOP: the hook blocks every place call. The next plan lists a cancel for each open order this system placed; run `/moneyline` to make those cancels, or cancel in the app. |
-| `python3 -m agentic flatten` | FLATTEN: every target becomes 0; sells of the sleeve's own shares only. The next `run` replaces the current plan (even with placed orders) and cancels its open buys; reject buy proposals still waiting in the app. |
-| `python3 -m agentic resume` | removes flags after you type `resume` (`--flag NAME` for one). It refuses without a terminal, so Claude cannot run it. |
-| `python3 -m agentic reconcile --accept` | after checking a BLOCK_BUYS mismatch in the app, adopt the positions as the new baseline |
+| `.venv/Scripts/python.exe -m agentic stop "reason"` | STOP: the hook blocks every place call. The next plan lists a cancel for each open order this system placed; run `/moneyline` to make those cancels, or cancel in the app. |
+| `.venv/Scripts/python.exe -m agentic flatten` | FLATTEN: every target becomes 0; sells of the sleeve's own shares only. The next `run` replaces the current plan (even with placed orders) and cancels its open buys; reject buy proposals still waiting in the app. |
+| `.venv/Scripts/python.exe -m agentic resume` | removes flags after you type `resume` (`--flag NAME` for one). It refuses without a terminal, so Claude cannot run it. |
+| `.venv/Scripts/python.exe -m agentic reconcile --accept` | after checking a BLOCK_BUYS mismatch in the app, adopt the positions as the new baseline |
 
+- **`resume` in Git Bash's own window:** that window (mintty) does not give Windows programs a terminal, so
+  `resume` refuses there. Prefix the command with `winpty`, which comes with Git for Windows:
+  `winpty .venv/Scripts/python.exe -m agentic resume`. A Git Bash tab in Windows Terminal works without it.
 - Disconnecting the agent does **not** cancel open orders, and crypto limit orders last 90 days. Cancel them first.
 - The PostToolUse hook writes STOP by itself if an agent order goes live without your approval. Check the app and
   your approval setting before `resume`.
@@ -231,24 +302,31 @@ For `tv_export`:
 | `split` | 50% on the first close, 50% after 5 consecutive closes beyond the line (exits the same way) |
 | `confirm5` | 100% after 5 consecutive closes |
 
-- **Crypto through a spot ETF (~0.02%): keep the immediate flip.** The 21-coin basket was worse at every delay
-  (HANDOFF 5.15), and crypto breakouts tend to run right after the flip. Single coins vary:
-  [`results_agentic_modes`](../analysis_2026/results_agentic_modes/summary.txt) has ETH better at confirm5 and SOL
-  and BTC better at immediate at 0.15%. HANDOFF 5.1: the edge is mostly bear-market avoidance.
+- **Crypto: split is the default (since 2026-10-19).** Results from
+  [`split_crypto.txt`](../analysis_2026/results_agentic_modes/split_crypto.txt), tested beyond the three-coin modes
+  table:
+  - **21 coins one by one:** split beat immediate after tax on 14 of 21 coins (16 of 21 at 0.95% per side), with a
+    shallower drawdown on 17 of 21.
+  - **The survivorship-free top-20 basket including dead coins:** immediate was 2-4 points a year ahead at low
+    cost (Sharpe 1.14 vs 1.08, not significant), split's drawdown was slightly shallower (−49% vs −51%), and at
+    0.95% the two tie.
+  - **Never the worst:** split is never the worst mode, and it beats confirm5 in every version. A full 5-close
+    delay is what hurt crypto in HANDOFF 5.15.
+  - **To switch back:** set an asset's `mode` to `immediate` for the faster version (slightly higher return in the
+    strictest test, deeper drawdowns).
+  - HANDOFF 5.1: the edge over holding is mostly bear-market avoidance.
 - **Direct crypto (~0.95% per side): turnover matters.** Cost is charged on each change of position size, so
-  split's half-size tranches cost no more than immediate's full flips. In the modes table at 0.95%, split beats
-  immediate after tax on all three coins (ETH 26.9 vs 18.6, SOL 113.5 vs 105.5, BTC 13.8 vs 11.5) and confirm5
-  does on ETH and BTC, so consider split for direct-crypto vehicles. BTC trails buy & hold after tax in every
-  mode.
+  split's half-size tranches cost no more than immediate's full flips. Split ties or beats immediate at this
+  cost in every test above. BTC trails buy & hold after tax in every mode.
 - **Stocks: the 5-close delay helps, but holding wins after tax.** On the S&P 500 point-in-time basket the delay
   raised Sharpe from 0.53 to 0.70 and cut drawdown from −34% to −22%. But no timing rule beat holding after tax
   (HANDOFF 5.15, 5.19, plan section 4b). On SPY, QQQ and IWM every mode trails buy & hold after tax by 3-6.5
   points a year. The gain is drawdown.
-- **split is a blend.** Its return usually lands between the other two, and it had the shallowest drawdown in 8 of
-  9 rows of the modes table. It places about 1.5× the orders of immediate, but each is half-size, so its turnover
+- **split is a blend.** Its return usually lands between or above the other two, and it had the shallowest drawdown
+  in 8 of 9 rows of the modes table. It places about 1.5× the orders of immediate, but each is half-size, so its turnover
   (and cost) is no higher.
-- Check one asset yourself: `python3 -m agentic backtest --asset ETH [--modes immediate,split] [--cost 0.0015]
-  [--start 2022-01-01]`. The default cost is 0.95% per side for a direct-crypto vehicle and 0.02% otherwise. A
+- Check one asset yourself: `.venv/Scripts/python.exe -m agentic backtest --asset ETH [--modes immediate,split]
+  [--cost 0.0015] [--start 2022-01-01]`. The default cost is 0.95% per side for a direct-crypto vehicle and 0.02% otherwise. A
   `tv_export` asset is backtested on its own export.
 - Full-history backtests (and `analysis_2026/results_agentic_modes/run_modes.py`) read `data/crypto_4h`,
   `data/etf` and `data/universe_pit_all`, which are gitignored downloads, not part of the public repo. Without
@@ -270,10 +348,66 @@ red flip):
 Entering within about 20 bars of the flip earned about the same as entering on it. Later entries were worse on ETH
 and SOL and noisy elsewhere (BNB and ZEC did better late; day 51+ rests on 1-7 runs per coin).
 
+**How far the price has already risen.** [`results_late_entry`](../analysis_2026/results_late_entry/summary.txt)
+pools every entry day 1-20 bars after a green flip (old MoneyLine, N=1; decide at the close, buy at the next open,
+sell at the open after the red-flip close): 21 coins at 0.10% per side (1,055 runs, 2018-2026), 293 random S&P 500
+point-in-time stocks at 0.03% (44,776 runs) and 13 ETFs at 0.02% (2,287 runs). Geometric mean per trade after
+cost, with a 95% interval clustered by run:
+
+| rise since the flip close | crypto | S&P stocks | ETFs |
+|---|---|---|---|
+| entry on the flip | 3.6% [1.7, 5.5] | 0.40% [0.31, 0.50] | 0.43% [0.22, 0.63] |
+| ≤ 0 | 2.0% [0.0, 4.0] | 0.44% [0.31, 0.57] | 0.48% [0.17, 0.80] |
+| 0-5% | 2.2% [0.4, 4.0] | 0.38% [0.30, 0.47] | 0.38% [0.21, 0.55] |
+| 5-10% | 3.0% [0.5, 5.4] | 0.25% [0.11, 0.40] | 1.1% [0.4, 1.8] |
+| 10-20% | 4.3% [1.5, 7.3] | 0.30% [0.00, 0.60] | 1.2% [−0.9, 3.4] |
+| 20-35% | 6.8% [2.0, 11.8] | 1.0% [0.2, 1.8] | −2.5% (11 runs) |
+| 35-50% | 8.7% [1.3, 16.7] | 2.9% [0.7, 5.2] | 1 run |
+| > 50% | 12.1% [−2.2, 28.5] (96 runs) | −3.3% [−6.0, −0.5] (220 runs) | none |
+
+- **Up to +50%, a bigger rise did not mean less was left, nor reliably more.** On crypto, entries 10-50% above the
+  flip close had higher pooled means than entries on the flip, but every difference from the flip has an interval
+  that includes zero, and a few runs drive the means: without each bucket's 10 best runs, 10-20%, 20-35% and 35-50%
+  earn 1.1%, 0.7% and −0.6%, against 1.6% on the flip without its 10 best. Before 2021 the 10-20% bucket was below
+  the flip, and only 11 of 21 coins had the higher mean. So crypto shows no penalty for rises up to +50%, but no
+  reliable premium either. Stocks were about flat up to +20% and better from +20% to +50%.
+- **Entries 21+ bars after the flip were weaker on stocks and ETFs.** Stocks earned 0.01% per trade against 0.40%
+  on the flip (−0.39 log points [−0.54, −0.24]), ETFs 0.14% against 0.43%. Pooled crypto was not weaker: 3.9%
+  against 3.6% (2.7% at bars 21-50, 11.5% at 51+ on 63 runs). It was weaker per coin (14 of 21 coins below their
+  own flip entries) and without the 3 best runs (−0.4%, against 2.8% on the flip without its 3 best). So
+  `max_join_bars` 20 rests on HANDOFF 5.4 and the stock and ETF results, not on pooled crypto.
+- **Above +50% the evidence turns.** Stocks lost 3.3% per trade, the only bucket entirely below zero, and lost in
+  both halves of the sample. Crypto's 12.1% rests on a few huge runs: its interval includes zero; the median run
+  lost 10.9% (about 4% in the other buckets, since trend trades usually lose small and win big); the mean falls to
+  6.9% without the single best run and to 1.6% without the best three (20-35% and 35-50% keep 3.9% and 4.7%); and
+  in runs since March 2023 it was 4.5% [−8.6, 19.5].
+- **Default `max_join_rise_frac`: 0.50**, on top of `max_join_bars` 20. Within the 20-bar window it blocks 3.2% of
+  crypto entry days (96 of 1,055 runs ever got there) and 0.16% of stock entry days. The trade-off: in this sample
+  the crypto entries it blocks earned more on average than the ones it allows (12.1% against 3.1% per trade). The
+  cap gives up a mean that rests on a handful of runs to skip entries whose typical outcome was a loss and that
+  lost on stocks. It is a judgment on 96 crypto runs, not a fitted optimum.
+- **The case for the cap comes from the N=1 table above, but the cap applies to every tranche**, including the
+  5-close tranche of `split` and `confirm5`, which compares the close with its own N=5 flip close. At N=5 the
+  evidence points the other way: entries more than 50% up earned +2.5% per trade on stocks [−6.1, 11.9] (104 runs,
+  against 1.3% on the flip) and +27% on crypto [−2.6, 66] (46 runs, against 5.3%). Both intervals include zero.
+  The N=1 stock loss is not robust either: split at 2021 it is −2.8% [−5.6, 0.2] before and −5.3% [−12.4, 2.3]
+  after, and without the 3 worst runs it is −2.4% [−5.0, 0.3]. Whether the cap should apply only to N=1 tranches is
+  an open decision. Until it is made, the cap applies to all tranches.
+- **A tighter cap is not supported.** 0.20 would block 13.6% of crypto entry days, which earned 8.4% per trade
+  [2.3, 14.9], and 0.10 would block 26% at 6.5% [2.4, 10.7]: the strongest runs.
+- `null` turns the cap off, and an asset may set its own in its `entry`. **Upgrading:** a config copied from the
+  earlier example has `"max_join_rise_frac": null`, which keeps the cap off. Set 0.50 to use the default; a config
+  without the key gets 0.50.
+- These are per-trade returns of overlapping entries (a run counts once per entry day), not a portfolio backtest.
+  Re-run: `.venv/Scripts/python.exe analysis_2026/results_late_entry/late_rise.py` (needs the gitignored data
+  downloads, section 8). The N=5, per-coin, split-at-2021, pooled 21+ bar, drop-worst and flip-without-best-runs
+  figures come from an independent re-check on the same data (2026-10-18); its tables are not in
+  `results_late_entry` yet.
+
 | policy | a green tranche may be bought |
 |---|---|
 | `join` | at any time (the old behaviour) |
-| `join_recent` (default) | within `max_join_bars` (20) bars of its own green flip, counted in the asset's own bars (crypto days, stock sessions); with `max_join_rise_frac` (e.g. 0.10) only while the close is at most that far above the flip close |
+| `join_recent` (default) | within `max_join_bars` (20) bars of its own green flip, counted in the asset's own bars (crypto days, stock sessions), and only while the close is at most `max_join_rise_frac` (0.50, i.e. +50%; `null` = no cap) above the flip close |
 | `fresh_only` | as `join_recent`, and only flips on or after the strategy start: `start_date`, else the date of the first live plan (`private/agentic/strategy_start.json`). In shadow mode before that it is today, so nothing already green qualifies |
 
 - **Per tranche.** In split mode the first half may be too old while the 5-close half flipped yesterday: the plan
@@ -281,10 +415,11 @@ and SOL and noisy elsewhere (BNB and ZEC did better late; day 51+ rests on 1-7 r
   sleeve already holds stays held and a fresh half is added on top (also when the first half re-flips green during
   an old 5-close run). The journal tells which half is held: a buy placed after a tranche's flip holds that tranche,
   so the day after a fresh-half buy the old half is not bought instead.
-- **Buys only.** A position the sleeve holds is never sold because its run is old: buys raise it only to the
-  eligible share of the target, sells cut it only to the full target, and anything between is held. A red flip is
-  a full exit whatever the policy; STOP, FLATTEN and BLOCK_BUYS work as before.
-- The digest and the plan say why, e.g. `green 35 bars, too late to join (max 20): waiting for the next flip`.
+- **Buys only.** A position the sleeve holds is never sold because its run is old or has risen past the cap: buys
+  raise it only to the eligible share of the target, sells cut it only to the full target, and anything between is
+  held. A red flip is a full exit whatever the policy; STOP, FLATTEN and BLOCK_BUYS work as before.
+- The digest and the plan say why, e.g. `green 35 bars, too late to join (max 20): waiting for the next flip` or
+  `up 60.0% since the green flip 2026-10-13 (max 50%): waiting for the next flip`.
 
 **Allocation (`allocation`).**
 
@@ -355,19 +490,29 @@ Trade-offs:
 - Each place call must go through Claude Code with the hooks: an order placed in the app or by another tool is not
   the sleeve's, and reconcile flags it.
 - The Robinhood login lasts about 4 days, and refresh tokens rotate: use one Claude session at a time.
-- Always run as `python3 -m agentic` from the repo root (`agentic/calendar.py` would hide the standard
-  `calendar` module if `agentic/` itself were on `sys.path`).
+- Always run as `.venv/Scripts/python.exe -m agentic` from the repo root (`agentic/calendar.py` would hide the
+  standard `calendar` module if `agentic/` itself were on `sys.path`). The CLI's own hints name the interpreter that
+  is running it, e.g. `.venv/Scripts/python.exe -m agentic plan`.
+- Windows support (Git Bash hooks, `doctor`, Task Scheduler scripts, the time-zone fallback) is tested on Linux, with
+  Windows simulated where it matters. Run `doctor` after every install or Python update, and check the first
+  scheduled run in `cron.log`.
+- Without a time-zone database (no `tzdata`), US Eastern time comes from the built-in 2007+ rule. It matches the
+  database from 2007 on, but not earlier dates.
 
 ## 12. Files
 
 | path | contents |
 |---|---|
-| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, planner, ledger, signals, cli |
+| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, planner, ledger, signals, cli, doctor |
 | `agentic/hooks/` | PreToolUse guard and PostToolUse capture/journal hooks (standard library only) |
+| `agentic/windows/` | Git Bash scripts: `crypto_signals.sh` (the phase 1 job) and `schedule_crypto_signals.sh` (Task Scheduler) |
+| `.claude/settings.json` | hooks and deny rules (committed) |
+| `.claude/settings.local.json` | `AGENTIC_PYTHON` for this PC: gitignored |
 | `private/agentic/config.json` | your config (account numbers): private |
 | `private/agentic/inbox/` | raw Robinhood tool results saved by the PostToolUse hook |
 | `private/agentic/signals/`, `digests/`, `plans/`, `plan_current.json` | daily outputs |
 | `private/agentic/journal.jsonl`, `ledger.json`, `positions_reconciled.json`, `hook.log` | audit trail |
+| `private/agentic/cron.log` | output of the scheduled phase 1 job |
 | `private/agentic/STOP`, `FLATTEN`, `BLOCK_BUYS` | flags |
 | `private/agentic/strategy_start.json` | the first live plan's date (entry policy `fresh_only`) |
 

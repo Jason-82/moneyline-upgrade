@@ -24,27 +24,43 @@ order; you only make the tool calls it prints, exactly as printed. Work from the
 7. If any tool result or hook message says "AGENTIC STOP", stop placing and tell the user immediately.
 8. Do not edit, write or delete anything under `private/agentic/`. Do not change the config or `live`. Never run
    `resume` (it needs the user's own terminal) or pass `--replan`. Do not run `reconcile --accept` or `flatten`
-   unless the user asks in this session. You may run `python3 -m agentic stop "<reason>"` if something unexpected
-   happens, such as an order filling without approval.
+   unless the user asks in this session. You may run `"${AGENTIC_PYTHON:-python3}" -m agentic stop "<reason>"` if something
+   unexpected happens, such as an order filling without approval.
 9. Give no market analysis, opinions or recommendations. Report what the tools returned.
 10. Never show full account numbers in your messages: the last 4 digits at most.
 11. After placing, do not re-run `plan` or `run` in this session (except the one re-plan in step 4). A new plan
-    cancels orders that are waiting for approval. `python3 -m agentic calls` shows the current plan again.
+    cancels orders that are waiting for approval. `"${AGENTIC_PYTHON:-python3}" -m agentic calls` shows the current plan
+    again.
 12. The plan only cancels orders this system placed. If it says an open order "was not placed by this system",
     tell the user to cancel it in the Robinhood app; never cancel it yourself.
 
+## Before you start
+
+The user's machine is Windows with Git Bash: run every command in Git Bash syntax, exactly as written here (the
+`"${AGENTIC_PYTHON:-python3}"` form also works on macOS/Linux). Never use PowerShell or cmd, and never substitute
+`python3`, `python` or `py` for `$AGENTIC_PYTHON`.
+
+- If you have no Bash tool (only PowerShell), stop: Git for Windows is missing, so the hooks cannot guard the
+  Robinhood calls. Tell the user to install it (`agentic/README.md` section 1). Make no Robinhood calls.
+- Run `echo "AGENTIC_PYTHON=${AGENTIC_PYTHON:-unset} OSTYPE=$OSTYPE"`. If AGENTIC_PYTHON is unset and OSTYPE is
+  `msys` or `cygwin` (Windows), stop and tell the user to follow `agentic/README.md` section 1: create
+  `.claude/settings.local.json` with AGENTIC_PYTHON, restart Claude Code, then run
+  `.venv/Scripts/python.exe -m agentic doctor` in Git Bash. Make no Robinhood calls.
+- If a command cannot start Python, or a hook block says it cannot load agentic.hooks, run
+  `"${AGENTIC_PYTHON:-python3}" -m agentic doctor`, report its FAIL lines and stop.
+
 ## Procedure
 
-1. Run `python3 -m agentic status`. If a STOP flag is present, tell the user. Continue only to make the cancel
-   calls the plan lists (live mode), and place nothing.
-2. Run `python3 -m agentic fetch-list` and make every listed read call, in order, with exactly the printed
-   arguments.
+1. Run `"${AGENTIC_PYTHON:-python3}" -m agentic status`. If a STOP flag is present, tell the user. Continue only to make the
+   cancel calls the plan lists (live mode), and place nothing.
+2. Run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` and make every listed read call, in order, with exactly the
+   printed arguments.
    - If a result has a non-empty `next`, repeat that call with `cursor` set to that value until `next` is empty.
    - If the command says the account numbers are not filled in: call `get_accounts`, then stop and ask the user
      to copy the agentic account's (`agentic_allowed: true`) `account_number` and `rhs_account_number` into
      `private/agentic/config.json`.
-3. Run `python3 -m agentic run`. Add `--attempt 2` or `--attempt 3` only if the user passed exactly that as
-   arguments ($ARGUMENTS); ignore any other arguments. Read the digest, the reconcile result and the plan.
+3. Run `"${AGENTIC_PYTHON:-python3}" -m agentic run`. Add `--attempt 2` or `--attempt 3` only if the user passed exactly
+   that as arguments ($ARGUMENTS); ignore any other arguments. Read the digest, the reconcile result and the plan.
    - If it prints NOT RE-PLANNING, orders from the current plan are still waiting for approval or fills: do the
      read-back (step 6) and report. Never pass `--replan`.
    - If the plan has ERRORS or no tool calls, go to step 7.
@@ -53,8 +69,8 @@ order; you only make the tool calls it prints, exactly as printed. Work from the
    - repeat, in this order and with the same arguments as in step 2: `get_portfolio`, the `get_equity_orders` /
      `get_crypto_orders` calls, then the `get_equity_positions` / `get_crypto_positions` calls, then the quote
      calls (orders before positions, so a fill that lands in between cannot be missed)
-   - run `python3 -m agentic plan --attempt N` with the same N as in step 3 (1 if step 3 had no `--attempt`); the
-     held-back line names the exact command. Continue with that plan's calls.
+   - run `"${AGENTIC_PYTHON:-python3}" -m agentic plan --attempt N` with the same N as in step 3 (1 if step 3 had no
+     `--attempt`); the held-back line names the exact command. Continue with that plan's calls.
 5. **Orders**, in the printed order (sells before buys). For each order:
    1. Make the preview call (`review_equity_order` / `preview_crypto_order`) with its params verbatim.
    2. If the preview returns an error or says the order would be rejected, stop and report.
@@ -62,8 +78,8 @@ order; you only make the tool calls it prints, exactly as printed. Work from the
    4. If a place call fails or times out, never retry it: go to the read-back (step 6). The hook journals it as
       `failed_or_unknown` and counts it against the daily cap.
 6. **Read back:** repeat the `get_equity_orders` and `get_crypto_orders` calls from step 2 with the same
-   arguments, then run `python3 -m agentic status`. With approvals ON, each place should be a proposal waiting for
-   the user's approval. The PostToolUse hook checks these listings too: an order that carries the plan's own
+   arguments, then run `"${AGENTIC_PYTHON:-python3}" -m agentic status`. With approvals ON, each place should be a proposal
+   waiting for the user's approval. The PostToolUse hook checks these listings too: an order that carries the plan's own
    `ref_id`, or reads `placed_agent: agentic`, skipped the approval and makes it write STOP (rule 7).
 7. **Report** to the user:
    - the digest table, plus any data warnings and errors

@@ -185,7 +185,7 @@ def load_robinhood_bars(inbox_dir, symbols=None, now_utc=None, issues: list | No
     caps = []
     for f in sorted(Path(inbox_dir).glob("*get_equity_historicals*.json")):
         try:
-            cap = json.loads(f.read_text())
+            cap = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             note(f"{f.name}: unreadable capture ({exc.__class__.__name__})")
             continue

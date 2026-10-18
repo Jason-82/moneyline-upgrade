@@ -197,7 +197,11 @@ def test_tranche_targets_tuples_and_config():
     df = synth(22)
     cfg = config.validate(json.loads(config.EXAMPLE.read_text()))
     eth = next(a for a in cfg["assets"] if a["name"] == "ETH")
-    imm = tranche_targets(df, config.tranches_for(eth, cfg))
+    assert eth["mode"] == "split"
+    spl = tranche_targets(df, config.tranches_for(eth, cfg))
+    exp_split = 0.5 * moneyline_confirmed(df)["green"].astype(float) + 0.5 * moneyline_confirmed(df, 5, 5)["green"].astype(float)
+    assert np.allclose(spl["target_frac"].to_numpy(), exp_split.to_numpy())
+    imm = tranche_targets(df, config.tranches_for(dict(eth, mode="immediate"), cfg))
     assert np.array_equal(imm["target_frac"].to_numpy(), moneyline_confirmed(df)["green"].to_numpy().astype(float))
     tup = tranche_targets(df, [(0.25, 1, 1), (0.75, 5, 1)])
     exp = 0.25 * moneyline_confirmed(df)["green"] + 0.75 * moneyline_confirmed(df, 5, 1)["green"]

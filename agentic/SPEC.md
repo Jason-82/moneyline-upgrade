@@ -54,11 +54,11 @@ standard library only.
 | `hooks/post_tool_use.py` | D | save raw tool results to the inbox; journal place/cancel; approval check |
 | `.claude/settings.json` | D | register hooks; deny unused write tools |
 | `signals.py` | E | phase 1: feeds → checks → indicator → `signals_<date>.json` + digest |
-| `cli.py`, `__main__.py` | E | `python3 -m agentic <cmd>` |
+| `cli.py`, `__main__.py` | E | `.venv/Scripts/python.exe -m agentic <cmd>` (section 12) |
 | `README.md`, `.claude/commands/moneyline.md` | E | runbook and daily slash command |
 
-Tests go in `tests/test_agentic_<module>.py` and run with `python3 -m pytest tests/test_agentic_*.py -q`. They must not
-touch the network; mock urllib.
+Tests go in `tests/test_agentic_<module>.py` and run with `.venv/Scripts/python.exe -m pytest tests/test_agentic_*.py
+-q` in Git Bash (`.venv/bin/python` on macOS/Linux). They must not touch the network; mock urllib.
 
 ## 2. indicator.py (A)
 
@@ -180,7 +180,9 @@ Standard library plus pandas.
   - crypto: now + `limits.plan_valid_min_crypto`
 - `market_open(now_utc) -> bool`: 9:30–16:00 ET on a trading day. Half days count as normal; documented as a
   limitation.
-- Use `zoneinfo("America/New_York")`.
+- `ET`: `zoneinfo("America/New_York")` when a tz database exists, else the built-in `USEastern` tzinfo (2007+ US
+  DST rule, PEP 495 folds as zoneinfo); `ET_SOURCE` is `"zoneinfo"` or `"fallback"`. Windows has no system tz
+  database, and the hooks may run on a Python without `tzdata`. `ledger.ET` is this object.
 
 ## 5. data.py (B)
 
@@ -464,16 +466,30 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 ```json
 {"matcher": "mcp__.*[Rr][Oo][Bb][Ii][Nn][Hh][Oo][Oo][Dd].*",
  "hooks": [{"type": "command", "timeout": 30,
-            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/pre_tool_use.py\" || exit 2"}]}
+            "command": "\"${AGENTIC_PYTHON:-python3}\" -I \"${CLAUDE_PROJECT_DIR}/agentic/hooks/pre_tool_use.py\" || exit 2"}]}
 ```
 
-- `-I` (isolated mode) ignores `PYTHON*` variables and user site-packages and keeps the working directory off
-  `sys.path`; `|| exit 2` blocks the call if the interpreter itself fails (fail closed).
-- PostToolUse and PostToolUseFailure run `python3 -I ".../post_tool_use.py"` with the same matcher (never blocking).
+- No `shell` key: on Windows Claude Code runs shell-form hook commands in Git Bash (in PowerShell only when Git
+  Bash is missing, where this command cannot work: `doctor` FAILs), and in `sh` elsewhere.
+- `AGENTIC_PYTHON` is the interpreter, set per PC in `.claude/settings.local.json` `env` (gitignored; Windows: the
+  full path of the repo's `.venv/Scripts/python.exe`, forward slashes). Settings `env` values are copied literally,
+  with no `~` or `$VAR` expansion, and hooks and Bash tool commands inherit them. Unset, the command runs `python3`
+  (macOS/Linux; on Windows that is usually the Microsoft Store stub). `CLAUDE_PROJECT_DIR` is exported to hooks; both
+  are quoted, so paths with spaces work.
+- `-I` (isolated mode) ignores `PYTHON*` variables and user site-packages and keeps the script's directory and the
+  working directory off `sys.path`; the hooks insert the repo root themselves. `|| exit 2` blocks the call if the
+  interpreter itself fails, e.g. a wrong `AGENTIC_PYTHON` (fail closed; exit 2 blocks on Windows too).
+- PostToolUse and PostToolUseFailure run
+  `"${AGENTIC_PYTHON:-python3}" -I "${CLAUDE_PROJECT_DIR}/agentic/hooks/post_tool_use.py"` with the same matcher
+  (never blocking).
 - `permissions.deny` lists the option, alert, scan, watchlist and exercise tools for the server names
-  robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus
-  `Bash(python3 -m agentic resume:*)`, `run --replan`, `plan --replan`, `Edit(private/agentic/**)` and
-  `Write(private/agentic/**)`.
+  robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus `Bash(*agentic resume*)`,
+  `Bash(*agentic*--replan*)` (any interpreter path in front), `Edit(private/agentic/**)` and
+  `Write(private/agentic/**)`. Deny rules match command text and are not a security boundary: `resume` refusing to
+  run without a terminal is the real guard. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
+  tool.
+- `doctor.HOOK_COMMANDS` holds the same three command strings; tests check them, and this section, against
+  `.claude/settings.json`.
 
 ## 12. signals.py, cli.py (E)
 
@@ -511,7 +527,9 @@ Signals JSON per asset:
 - Written to `signals/signals_<run date UTC>.json` with `generated_at`.
 - Writes a digest (text table like plan section 9) to `digests/` and prints it.
 
-`python3 -m agentic <cmd>`:
+CLI commands run from the repo root in Git Bash: `.venv/Scripts/python.exe -m agentic <cmd>` for the user
+(`.venv/bin/python` on macOS/Linux), and `"${AGENTIC_PYTHON:-python3}" -m agentic <cmd>` in the slash command. The CLI's
+own hints name the interpreter running it (`config.cli_command()`):
 
 | command | does |
 |---|---|
@@ -523,13 +541,15 @@ Signals JSON per asset:
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
 | `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
 | `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
+| `doctor` | install check (`doctor.py`): Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps
   from plan section 8, the choice between `computed` (old MoneyLine) and `tv_export` (new), and limitations.
 - `.claude/commands/moneyline.md`: the daily operator procedure for Claude:
   1. fetch-list calls
-  2. `python3 -m agentic run`
+  2. `"${AGENTIC_PYTHON:-python3}" -m agentic run` (every CLI command; it stops if `AGENTIC_PYTHON` is unset on
+     Windows)
   3. preview each order
   4. place each order verbatim
   5. read back status

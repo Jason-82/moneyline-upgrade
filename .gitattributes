@@ -1,0 +1,2 @@
+# Git Bash scripts keep LF line endings in a Windows checkout (core.autocrlf would add CR, which bash rejects)
+*.sh text eol=lf

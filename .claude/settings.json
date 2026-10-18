@@ -8,7 +8,7 @@
           {
             "type": "command",
             "timeout": 30,
-            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/pre_tool_use.py\" || exit 2"
+            "command": "\"${AGENTIC_PYTHON:-python3}\" -I \"${CLAUDE_PROJECT_DIR}/agentic/hooks/pre_tool_use.py\" || exit 2"
           }
         ]
       }
@@ -20,7 +20,7 @@
           {
             "type": "command",
             "timeout": 30,
-            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/post_tool_use.py\""
+            "command": "\"${AGENTIC_PYTHON:-python3}\" -I \"${CLAUDE_PROJECT_DIR}/agentic/hooks/post_tool_use.py\""
           }
         ]
       }
@@ -32,7 +32,7 @@
           {
             "type": "command",
             "timeout": 30,
-            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/post_tool_use.py\""
+            "command": "\"${AGENTIC_PYTHON:-python3}\" -I \"${CLAUDE_PROJECT_DIR}/agentic/hooks/post_tool_use.py\""
           }
         ]
       }
@@ -120,11 +120,10 @@
       "mcp__claude_ai_Robinhood__update_scan_config",
       "mcp__claude_ai_Robinhood__update_scan_filters",
       "mcp__claude_ai_Robinhood__update_watchlist",
-      "Bash(python3 -m agentic resume:*)",
-      "Bash(python3 -m agentic run --replan:*)",
-      "Bash(python3 -m agentic plan --replan:*)",
       "Edit(private/agentic/**)",
-      "Write(private/agentic/**)"
+      "Write(private/agentic/**)",
+      "Bash(*agentic resume*)",
+      "Bash(*agentic*--replan*)"
     ]
   }
 }

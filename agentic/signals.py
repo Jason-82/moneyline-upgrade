@@ -258,7 +258,7 @@ def latest_signals(base=None) -> tuple[dict | None, Path | None]:
     files = sorted(paths(base)["signals"].glob("signals_*.json"))
     for f in reversed(files):
         try:
-            return json.loads(f.read_text()), f
+            return json.loads(f.read_text(encoding="utf-8")), f
         except (OSError, ValueError):
             continue
     return None, None
@@ -337,5 +337,5 @@ def write_digest(sig: dict, text: str, base=None) -> Path:
     suffix = "_" + "_".join(sig["classes"]) if sig.get("classes") else ""
     f = paths(base)["digests"] / f"digest_{sig['date']}{suffix}.txt"
     f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_text(text + "\n")
+    f.write_text(text + "\n", encoding="utf-8")
     return f
