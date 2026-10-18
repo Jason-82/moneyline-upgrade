@@ -2467,7 +2467,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - qlib glitch names distort gross diagnostics.
 - IEX tick-level check (C-iii, descriptive): on 27 L4 name-days with IEX at the NBBO, C1 on IEX ticks lost $46.8
   per name-day (−0.77% per $ bought, 15% positive) vs −0.86% per $ for the bars on the same days.
-- Exploratory and provisional where incomplete: the A-RH stratum (Robinhood-listed coins).
+- A-RH stratum (exploratory; Robinhood-listed coins, every 7th day) is incomplete: 608 of 807 pair-months
+  before the run's 2-hour limit. Every cell is negative, already before fees: Q1, Q5 and Q1-LO lose 2-22 bp
+  per $ filled at fee 0/2.
 - Sources are mostly search summaries.
 
 **Practical reading:**

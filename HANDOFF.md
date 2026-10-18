@@ -1054,8 +1054,10 @@ strategy, which variants are worth testing, and does large capital help?
 - **IEX tick-level check (Control C-iii, descriptive):** on 27 L4 name-days where IEX was at the NBBO, C1 on real
   IEX ticks with a back-of-queue model lost $46.8 per name-day (−0.77% per $ bought; 15% positive), against
   −0.86% per $ for the bar version on the same days.
-- **Not run in full:** the A-RH stratum (Robinhood-listed coins) is exploratory and reported in
-  `results_scalping/A/arh_cells.csv` as provisional where incomplete.
+- **A-RH stratum (exploratory, Robinhood-listed coins incl. BTC/ETH, every 7th day): incomplete.** The run
+  stopped at its 2-hour limit after 608 of 807 pair-months; the rest stay cached for a later
+  `--run --stratum arh --workers 1`. Every cell is negative at fee 0/2 and already before fees: Q1, Q5 and
+  the cash-account Q1-LO lose 2-22 bp per $ filled (gross −1.6 to −20 bp). See `results_scalping/A/arh_cells.csv`.
 - **Sources:** literature and fee rates come mostly from search summaries.
 
 **Use.**
