@@ -184,6 +184,10 @@ Do **not** add these (all tested):
 - buying touches of moving averages ("bounces at key levels", e.g. the 200-day SMA): no edge
   on S&P 500 members 1996-2026 or 40 coins, on any of 34 daily/weekly/monthly averages, and
   the average is no better than a line 1-2 ATR away (HANDOFF section 5.19).
+- scalping or bid-ask capture (resting at the bid, selling at the ask) in low-volume stocks or
+  illiquid crypto: it loses to adverse selection in every tested band, even with zero maker fees,
+  and daily liquidity provision in thin stocks cannot pay its spreads (HANDOFF section 5.21). The
+  agent is also too slow for it, gets no rebates and cannot short.
 
 ---
 

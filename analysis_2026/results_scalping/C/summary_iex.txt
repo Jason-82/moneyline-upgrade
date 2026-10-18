@@ -1,2 +1,10 @@
 cost model: Part B cost_model.csv (B-R); b = 4.281, -0.555, 0.256, 0.719, S = 1.251
 panel names outside the B-R universe (exclusion rules (b)-(d) / scan flag, as in Part B), dropped from every cell: {'NGL': 'rule b', 'RLX': 'rule b'}
+5-minute bars: 1,472,640 rows, 118 names, 160 sessions (2026-03-02..2026-10-16), 0 off-clock bars dropped, early-close sessions: [] (4s)
+1-minute bars: 1,334,580 rows, 118 names, 29 sessions (2026-09-08..2026-10-16)
+15-second bars: 249,600 rows, 40 names, 4 sessions
+  IEX day 2026-05-28: 23 panel L4 names
+  IEX day 2026-08-05: 22 panel L4 names
+  IEX day 2026-09-09: 22 panel L4 names
+  IEX day 2026-09-16: 23 panel L4 names
+  IEX day 2026-10-16: 27 panel L4 names

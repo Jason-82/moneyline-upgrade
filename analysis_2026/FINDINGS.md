@@ -2346,3 +2346,124 @@ long-short return in the years after d:
   bottom third on S2. Countries improving fastest are more volatile (23.5% vs 21.3%).
 - The report lays out vehicles, taxes and sizing for anyone who wants a modest, rules-based tilt
   anyway.
+
+---
+
+# 2026-10-18 — scalping and bid-ask capture in low-volume markets
+
+**The user's question:**
+- A friend scalps low-volume stocks. He "invests a large amount" to capture small price increases, or buys at
+  the bid and sells at the ask, and says he makes money.
+- Is it a strategy, which variants are worth testing, and does large capital help?
+
+**What was done:**
+- **Research.** Four fact-checked notes in `analysis_2026/research_notes/Scalping and market making/`.
+  - The literature says the spread pays for adverse selection, inventory risk and fees.
+  - Net liquidity-provision profit in US stocks is about 1-2 bp even at 100 ms.
+  - Under 1% of day traders are reliably profitable.
+- **Pre-registration.** `analysis_2026/SCALPING_PREREG.md` (85e5d19), before any test-sample result, revised
+  after a 3-lens adversarial review.
+  - 36 primary tests in one Holm family.
+  - Verdicts PASS / NO EDGE / INCONCLUSIVE.
+  - Positive and negative controls run first.
+- **Data.**
+  - Binance spot trades (S3 archive; aggressor flag on every print).
+  - qlib US daily 2001-2020.
+  - Robinhood read-only data pulled by agents: a scanner universe of 3,485 low-volume stocks, daily bars
+    2023-2026, and 5-minute/1-minute/15-second bars for a random 118-name panel.
+  - All of it is gitignored under `data/scalping/`.
+- **Engines and audit.** Engines `scalp_crypto.py`, `scalp_us_daily.py` and `scalp_us_intraday.py` were
+  reviewed adversarially before the full runs. The results were then audited with a skeptic per part.
+  - Two numerical fixes: sale proceeds floored at zero (70 qlib glitch trades had lost over 100%), and the
+    null redraw pool.
+  - No verdict changed.
+
+**Controls (run before reading results):**
+- **Part A (crypto):**
+  - In a synthetic Glosten-Milgrom market, Q1 under a true queue earns the half-spread (2.57 vs 2.5 bp;
+    24.85 vs 25 bp).
+  - On 322 real USD-M futures symbol-days with the true book, the trades-only F1 fill rule is within 0.10,
+    0.34 and 0.37 bp per $ of a FIFO queue for Q1, Q2 and Q5. No correction is needed.
+- **Part B (daily):** the known-answer check passes. B1 gross on S&P 500 PIT 2001-2010 is +6.2 bp, NW t 2.78.
+- **Part C (intraday):** the Roll-market positive control FAILS in every band. The registered C1 rule cannot
+  earn the spread from bars without quotes, so its cells are capped at INCONCLUSIVE.
+
+**Results (study-wide Holm; `results_scalping/verdicts.txt`): 0 PASS, 32 NO EDGE, 4 INCONCLUSIVE.**
+
+**Part A, Binance spot, net bp per $ filled at fee 0/2, $1k orders (bands A $50-200k / B $0.2-1M / C $1-5M /
+D $5-50M daily volume):**
+
+| | A | B | C | D |
+|---|---|---|---|---|
+| Q1 join bid and ask | −15.73 | −12.18 | −7.09 | −4.16 |
+| Q2 step inside | −16.65 | −13.02 | −7.54 | −4.51 |
+| Q5 friend's rule | −17.56 | −12.04 | −6.78 | −4.65 |
+
+- **Size of the loss.** t is −4.8 to −16.0; the strict upper bound is at or below −3.2 bp, against E = +1 bp.
+  Q5 loses $18.6 / $22.8 / $25.7 / $40.5 per pair-day.
+- **Decomposition** (Q1): spread captured +6.0/+3.9/+2.4/+1.3; adverse move to 300 s −19.2/−14.3/−8.3/−4.8;
+  forced exits −3.1/−2.0/−0.8/−0.2 bp.
+- **Kill rule:** touch fills (F2) are ≤ 0 in every cell, so the kill rule fired.
+- **Break-even:** needs a maker rebate of 6-24 bp per maker $.
+- **Larger orders are worse:** at $25k, Q1 is −31/−29/−18/−8.6 bp.
+- **Speed doesn't save it.** Being first in queue on the futures validation days still loses −1.9 bp (FIFO −2.4).
+- **No subset survives.** Every split (tick class, spread/volatility, volatility, listing age, weekday) is
+  negative.
+
+**Parts B and E, qlib 2001-2020, net per trade at m = 1.5, Y = 0.5, $10k, band excess (B3 raw), bp:**
+
+| | L1 | L2 | L3 | L4 |
+|---|---|---|---|---|
+| B1 buy bottom-decile losers | −628 | −309 | −202 | −143 |
+| B2 losers on 3× volume | −730 | −372 | −232 | −154 |
+| B3 resting bid 1σ below close | −269 | −128 | −79 | −61 |
+| B4 friend's rule, daily | −186 | −132 | −110 | −107 |
+| E1 buy top-decile gainers on 3× volume | −675 | −343 | −225 | −150 |
+
+- **All 20 are NO EDGE**, failing the halves, B-R replication, winsorized and drop-month conditions. The strict
+  edge upper bound is −30 to −693 bp per trade-day.
+- **Recent sample.** B-R 2023-2026 is worse: B1 −1005/−532/−334/−222.
+- **Pure gross** (no spread, no impact), B1: +101/+24/+8/+3. That is +44 in L1 without about 26 qlib glitch names.
+  - A synthetic no-information market gives +84/+25/+11/+4 from bounce alone.
+  - The gross is all overnight (close to open).
+- **Break-even** at zero impact needs spreads at 9-36% of the estimate. The estimate is 1.2-2.2× the 2026
+  closing quotes.
+- **Exploratory, all negative:**
+  - B4 with open-price improvement −93/−43/−26/−19;
+  - thin ETFs vs a matched liquid twin (B6): −49 to −290;
+  - 5- and 20-day holds; VIX terciles (high VIX worst); $1-3 stocks; dropping k > 1 (Tick Size Pilot) days.
+
+**Part C, 5-minute bars, 118 names, 160 sessions:** C1 is −$27.7 / −$35.1 / −$36.6 / −$33.5 per stock-session,
+i.e. −306 / −196 / −108 / −50 bp per $ bought.
+- **Relative to no-edge levels:** the Roll no-edge level is −400 / −186 / −95 / −46 bp, and the shuffle null
+  −310 / −203 / −112 / −64.
+- **INCONCLUSIVE by the cap.** Under the other reading of "capped at INCONCLUSIVE" it would be NO EDGE.
+- **Part E intraday ORB on 1,492 gap-up, 5×-volume event days:** net −5.1% per trade. The gross is +1.8%, all of
+  it one halted trade (INHD), and −0.4% without it. The event filter is a registered same-day look-ahead.
+
+**Part D (capacity, B-R medians):**
+- **Round-trip cost** at 10% of ADV: 6.5-7.8% (L1), 3.6-4.9% (L2), 2.5-3.6% (L3), 2.0-2.9% (L4).
+- **D3:** every strategy has return ≤ 0 already at $10k deployed. $1M aimed at B1-L1 keeps about $420k working.
+- **D4:** for a buyer of 5-100% of ADV, paper beats realized by a median 1-5 points in L1-L4. Realized after 5
+  days is about −6 to −9% (L1).
+- **D2 (B-R):** after 3×-volume top-decile up days, 20-day band excess is −4.1% (L1, t −4.0), −4.9% (L2,
+  t −5.1) and −2.9% (L3, t −2.8). There is no give-back in B-H.
+
+**Caveats:**
+- Part A covers Binance.com books only, which US persons cannot use.
+- F1 may be pessimistic in the thinnest pairs. A tick-scaled correction could lift Q5-B to about +2 bp, worth
+  about $4 a day.
+- The inventory cap is not enforced for in-flight orders (edges ±0.8 bp when enforced).
+- Both US samples are survivor-biased upward for these long-only rules.
+- qlib glitch names distort gross diagnostics.
+- Exploratory or descriptive and provisional where incomplete: the A-RH stratum (Robinhood-listed coins) and
+  the IEX validation (C-iii).
+- Sources are mostly search summaries.
+
+**Practical reading:**
+- Bid-ask capture at retail speed loses to adverse selection before fees, and slow liquidity provision in
+  thin stocks cannot pay its spreads.
+- Capital adds impact and ownership-filing limits, not capacity.
+- The friend's gains most likely reflect luck in a strong market, attention trades, or marks his own buying
+  created.
+- To judge him: 12+ months of closed-trade statements, net, at liquidation value, against the S&P 500.
