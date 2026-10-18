@@ -17,6 +17,7 @@ descriptive. Under the contamination rule, no Bollinger, breakout or grid strate
 | `h1_um/{SYM}USDT.parquet` | USD-M perpetual 1-hour klines, from listing (archive starts 2020-01) to 2026-10-16 23:00 UTC | 41 (40 + LUNA2) | 114 MB |
 | `d1_spot/`, `d1_um/` | the archive's own 1-day klines, same columns, holes filled from daily 1d zips like the hourly files; a by-product, used as the reference for the day checks (101,569 + 87,507 days) | 40 + 41 | 13 MB |
 | `funding/{SYM}USDT.parquet` | USD-M funding events | 41 | 3.7 MB |
+| `h1_mark/{SYM}USDT.parquet` | USD-M mark-price 1-hour klines (`markPriceKlines`): `open_time, open, high, low, close` only; 1000x contracts divided by their multiplier. See section 1.1 | 41 | |
 | `m1_um/{SYM}USDT.parquet` | USD-M 1-minute klines for BTC ETH SOL BNB XRP DOGE, 2024-07-01 00:00 .. 2026-10-16 23:59 UTC | 6 | 225 MB |
 | `stats/{h1,funding,m1}.json` | per series: zips, checksums, holes filled, days repaired, placeholders trimmed | 3 | |
 | `validation/*.csv`, `summary.txt` | the checks in sections 4-6 | 9 | |
@@ -33,15 +34,31 @@ descriptive. Under the contamination rule, no Bollinger, breakout or grid strate
 - **Funding:** `calc_time` (datetime64[ms, UTC]), `rate` per interval as a fraction (0.0001 = 0.01%), and
   `interval_h` (8, 4, 2 or 1, as given in the file).
   - Raw times carry a few milliseconds of jitter (e.g. 08:00:00.005); floor to the minute before joining.
-  - The archive's fundingRate files have **no mark price**. Mark-price klines exist separately under
-    `data/futures/um/*/markPriceKlines/` if needed.
+  - The archive's fundingRate files have **no mark price**. Mark-price hourly klines are fetched separately
+    into `h1_mark/` (`fetch_bb_data.py mark`; section 1.1).
 
 **Totals:** 2,435,224 spot hours, 2,099,815 futures hours, 265,396 funding events and 7,240,320 one-minute bars.
 
 **Rebuild:** `python3 -m analysis_2026.fetch_bb_data all`, or one part at a time with
-`h1 | funding | m1 | validate`. Options: `--end YYYY-MM-DD`, `--symbols BTC,ETH`, `--force`, `--workers N`, `--market spot|um` (h1 only).
+`h1 | funding | m1 | mark | validate`. Options: `--end YYYY-MM-DD`, `--symbols BTC,ETH`, `--force`, `--workers N`, `--market spot|um` (h1 only).
 The script imports `s3_ls` and `s3_get_zip_csv` from `fetch_scalping_data.py` and the coin list from
 `fetch_regime_data.py`. Zips are read in memory and nothing temporary is written to disk.
+
+### 1.1 Mark-price klines (`h1_mark/`, added 2026-10-18)
+
+Used only for liquidation checks. Coverage was compared with the perpetual's own hourly file (`h1_um/`):
+
+- **Missing hours.** Every contract except old LUNA has hours in `h1_um` with no mark bar: 24-216 per
+  contract, median 96 (BTC 216, ETH 72, SOL 192, BNB 216, DOGE 72). Liquidation checks fall back to the
+  last-price low in those hours (conservative).
+- **Bars before the perpetual's first hour:** 0-369 per contract (ADA 287, ALGO 369, BNB 224). Not used.
+- **Placeholder bars after a contract ended.** The archive keeps publishing mark bars after delisting:
+  EOS 12,303 hours after 2025-05-21, FTT 34,339 after 2022-11-14 04:00, old LUNA 1,455 after 2022-05-12 15:00,
+  MATIC 18,519 after 2024-09-04. Mark files are therefore **trimmed to each contract's traded window in
+  `h1_um`** before use; nothing outside that window is read.
+- **Mark vs last-price lows on 2025-10-10** (a pre-registration check, no strategy run): the hourly mark low
+  was 0.4-1.8% above the last-price low on BTC, ETH, SOL, XRP and ZEC, 4.9% on BNB and 5.7% on DOGE. The
+  choice therefore matters on altcoins in crash hours.
 
 ## 2. Symbols and contract mapping
 
