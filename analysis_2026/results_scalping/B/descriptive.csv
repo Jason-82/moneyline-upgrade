@@ -1,0 +1,40 @@
+what,band,half,value,n_name_days
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L1,1,0.21544715447154472,355621
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L1,2,0.18713220870929775,565848
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L2,1,0.30986460348162476,534275
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L2,2,0.27684909548889397,987454
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L3,1,0.4179805434417981,561515
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L3,2,0.3900375939849624,1126971
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L4,1,0.5437834224598931,648809
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L4,2,0.515681403008317,1307016
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L5,1,0.7555138432660723,1579635
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L5,2,0.7164861112058789,2773690
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L6,1,0.9404003639672429,753731
+median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window),L6,2,0.9249002990035864,1565596
+eligible name-days,L1,0,921469.0,921469
+mean eligible names per day,L1,0,187.17631525492587,921469
+median spread estimate s,L1,0,0.023329859599471092,921469
+eligible name-days,L2,0,1521729.0,1521729
+mean eligible names per day,L2,0,309.10603290676414,1521729
+median spread estimate s,L2,0,0.010778861120343208,1521729
+eligible name-days,L3,0,1688486.0,1688486
+mean eligible names per day,L3,0,342.9790777980906,1688486
+median spread estimate s,L3,0,0.0068447706289589405,1688486
+eligible name-days,L4,0,1955825.0,1955825
+mean eligible names per day,L4,0,397.28316067438556,1955825
+median spread estimate s,L4,0,0.005231792107224464,1955825
+eligible name-days,L5,0,4353325.0,4353325
+mean eligible names per day,L5,0,884.2829575462116,4353325
+median spread estimate s,L5,0,0.004262325819581747,4353325
+eligible name-days,L6,0,2319327.0,2319327
+mean eligible names per day,L6,0,471.12065813528335,2319327
+median spread estimate s,L6,0,0.003722507506608963,2319327
+share of eligible name-days with k = 1,all,0,0.9108441500071982,12760161
+share of eligible name-days with k = 2,all,0,0.0023205036362785704,12760161
+share of eligible name-days with k = 3,all,0,0.003457558254946783,12760161
+share of eligible name-days with k = 4,all,0,0.006353759956477038,12760161
+share of eligible name-days with k = 5,all,0,0.03208062970365343,12760161
+share of eligible name-days with k = 10,all,0,0.0138125216445153,12760161
+share of eligible name-days with k = 20,all,0,0.003632791153653939,12760161
+share of eligible name-days with k = 50,all,0,0.006037463006932279,12760161
+share of eligible name-days with k > 1,all,0,0.08915584999280181,12760161

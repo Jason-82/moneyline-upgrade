@@ -1,0 +1,10 @@
+rule,symbols,name_days_in_sample
+a,1970,
+b,2259,
+c,557,
+d,353,
+a-d any,3242,
+known (in either listing file),6160,
+e (unknown symbols tested),3099,
+e (flagged as fund at some date),226,155402.0
+"b6 fund universe (a, or b-fund, not c)",2245,

@@ -1,1 +1,41 @@
 B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (28s)
+rule (e): 239 unknown symbols flagged as funds (58s)
+trailing statistics: 29s
+cost model fitted on 1097 names (B-R): b = 4.281, -0.555, 0.256, 0.719; S = 1.251; R2 = 0.68
+cost_model.csv written before any return (/home/user/moneyline-upgrade/analysis_2026/results_scalping/B/cost_model.csv)
+Points where the pre-registration could not be followed as written (see the module docstring):
+  - B-H sell fees: an upper bound (SEC 0.30 bp + TAF $0.000119/sh, cap $5.95) instead of the dated schedule.
+  - D3's 4.9%-of-shares-outstanding cap: B-R only (current snapshot); B-H has no shares outstanding.
+  - qlib freezes 2,155 names at 2020-11-10: missing exits of series whose last bar is on/after 2020-11-09 are censored (last close, 0%), not delisted.
+  - B-R bars start on 2023-07-03, so its statistics effectively start ~2023-08-30 (40 real bars needed).
+20 null panels: 1234s
+eligibility and signals: 12,760,161 eligible name-days (10s)
+primary cells + per-cell report: 61s; trades per cell: B1-L1 93198, B1-L2 154008, B1-L3 170730, B1-L4 196580, B2-L1 20826, B2-L2 24953, B2-L3 19997, B2-L4 21113, B3-L1 255584, B3-L2 432885, B3-L3 484068, B3-L4 552891, B4-L1 162250, B4-L2 340998, B4-L3 440415, B4-L4 556534, E1-L1 28029, E1-L2 34163, E1-L3 27801, E1-L4 26277
+
+(provisional within-part Holm, B+E only, for sanity; the study-wide Holm is in the combine script)
+test_id  estimate_bp          t  p_holm_within
+  B1-L1  -660.736583 -28.197798            1.0
+  B1-L2  -308.750001 -45.460477            1.0
+  B1-L3  -201.898373 -40.252160            1.0
+  B1-L4  -143.380181 -32.698713            1.0
+  B2-L1  -870.635748  -9.542700            1.0
+  B2-L2  -372.692867 -24.417479            1.0
+  B2-L3  -232.123194 -22.857158            1.0
+  B2-L4  -153.518503 -21.054227            1.0
+  B3-L1  -269.450913 -34.337010            1.0
+  B3-L2  -128.241949 -21.771771            1.0
+  B3-L3   -79.018657 -17.111345            1.0
+  B3-L4   -60.709850 -13.375614            1.0
+  B4-L1  -186.819510 -34.398011            1.0
+  B4-L2  -131.727733 -33.481359            1.0
+  B4-L3  -110.066110 -30.613069            1.0
+  B4-L4  -106.858710 -28.604800            1.0
+  E1-L1  -701.885996 -20.632106            1.0
+  E1-L2  -343.040828 -27.275475            1.0
+  E1-L3  -224.923905 -23.047280            1.0
+  E1-L4  -150.479178 -21.915756            1.0
+exploratory (234 rows), illusion, descriptive: 185s
+B6: 82s (60 rows)
+Part D: 24s
+
+total 1747s
