@@ -90,12 +90,12 @@ def _keys(market: str, kind: str, contract: str, interval: str | None, end: str,
     em = end[:7]
     out = [(k, k + ".CHECKSUM" in names) for k in sorted(names) if k.endswith(".zip")
            and k[-11:-4] < em and (start_month is None or k[-11:-4] >= start_month)]
-    if kind == "klines" and out:
+    if kind in ("klines", "markPriceKlines") and out:
         months, m = [], _next_month(max(k[-11:-4] for k, _ in out))
         while m <= em:
             months.append(m); m = _next_month(m)
         for mo in (months if len(months) <= 2 else []):
-            _, dk = s3_ls(f"{BASE[market]}/daily/{sub}{contract}-{interval}-{mo}")
+            _, dk = s3_ls(f"{BASE[market]}/daily/{sub}{contract}-{interval}-{mo}")  # same naming for mark
             dn = {k for k, _ in dk}
             out += [(k, k + ".CHECKSUM" in dn) for k in sorted(dn) if k.endswith(".zip") and k[-14:-4] <= end]
     return out
@@ -338,6 +338,31 @@ def h1(syms=SYMS, end=END, force=False, workers=WORKERS, markets=("spot", "um"))
               f" trimmed {st.get('placeholder_trimmed_head', 0)}/{st.get('placeholder_trimmed_tail', 0)}", flush=True)
     if stats:
         old = _load_stats("h1"); old.update(stats); _save_stats("h1", old)
+
+
+def mark(syms=SYMS, end=END, force=False, workers=WORKERS):
+    """USD-M mark-price hourly klines (liquidation checks): data/bbreplica/h1_mark/{SYM}USDT.parquet
+    (open_time UTC, open, high, low, close). Mark prices are the exchange's fair price, smoother than last trades."""
+    d = OUT / "h1_mark"; d.mkdir(parents=True, exist_ok=True)
+    stats = {}
+    for s, contract, mult in _um_list(syms):
+        f = d / f"{s}USDT.parquet"
+        if f.exists() and not force:
+            continue
+        jobs = _keys("um", "markPriceKlines", contract, "1h", end)
+        blobs, st = _download(jobs, workers)
+        if not blobs:
+            print(f"mark {s}: no data ({contract})"); continue
+        k = _frame(blobs).sort_values("open_time", kind="stable").drop_duplicates("open_time", keep="last")
+        k = k[["open_time", "open", "high", "low", "close"]].reset_index(drop=True)
+        if mult != 1:
+            k[["open", "high", "low", "close"]] /= mult
+        k.to_parquet(f, index=False)
+        st.update(rows=len(k), first=str(k.open_time.iloc[0]), last=str(k.open_time.iloc[-1]), contract=contract)
+        stats[s] = st
+        print(f"mark {s:6s} {len(k):7,d} bars {st['first'][:10]}..{st['last'][:16]}", flush=True)
+    if stats:
+        old = _load_stats("mark"); old.update(stats); _save_stats("mark", old)
 
 
 def _load_stats(name):
@@ -688,6 +713,8 @@ if __name__ == "__main__":
         h1(syms or SYMS, end, force, workers, markets)
     if cmd in ("funding", "all"):
         funding(syms or SYMS, end, force, workers)
+    if cmd in ("mark", "all"):
+        mark(syms or SYMS, end, force, workers)
     if cmd in ("m1", "all"):
         m1(syms or M1_SYMS, end, force, workers)
     if cmd in ("validate", "all"):
