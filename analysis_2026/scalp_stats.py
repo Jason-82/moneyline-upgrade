@@ -6,6 +6,7 @@ Shared inference for the scalping study (analysis_2026/SCALPING_PREREG.md, "Gene
                                     Student t at min(G1, G2) - 1 df (falls back to the larger one-way
                                     variance if the two-way variance is not positive)
 - ratio_cluster2(num, den, g1, g2)  sum(num)/sum(den) with a two-way clustered delta-method SE
+- nw_ratio(num, den, lags)          sum(num)/sum(den) of two aligned daily series with a Newey-West delta-method SE
 - holm(p)                           Holm-adjusted p-values
 - verdict(...)                      PASS / NO EDGE / INCONCLUSIVE
 All p-values are one-sided for "mean > 0".
@@ -36,6 +37,19 @@ def nw_t(x, lags: int = 10):
     se = math.sqrt(max(v, 0) / n)
     t = m / se if se > 0 else np.nan
     return m, se, t, (1 - stats.norm.cdf(t)) if np.isfinite(t) else np.nan
+
+
+def nw_ratio(num, den, lags: int = 10):
+    """R = sum(num)/sum(den) for aligned daily series, with a Newey-West delta-method SE.
+    Returns (R, se). Linearisation z_t = (num_t - R den_t) / mean(den)."""
+    num = np.asarray(num, float); den = np.asarray(den, float)
+    k = np.isfinite(num) & np.isfinite(den)
+    num, den = num[k], den[k]
+    if len(num) < 3 or den.sum() <= 0:
+        return np.nan, np.nan
+    R = num.sum() / den.sum()
+    _, se, _, _ = nw_t((num - R * den) / den.mean(), lags)
+    return R, se
 
 
 def _cluster_var(e, g):
@@ -126,13 +140,15 @@ def boot_p(stat_hat, boot_stats):
     return (1 + np.sum(b - stat_hat >= stat_hat)) / (len(b) + 1)
 
 
-def drop_worst(values, groups):
+def drop_worst(values, groups, weights=None):
     """Mean after removing the single group whose removal lowers the mean most (values aligned with groups).
-    Returns (mean_after, dropped_group)."""
+    With weights, the weighted mean sum(w v)/sum(w). Returns (mean_after, dropped_group)."""
     v = np.asarray(values, float); g = np.asarray(groups)
-    tot, n = v.sum(), len(v)
+    w = np.ones(len(v)) if weights is None else np.asarray(weights, float)
+    tot, n = (w * v).sum(), w.sum()
     u, inv = np.unique(g, return_inverse=True)
-    s = np.bincount(inv, weights=v); c = np.bincount(inv)
-    means = (tot - s) / np.maximum(n - c, 1)
+    s = np.bincount(inv, weights=w * v); c = np.bincount(inv, weights=w)
+    rest = n - c
+    means = np.where(rest > 0, (tot - s) / np.where(rest > 0, rest, 1), np.inf)
     j = int(np.argmin(means))
     return float(means[j]), u[j]
