@@ -74,6 +74,8 @@ reviewed by 41 agents on 2026-10-13.
 
 ## 1. Who the user is (no personal financial data here)
 
+- **Windows PC with Git Bash** as the shell: never PowerShell or cmd, never a Mac. Give Git Bash commands
+  (see `CLAUDE.md`).
 - Uses TradingView with Ivan on Tech's indicator and reads daily and weekly green/red
   flips. Trades crypto and US stocks on Robinhood.
 - Has explored leverage, stop-losses, confirmation filters, a daily scanner, and
