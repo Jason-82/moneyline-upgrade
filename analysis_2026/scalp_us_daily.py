@@ -1632,12 +1632,21 @@ def run_illusion(P, EL, BC, sig):
 def descriptive(P, EL):
     rows = []
     split = int(np.searchsorted(P.dates.values, np.datetime64(BH_HALF2)))
-    # median cross-sectional percentile of ADV60 for each band, by half
-    df = pd.DataFrame({"t": EL.t, "gb": EL.gb, "adv": P.ADV[EL.i, EL.t]})
-    df["pct"] = df.groupby("t").adv.rank(pct=True)
+    # median cross-sectional percentile of ADV60 for each band, by half: percentile within all non-excluded
+    # names of the panel that had a real bar in the window (ADV60 > 0 counts names trading at all)
+    pct = np.full(EL.n, np.nan)
+    starts = np.searchsorted(EL.t, np.arange(P.T + 1))
+    for t in range(P.s0, P.s1 + 1):
+        a, b = starts[t], starts[t + 1]
+        if a == b:
+            continue
+        cs = P.ADV[:, t][(P.NR[:, t] > 0) & ~P.excl[:, t]]
+        cs = np.sort(cs[np.isfinite(cs)])
+        pct[a:b] = np.searchsorted(cs, P.ADV[EL.i[a:b], t], side="right") / max(len(cs), 1)
+    df = pd.DataFrame({"t": EL.t, "gb": EL.gb, "pct": pct})
     df["half"] = np.where(df.t < split, 1, 2)
     for (b, h), g in df.groupby(["gb", "half"]):
-        rows.append({"what": "median cross-sectional percentile of ADV60 among eligible names", "band": BANDS[b],
+        rows.append({"what": "median cross-sectional percentile of ADV60 (all non-excluded names with a bar in the window)", "band": BANDS[b],
                      "half": h, "value": g.pct.median(), "n_name_days": len(g)})
     for b, g in df.groupby("gb"):
         rows.append({"what": "eligible name-days", "band": BANDS[b], "half": 0, "value": len(g),
@@ -1862,11 +1871,11 @@ def run_b6(S, Fd, eflag, cf, ry):
     fund is below -2 x its trailing 60-day SD; exit t+1 (and t+5); benchmark = beta x the twin's return."""
     fr = fund_returns(Fd, FUNDS_B6)
     rows = []
-    tw_tr = {}
-    for f in FUNDS_B6:
+    TW = np.full((len(FUNDS_B6), Fd.T), np.nan)                 # twin total-return closes
+    for k, f in enumerate(FUNDS_B6):
         if f in fr:
-            k = list(Fd.tickers).index(f)
-            tw_tr[f] = Fd.C[k].astype(float) * Fd.F[k]
+            j = list(Fd.tickers).index(f)
+            TW[k] = Fd.C[j].astype(float) * Fd.F[j]
     for P, mask_fn, label in ((Fd, lambda P: np.ones((P.N, P.T), bool), "funds (a / fund names)"),
                               (S, lambda P: eflag, "rule (e) name-days")):
         fund_rows = np.where(mask_fn(P).any(1))[0]
@@ -1892,14 +1901,14 @@ def run_b6(S, Fd, eflag, cf, ry):
         rr, tt = np.nonzero(sigm)
         ii = fund_rows[rr]
         intl = np.array([bool(P.rules.intl.get(t, False)) if hasattr(P, "rules") else False for t in P.tickers[ii]])
-        twn = np.array(FUNDS_B6)[tw[rr, tt]]
-        intl |= np.isin(twn, ["EFA", "EEM"])
+        twk = tw[rr, tt].astype(np.int64)
+        intl |= np.isin(np.array(FUNDS_B6)[twk], ["EFA", "EEM"])
         EL = SimpleNamespace(i=ii, t=tt, gb=P.BAND[ii, tt], n=len(ii), key=tt * P.N + ii)
         for hold in (1, 5):
             tr = c2c_trades(P, EL, np.arange(len(ii)), 0, False, hold, False)
             rn, q = c2c_net(P, tr)
             k = tr["pos"]
-            bt = np.array([tw_tr[twn[j]][tr["ext"][n]] / tw_tr[twn[j]][tr["t"][n]] - 1 for n, j in enumerate(k)])
+            bt = TW[twk[k], tr["ext"]] / TW[twk[k], tr["t"]] - 1
             x = rn - beta[rr[k], tt[k]] * bt
             for scope, msk in (("all", np.ones(len(k), bool)), ("international", intl[k]), ("domestic", ~intl[k])):
                 for b in (1, 2, 3, 4, 0):
