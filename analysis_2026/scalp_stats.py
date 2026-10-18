@@ -147,6 +147,8 @@ def drop_worst(values, groups, weights=None):
     w = np.ones(len(v)) if weights is None else np.asarray(weights, float)
     tot, n = (w * v).sum(), w.sum()
     u, inv = np.unique(g, return_inverse=True)
+    if len(u) < 2:                       # nothing left after removing the only group: not evaluable (not met)
+        return np.nan, (u[0] if len(u) else None)
     s = np.bincount(inv, weights=w * v); c = np.bincount(inv, weights=w)
     rest = n - c
     means = np.where(rest > 0, (tot - s) / np.where(rest > 0, rest, 1), np.inf)

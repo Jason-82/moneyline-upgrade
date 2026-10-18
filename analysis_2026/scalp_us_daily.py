@@ -64,9 +64,11 @@ was taken where one exists; none was changed after seeing a result):
  9. Edge for the NO EDGE rule (per trade-day held) = sum(w x) / sum(w h), where h = trading sessions in which
     the position was exposed (close entry: exit day - entry day; intraday entry: exit day - entry day + 1;
     B4 averages its pieces), with a Newey-West delta-method SE (scalp_stats.nw_ratio).
-10. qlib freezes 2,155 names at 2020-11-10 (after the sample end, 2020-10-30). A series that ends after the
-    sample end is censored, not delisted: a missing exit is taken at its last traded close (0% penalty).
-    A window cut off by the panel end (B-R's last days) drops the trade.
+10. qlib freezes 2,155 names at 2020-11-10 (121 more end on 11-09), after the sample end (2020-10-30). Only a
+    series whose last traded bar is on or after 2020-11-09 (the freeze) is censored rather than delisted: a
+    missing exit is taken at its last traded close (0% penalty). Any other series follows the -30% rule as
+    written, including the 68 that end 2020-11-02..11-06 (review fix; it was every series ending after the
+    sample end). A window cut off by the panel end (B-R's last days) drops the trade.
 11. Fees on sells. B-R by trade date: SEC $8.00/$M to 2024-05-21 [memory], $27.80 to 2025-05-13, $0 to
     2026-04-03, $20.60 after; TAF $0.000145/sh (cap $7.27) in 2023 [memory], $0.000166 ($8.30) 2024-25,
     $0.000195 ($9.79) 2026-01..09, $0 from 2026-10-01; Robinhood skips SEC on sales <= $500 and TAF on <= 50
@@ -76,7 +78,9 @@ was taken where one exists; none was changed after seeing a result):
     fraction f = (high - A)/(high - low) clipped to [0, 1] (Part C's rule), 1 on a one-price day.
 13. B4: one position per name within each band cell (each cell is run as its own strategy; the band is the
     band of the order date). A name can be bid again from the close of the day its position is closed.
-    The five GTC sessions are t+2..t+6; the remainder is sold at the close of t+6 (gap rule if no bar).
+    The five GTC sessions are t+2..t+6; the remainder is sold at the close of t+6 (gap rule if no bar). An
+    order is placed only if t+1+NS is inside the panel (review fix: B-R's last 6 sessions had kept the trades
+    already sold at A and dropped those still held, a selection toward winners in cond_br).
 14. Band excess for B4's tail: x = (1 + r1)(1 + r_after - bench_after) - 1, with bench_after the benchmark from
     close(t+1) to each piece's exit day, weighted by the piece's share fraction. Benchmark names must have a
     traded bar at the start of the benchmark window (close t+1 for B4 and skip-a-day).
@@ -133,6 +137,23 @@ was taken where one exists; none was changed after seeing a result):
 29. D1 reports, per band, medians over B-R eligible name-days of the round-trip cost m s + 2 Y sigma20
     sqrt(max(0, Q - D_k)/ADV60) and of the paper gain from one's own buying, Y sigma20 sqrt(Q/ADV60) (temporary)
     and 2/3 of it (permanent, as in D4), at Q = 1/5/10/25% of ADV60.
+30. (review) The k rule as registered also fires on the SEC Tick Size Pilot (2016-10..2018-09): pilot stocks
+    traded on a $0.05 grid, so k = 5 is found on 23% of 2017 and 16% of 2018 L1-L4 eligible name-days (1% in
+    other years). For them P is the price in nickels: the tick floor, the B3/B4 cent rounding and the one-tick
+    trade-throughs land on the true $0.05 grid, but the $1 filter binds at a $5 true price and log P in M is
+    5x too low (M x 5^-b2). The rule is applied as written; the registered k > 1 sensitivity (exploratory.csv,
+    "k > 1 name-days dropped") shows its effect.
+31. (review) B-R bars start on 2023-07-03, the first day of the sample, so no name has 40 real bars in its
+    60-day window before about 2023-08-30; B-R's statistics effectively start then.
+32. (review) The B-H SEC-fee bound (0.30 bp) is the pre-registration's stated bound; Section 31 rates were
+    somewhat higher than that in parts of 2001-2003 (by well under 0.2 bp per sale), so for those years the
+    bound may be slightly low.
+33. (review addition, NOT pre-registered, decides nothing) exploratory.csv has a B4 row "fills at min(open, B)
+    and max(open, A)". The registered rule fills the buy at B and every GTC sale at A even when the open has
+    gapped through the limit, which forfeits the gap: on a no-information Roll market with daily sigma = 2% and
+    a 25 bp half-spread (L4-like), B4's gross is -41 bp per trade as registered and +21 bp with open-price
+    improvement (reviewer synthetic test). The synthetic no-edge level in controls_synthetic.csv (about -64 bp
+    gross in L2-L4) is this convention, not a bug; B4's primary result should be read against it.
 Points where the pre-registration could not be followed are listed in summary.txt (B-R and its universe
 not yet pulled; shares outstanding only in B-R; historical B-H fee schedules).
 """
@@ -427,12 +448,13 @@ def _legs(ii, tt, a_off, a_open, b_off, b_open, O, C, F, traded, last_tr, sample
 
 @njit(cache=True)
 def _b4_engine(elig, C, F, H, L, O, KK, DV, traded, WCL, WCH, S, last_tr, sample_end, s0, s1, Q, NS, tgt, touch,
-               maxn):
+               maxn, improve=False):
     """B4 (the friend's rule, daily) for one band cell. Per name: at the close of an eligible day t with no
     open position, a day-limit buy for t+1 at B = floor_cent(P_t (1 - s_t/2)); fill if low_{t+1} <= B - tick
     (whole-cent low on B-R), size q = min(Q, 10% $vol_{t+1} f). From t+2 a GTC sell at A = ceil_cent(B (1 + s_t))
     (tgt > 0: B (1 + tgt)) fills if high >= A + tick, at most 10% of the day's $ volume x f per day. The
-    remainder after NS sessions is sold at the close of t+1+NS (gap rule). Returns per-trade arrays and
+    remainder after NS sessions is sold at the close of t+1+NS (gap rule). improve (exploratory, not
+    pre-registered): the buy fills at min(B, open) and a GTC sale at max(A, open). Returns per-trade arrays and
     per-piece fractions (NS GTC pieces + the forced piece)."""
     N, T = C.shape
     ti = np.empty(maxn, np.int64); ii = np.empty(maxn, np.int64); qq = np.empty(maxn); r1 = np.empty(maxn)
@@ -445,7 +467,10 @@ def _b4_engine(elig, C, F, H, L, O, KK, DV, traded, WCL, WCH, S, last_tr, sample
     nord = np.zeros(T, np.int64)                  # limit buys placed per signal day
     for i in range(N):
         t = s0
-        while t <= s1 and t < T - 2:
+        # an order is placed only if its whole schedule (fill t+1, GTC to t+1+NS) lies inside the panel, so a
+        # trade is never dropped because of how it turned out (review fix: B-R's last sessions kept only the
+        # positions already sold at A)
+        while t <= s1 and t + 1 + NS <= T - 1:
             if not elig[i, t]:
                 t += 1
                 continue
@@ -471,12 +496,13 @@ def _b4_engine(elig, C, F, H, L, O, KK, DV, traded, WCL, WCH, S, last_tr, sample
                 t += 1
                 continue
             A = math.ceil(B * (1 + (tgt if tgt > 0 else S[i, t])) * 100 - 1e-7) / 100
-            sh = q / B
+            Bf = min(B, O[i, t1] / kk) if improve else B          # fill price
+            sh = q / Bf
             rem = sh
-            Bc = B * kk
+            Bc = Bf * kk
             v1 = C[i, t1] * F[i, t1]
             k = nt
-            ti[k] = t; ii[k] = i; qq[k] = q; Bp[k] = B; Ap[k] = A
+            ti[k] = t; ii[k] = i; qq[k] = q; Bp[k] = Bf; Ap[k] = A
             r1[k] = C[i, t1] / Bc - 1.0
             ov = 0.0                         # overnight log return held (share-weighted), exploratory split
             dlast = t1
@@ -497,9 +523,10 @@ def _b4_engine(elig, C, F, H, L, O, KK, DV, traded, WCL, WCH, S, last_tr, sample
                 sell = min(rem, cap)
                 if sell <= 0:
                     continue
+                Ae = max(A, O[i, e] / kk) if improve else A
                 phi[k, j] = sell / sh
-                pg[k, j] = A * kk * F[i, e] / v1 - 1.0
-                pnot[k, j] = sell * A; psh[k, j] = sell
+                pg[k, j] = Ae * kk * F[i, e] / v1 - 1.0
+                pnot[k, j] = sell * Ae; psh[k, j] = sell
                 rem -= sell
                 dlast = e
             hd = 0.0
@@ -590,7 +617,15 @@ def panel_from_long(df: pd.DataFrame, dates, name, kind, sample, fields=("open",
         P.WCL[ti, di] = df.wcl.to_numpy(bool); P.WCH[ti, di] = df.wch.to_numpy(bool)
     P.s0 = int(np.searchsorted(dates.values, np.datetime64(sample[0])))
     P.s1 = int(np.searchsorted(dates.values, np.datetime64(sample[1]), side="right") - 1)
+    P.cens = P.s1
     return P
+
+
+def _cens(P):
+    """Index after which a series' end counts as the data source's end (censored exit, 0% penalty) rather than a
+    delisting: P.s1 by default; for B-H the day before the qlib freeze (series whose last traded bar is on or after
+    2020-11-09; see implementation choice 10)."""
+    return getattr(P, "cens", P.s1)
 
 
 def finish_panel(P, grid: bool):
@@ -678,6 +713,8 @@ def load_bh(start="2000-01-03", end="2021-03-31", sample=(BH_START, BH_END)):
     del q
     _trim()
     S = finish_panel(S, grid=True); Fd = finish_panel(Fd, grid=True)
+    fz = int(np.searchsorted(dates.values, np.datetime64("2020-11-09"))) - 1     # qlib freeze: last bars 11-09/11-10
+    S.cens = Fd.cens = max(S.s1, fz)
     S.rules = rules.loc[S.tickers]; Fd.rules = rules.loc[Fd.tickers]
     S.all_rules = rules
     return S, Fd
@@ -1098,7 +1135,7 @@ def leg_cost(P, i, d, size, m, Y):
 def bench_values(P, EL, a_off, a_open, b_off, b_open, pen=0.30):
     """Gross return of every eligible name-day over a benchmark window (same exit rules as trades)."""
     ent, ext, g, glast, flag = _legs(EL.i, EL.t, a_off, a_open, b_off, b_open, P.O, P.C, P.F, P.traded, P.last_tr,
-                                     P.s1)
+                                     _cens(P))
     g = np.where(flag == 1, (1 + glast) * (1 - pen) - 1, g)
     g[(flag < 0) | (flag == 3)] = np.nan
     return g
@@ -1140,7 +1177,7 @@ def c2c_trades(P, EL, pos, a_off=0, a_open=False, b_off=1, b_open=False):
     """Market-order trades for EL positions pos: entry at the close (or open) of t+a_off, exit at the close (or
     open) of t+b_off with the gap rule. Returns a dict of per-trade arrays (costs applied later)."""
     i, t = EL.i[pos], EL.t[pos]
-    ent, ext, g, glast, flag = _legs(i, t, a_off, a_open, b_off, b_open, P.O, P.C, P.F, P.traded, P.last_tr, P.s1)
+    ent, ext, g, glast, flag = _legs(i, t, a_off, a_open, b_off, b_open, P.O, P.C, P.F, P.traded, P.last_tr, _cens(P))
     ok = (flag >= 0) & (flag != 3)
     tr = {"pos": pos[ok], "i": i[ok], "t": t[ok], "ent": ent[ok], "ext": ext[ok], "g": g[ok], "glast": glast[ok],
           "flag": flag[ok], "a_open": a_open, "b_open": b_open, "kind": "c2c",
@@ -1190,7 +1227,7 @@ def b3_trades(P, EL, pos, mult=1.0, exit_off=1, touch=False, open_fill=False):
     if exit_off == 1:
         ext = t1; g = P.C[i, t1] * P.F[i, t1] / pe - 1; flag = np.zeros(len(i), np.int8); glast = g.copy()
     else:
-        _, ext, g0, glast0, flag = _legs(i, t, 1, False, exit_off, False, P.O, P.C, P.F, P.traded, P.last_tr, P.s1)
+        _, ext, g0, glast0, flag = _legs(i, t, 1, False, exit_off, False, P.O, P.C, P.F, P.traded, P.last_tr, _cens(P))
         base = P.C[i, t1] * P.F[i, t1] / pe                      # fill -> close t+1, then close t+1 -> exit
         g = (1 + g0) * base - 1; glast = (1 + glast0) * base - 1
         ok = (flag >= 0) & (flag != 3)
@@ -1211,11 +1248,11 @@ def b3_net(P, tr, m=M0, Y=Y0, Q=Q0, pen=0.30):
     return r, q
 
 
-def b4_trades(P, band_mask, Q=Q0, NS=5, tgt=0.0, touch=False):
+def b4_trades(P, band_mask, Q=Q0, NS=5, tgt=0.0, touch=False, improve=False):
     """Run the B4 engine on one band cell; returns per-trade arrays."""
     maxn = int(band_mask.sum()) + 1
-    out = _b4_engine(band_mask, P.C, P.F, P.H, P.L, P.O, P.KK, P.DV, P.traded, P.WCL, P.WCH, P.SPR, P.last_tr, P.s1,
-                     P.s0, P.s1, Q, NS, tgt, touch, maxn)
+    out = _b4_engine(band_mask, P.C, P.F, P.H, P.L, P.O, P.KK, P.DV, P.traded, P.WCL, P.WCH, P.SPR, P.last_tr, _cens(P),
+                     P.s0, P.s1, Q, NS, tgt, touch, maxn, improve)
     names = ["t", "i", "q", "r1", "B", "A", "phi", "pg", "pnot", "psh", "fday", "fflag", "fglast", "on", "hold"]
     tr = dict(zip(names, out[:-1]))
     tr["n_orders"] = int(out[-1].sum())
@@ -1388,7 +1425,8 @@ def run_cell(P, EL, BC, sig, strat, band, m=M0, Y=Y0, Q=Q0, pen=0.30, variant=No
     if strat == "B4":
         NS = v.get("NS", 5)
         tr = v.get("tr") or _trades_cached(P, EL, strat, band, v, Q, lambda: b4_trades(
-            P, el_mask(P, EL, inband), Q=Q, NS=NS, tgt=v.get("tgt", 0.0), touch=v.get("touch", False)))
+            P, el_mask(P, EL, inband), Q=Q, NS=NS, tgt=v.get("tgt", 0.0), touch=v.get("touch", False),
+            improve=v.get("improve", False)))
         x, r = b4_net(P, tr, EL, None if v.get("raw") else BC, m, Y, pen)
         if v.get("bench_open"):
             pos = np.searchsorted(EL.key, tr["t"] * P.N + tr["i"])
@@ -1624,6 +1662,9 @@ def run_exploratory(P, EL, BC, sig, vix=None):
             add(f"B4 target A = B x {1 + tg:g}", "B", "B4", b, run_cell(P, EL, BC, sig, "B4", b, variant={"tgt": tg}))
         for ns in (1, 20):
             add(f"B4 hold {ns} sessions", "B", "B4", b, run_cell(P, EL, BC, sig, "B4", b, variant={"NS": ns}))
+        add("B4 fills at min(open, B) and max(open, A)", "B", "B4", b,
+            run_cell(P, EL, BC, sig, "B4", b, variant={"improve": True}),
+            note="review addition, NOT pre-registered: open-price improvement on both legs (cf. B3's min(open, L))")
         for s in ("B1", "B2"):
             add("overnight leg close(t)->open(t+1), gross", "B", s, b,
                 run_cell(P, EL, BC, sig, s, b, variant={"legs": (0, False, 1, True), "gross": True}))
@@ -1794,7 +1835,7 @@ def null_panel(S, j):
     seeds = np.random.default_rng([20261018, j]).integers(0, 2 ** 31 - 1, S.N)
     O2, H2, L2, C2, V2 = _redraw(S.O, S.H, S.L, S.C, S.F, S.SV, S.real, seeds)
     P = SimpleNamespace(name=f"null {j}", kind="BH", uid=_uid(), dates=S.dates, tickers=S.tickers, N=S.N, T=S.T,
-                        s0=S.s0, s1=S.s1,
+                        s0=S.s0, s1=S.s1, cens=_cens(S),
                         O=O2, H=H2, L=L2, C=C2, SV=V2, F=np.ones((S.N, S.T), np.float32), present=S.real.copy(),
                         KK=S.KK, ONGRID=S.ONGRID, WCL=S.WCL, WCH=S.WCH, excl=S.excl, rules=S.rules)
     P = finish_panel(P, grid=False)
@@ -2363,7 +2404,7 @@ def _ew(P, ii, a, d):
     if len(ii) == 0 or a < 0 or d <= a:
         return 0.0
     tt = np.full(len(ii), a, np.int64)
-    _, _, g, glast, flag = _legs(ii.astype(np.int64), tt, 0, False, d - a, False, P.O, P.C, P.F, P.traded, P.last_tr, P.s1)
+    _, _, g, glast, flag = _legs(ii.astype(np.int64), tt, 0, False, d - a, False, P.O, P.C, P.F, P.traded, P.last_tr, _cens(P))
     g = np.where(flag == 1, (1 + glast) * 0.7 - 1, g)
     g = g[(flag >= 0) & (flag != 3)]
     return float(np.nanmean(g)) if len(g) else 0.0
@@ -2466,7 +2507,9 @@ def main(argv=None):
             " from the same 40 names, cond_br (PASS condition 3) not evaluable, Part D1/D2(B-R)/D4 on the 40 names.")
     say("  - B-H sell fees: an upper bound (SEC 0.30 bp + TAF $0.000119/sh, cap $5.95) instead of the dated schedule.")
     say("  - D3's 4.9%-of-shares-outstanding cap: B-R only (current snapshot); B-H has no shares outstanding.")
-    say("  - qlib freezes 2,155 names at 2020-11-10: missing exits after the sample end are censored, not delisted.")
+    say("  - qlib freezes 2,155 names at 2020-11-10: missing exits of series whose last bar is on/after 2020-11-09"
+        " are censored (last close, 0%), not delisted.")
+    say("  - B-R bars start on 2023-07-03, so its statistics effectively start ~2023-08-30 (40 real bars needed).")
     if a.controls:
         t1 = time.time()
         df = run_pit_controls(cf, ry, outB)

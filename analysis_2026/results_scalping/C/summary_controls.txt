@@ -1,62 +1,66 @@
 cost model: Part B cost_model.csv (B-R); b = 4.281, -0.555, 0.256, 0.719, S = 1.251
+panel names outside the B-R universe (exclusion rules (b)-(d) / scan flag, as in Part B), dropped from every cell: {'NGL': 'rule b', 'RLX': 'rule b'}
+5-minute bars: 1,472,640 rows, 118 names, 160 sessions (2026-03-02..2026-10-16), 0 off-clock bars dropped, early-close sessions: [] (3s)
+1-minute bars: 1,334,580 rows, 118 names, 29 sessions (2026-09-08..2026-10-16)
+15-second bars: 249,600 rows, 40 names, 4 sessions
 
-Control (i) Roll market; band parameters from 6 pilot names (panel bars not yet pulled):
-  L1: {'p_traded': 0.14743589743589744, 'sigma_5m': 0.005873198037780362, 'n_stock_sessions': 108, 'source': 'point-in-time band'}
-  L2: {'p_traded': 0.4551282051282052, 'sigma_5m': 0.0042473903081909695, 'n_stock_sessions': 62, 'source': 'point-in-time band'}
-  L3: {'p_traded': 0.5512820512820513, 'sigma_5m': 0.0024631105168218936, 'n_stock_sessions': 25, 'source': 'point-in-time band'}
-  L4: {'p_traded': 0.9423076923076923, 'sigma_5m': 0.002423831858105076, 'n_stock_sessions': 100, 'source': 'point-in-time band'}
-  Roll L1 median spread: estimate $-34.245/stock-session (t -76.36, p 1), edge -345.7 bp/$, active 0.91, PASS=False  [2s]
-  Roll L1 one cent     : estimate $-21.821/stock-session (t -40.06, p 1), edge -368.1 bp/$, active 0.70, PASS=False  [1s]
-  Roll L2 median spread: estimate $-32.144/stock-session (t -77.92, p 1), edge -122.7 bp/$, active 1.00, PASS=False  [1s]
-  Roll L2 one cent     : estimate $-21.064/stock-session (t -75.68, p 1), edge -145.1 bp/$, active 0.96, PASS=False  [1s]
-  Roll L3 median spread: estimate $-32.660/stock-session (t -90.28, p 1), edge -54.1 bp/$, active 1.00, PASS=False  [1s]
-  Roll L3 one cent     : estimate $-27.025/stock-session (t -91.11, p 1), edge -65.5 bp/$, active 1.00, PASS=False  [1s]
-  Roll L4 median spread: estimate $-36.031/stock-session (t -91.93, p 1), edge -28.1 bp/$, active 1.00, PASS=False  [3s]
-  Roll L4 one cent     : estimate $-37.935/stock-session (t -97.60, p 1), edge -35.3 bp/$, active 1.00, PASS=False  [3s]
+Control (i) Roll market; band parameters from panel (panel_c.csv, B-R universe names):
+  L1: {'p_traded': 0.1794871794871795, 'sigma_5m': 0.0076593956292046, 'n_stock_sessions': 3980, 'source': 'point-in-time band'}
+  L2: {'p_traded': 0.34615384615384615, 'sigma_5m': 0.0060622645906644405, 'n_stock_sessions': 4070, 'source': 'point-in-time band'}
+  L3: {'p_traded': 0.5641025641025641, 'sigma_5m': 0.004472276646640445, 'n_stock_sessions': 3957, 'source': 'point-in-time band'}
+  L4: {'p_traded': 0.8846153846153846, 'sigma_5m': 0.003624956240126972, 'n_stock_sessions': 3441, 'source': 'point-in-time band'}
+  Roll L1 median spread: estimate $-35.543/stock-session (t -41.50, p 1), edge -399.5 bp/$, active 0.91, PASS=False  [0s]
+  Roll L1 one cent     : estimate $-25.080/stock-session (t -30.66, p 1), edge -449.6 bp/$, active 0.72, PASS=False  [0s]
+  Roll L2 median spread: estimate $-46.943/stock-session (t -64.01, p 1), edge -185.7 bp/$, active 1.00, PASS=False  [1s]
+  Roll L2 one cent     : estimate $-39.035/stock-session (t -78.01, p 1), edge -209.7 bp/$, active 0.97, PASS=False  [1s]
+  Roll L3 median spread: estimate $-54.782/stock-session (t -83.92, p 1), edge -94.6 bp/$, active 1.00, PASS=False  [1s]
+  Roll L3 one cent     : estimate $-51.291/stock-session (t -92.21, p 1), edge -103.0 bp/$, active 1.00, PASS=False  [1s]
+  Roll L4 median spread: estimate $-57.236/stock-session (t -75.14, p 1), edge -46.0 bp/$, active 1.00, PASS=False  [2s]
+  Roll L4 one cent     : estimate $-58.104/stock-session (t -84.87, p 1), edge -51.5 bp/$, active 1.00, PASS=False  [2s]
   diagnostics L1 done
   diagnostics L2 done
   diagnostics L3 done
   diagnostics L4 done
-Control (i) diagnostic variants (not the pre-registered control; 18s):
+Control (i) diagnostic variants (not the pre-registered control; 10s):
 band                          variant  s_median_bp  true_spread_bp  estimate  net_bp_per_$  gross_bp_per_$  share_sold_limit  share_sold_forced  markout1_bp  A_over_B_bp
-  L1                   as run (m=1.5)       327.66           197.0    -34.24       -345.71          -56.07              0.01               0.82      -112.49       339.76
-  L1                        gross m=0       327.66           197.0     -6.10        -61.61          -56.07              0.01               0.82      -112.49       339.76
-  L1       no T_max (15:50 exit only)       327.66           197.0    -31.00       -481.44          -68.11              0.20               0.00      -116.08       341.15
-  L1                alternating sides       378.92           197.0    -35.98       -379.89          -46.89              0.00               0.83       -88.41       388.10
-  L1              half mid volatility       283.71           197.0    -27.04       -248.52            1.51              0.00               0.83       -69.49       293.34
-  L1 tiny vol, s = true spread, m=1.5       197.00           197.0    -23.54       -183.93           -8.84              0.00               0.83       -86.32       217.42
-  L1   tiny vol, s = true spread, m=0       197.00           197.0     -1.39        -10.87           -8.84              0.00               0.83       -86.32       217.42
-  L2                   as run (m=1.5)       138.76            97.0    -32.14       -122.75          -18.17              0.07               0.87       -32.78       149.14
-  L2                        gross m=0       138.76            97.0     -5.05        -19.29          -18.17              0.07               0.87       -32.78       149.14
-  L2       no T_max (15:50 exit only)       138.76            97.0    -15.49       -144.52          -31.84              0.48               0.00       -33.68       148.94
-  L2                alternating sides       159.36            97.0    -32.72       -136.67          -14.36              0.05               0.89       -21.62       168.74
-  L2              half mid volatility       131.52            97.0    -25.48        -96.72            6.17              0.03               0.91       -13.49       140.05
-  L2 tiny vol, s = true spread, m=1.5        97.00            97.0    -25.65        -85.00           -7.20              0.00               0.94       -29.31        99.93
-  L2   tiny vol, s = true spread, m=0        97.00            97.0     -2.36         -7.80           -7.20              0.00               0.94       -29.31        99.93
-  L3                   as run (m=1.5)        57.63            38.0    -32.66        -54.11          -14.63              0.14               0.81       -16.06        62.01
-  L3                        gross m=0        57.63            38.0     -9.16        -15.17          -14.63              0.14               0.81       -16.06        62.01
-  L3       no T_max (15:50 exit only)        57.63            38.0    -14.49        -62.12          -22.50              0.56               0.00       -16.61        61.94
-  L3                alternating sides        62.10            38.0    -32.32        -55.36          -12.34              0.13               0.82       -12.49        66.35
-  L3              half mid volatility        53.32            38.0    -22.87        -39.15            0.25              0.07               0.88        -5.13        57.42
-  L3 tiny vol, s = true spread, m=1.5        38.00            38.0    -18.45        -28.15            2.15              0.00               0.95        -4.58        42.02
-  L3   tiny vol, s = true spread, m=0        38.00            38.0      1.16          1.78            2.15              0.00               0.95        -4.58        42.02
-  L4                   as run (m=1.5)        32.06            21.0    -36.03        -28.10          -12.38              0.39               0.59        -6.79        35.30
-  L4                        gross m=0        32.06            21.0    -16.33        -12.73          -12.38              0.39               0.59        -6.79        35.30
-  L4       no T_max (15:50 exit only)        32.06            21.0    -12.69        -27.93          -14.22              0.74               0.00        -7.06        35.25
-  L4                alternating sides        33.30            21.0    -36.00        -28.28          -11.87              0.38               0.60        -6.08        36.70
-  L4              half mid volatility        30.54            21.0    -21.61        -18.63           -1.01              0.27               0.71         0.05        33.51
-  L4 tiny vol, s = true spread, m=1.5        21.00            21.0    -22.81        -18.09           -1.54              0.00               0.97        -1.76        23.94
-  L4   tiny vol, s = true spread, m=0        21.00            21.0     -2.34         -1.86           -1.54              0.00               0.97        -1.76        23.94
+  L1                   as run (m=1.5)       384.21           197.0    -35.49       -400.92          -66.57              0.01               0.82      -121.71       396.41
+  L1                        gross m=0       384.21           197.0     -6.45        -72.88          -66.57              0.01               0.82      -121.71       396.41
+  L1       no T_max (15:50 exit only)       384.21           197.0    -30.34       -548.43          -84.75              0.25               0.00      -127.60       399.92
+  L1                alternating sides       425.57           197.0    -36.85       -425.54          -60.17              0.01               0.84      -102.18       432.28
+  L1              half mid volatility       277.43           197.0    -26.62       -248.90           -7.85              0.01               0.84       -73.07       287.84
+  L1 tiny vol, s = true spread, m=1.5       197.00           197.0    -22.42       -178.10           -6.36              0.00               0.85       -80.55       217.36
+  L1   tiny vol, s = true spread, m=0       197.00           197.0     -1.02         -8.11           -6.36              0.00               0.85       -80.55       217.36
+  L2                   as run (m=1.5)       177.14            97.0    -46.92       -185.74          -49.68              0.06               0.87       -63.47       185.36
+  L2                        gross m=0       177.14            97.0    -13.00        -51.47          -49.68              0.06               0.87       -63.47       185.36
+  L2       no T_max (15:50 exit only)       177.14            97.0    -27.96       -235.53          -80.43              0.45               0.00       -66.60       185.88
+  L2                alternating sides       184.74            97.0    -47.52       -191.77          -46.36              0.04               0.88       -56.06       197.99
+  L2              half mid volatility       123.23            97.0    -30.49       -110.31          -12.05              0.05               0.88       -35.10       134.54
+  L2 tiny vol, s = true spread, m=1.5        97.00            97.0    -27.10        -86.63           -7.46              0.00               0.92       -36.28        99.93
+  L2   tiny vol, s = true spread, m=0        97.00            97.0     -2.55         -8.15           -7.46              0.00               0.92       -36.28        99.93
+  L3                   as run (m=1.5)        83.51            38.0    -54.78        -94.62          -37.82              0.16               0.80       -33.76        89.12
+  L3                        gross m=0        83.51            38.0    -22.30        -38.52          -37.82              0.16               0.80       -33.76        89.12
+  L3       no T_max (15:50 exit only)        83.51            38.0    -25.97       -111.39          -55.60              0.59               0.00       -34.05        89.18
+  L3                alternating sides        83.05            38.0    -53.93        -93.01          -34.92              0.15               0.80       -31.11        90.91
+  L3              half mid volatility        54.55            38.0    -30.83        -50.20          -12.77              0.14               0.82       -14.78        59.08
+  L3 tiny vol, s = true spread, m=1.5        38.00            38.0    -18.65        -28.39            1.90              0.00               0.95        -4.46        42.03
+  L3   tiny vol, s = true spread, m=0        38.00            38.0      1.00          1.52            1.90              0.00               0.95        -4.46        42.03
+  L4                   as run (m=1.5)        41.74            21.0    -57.24        -46.02          -24.99              0.37               0.61       -16.27        45.42
+  L4                        gross m=0        41.74            21.0    -31.57        -25.38          -24.99              0.37               0.61       -16.27        45.42
+  L4       no T_max (15:50 exit only)        41.74            21.0    -22.81        -50.30          -31.77              0.72               0.00       -16.52        45.29
+  L4                alternating sides        41.96            21.0    -57.13        -45.54          -24.38              0.37               0.60       -15.35        45.82
+  L4              half mid volatility        30.01            21.0    -28.63        -23.68           -7.79              0.33               0.65        -5.03        33.12
+  L4 tiny vol, s = true spread, m=1.5        21.00            21.0    -22.48        -18.11           -1.55              0.00               0.97        -2.13        23.95
+  L4   tiny vol, s = true spread, m=0        21.00            21.0     -2.32         -1.87           -1.55              0.00               0.97        -2.13        23.95
 
-Control (ii) within-session shuffle on 6 pilot names (panel bars not yet pulled) (0.0s):
-band         subset   estimate         t  n_units  share_active  edge_estimate  fills
-  L1 s x P >= $0.03 -26.992348 -1.927815      108      0.731481      -0.021348    180
-  L1      all ticks -26.992348 -1.927815      108      0.731481      -0.021348    180
-  L2 s x P >= $0.03 -42.112755 -3.853321       59      1.000000      -0.012135    247
-  L2      all ticks -40.263326 -3.918088       62      1.000000      -0.011335    258
-  L3 s x P >= $0.03 -26.613608 -7.447228       25      1.000000      -0.005432    119
-  L3      all ticks -26.613608 -7.447228       25      1.000000      -0.005432    119
-  L4 s x P >= $0.03 -45.684639       NaN       41      1.000000      -0.007153    234
-  L4      all ticks -40.694619 -8.189359      100      0.990000      -0.004211    645
+Control (ii) within-session shuffle on panel (panel_c.csv, B-R universe names) (0.4s):
+band         subset   estimate          t  n_units  share_active  edge_estimate  fills
+  L1 s x P >= $0.03 -48.033310  -8.167411     3496      0.749142      -0.030953   6683
+  L1      all ticks -44.595173  -8.619484     3980      0.746482      -0.029527   7719
+  L2 s x P >= $0.03 -58.927611  -9.948730     3138      0.911409      -0.020280   9696
+  L2      all ticks -54.359239 -11.523560     4070      0.913022      -0.018407  13251
+  L3 s x P >= $0.03 -63.757077  -7.970161     2803      0.988227      -0.011196  13224
+  L3      all ticks -60.697480 -10.417492     3957      0.989386      -0.010667  19672
+  L4 s x P >= $0.03 -67.605831  -6.403618     1864      0.998927      -0.006423  12914
+  L4      all ticks -70.817098  -9.021748     3441      0.998838      -0.006898  23938
 
-total 32s
+total 29s

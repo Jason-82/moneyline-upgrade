@@ -1,14 +1,15 @@
-B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (33s)
-rule (e): 239 unknown symbols flagged as funds (67s)
-trailing statistics: 32s
+B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (24s)
+rule (e): 239 unknown symbols flagged as funds (55s)
+trailing statistics: 25s
 cost model fitted on 1097 names (B-R): b = 4.281, -0.555, 0.256, 0.719; S = 1.251; R2 = 0.68
 cost_model.csv written before any return (/home/user/moneyline-upgrade/analysis_2026/results_scalping/B/cost_model.csv)
 Points where the pre-registration could not be followed as written (see the module docstring):
   - B-H sell fees: an upper bound (SEC 0.30 bp + TAF $0.000119/sh, cap $5.95) instead of the dated schedule.
   - D3's 4.9%-of-shares-outstanding cap: B-R only (current snapshot); B-H has no shares outstanding.
-  - qlib freezes 2,155 names at 2020-11-10: missing exits after the sample end are censored, not delisted.
+  - qlib freezes 2,155 names at 2020-11-10: missing exits of series whose last bar is on/after 2020-11-09 are censored (last close, 0%), not delisted.
+  - B-R bars start on 2023-07-03, so its statistics effectively start ~2023-08-30 (40 real bars needed).
 
-Controls (ii)/(iii) on the S&P 500 PIT set (26s):
+Controls (ii)/(iii) on the S&P 500 PIT set (23s):
                                                                       control                      universe  estimate          t  n_trades
                       (ii) known answer: B1 gross (m=0) S&P 500 PIT 2001-2010                   all members  0.000620   2.776404   98381.0
                                    (ii) B1 gross, no impact either (m=0, Y=0)                   all members  0.000765   3.390248   98381.0
@@ -25,7 +26,7 @@ Controls (ii)/(iii) on the S&P 500 PIT set (26s):
 (iii) large-cap survivorship effect E1 gross (m=0) (qlib-available minus all)                    difference  0.000052        NaN       NaN
 (iii) large-cap survivorship effect E1 net (m=1.5) (qlib-available minus all)                    difference  0.000175        NaN       NaN
 
-Synthetic no-edge market (22s); parameters from B-H band medians: {1: {'s': 0.023329859599471092, 'sig20': 0.02324558235704899, 'adv': 91614.0, 'zero_vol_share': 0.008686130515513812}, 2: {'s': 0.010778861120343208, 'sig20': 0.02079818956553936, 'adv': 290663.0, 'zero_vol_share': 0.0012406939737626965}, 3: {'s': 0.0068447706289589405, 'sig20': 0.02059473842382431, 'adv': 865725.5, 'zero_vol_share': 0.00031211392928343074}, 4: {'s': 0.005231792107224464, 'sig20': 0.02115827240049839, 'adv': 2785877.5, 'zero_vol_share': 0.00010839415591890056}}
+Synthetic no-edge market (18s); parameters from B-H band medians: {1: {'s': 0.023329859599471092, 'sig20': 0.02324558235704899, 'adv': 91614.0, 'zero_vol_share': 0.008686130515513812}, 2: {'s': 0.010778861120343208, 'sig20': 0.02079818956553936, 'adv': 290663.0, 'zero_vol_share': 0.0012406939737626965}, 3: {'s': 0.0068447706289589405, 'sig20': 0.02059473842382431, 'adv': 865725.5, 'zero_vol_share': 0.00031211392928343074}, 4: {'s': 0.005231792107224464, 'sig20': 0.02115827240049839, 'adv': 2785877.5, 'zero_vol_share': 0.00010839415591890056}}
  cell  net_estimate       net_t  gross_estimate    gross_t  n_trades  true_half_spread  median_s_estimate
 B1-L1     -0.045517 -285.474349        0.008438  49.367780     26721          0.011665           0.030223
 B1-L2     -0.016737 -112.195843        0.002463  16.189486     26732          0.005389           0.010117
@@ -48,4 +49,4 @@ E1-L2     -0.018956   -3.593847       -0.000312  -0.080502        28          0.
 E1-L3           NaN         NaN             NaN        NaN         0          0.003422           0.005609
 E1-L4           NaN         NaN             NaN        NaN         0          0.002616           0.003797
 
-total 217s
+total 179s

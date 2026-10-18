@@ -33,9 +33,10 @@ Outputs: analysis_2026/results_scalping/C/
   --iex       controls_iii_iex.csv (IEX extracts cached under data/scalping/C/iex/)
 primary_cells.csv holds no verdict: Holm over all 36 tests is applied by scalp_report.py. Columns cond_* are PASS
 conditions 2-6 plus the Control (i) cap (cond_control_i); an empty cond_* could not be evaluated and counts as not
-met. force_inconclusive = True when PASS condition 6's sign check fails ("If not, the verdict is INCONCLUSIVE",
-which also rules out NO EDGE): the combine script must honour it. Run --controls before --run (cond_control_i and
-the no-edge level are read from controls_i.csv).
+met. force_inconclusive = True (with force_reason) when PASS condition 6's sign check fails or cannot be evaluated
+("If not, the verdict is INCONCLUSIVE") or when Control (i) failed or is missing ("capped at INCONCLUSIVE"); either
+rules out PASS and NO EDGE, as scalp_report.py applies it. --run always computes Controls (i)/(ii) on the panel first
+(cond_control_i and the no-edge level are read from them).
 
 ------------------------------------------------------------------------------------------------- the rule
 Clock: bars labelled by start time (UTC -> America/New_York); regular session 09:30-16:00 (13:00 on early-close
@@ -98,7 +99,8 @@ Where the pre-registration is silent or ambiguous, the reading less likely to gi
  C9  PASS condition 6: the 1-minute rerun uses the same s and units and the same clock times (posts at the
      closes 09:45..15:30, T_max 30 minutes, final exit at the close 15:55); overlapping sessions = sessions in
      both the 5-minute window and the 1-minute data. cond_1min = sign(1-min mean over the overlap) equals
-     sign(5-min primary mean), and a mismatch (including a zero 1-min mean) sets force_inconclusive.
+     sign(5-min primary mean) and sign(5-min mean over the same overlap) (C21); a mismatch (including a zero
+     1-min mean) or missing 1-minute data sets force_inconclusive.
  C10 Control (i) "PASS" = one-sided p < 0.05/36 (the strictest Holm step) and conditions 2-6 on the synthetic
      panel. Print sides are i.i.d. 50/50 (Roll's model; strict alternation would hand C1 a bounce it does not
      get). The mid is a random walk at the band's median 5-minute volatility = the median over stock-sessions
@@ -106,8 +108,9 @@ Where the pre-registration is silent or ambiguous, the reading less likely to gi
      it errs high). Print rate: the band's median share of traded 5-minute bars after keeping 40%; daily $
      volume = the band's geometric mid ($87k / $274k / $866k / $2.74M); price = the pilot band median ($4.6 /
      $6.0 / $11.9 / $16.7); 30 names x (80 burn-in + 160) sessions; daily bars from all prints, 5- and
-     1-minute bars from the kept 40%. A failed control caps the band at INCONCLUSIVE: cond_control_i = False
-     (PASS impossible); NO EDGE stays possible ("capped at").
+     1-minute bars from the kept 40%. A failed control caps the band at INCONCLUSIVE: cond_control_i = False and
+     force_inconclusive = True (C22: neither PASS nor NO EDGE, superseding the first version, which left NO EDGE
+     possible).
  C11 Control (ii): the 78 clock bars of each session (traded and no-trade) are permuted with
      default_rng(20261018) in unit order; s, P and the carried last trade stay those of the real data.
  C12 Illusion baselines: touch = whole-cent low <= B (high >= A) with f = 1; any-extreme = the trade-through rule
@@ -136,13 +139,38 @@ Where the pre-registration is silent or ambiguous, the reading less likely to gi
      s as of d-1 (no 20-session intraday history exists for event names); sell fees as in C. The rule as
      written has no impact term; a Y = 0.5 impact variant (Part B's leg cost at Q, both legs) is also shown.
      Its no-edge level (General rules) is the ORB rule on every stock-session of Control (i)'s Roll markets.
+     Note: the registered event filter (day volume >= 5 x median) uses the event day's full volume, known only at
+     its close, so the ORB leg is conditioned on same-day future information; it is exploratory and is reported
+     as such, not changed.
  C18 Reruns at 1 minute / 15 seconds use only sessions from the first session with a real bar at that resolution
      (Robinhood returns flat interpolated bars outside retention). B3/B4 confirmation: Part B's own B-R fills
      (scalp_us_daily.b3_trades / b4_trades on the prepared B-R panel) for panel names with fill days in the window;
      "confirmed" = some traded 5-minute bar of the fill day with a whole-cent low <= limit - $0.01.
+Review fixes (adversarial code review, before any primary result was computed):
+ C19 The common eligibility rule ("Common definitions ... Parts B, C, D, E") now applies: a stock-session is in a cell
+     only with >= 40 real daily bars in the 60-day window and P >= $1 (both data to d-1). "Volume > 0 on the signal
+     and entry days" is not applied: Part C says sessions with no real bar count as zero, and the entry session's
+     volume is not known at the decision.
+ C20 A bar with a missing or non-positive price is not a traded bar (none exist in the pulled data; a NaN close would
+     otherwise make that stock-session's net NaN and silently drop it from the cell).
+ C21 PASS condition 6 also compares with the 5-minute mean over the same overlapping sessions (C9).
+ C22 Control (i): a band passes only if both of its cases (median spread and one cent) pass; a failed or missing
+     control and a failed or not evaluable 1-minute sign check set force_inconclusive (neither PASS nor NO EDGE),
+     matching scalp_report.py. A positive control guards against false negatives, so its failure must also block
+     NO EDGE; the first version blocked PASS only.
+ C23 --run always recomputes Controls (i)/(ii) on the panel (current bars and cost model) before the primary
+     statistics, so a stale controls_i.csv (e.g. the first version's 6-pilot-name parameters) is never used.
+ C24 The panel (and Part E's events) are restricted to the B-R universe as Part B builds it: the scan's keep flag and
+     exclusion rules (b)-(d) on the scan's and the listing files' names. panel_c.csv was drawn from the scan's keep
+     list without rules (b)-(d) and holds two rule-(b) names (NGL "Common Units", RLX "right to receive"), which
+     are dropped (L4 keeps 28 names). Dropping names that fall outside the universe from a uniform random draw
+     leaves a uniform random sample of the universe, but not the exact default_rng(20261018) draw from it
+     (a deviation; a redraw would need new intraday pulls).
+ C25 events.csv is read with keep_default_na=False (the ticker "NA" was read as NaN).
 Deviations from the pre-registration (also written to summary.txt): intraday bars are unadjusted only
 (all C rules are within-session and s is relative); the window start moves to the first available session if
-retention has rolled past 2026-03-02; Control (iii)'s NBBO match is proxied on 4 of the 5 days (C16).
+retention has rolled past 2026-03-02; Control (iii)'s NBBO match is proxied on 4 of the 5 days (C16); the panel is
+the registered draw minus its names outside the B-R universe (C24).
 """
 from __future__ import annotations
 
@@ -256,7 +284,9 @@ def build_clock(d: pd.DataFrame, dt: int, symbols=None):
     ck = SimpleNamespace(syms=syms, dates=dates, L=L, NB=L // dt, dt=dt, K=K, N=N, D=D,
                          n_dropped=int((~keep & (si >= 0)).sum()))
     i, j, k = si[keep], di[keep], sec[keep] // dt
-    tr = (~d.interpolated.to_numpy(bool)[keep]) & (d.volume.to_numpy(float)[keep] > 0)
+    px = d[["open", "high", "low", "close"]].to_numpy(float)[keep]
+    tr = (~d.interpolated.to_numpy(bool)[keep]) & (d.volume.to_numpy(float)[keep] > 0) \
+        & np.isfinite(px).all(axis=1) & (px > 0).all(axis=1)      # review fix C20: a bar with a missing price is untraded
     for a, col in (("O", "open"), ("H", "high"), ("L_", "low"), ("C", "close")):
         arr = np.full((N, D, K), np.nan)
         v = d[col].to_numpy(float)[keep]
@@ -526,6 +556,8 @@ def make_units(ck, P, win=(WIN0, WIN1), say=print):
     U["s_id"] = s_id
     U["s"] = s
     U["tick3"] = (U.s * U.P >= 0.03 - 1e-9)
+    U["nr"] = P.NR[r, t].astype(int)                                  # real daily bars in the 60-day window, to d-1
+    U["elig"] = (U.nr >= 40) & (U.P >= 1)                             # review fix C19 (common eligibility rule)
     U["lt0"] = U.lt0.fillna(U.P)
     sig = P.SIG20[r, t].astype(float)
     sig = np.where(np.isfinite(sig), sig, P.SIG60[r, t])
@@ -804,8 +836,14 @@ def variant_runs(ck, U, X, quick=False):
 
 def band_masks(U, tick3=True):
     b = U.band.to_numpy()
+    el = U.elig.to_numpy(bool) if "elig" in U else np.ones(len(U), bool)
     t3 = U.tick3.to_numpy(bool) & np.isfinite(U.s.to_numpy())
-    return {k: (b == k) & (t3 if tick3 else (~t3 & np.isfinite(U.s.to_numpy()))) for k in (1, 2, 3, 4)}
+    return {k: (b == k) & el & (t3 if tick3 else (~t3 & np.isfinite(U.s.to_numpy()))) for k in (1, 2, 3, 4)}
+
+
+def _true(v):
+    """True only for a real boolean True (NaN = not evaluable = not met)."""
+    return isinstance(v, (bool, np.bool_)) and bool(v)
 
 
 def rerun_other(ck_o, U5, P):
@@ -869,18 +907,28 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
             m1 = r1.net.to_numpy()[m1k].mean() if m1k.any() else np.nan
             m5o = x[idx1][m1k].mean() if m1k.any() else np.nan
             extra |= {"m1_estimate_overlap": m1, "m5_estimate_overlap": m5o, "n_units_1min": int(m1k.sum())}
-            agree = bool(np.isfinite(m1) and np.isfinite(st["estimate"]) and np.sign(m1) == np.sign(st["estimate"])
-                         and m1 != 0)
+            # review fix C21: the 1-minute sign must agree with the primary 5-minute sign AND with the 5-minute sign
+            # on the same overlapping sessions (like for like); a zero or missing mean is a disagreement
+            agree = bool(np.isfinite(m1) and m1 != 0 and np.isfinite(st["estimate"]) and np.isfinite(m5o)
+                         and np.sign(m1) == np.sign(st["estimate"]) and np.sign(m1) == np.sign(m5o))
             cond["cond_1min"] = agree
-            extra["force_inconclusive"] = not agree
         else:
-            cond["cond_1min"] = np.nan; extra["force_inconclusive"] = np.nan
+            cond["cond_1min"] = np.nan
             extra |= {"m1_estimate_overlap": np.nan, "m5_estimate_overlap": np.nan, "n_units_1min": 0}
         if ctrl_i is not None:
-            ci = ctrl_i[(ctrl_i.band == f"L{k}") & (ctrl_i.case == "median spread")]
-            cond["cond_control_i"] = bool(ci["pass"].iloc[0]) if len(ci) else np.nan
+            # review fix C22: the band's control is both of its cases (median spread and one cent)
+            ci = ctrl_i[ctrl_i.band == f"L{k}"]
+            cond["cond_control_i"] = bool(len(ci) >= 2 and ci["pass"].astype(bool).all()) if len(ci) else np.nan
         else:
             cond["cond_control_i"] = np.nan
+        # review fix C22: a failed or missing positive control, or a failed / not evaluable 1-minute sign check, caps
+        # the verdict at INCONCLUSIVE (neither PASS nor NO EDGE), as scalp_report.py applies it
+        why = [n for n, c in (("1-minute sign check", cond["cond_1min"]), ("Control (i)", cond["cond_control_i"]))
+               if not _true(c)]
+        extra["force_inconclusive"] = bool(why)
+        extra["force_reason"] = "; ".join(f"{n} {'not evaluable' if not isinstance(c, (bool, np.bool_)) else 'failed'}"
+                                          for n, c in (("1-minute sign check", cond["cond_1min"]),
+                                                       ("Control (i)", cond["cond_control_i"])) if n in why)
         if null_ii is not None:
             nk = null_ii[null_ii.band == f"L{k}"]
             extra["null_ii_estimate"] = float(nk.estimate.iloc[0]) if len(nk) else np.nan
@@ -931,7 +979,7 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
         p13 = mk & (U.P.to_numpy() >= 1) & (U.P.to_numpy() < 3)
         sens.append({"variant": "$1-3 stocks", "band": f"L{k}", "subset": "s x P >= $0.03, P in [1,3)"}
                     | stats_of(U, prim, p13))
-        allk = (U.band.to_numpy() == k) & np.isfinite(U.s.to_numpy())
+        allk = (U.band.to_numpy() == k) & np.isfinite(U.s.to_numpy()) & U.elig.to_numpy(bool)
         p13a = allk & (U.P.to_numpy() >= 1) & (U.P.to_numpy() < 3)
         sens.append({"variant": "$1-3 stocks", "band": f"L{k}", "subset": "all ticks, P in [1,3)"} | stats_of(U, prim, p13a))
         ratio = (U.s / U.vol5_20).to_numpy()
@@ -1125,7 +1173,7 @@ def band_bar_params(ck, U):
     vol = ck.VOL5[U.ic.to_numpy(), np.maximum(U.dc.to_numpy(), 0)]
     share = np.where(U.dc >= 0, nt / nb, 0.0)
     for k in (1, 2, 3, 4):
-        mk = U.band.to_numpy() == k
+        mk = (U.band.to_numpy() == k) & (U.elig.to_numpy(bool) if "elig" in U else True)
         src = "point-in-time band"
         if mk.sum() == 0:
             mk = U.sym.map(PILOT_BUCKET).to_numpy() == k
@@ -1159,7 +1207,7 @@ def control_i(params, cf, say, quick=False):
             t12, _, _ = run_c1(ck5, U, X, tmax_s=TMAX12_S)
             lat, _, _ = run_c1(ck5, U, X, lat=1)
             U1, r1, idx1 = rerun_other(ck1, U, P)
-            mk = (U.band.to_numpy() == k) & U.tick3.to_numpy(bool) & np.isfinite(U.s.to_numpy())
+            mk = band_masks(U)[k]                          # the primary cell's own mask (C1 run unchanged)
             st = stats_of(U, prim, mk)
             x = prim.net.to_numpy(); h = U.half.to_numpy()
             h1, h2 = x[mk & (h == 1)].mean(), x[mk & (h == 2)].mean()
@@ -1254,7 +1302,8 @@ def control_ii(ck5, U, say):
     res, _, _ = run_c1(ck5, U, X)
     rows = []
     for k in (1, 2, 3, 4):
-        for sub, mk in (("s x P >= $0.03", band_masks(U)[k]), ("all ticks", (U.band.to_numpy() == k) & np.isfinite(U.s))):
+        for sub, mk in (("s x P >= $0.03", band_masks(U)[k]),
+                        ("all ticks", (U.band.to_numpy() == k) & np.isfinite(U.s) & U.elig.to_numpy(bool))):
             st = stats_of(U, res, mk)
             rows.append({"band": f"L{k}", "subset": sub, "null": "bars shuffled within the session"} | st
                         | {"fills": int(res.n_fills.to_numpy()[mk].sum())})
@@ -1317,6 +1366,10 @@ def iex_sim(ev, day, s, lts, closes, vols, sig, adv, sec, taf, tafcap, Q=Q0, m=M
     pending_mk = []
     e = int(np.searchsorted(ts, t_open))
     n = len(ts)
+    pre = np.where(typ[:e] == "Q")[0]                  # review fix: the book state at 09:30 is the last pre-open quote
+    if len(pre):
+        q0 = pre[-1]
+        bid, bsz, ask, asz = qb[q0], qbs[q0], qa[q0], qas[q0]
     for j in range(78):
         t_end = t_open + (j + 1) * step
         sell_live = hold > 0 and j0 >= 0 and j0 + 1 <= j <= j0 + 6
@@ -1406,9 +1459,11 @@ def control_iii(cf, say, workers=4):
     idir = TDIR / "iex"; idir.mkdir(parents=True, exist_ok=True)
     jobs = []
     for d in days:
-        syms = sorted(U.sym[(U.date == d) & (U.band == 4)].unique())
-        jobs.append((d, syms, str(idir / f"tops_{d.strftime('%Y%m%d')}.csv")))
+        syms = sorted(U.sym[(U.date == d) & (U.band == 4) & U.elig].unique())
         say(f"  IEX day {d.date()}: {len(syms)} panel L4 names")
+        if not syms:                                   # an empty symbol filter would match every message of the day
+            continue
+        jobs.append((d, syms, str(idir / f"tops_{d.strftime('%Y%m%d')}.csv")))
     with mp.Pool(min(workers, len(jobs))) as pool:
         for d, rc, msg in pool.imap_unordered(_iex_job, jobs):
             say(f"  streamed {d.date()}: rc={rc} {msg}")
@@ -1419,7 +1474,7 @@ def control_iii(cf, say, workers=4):
     lts_all = X["C"].copy()
     rows = []
     for d, syms, path in jobs:
-        tops = pd.read_csv(path)
+        tops = pd.read_csv(path, keep_default_na=False, na_values=[""], dtype={"symbol": str, "type": str})
         tops = tops.sort_values("ts_ns", kind="stable")
         snap = pd.Timestamp(f"{d.date()} 15:59:59", tz=NY).value
         for sym in syms:
@@ -1515,7 +1570,13 @@ def orb_summary(R):
 
 def orb(cf, say, Q=QBIG):
     """Part E intraday leg on the pulled event days (exploratory)."""
-    ev = pd.read_csv(RH / "events.csv", parse_dates=["date"])
+    # review fix C25: keep_default_na=False, else the ticker "NA" is read as NaN (lost event, and sorted() fails)
+    ev = pd.read_csv(RH / "events.csv", parse_dates=["date"], keep_default_na=False, dtype={"symbol": str})
+    ex = br_excluded(ev.symbol)
+    if ex:
+        say(f"Part E events on names outside the B-R universe (rules (b)-(d) / scan flag), dropped: "
+            f"{int(ev.symbol.isin(set(ex)).sum())} events, {ex}")
+        ev = ev[~ev.symbol.isin(set(ex))].reset_index(drop=True)
     bars = load_bars(RH / "events_m5_none.parquet", set(ev.symbol))
     ck = build_clock(bars, 300)
     P = daily_for(sorted(set(ev.symbol)), cf)
@@ -1571,9 +1632,38 @@ def panel_symbols():
     return p
 
 
+def br_excluded(tickers):
+    """Names outside the B-R universe as Part B builds it (scalp_us_daily._br_from_merged): the scan's keep flag /
+    excl_reason, then exclusion rules (b)-(d) on the scan's and the listing files' security names (review fix C24)."""
+    tickers = sorted(set(map(str, tickers)))
+    u = pd.read_csv(RH / "universe.csv", keep_default_na=False, dtype={"ticker": str})
+    u["ticker"] = u.ticker.str.upper()
+    names = dict(zip(u.ticker, u["Name"])) if "Name" in u else {}
+    scan_out = set()
+    if "keep" in u:
+        scan_out |= set(u.ticker[~u.keep.astype(str).str.strip().isin(["1", "1.0", "True"])])
+    if "excl_reason" in u:
+        scan_out |= set(u.ticker[~u.excl_reason.astype(str).str.strip().isin(["", "nan", "False", "0"])])
+    r = sd.static_rules(tickers, sd.load_ref(), names)
+    out = {}
+    for t in tickers:
+        why = [k for k in ("b", "c", "d") if bool(r.at[t, k])] + (["scan"] if t in scan_out else [])
+        if why:
+            out[t] = "rule " + "+".join(why)
+    return out
+
+
+PANEL_SRC = "panel (panel_c.csv, B-R universe names)"
+
+
 def load_panel_data(cf, say):
     """The 120-name panel: 5-minute clock, daily panel, units; plus the 1-minute and 15-second clocks."""
     pan = panel_symbols()
+    ex = br_excluded(pan.ticker)
+    if ex:
+        say(f"panel names outside the B-R universe (exclusion rules (b)-(d) / scan flag, as in Part B), dropped from "
+            f"every cell: {ex}")
+        pan = pan[~pan.ticker.isin(set(ex))].reset_index(drop=True)
     syms = sorted(pan.ticker)
     t0 = time.time()
     b5 = trim_flat(load_bars(RH / "m5_none.parquet", syms))
@@ -1759,6 +1849,30 @@ def run_tests():
     return ok
 
 
+def run_controls(ck5, U, cf, say, src, out):
+    """Controls (i) (Roll market, band parameters from ck5/U) and (ii) (within-session shuffle of ck5's bars)."""
+    params = band_bar_params(ck5, U)
+    say(f"\nControl (i) Roll market; band parameters from {src}:")
+    for k, v in params.items():
+        say(f"  L{k}: {v}")
+    c1, c1p = control_i(params, cf, say)
+    c1["data"] = src; c1p["data"] = src
+    c1.to_csv(out / "controls_i.csv", index=False); c1p.to_csv(out / "controls_i_params.csv", index=False)
+    t1 = time.time()
+    dg = control_i_diagnostics(params, cf, say)
+    dg.to_csv(out / "controls_i_diagnostics.csv", index=False)
+    say(f"Control (i) diagnostic variants (not the pre-registered control; {time.time() - t1:.0f}s):")
+    say(dg[["band", "variant", "s_median_bp", "true_spread_bp", "estimate", "net_bp_per_$", "gross_bp_per_$",
+            "share_sold_limit", "share_sold_forced", "markout1_bp", "A_over_B_bp"]].round(2).to_string(index=False))
+    t1 = time.time()
+    c2 = control_ii(ck5, U, say)
+    c2["data"] = src
+    c2.to_csv(out / "controls_ii.csv", index=False)
+    say(f"\nControl (ii) within-session shuffle on {src} ({time.time() - t1:.1f}s):")
+    say(c2[["band", "subset", "estimate", "t", "n_units", "share_active", "edge_estimate", "fills"]].to_string(index=False))
+    return c1, c2
+
+
 # ============================================================================ main
 
 def main(argv=None):
@@ -1780,28 +1894,11 @@ def main(argv=None):
     if a.controls:
         if have_panel and not a.pilot:
             pan, ck5, P, U, ck1, ck15 = load_panel_data(cf, say)
-            src = "panel (120 names)"
+            src = PANEL_SRC
         else:
             ck5, P, U = load_pilot_data(cf, say)
             src = "6 pilot names (panel bars not yet pulled)"
-        params = band_bar_params(ck5, U)
-        say(f"\nControl (i) Roll market; band parameters from {src}:")
-        for k, v in params.items():
-            say(f"  L{k}: {v}")
-        c1, c1p = control_i(params, cf, say)
-        c1.to_csv(out / "controls_i.csv", index=False); c1p.to_csv(out / "controls_i_params.csv", index=False)
-        t1 = time.time()
-        dg = control_i_diagnostics(params, cf, say)
-        dg.to_csv(out / "controls_i_diagnostics.csv", index=False)
-        say(f"Control (i) diagnostic variants (not the pre-registered control; {time.time() - t1:.0f}s):")
-        say(dg[["band", "variant", "s_median_bp", "true_spread_bp", "estimate", "net_bp_per_$", "gross_bp_per_$",
-                "share_sold_limit", "share_sold_forced", "markout1_bp", "A_over_B_bp"]].round(2).to_string(index=False))
-        t1 = time.time()
-        c2 = control_ii(ck5, U, say)
-        c2["data"] = src
-        c2.to_csv(out / "controls_ii.csv", index=False)
-        say(f"\nControl (ii) within-session shuffle on {src} ({time.time() - t1:.1f}s):")
-        say(c2[["band", "subset", "estimate", "t", "n_units", "share_active", "edge_estimate", "fills"]].to_string(index=False))
+        run_controls(ck5, U, cf, say, src, out)
     if a.smoke:
         t1 = time.time()
         ck5, P, U = load_pilot_data(cf, say)
@@ -1813,7 +1910,11 @@ def main(argv=None):
         if not have_panel:
             say("panel_c.csv / m5_none.parquet missing: nothing to run"); return
         pan, ck5, P, U, ck1, ck15 = load_panel_data(cf, say)
-        ci = pd.read_csv(OUT / "controls_i.csv") if (OUT / "controls_i.csv").exists() else None
+        # review fix C23: Controls (i)/(ii) are always recomputed here, on the panel's band parameters and bars and with
+        # the current cost model, before the primary statistics (~30 s); a stale controls_i.csv is never used
+        say("Controls (i)/(ii) on the panel first (as --controls):")
+        run_controls(ck5, U, cf, say, PANEL_SRC, OUT)
+        ci = pd.read_csv(OUT / "controls_i.csv")
         say(f"window {U.attrs['w0']}..{U.attrs['w1']} ({U.attrs['n_sessions']} sessions, median {U.attrs['median_session']}),"
             f" {len(U):,} stock-sessions; s from 5-min EDGE in {(U.s_src == '5min').mean():.0%}")
         say("Points where the pre-registration could not be followed as written (see the module docstring):")
@@ -1824,12 +1925,12 @@ def main(argv=None):
         say(f"  - closing-quote model M: {cflag}")
         say("  - Control (iii): no historical NBBO exists except the 2026-10-16 scanner close, so 4 of the 5 IEX days use"
             " the NBBO-match proxy of C16")
+        say(f"  - panel: {len(pan)} of {len(panel_symbols())} drawn names are in the B-R universe (C24: names failing"
+            " rules (b)-(d) are dropped; the draw itself was made without rules (b)-(d))")
         if ck1 is None:
             say("  - 1-minute bars missing: PASS condition 6 (cond_1min) not evaluable (left empty = not met)")
         if ck15 is None:
             say("  - 15-second bars missing: the 15-second rerun is not reported")
-        if ci is None:
-            say("  - controls_i.csv missing (run --controls first): cond_control_i left empty = not met")
         nii = pd.read_csv(OUT / "controls_ii.csv") if (OUT / "controls_ii.csv").exists() else None
         if nii is not None:
             nii = nii[nii.subset == "s x P >= $0.03"]
@@ -1841,7 +1942,8 @@ def main(argv=None):
         prim, rep, sens = analyze(ck5, U, P, say, OUT, TDIR, ck1, ck15, ctrl_i=ci, null_ii=nii, b34=b34)
         p = holm(prim.p_one_sided.to_numpy())
         say("\n(provisional within-part Holm, C only; the study-wide Holm is in scalp_report.py)")
-        say(pd.DataFrame({"test_id": prim.test_id, "estimate": prim.estimate, "t": prim.t, "p_holm_within": p})
+        say(pd.DataFrame({"test_id": prim.test_id, "estimate": prim.estimate, "t": prim.t, "p_holm_within": p,
+                          "force_inconclusive": prim.force_inconclusive, "force_reason": prim.force_reason})
             .to_string(index=False))
     if a.events:
         if not ((RH / "events.csv").exists() and (RH / "events_m5_none.parquet").exists()):
