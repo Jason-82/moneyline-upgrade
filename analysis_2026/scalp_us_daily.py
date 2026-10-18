@@ -100,9 +100,14 @@ was taken where one exists; none was changed after seeing a result):
     the same close reuse the proceeds). Tax: 35% is applied to a positive annual net return only; SPY
     buy-and-hold pays 20% on its gain at the end.
 20. Null panels (Control (i)): each name keeps its real-bar calendar, exclusion flags, k and on-grid flags;
-    its bars are redrawn with replacement (numpy default_rng([20261018, j])) from its own real bars that
-    follow a real bar; prices are rebuilt from the first real close. The cost model and R_y stay at their
-    real-data values (they are fixed before any return).
+    its bars are redrawn with replacement (numpy default_rng([20261018, j])) from its own real bars whose
+    previous exchange day is a real bar (the daily bars of choice 6); prices are rebuilt from the first real
+    close. The cost model and R_y stay at their real-data values (they are fixed before any return).
+    (audit fix, 2026-10-18) The pool first held every real bar after any earlier real bar, so a bar after a gap
+    (1.8% of the pool; 745 of its 3,165 ratios beyond x3 or /3, e.g. reused tickers and relistings) was replayed
+    as a one-day return. On the null paths those multi-day jumps compounded to x1e8 moves and float32 overflow;
+    a benchmark name's +1e8 return gave B4 null statistics of -8.4 and -104 (fractions) and a traded name's x12,949
+    day gave B1-L3 a null of +0.010. Null panels re-run after the fix.
 21. D3: capital is recycled at the close; each day K minus the entry cost of still-open positions is split
     equally across that day's orders (for B3/B4 the limit orders placed); caps 10% of the entry day's $
     volume (x f for limit fills), 4.9% of shares outstanding (B-R only; current snapshot, not point in time),
@@ -154,6 +159,14 @@ was taken where one exists; none was changed after seeing a result):
     a 25 bp half-spread (L4-like), B4's gross is -41 bp per trade as registered and +21 bp with open-price
     improvement (reviewer synthetic test). The synthetic no-edge level in controls_synthetic.csv (about -64 bp
     gross in L2-L4) is this convention, not a bug; B4's primary result should be read against it.
+34. (audit fix, 2026-10-18) Sale proceeds are floored at zero: a taker leg's cost fraction m s/2 + impact (+ fee)
+    is applied as max(0, 1 - cost), so no long trade loses more than 100% (c2c_net, b3_net, b4_net's forced piece,
+    D3's exits, D4's sales). qlib data errors (e.g. SBL 2011 alternating $1.5/$150, SGP 2011 $15/$600, ARCH 2016's
+    relisting inside the 20-day window) put sigma20 at 10-290 (1,000-29,000% a day), so the registered impact term
+    was 1-74x the notional and 70 B-H primary trades had net returns of -100% to -8,500% (SGP 44, SBL 21, EMP 3,
+    ARCH 2; B1-L1 22, B2-L1 18, B4-L1 11, E1-L1 6, B1/B2/B4-L2 13; B-R has 67 more). Effect on the primary estimates: B1-L1 -6.61% -> -6.28%, B2-L1 -8.71% ->
+    -7.30%, E1-L1 -7.02% -> -6.75%, all other cells < 1 bp. The cost formula itself is unchanged; the floor only
+    stops a sale from paying to dispose of the shares.
 Points where the pre-registration could not be followed are listed in summary.txt (B-R and its universe
 not yet pulled; shares outstanding only in B-R; historical B-H fee schedules).
 """
@@ -1198,7 +1211,7 @@ def c2c_net(P, tr, m=M0, Y=Y0, Q=Q0, pen=0.30, exit_mult=1.0, entry_taker=True):
     cx = leg_cost(P, tr["i"], tr["ext"], Q, m * exit_mult, Y)
     fee = fee_frac(P, tr["ext"], qe, qe / np.maximum(tr["p_exit"], 1e-9))
     normal = tr["flag"] != 1
-    r = np.where(normal, (1 + g) * (1 - cx - fee) / (1 + ce) - 1, (1 + g) / (1 + ce) - 1)
+    r = np.where(normal, (1 + g) * np.maximum(1 - cx - fee, 0.0) / (1 + ce) - 1, (1 + g) / (1 + ce) - 1)   # proceeds >= 0
     return r, q
 
 
@@ -1244,7 +1257,7 @@ def b3_net(P, tr, m=M0, Y=Y0, Q=Q0, pen=0.30):
     qe = q * (1 + g)
     cx = leg_cost(P, tr["i"], tr["ext"], Q, m, Y)                               # impact at the order size Q
     fee = fee_frac(P, tr["ext"], qe, qe / np.maximum(tr["p_exit"], 1e-9))
-    r = np.where(tr["flag"] != 1, (1 + g) * (1 - cx - fee) - 1, g)
+    r = np.where(tr["flag"] != 1, (1 + g) * np.maximum(1 - cx - fee, 0.0) - 1, g)            # proceeds >= 0
     return r, q
 
 
@@ -1287,7 +1300,7 @@ def b4_net(P, tr, EL=None, BC=None, m=M0, Y=Y0, pen=0.30, raw=False):
     cx = leg_cost(P, i, d, tr["Q"], m, Y)                                       # impact at the order size Q
     pex = P.C[i, d] / kk
     fee = fee_frac(P, d, v_rem, v_rem / np.maximum(pex, 1e-9))
-    gf = np.where(tr["fflag"] == 1, g, (1 + np.nan_to_num(g)) * (1 - cx - fee) - 1)
+    gf = np.where(tr["fflag"] == 1, g, (1 + np.nan_to_num(g)) * np.maximum(1 - cx - fee, 0.0) - 1)   # proceeds >= 0
     after += np.where(has, fr * gf, 0.0)
     r_tot = (1 + tr["r1"]) * (1 + after) - 1
     if raw or BC is None:
@@ -1798,7 +1811,8 @@ def exclusion_counts(S, Fd, eflag):
 @njit(parallel=True, cache=True)
 def _redraw(O, H, L, C, F, SV, real, seeds):
     """Per name: redraw (open, high, low relative to the prior close, close-to-close total return, volume) with
-    replacement from the name's own real bars that follow a real bar; rebuild prices from the first real close."""
+    replacement from the name's own real bars whose previous exchange day is a real bar; rebuild prices from the first
+    real close."""
     N, T = C.shape
     O2 = np.full((N, T), np.nan, np.float32); H2 = O2.copy(); L2 = O2.copy(); C2 = O2.copy(); V2 = O2.copy()
     for i in prange(N):
@@ -1815,15 +1829,23 @@ def _redraw(O, H, L, C, F, SV, real, seeds):
         O2[i, t0] = O[i, t0]; H2[i, t0] = H[i, t0]; L2[i, t0] = L[i, t0]; C2[i, t0] = C[i, t0]; V2[i, t0] = SV[i, t0]
         if n < 2:
             continue
+        # pool: real bars whose previous exchange day is a real bar (a bar after a gap carries a multi-day return,
+        # not a daily one; audit fix, see implementation choice 20)
         ro = np.empty(n - 1); rh = np.empty(n - 1); rl = np.empty(n - 1); rc = np.empty(n - 1); rv = np.empty(n - 1)
+        m = 0
         for j in range(1, n):
             t = idx[j]; tp = idx[j - 1]
+            if tp != t - 1:
+                continue
             pc = C[i, tp] * F[i, tp]
-            ro[j - 1] = O[i, t] * F[i, t] / pc; rh[j - 1] = H[i, t] * F[i, t] / pc
-            rl[j - 1] = L[i, t] * F[i, t] / pc; rc[j - 1] = C[i, t] * F[i, t] / pc; rv[j - 1] = SV[i, t]
-        prev = C[i, t0]
+            ro[m] = O[i, t] * F[i, t] / pc; rh[m] = H[i, t] * F[i, t] / pc
+            rl[m] = L[i, t] * F[i, t] / pc; rc[m] = C[i, t] * F[i, t] / pc; rv[m] = SV[i, t]
+            m += 1
+        if m == 0:
+            continue
+        prev = C[i, t0] * 1.0
         for j in range(1, n):
-            u = np.random.randint(0, n - 1)
+            u = np.random.randint(0, m)
             t = idx[j]
             O2[i, t] = prev * ro[u]; H2[i, t] = prev * rh[u]; L2[i, t] = prev * rl[u]
             C2[i, t] = prev * rc[u]; V2[i, t] = rv[u]
@@ -2195,7 +2217,7 @@ def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WC
                 shs = amt / (C[i, d] / KK[i, d])
                 fee = (sec[d] * amt if amt > 500 else 0.0) + (min(taf[d] * shs, tafcap[d]) if shs > 50 else 0.0)
                 frac = amt / val
-                pnl += amt * (1 - cst) - fee - p_cost[p] * frac
+                pnl += max(amt * (1 - cst) - fee, 0.0) - p_cost[p] * frac          # proceeds >= 0
                 in_use -= p_cost[p] * frac
                 p_cost[p] *= (1 - frac); p_units[p] *= (1 - frac)
                 sell_d += amt; sh_d += shs
@@ -2342,10 +2364,10 @@ def _d4_one(i, t, Qd, C, F, H, L, DV, SPR, SIG, traded, m, Y, sec, taf, tafcap, 
             val = units * typ
             s_ = min(val, 0.2 * DV[i, d])
             sg = SIG[i, d] if SIG[i, d] == SIG[i, d] else 0.0
-            px = typ * (1 - m * SPR[i, d] / 2 - Y * sg * math.sqrt(s_ / DV[i, d]))
+            px = typ * max(1 - m * SPR[i, d] / 2 - Y * sg * math.sqrt(s_ / DV[i, d]), 0.0)   # price >= 0
             sh = s_ / (typ / F[i, d] / KK[i, d])
             fee = (sec[d] * s_ if s_ > 500 else 0.0) + (min(taf[d] * sh, tafcap[d]) if sh > 50 else 0.0)
-            proceeds += s_ / typ * px - fee
+            proceeds += max(s_ / typ * px - fee, 0.0)
             units -= s_ / typ
             lasts = d
             if first < 0:

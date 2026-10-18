@@ -167,6 +167,17 @@ Review fixes (adversarial code review, before any primary result was computed):
      leaves a uniform random sample of the universe, but not the exact default_rng(20261018) draw from it
      (a deviation; a redraw would need new intraday pulls).
  C25 events.csv is read with keep_default_na=False (the ticker "NA" was read as NaN).
+Audit fix (results audit, after the primary results were computed; no rule changed):
+ C26 markouts.csv and by_halfhour.csv now use the primary cells' units (band k, s x P >= $0.03 AND the C19
+     eligibility rule), like cell_report.csv. The first version left out the C19 filter there, so those two tables
+     also held positions of ineligible stock-sessions (21 / 37 / 79 / 41 extra positions in L1-L4; markouts moved by
+     under 1 bp). The primary cells, cell_report.csv and every other table were already computed on the cells' units.
+     trades_primary.parquet gains an elig column. Checked independently in the audit: a pure-Python C1 written from
+     the pre-registration reproduces the engine's net and $ bought on all 18,880 stock-sessions (primary, m = 0,
+     touch, any-extreme, T_max 12) and the 1-minute and 15-second reruns exactly; s_id, the point-in-time bands, the
+     two-way clustered t and the ORB trades also reproduce. An independent Roll market (own generator, own EDGE / M,
+     own C1) reproduces Control (i): -$36 / -47 / -54 / -57 per stock-session (-397 / -179 / -95 / -47 bp per $) vs
+     -$36 / -47 / -55 / -57 here, so the control's failure is a property of the registered rule, not of the engine.
 Deviations from the pre-registration (also written to summary.txt): intraday bars are unadjusted only
 (all C rules are within-session and s is relative); the window start moves to the first available session if
 retention has rolled past 2026-03-02; Control (iii)'s NBBO match is proxied on 4 of the 5 days (C16); the panel is
@@ -1015,11 +1026,12 @@ def analyze(ck5, U, P, say, out, tdir, ck1=None, ck15=None, write=True, ctrl_i=N
     if pos is not None and len(pos):
         pos = pos.copy()
         pos["band"] = U.band.to_numpy()[pos.unit]; pos["tick3"] = U.tick3.to_numpy()[pos.unit]
+        pos["elig"] = U.elig.to_numpy(bool)[pos.unit]                  # audit fix C26
         pos["sym"] = U.sym.to_numpy()[pos.unit]; pos["date"] = U.date.to_numpy()[pos.unit]
         pos["entry_time"] = [f"{(570 + j * ck5.dt // 60) // 60:02d}:{(570 + j * ck5.dt // 60) % 60:02d}" for j in pos.j0]
         pos["halfhour"] = [f"{(570 + 30 * ((j * ck5.dt) // 1800)) // 60:02d}:{(570 + 30 * ((j * ck5.dt) // 1800)) % 60:02d}"
                            for j in pos.j0]
-        pp = pos[pos.tick3.astype(bool) & pos.band.between(1, 4)]
+        pp = pos[pos.tick3.astype(bool) & pos.elig & pos.band.between(1, 4)]   # the primary cells' units (C26)
         for k, g in pp.groupby("band"):
             row = {"band": f"L{k}", "n_positions": len(g)}
             for q in (1, 3, 6):

@@ -22,7 +22,7 @@ Control (i) Roll market; band parameters from panel (panel_c.csv, B-R universe n
   diagnostics L2 done
   diagnostics L3 done
   diagnostics L4 done
-Control (i) diagnostic variants (not the pre-registered control; 12s):
+Control (i) diagnostic variants (not the pre-registered control; 15s):
 band                          variant  s_median_bp  true_spread_bp  estimate  net_bp_per_$  gross_bp_per_$  share_sold_limit  share_sold_forced  markout1_bp  A_over_B_bp
   L1                   as run (m=1.5)       384.21           197.0    -35.49       -400.92          -66.57              0.01               0.82      -121.71       396.41
   L1                        gross m=0       384.21           197.0     -6.45        -72.88          -66.57              0.01               0.82      -121.71       396.41
@@ -53,7 +53,7 @@ band                          variant  s_median_bp  true_spread_bp  estimate  ne
   L4 tiny vol, s = true spread, m=1.5        21.00            21.0    -22.48        -18.11           -1.55              0.00               0.97        -2.13        23.95
   L4   tiny vol, s = true spread, m=0        21.00            21.0     -2.32         -1.87           -1.55              0.00               0.97        -2.13        23.95
 
-Control (ii) within-session shuffle on panel (panel_c.csv, B-R universe names) (0.5s):
+Control (ii) within-session shuffle on panel (panel_c.csv, B-R universe names) (0.4s):
 band         subset   estimate          t  n_units  share_active  edge_estimate  fills
   L1 s x P >= $0.03 -48.033310  -8.167411     3496      0.749142      -0.030953   6683
   L1      all ticks -44.595173  -8.619484     3980      0.746482      -0.029527   7719
@@ -69,7 +69,7 @@ Points where the pre-registration could not be followed as written (see the modu
   - closing-quote model M: Part B cost_model.csv (B-R)
   - Control (iii): no historical NBBO exists except the 2026-10-16 scanner close, so 4 of the 5 IEX days use the NBBO-match proxy of C16
   - panel: 118 of 120 drawn names are in the B-R universe (C24: names failing rules (b)-(d) are dropped; the draw itself was made without rules (b)-(d))
-  5-minute variants: 12 runs on 18,880 stock-sessions in 0.2s
+  5-minute variants: 12 runs on 18,880 stock-sessions in 0.4s
   1-minute rerun: 3,422 overlapping stock-sessions in 0.1s
   15-second rerun: 160 overlapping stock-sessions in 0.0s
 
@@ -80,4 +80,4 @@ test_id   estimate          t  p_holm_within  force_inconclusive       force_rea
   C1-L3 -36.565874  -8.495020            1.0                True Control (i) failed
   C1-L4 -33.459764  -7.325142            1.0                True Control (i) failed
 
-total 65s
+total 72s

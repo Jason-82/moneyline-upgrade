@@ -157,6 +157,34 @@ Review fixes (adversarial code review before any primary result was computed; no
       symbol-days, truncating only their markouts).
   U6  load_klines drops 3 exact duplicate sym-day rows of the archive (AXS 2026-02-10, UMA 2026-07-15, USDP
       2026-07-17); this moves n_klines by 1 for 11 pair-months and changes no eligibility, band or draw.
+Results audit notes (2026-10-18, after the primary results were read; documentation only: no rule and no simulation
+code changed, so the cached results stay valid)
+  A1  E3 understates the cap overshoot. Every new order or reprice is sized from the inventory at its decision time, and
+      on fast days up to ~10 replacements per side are in flight within D, each fillable in turn once it activates, so
+      |inv| can pass 3q by several q (Q5 can hold several positions at once). Q1 $1k F1 250 ms: max inventory above
+      4q x max(day high, previous close) / previous close on 11.8% of pair-days (band D 39%), up to ~59q, i.e. about
+      20 times the 3q cap (NEARUSDT 2026-09-22, $64k at $1k size; corrected by the second audit from "~20q"); Q5 up to
+      ~28 positions (SUIUSDT 2026-05-10). Full-sample check (second audit, scratch copy of the engine that clips each
+      order at activation to the cap room, Q5: no bid while holding; the same run with the unmodified logic reproduced
+      all 30,363 stored Q1/Q2/Q5 primary pair-day rows exactly from a fresh download): mean net $ per pair-day moved by
+      -1.4 to +14.4 and edges by -0.72 to +0.79 bp per $ filled (Q1/Q2 at most 0.09 bp; Q5-A +0.79, Q5-C -0.72); every
+      strict upper bound stays at or below -3.3 bp. P&L, edges and verdicts stand; the max_inv_usd columns (cell_report,
+      capacity) and Q5's "one position at a time" overstate what a cap-respecting bot would hold.
+  A2  exit_cost_usd (E13) is booked only when the implied ask is above the implied bid at the exit decision (there is no
+      300-s staleness check); an exit decided on a locked/crossed or one-sided implied quote enters gross P&L but not
+      exit_cost_usd (0.15% of pair-days with exits book no exit cost at all), so exit_pnl_usd_day is a lower bound.
+  A3  E1 (size fixed in coins from the previous close) scales exposure with the intraday price: on NFPUSDT 2026-07-01
+      (about 9x intraday) Q1 lost $110k at $1k size, 8.7% of band B's Q1 net loss; without that pair-day A-Q1-B is
+      -11.5 instead of -12.2 bp per $ filled (A-Q2-B -12.3 instead of -13.0).
+  A4  Control (i) is scale-free in ticks (its tick is 5 bp), so its F1-vs-FIFO gap transfers in ticks, not bp. In tick
+      units its A-like market resembles bands A/B (60-s implied-mid SD 1.4 vs 0.8/1.3 ticks; 150 vs a median 89/163 taker
+      orders per hour; spread 1-3 vs a median 2 ticks). Its no-information gap is ~0.9 tick for Q1 and 0.9-1.4 ticks
+      for Q5, i.e. ~7-9 bp (Q1) and ~14-17 bp (Q5) at bands A/B's fill-weighted ticks. Applied per pair-day (hypothetical,
+      not a pre-registered correction) it would lift the strict upper bound of A-Q5-A and A-Q5-B above +1 bp (+6.8,
+      +5.7; A-Q5-B point estimate +2.3) and leave every Q1/Q2 cell below +1 (closest A-Q1-B -1.6); with alpha 0.3 no cell
+      crosses. Control (ii), the pre-registered correction, finds F1 within 0.14 tick of FIFO on real coarse-tick books
+      (DGB 12.7 bp and RUNE 8.6 bp ticks) but only at >= 370 taker orders per hour, so for bands A/B the F1 bias is not
+      validated on real books. Under F2 (touch, which ignores the queue) only A-Q5-B's strict upper bound exceeds +1 bp.
 
 ---------------------------------------------------------------------------------------------- Deviations
 (Places where the pre-registration could not be followed exactly.)
