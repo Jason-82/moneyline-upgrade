@@ -8,7 +8,8 @@ controls), "Part E" (daily rule only; the intraday ORB leg is in scalp_us_intrad
     python3 -m analysis_2026.scalp_us_daily --smoke         # one year of B-H, timings and counts only (scratch output)
     python3 -m analysis_2026.scalp_us_daily --run           # full primary analysis, exploratory, B6, Part D
     python3 -m analysis_2026.scalp_us_daily --run --nulls 20   # plus the 20 null panels (Control (i), PASS condition 8)
-    python3 -m analysis_2026.scalp_us_daily --nulls 20      # null panels only (appends to an existing --run)
+    python3 -m analysis_2026.scalp_us_daily --nulls 20      # null panels only; rerun --run afterwards for cond_null
+    (--br-root DIR reads daily_split/daily_none.parquet from DIR instead of data/scalping/rh)
 
 Data (gitignored): data/scalping/qlib/panel.parquet (B-H), data/scalping/ref/*.csv (ETF flags and names),
 data/raw_pit/ (S&P 500 point-in-time set), data/macro/VIXCLS.csv, data/scalping/rh_pilot/ (pilot quotes and
@@ -105,10 +106,15 @@ was taken where one exists; none was changed after seeing a result):
     from the split column (close x later split ratios); rows without volume (CRSP close-only) skip the
     volume conditions and pay no impact; "members qlib has on each date" = a qlib row for the ticker (the
     PIT suffix -YYYYMM stripped) on that date.
-24. Synthetic no-edge control (General rules): per band L1-L4, 150 names x 2,500 days of Poisson trades at
+24. Synthetic no-edge control (General rules): per band L1-L4, 300 names x 1,000 days of Poisson trades at
     a random-walk mid +- half the band's median spread estimate, aggressor side independent of the mid,
     aggregated to daily OHLCV on a cent grid; the band's median sigma20, ADV60 and zero-volume share set the
     parameters. B1-B4 and E1 run unchanged (cost model fixed, R_y = 1).
+25. B-R universe: universe.csv rows with keep != 1 or an excl_reason are dropped (the scan's asset type and
+    name filter), then rules (b)-(d) on the scan names and the listing files. Liquid names come from
+    data/universe_recent_raw (2024-08 onward) for symbols the scan does not list, after rules (a)-(d); they are
+    split-adjusted only, so their price-level rules use split-adjusted prices (they are mostly L5/L6 names).
+    B-R returns are split-adjusted, not dividend-adjusted (Robinhood's "all" adjustment is intraday only).
 Points where the pre-registration could not be followed are listed in summary.txt (B-R and its universe
 not yet pulled; shares outstanding only in B-R; historical B-H fee schedules).
 """
@@ -524,6 +530,14 @@ def _b4_engine(elig, C, F, H, L, O, KK, DV, traded, WCL, WCH, S, last_tr, sample
 
 # ============================================================================ panels
 
+_UID = [0]
+
+
+def _uid():
+    _UID[0] += 1
+    return _UID[0]
+
+
 def _empty(N, T, dtype=np.float32, fill=np.nan):
     return np.full((N, T), fill, dtype)
 
@@ -533,13 +547,17 @@ def panel_from_long(df: pd.DataFrame, dates, name, kind, sample, fields=("open",
     O/H/L/C are continuous split-adjusted prices, F the factor that turns them into total-return prices,
     SV split-adjusted shares, KK the traded-price divisor (P = C / KK)."""
     dates = pd.DatetimeIndex(dates)
-    tick = np.array(sorted(df.ticker.unique()))
-    ti = pd.Index(tick).get_indexer(df.ticker)
+    cat = pd.Categorical(df.ticker)
+    cat = cat.remove_unused_categories() if hasattr(cat, "remove_unused_categories") else cat
+    order = np.argsort(np.asarray(cat.categories, dtype=str))
+    tick = np.asarray(cat.categories, dtype=str)[order]
+    remap = np.empty(len(order), np.int64); remap[order] = np.arange(len(order))
+    ti = remap[cat.codes]
     di = dates.get_indexer(df.date)
     ok = di >= 0
     ti, di, df = ti[ok], di[ok], df[ok]
     N, T = len(tick), len(dates)
-    P = SimpleNamespace(name=name, kind=kind, dates=dates, tickers=tick, N=N, T=T)
+    P = SimpleNamespace(name=name, kind=kind, dates=dates, tickers=tick, N=N, T=T, uid=_uid())
     for a, col in (("O", "open"), ("H", "high"), ("L", "low"), ("C", "close"), ("SV", "sv")):
         m = _empty(N, T); m[ti, di] = df[col].to_numpy(np.float32); setattr(P, a, m)
     P.F = _empty(N, T, fill=1.0)
@@ -616,15 +634,15 @@ def load_qlib_long(start, end, tickers=None):
     cols = ["ticker", "date", "open", "high", "low", "close", "volume", "factor"]
     p = pd.read_parquet(SC / "qlib" / "panel.parquet", columns=cols,
                         filters=[("date", ">=", pd.Timestamp(start)), ("date", "<=", pd.Timestamp(end))])
-    p["ticker"] = p.ticker.astype(str)
     if tickers is not None:
         p = p[p.ticker.isin(set(tickers))]
-    f = p.factor.astype(np.float64)
-    out = pd.DataFrame({"ticker": p.ticker.values, "date": p.date.values})
+    f = p.factor.to_numpy(np.float64)
+    out = pd.DataFrame({"ticker": p.ticker.values, "date": p.date.values})   # ticker stays categorical
     for c in ("open", "high", "low", "close"):
-        out[c] = (p[c].astype(np.float64) / f).to_numpy()                 # Yahoo split-adjusted price
-    out["sv"] = (p.volume.astype(np.float64) * f).to_numpy()               # split-adjusted shares
-    out["fret"] = f.to_numpy()                                             # x continuous = qlib adjusted close
+        out[c] = (p[c].to_numpy(np.float64) / f).astype(np.float32)       # Yahoo split-adjusted price
+    out["sv"] = (p.volume.to_numpy(np.float64) * f).astype(np.float32)     # split-adjusted shares
+    out["fret"] = f.astype(np.float32)                                     # x continuous = qlib adjusted close
+    del p
     return out.dropna(subset=["close"])
 
 
@@ -633,11 +651,15 @@ def load_bh(start="2000-01-03", end="2021-03-31", sample=(BH_START, BH_END)):
     ref = load_ref()
     q = load_qlib_long(start, end)
     dates = pd.DatetimeIndex(np.sort(q.date.unique()))
-    rules = static_rules(sorted(q.ticker.unique()), ref)
+    present = q.ticker.astype("category").cat.remove_unused_categories().cat.categories
+    rules = static_rules(sorted(map(str, present)), ref)
     stock = rules.index[~(rules.a | rules.b | rules.c | rules.d)]
     fund = rules.index[((rules.a | rules.bfund) & ~rules.c) | rules.index.isin(FUNDS_B6)]
-    S = finish_panel(panel_from_long(q[q.ticker.isin(set(stock))], dates, "B-H", "BH", sample), grid=True)
-    Fd = finish_panel(panel_from_long(q[q.ticker.isin(set(fund))], dates, "B-H funds", "BH", sample), grid=True)
+    S = panel_from_long(q[q.ticker.isin(set(stock))], dates, "B-H", "BH", sample)
+    Fd = panel_from_long(q[q.ticker.isin(set(fund))], dates, "B-H funds", "BH", sample)
+    del q
+    _trim()
+    S = finish_panel(S, grid=True); Fd = finish_panel(Fd, grid=True)
     S.rules = rules.loc[S.tickers]; Fd.rules = rules.loc[Fd.tickers]
     S.all_rules = rules
     return S, Fd
@@ -652,10 +674,11 @@ def _rh_daily(path):
     return d.rename(columns={"symbol": "ticker"})
 
 
-def load_br(sample=(BR_START, BR_END)):
+def load_br(sample=(BR_START, BR_END), root=None):
     """B-R panel from Robinhood daily bars (split-adjusted for returns, unadjusted for price levels). Returns
-    None if the bars have not been pulled yet."""
-    ps, pn, pu = SC / "rh" / "daily_split.parquet", SC / "rh" / "daily_none.parquet", SC / "rh" / "universe.csv"
+    None if the bars have not been pulled yet (python3 -m analysis_2026.fetch_scalping_data rh-combine)."""
+    root = Path(root) if root else SC / "rh"
+    ps, pn, pu = root / "daily_split.parquet", root / "daily_none.parquet", SC / "rh" / "universe.csv"
     if not (ps.exists() and pn.exists()):
         return None
     s = _rh_daily(ps); u = _rh_daily(pn)
@@ -974,6 +997,7 @@ def build_el(P, k1_only=False, groups=None):
         EL.vshock &= P.SV_known[ii, tt]
     EL.key = tt * P.N + ii
     EL.n = len(ii)
+    EL.uid = _uid()
     return EL
 
 
@@ -1265,9 +1289,10 @@ class Bench:
     def get(self, a_off, a_open, b_off, b_open, pen=0.30):
         k = (a_off, a_open, b_off, b_open, pen)
         if k not in self.c:
-            if len(self.c) > 24:                                  # keep memory bounded (EL-aligned float32 arrays)
-                for kk in [x for x in self.c if x[2] > 6][:12]:
-                    del self.c[kk]
+            keep = {(0, False, 1, False, 0.30)} | {(1, False, b, False, 0.30) for b in range(2, 8)}
+            extra = [x for x in self.c if x not in keep]
+            while len(extra) > 8:                                 # keep memory bounded (EL-aligned float32 arrays)
+                del self.c[extra.pop(0)]
             self.c[k] = bench_values(self.P, self.EL, a_off, a_open, b_off, b_open, pen).astype(np.float32)
         return self.c[k]
 
@@ -1285,7 +1310,7 @@ COST_ONLY = ("exit_mult", "gross", "raw", "bench", "ew", "bench_open")
 
 
 def _trades_cached(P, EL, strat, band, v, Q, fn):
-    key = (id(P), id(EL), strat, band, Q if strat == "B4" else None,
+    key = (P.uid, EL.uid, strat, band, Q if strat == "B4" else None,
            tuple(sorted((k, x) for k, x in v.items() if k not in COST_ONLY and k != "tr")))
     if key not in _TRC:
         _TRC[key] = fn()
@@ -1437,9 +1462,11 @@ STAT_NAME = {"B1": "trade-weighted mean net band-excess return per trade (m=1.5,
 def prepare(P, cf, ry, k1_only=False):
     if not hasattr(P, "ADV"):
         trailing(P)
-    spread(P, cf, ry)
-    fee_schedule(P)
-    P.FIRE = can_fire(P)
+    if not hasattr(P, "SPR"):
+        spread(P, cf, ry)
+        del P.M
+        fee_schedule(P)
+        P.FIRE = can_fire(P)
     EL = build_el(P, k1_only)
     return EL, Bench(P, EL), signals(EL)
 
@@ -1538,7 +1565,7 @@ def run_primary(P, EL, BC, sig, Fd=None, BR=None, nulls=None, write_trades=True,
 
 # ============================================================================ exploratory
 
-def run_exploratory(P, EL, BC, sig, vix=None, k1=None):
+def run_exploratory(P, EL, BC, sig, vix=None):
     rows = []
 
     def add(label, part, s, b, c, note=""):
@@ -1610,10 +1637,20 @@ def run_exploratory(P, EL, BC, sig, vix=None, k1=None):
     for b in (5, 6):
         for s in STRATS:
             add("control band", "E" if s == "E1" else "B", s, b, run_cell(P, EL, BC, sig, s, b))
-    if k1 is not None:
-        EL1, BC1, sig1 = k1
-        for s, b in CELLS:
-            add("k > 1 name-days dropped", "E" if s == "E1" else "B", s, b, run_cell(P, EL1, BC1, sig1, s, b))
+    return pd.DataFrame(rows)
+
+
+def run_k1_rows(P, cf, ry):
+    """Exploratory: the primary cells with every name-day with k > 1 dropped (eligibility and benchmarks)."""
+    EL1, BC1, sig1 = prepare(P, cf, ry, k1_only=True)
+    rows = []
+    for s, b in CELLS:
+        st = stat_of(P, run_cell(P, EL1, BC1, sig1, s, b))
+        rows.append({"label": "k > 1 name-days dropped", "part": "E" if s == "E1" else "B", "strategy": s,
+                     "band": BANDS[b], "note": ""} | {k: st[k] for k in ("estimate", "se", "t", "p_one_sided",
+                                                                          "n_trades", "half1", "half2",
+                                                                          "edge_estimate", "share_active")})
+        _TRC.clear()
     return pd.DataFrame(rows)
 
 
@@ -1718,7 +1755,8 @@ def _redraw(O, H, L, C, F, SV, real, seeds):
 def null_panel(S, j):
     seeds = np.random.default_rng([20261018, j]).integers(0, 2 ** 31 - 1, S.N)
     O2, H2, L2, C2, V2 = _redraw(S.O, S.H, S.L, S.C, S.F, S.SV, S.real, seeds)
-    P = SimpleNamespace(name=f"null {j}", kind="BH", dates=S.dates, tickers=S.tickers, N=S.N, T=S.T, s0=S.s0, s1=S.s1,
+    P = SimpleNamespace(name=f"null {j}", kind="BH", uid=_uid(), dates=S.dates, tickers=S.tickers, N=S.N, T=S.T,
+                        s0=S.s0, s1=S.s1,
                         O=O2, H=H2, L=L2, C=C2, SV=V2, F=np.ones((S.N, S.T), np.float32), present=S.real.copy(),
                         KK=S.KK, ONGRID=S.ONGRID, WCL=S.WCL, WCH=S.WCH, excl=S.excl, rules=S.rules)
     P = finish_panel(P, grid=False)
@@ -1773,7 +1811,7 @@ def _syn_ticks(nn, T, sigma, hs, p_active, lam, dollars, seed):
     return O, H, L, C, V
 
 
-def synthetic_panel(params, nn=150, T=2500, seed=20261018):
+def synthetic_panel(params, nn=300, T=1000, seed=20261018):
     """params[b] = dict(s, sig20, adv, zero_vol_share) per band; returns a panel with all bands stacked."""
     frames = []
     dates = pd.bdate_range("2001-01-01", periods=T)
@@ -1791,6 +1829,21 @@ def synthetic_panel(params, nn=150, T=2500, seed=20261018):
     P = panel_from_long(df, dates, "synthetic no-edge", "SYN", (dates[80], dates[-30]))
     P.ONGRID = np.ones((P.N, P.T), bool)
     return finish_panel(P, grid=False)
+
+
+def band_params(S, cf, ry):
+    """Band medians (eligible B-H name-days) of the spread estimate, sigma20, ADV60 and the zero-volume share of
+    the previous day, for the synthetic no-edge market. No return is computed."""
+    if not hasattr(S, "SPR"):
+        spread(S, cf, ry); del S.M; fee_schedule(S); S.FIRE = can_fire(S)
+    E = eligibility(S)
+    out = {}
+    prev_tr = np.zeros_like(S.traded); prev_tr[:, 1:] = S.traded[:, :-1]
+    for b in (1, 2, 3, 4):
+        m = E & (S.BAND == b)
+        out[b] = {"s": float(np.nanmedian(S.SPR[m])), "sig20": float(np.nanmedian(S.SIG20[m])),
+                  "adv": float(np.nanmedian(S.ADV[m])), "zero_vol_share": float(1 - prev_tr[m].mean())}
+    return out
 
 
 def run_synthetic(params, cf):
@@ -1903,7 +1956,7 @@ def run_b6(S, Fd, eflag, cf, ry):
         intl = np.array([bool(P.rules.intl.get(t, False)) if hasattr(P, "rules") else False for t in P.tickers[ii]])
         twk = tw[rr, tt].astype(np.int64)
         intl |= np.isin(np.array(FUNDS_B6)[twk], ["EFA", "EEM"])
-        EL = SimpleNamespace(i=ii, t=tt, gb=P.BAND[ii, tt], n=len(ii), key=tt * P.N + ii)
+        EL = SimpleNamespace(i=ii, t=tt, gb=P.BAND[ii, tt], n=len(ii), key=tt * P.N + ii, uid=_uid())
         for hold in (1, 5):
             tr = c2c_trades(P, EL, np.arange(len(ii)), 0, False, hold, False)
             rn, q = c2c_net(P, tr)
@@ -1961,16 +2014,18 @@ def run_d2(P, EL, BC, sig):
 
 @njit(cache=True)
 def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WCL, WCH, shares_out, depth, m, Y,
-            sec, taf, tafcap, last_tr, s0, s1, NS, tgt, lmult, SIG_B3):
+            sec, taf, tafcap, last_tr, s0, s1, NS, tgt, lmult, SIG_B3, maxday):
     """D3 deployed-capital simulation for one cell and one K (see module docstring, choice 21).
     kind 0: market buy at the close of t, exit from t+1; 1: B3 limit at t+1, exit at the close of t+1;
     2: B4 limit at t+1, GTC sells t+2..t+1+NS, then exits from t+1+NS. Exits sell <= 20% ADV60 per day."""
     N, T = C.shape
     no = len(ot)
-    maxp = no + 1
+    maxp = min(no + 1, 400000)                    # position slots, reused once a position is closed
     p_i = np.empty(maxp, np.int64); p_units = np.empty(maxp); p_cost = np.empty(maxp); p_first = np.empty(maxp, np.int64)
-    p_A = np.empty(maxp); p_kk = np.empty(maxp); p_gtc_end = np.empty(maxp, np.int64); p_last = np.empty(maxp, np.int64)
+    p_A = np.empty(maxp); p_kk = np.empty(maxp); p_gtc_end = np.empty(maxp, np.int64)
     p_open = np.zeros(maxp, np.bool_); p_start_exit = np.full(maxp, -1, np.int64); p_lastgood = np.empty(maxp, np.int64)
+    free = np.arange(maxp)[::-1].copy()
+    nfree = maxp
     holding = np.zeros(N, np.bool_)
     act = np.empty(maxp, np.int64)
     nact = 0
@@ -1980,8 +2035,9 @@ def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WC
     dep = np.zeros(T); lt_days = 0
     exit_days_sum = 0.0; n_closed = 0
     k = 0
-    pend_i = np.empty(maxp, np.int64); pend_amt = np.empty(maxp); pend_B = np.empty(maxp); pend_kk = np.empty(maxp)
-    pend_t = np.empty(maxp, np.int64); pend_A = np.empty(maxp)
+    mp = maxday + 1
+    pend_i = np.empty(mp, np.int64); pend_amt = np.empty(mp); pend_B = np.empty(mp); pend_kk = np.empty(mp)
+    pend_t = np.empty(mp, np.int64); pend_A = np.empty(mp)
     npend = 0
     for d in range(s0, min(T, s1 + 60)):
         buy_d = 0.0; sell_d = 0.0; sh_d = 0.0
@@ -1998,9 +2054,10 @@ def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WC
             q = min(pend_amt[u], 0.1 * DV[i, d] * f)
             if shares_out[i] == shares_out[i]:
                 q = min(q, 0.049 * shares_out[i] * B)
-            if q <= 0:
+            if q <= 0 or nfree == 0:
                 continue
-            p = npos; npos += 1
+            p = free[nfree - 1]; nfree -= 1; npos += 1
+            p_start_exit[p] = -1
             p_i[p] = i; p_units[p] = q / (B * kk * F[i, d]); p_cost[p] = q; p_open[p] = True; p_kk[p] = kk
             p_A[p] = pend_A[u]; p_gtc_end[p] = d + NS if kind == 2 else d - 1
             p_first[p] = d if kind == 1 else d + NS
@@ -2014,6 +2071,7 @@ def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WC
         for u in range(nact):
             p = act[u]
             if not p_open[p]:
+                free[nfree] = p; nfree += 1
                 continue
             act[nkeep] = p; nkeep += 1
         nact = nkeep
@@ -2095,12 +2153,13 @@ def _d3_sim(kind, ot, oi, K, C, F, H, L, KK, DV, ADV, SPR, SIG, BAND, traded, WC
                     q = min(alloc, 0.1 * DV[i, d])
                     if shares_out[i] == shares_out[i]:
                         q = min(q, 0.049 * shares_out[i] * P)
-                    if q <= 0:
+                    if q <= 0 or nfree == 0:
                         continue
                     sg = SIG[i, d] if SIG[i, d] == SIG[i, d] else 0.0
                     adv = max(ADV[i, d], 1000.0)
                     ce = m * SPR[i, d] / 2 + Y * sg * math.sqrt(max(0.0, q - depth[BAND[i, d]]) / adv)
-                    p = npos; npos += 1
+                    p = free[nfree - 1]; nfree -= 1; npos += 1
+                    p_start_exit[p] = -1
                     p_i[p] = i; p_units[p] = q / (C[i, d] * F[i, d] * (1 + ce)); p_cost[p] = q; p_open[p] = True
                     p_first[p] = d + 1; p_lastgood[p] = d; p_kk[p] = kk; p_gtc_end[p] = d
                     act[nact] = p; nact += 1
@@ -2134,12 +2193,12 @@ def run_d3(P, EL, sig, label):
             kind = 0 if s in ("B1", "B2", "E1") else (1 if s == "B3" else 2)
             o = np.where(sel)[0]
             ot, oi = EL.t[o], EL.i[o]
-            base = None
+            maxday = int(np.bincount(ot).max()) if len(ot) else 1
             for K in (1e4, 5e4, 2.5e5, 1e6, 5e6):
                 pnl, ent, dep, lt, dte, npos = _d3_sim(kind, ot, oi, K, P.C, P.F, P.H, P.L, P.KK, P.DV, P.ADV, P.SPR,
                                                        P.SIG20, P.BAND, P.traded, P.WCL, P.WCH, so.astype(float), DEPTH,
                                                        M0, Y0, P.sec, P.taf, P.tafcap, P.last_tr, P.s0, P.s1, 5, 0.0,
-                                                       1.0, P.SIG20)
+                                                       1.0, P.SIG20, maxday)
                 dd = dep[P.s0:P.s1 + 1]
                 rpd = pnl / ent if ent > 0 else np.nan
                 rows.append({"panel": label, "strategy": s, "band": BANDS[b] if b else "L1-L4", "K": K,
@@ -2301,7 +2360,7 @@ def load_vix(P):
     return SimpleNamespace(v=v, qs=qs)
 
 
-def build_all(smoke=False, say=print):
+def build_all(smoke=False, say=print, br_root=None):
     """Load B-H (and B-R or its stand-in), apply the exclusion rules, compute trailing stats, fit the cost model,
     compute R_y and write cost_model.csv. No return is computed here."""
     t0 = time.time()
@@ -2321,7 +2380,7 @@ def build_all(smoke=False, say=print):
     trailing(S)
     _trim()
     say(f"trailing statistics: {time.time() - t1:.0f}s")
-    BR = load_br()
+    BR = load_br(root=br_root)
     br_flag = "B-R"
     if BR is None:
         BR = load_pilot40()
@@ -2350,6 +2409,7 @@ def main(argv=None):
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--nulls", type=int, default=0)
+    ap.add_argument("--br-root", default=None, help="folder with daily_split/daily_none.parquet (default data/scalping/rh)")
     a = ap.parse_args(argv)
     outB = (SCRATCH / "smoke_B") if a.smoke else (OUT / "B")
     outD = (SCRATCH / "smoke_D") if a.smoke else (OUT / "D")
@@ -2358,23 +2418,24 @@ def main(argv=None):
     tdir.mkdir(parents=True, exist_ok=True)
     say = say_factory(outB / ("summary_controls.txt" if a.controls and not (a.run or a.smoke) else "summary.txt"))
     T0 = time.time()
-    S, Fd, eflag, BR, br_flag, cf, ry = build_all(a.smoke, say)
+    S, Fd, eflag, BR, br_flag, cf, ry = build_all(a.smoke, say, a.br_root)
     write_cost_model(cf, ry, br_flag, outB)
     say(f"cost_model.csv written before any return ({outB / 'cost_model.csv'})")
+    say("Points where the pre-registration could not be followed as written (see the module docstring):")
+    if br_flag != "B-R":
+        say("  - B-R daily bars not pulled: cost model fitted on the 40 pilot names (not the 1,167), R_y's denominator"
+            " from the same 40 names, cond_br (PASS condition 3) not evaluable, Part D1/D2(B-R)/D4 on the 40 names.")
+    say("  - B-H sell fees: an upper bound (SEC 0.30 bp + TAF $0.000119/sh, cap $5.95) instead of the dated schedule.")
+    say("  - D3's 4.9%-of-shares-outstanding cap: B-R only (current snapshot); B-H has no shares outstanding.")
+    say("  - qlib freezes 2,155 names at 2020-11-10: missing exits after the sample end are censored, not delisted.")
     if a.controls:
         t1 = time.time()
         df = run_pit_controls(cf, ry, outB)
         say(f"\nControls (ii)/(iii) on the S&P 500 PIT set ({time.time() - t1:.0f}s):")
         say(df[["control", "universe", "estimate", "t", "n_trades"]].to_string(index=False))
+        _trim()
         t1 = time.time()
-        EL, BC, sig = prepare(S, cf, ry)
-        params = {b: {} for b in (1, 2, 3, 4)}
-        for b in (1, 2, 3, 4):
-            s = EL.gb == b
-            ii, tt = EL.i[s], EL.t[s]
-            params[b] = {"s": float(np.nanmedian(S.SPR[ii, tt])), "sig20": float(np.nanmedian(S.SIG20[ii, tt])),
-                         "adv": float(np.nanmedian(S.ADV[ii, tt])),
-                         "zero_vol_share": float(np.mean(~S.traded[ii, np.maximum(tt - 1, 0)]))}
+        params = band_params(S, cf, ry)
         syn = run_synthetic(params, cf)
         syn.to_csv(outB / "controls_synthetic.csv", index=False)
         say(f"\nSynthetic no-edge market ({time.time() - t1:.0f}s); parameters from B-H band medians: {params}")
@@ -2410,13 +2471,15 @@ def main(argv=None):
         else:
             prim.to_csv(outB / "primary_cells_SMOKE_DO_NOT_READ.csv", index=False)
         t1 = time.time()
-        k1 = prepare(S, cf, ry, k1_only=True)
         vix = load_vix(S)
-        ex = run_exploratory(S, EL, BC, sig, vix, k1)
-        ex.to_csv(outB / "exploratory.csv", index=False)
+        ex = run_exploratory(S, EL, BC, sig, vix)
         ill = run_illusion(S, EL, BC, sig)
         ill.to_csv(outB / "illusion.csv", index=False)
         descriptive(S, EL).to_csv(outB / "descriptive.csv", index=False)
+        BC.c.clear(); _TRC.clear(); _trim()
+        ex = pd.concat([ex, run_k1_rows(S, cf, ry)], ignore_index=True)
+        ex.to_csv(outB / "exploratory.csv", index=False)
+        _trim()
         say(f"exploratory ({len(ex)} rows), illusion, descriptive: {time.time() - t1:.0f}s")
         t1 = time.time()
         b6 = run_b6(S, Fd, eflag, cf, ry)

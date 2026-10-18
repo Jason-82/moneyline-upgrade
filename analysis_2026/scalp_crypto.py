@@ -398,7 +398,9 @@ def parse_trades(b: bytes, futures: bool = False) -> dict | None:
 def parse_book(b: bytes) -> dict | None:
     if b is None:
         return None
-    t = pacsv.read_csv(io.BytesIO(b))
+    cols = ["update_id", "best_bid_price", "best_bid_qty", "best_ask_price", "best_ask_qty", "transaction_time"]
+    t = pacsv.read_csv(io.BytesIO(b), convert_options=pacsv.ConvertOptions(
+        include_columns=cols, column_types={c: (pa.int64() if c in ("update_id", "transaction_time") else pa.float64()) for c in cols}))
     if t.num_rows == 0:
         return None
     tt = t.column("transaction_time").to_numpy().astype(np.int64)
@@ -1755,8 +1757,9 @@ def pilot_sizes(syms) -> np.ndarray:
     return np.concatenate(out)
 
 
-def run_book_day(tr, bk, strats_fills, tick, ref, t_close, configs_size=1000.0, delta=0.25, p_ref=None):
-    """Run strategies on one day with both a trade tape and a true book. strats_fills: list of (strat, fill, mode)."""
+def run_book_day(tr, bk, strats_fills, tick, ref, t_close, configs_size=1000.0, delta=0.25, p_ref=None, mk_book=False):
+    """Run strategies on one day with both a trade tape and a true book. strats_fills: list of (strat, fill, mode).
+    mk_book: mark the trades-only legs' markouts to the book mid too (synthetic control)."""
     ev_tu, side, st, en, pf, pl, nt, wk = build_events(tr["t_us"], tr["ibm"], tr["px"], tr["quote"])
     t0 = (tr["t_us"][0] // (86400 * 10 ** 6)) * 86400 * 10 ** 6 if tr.get("day0") is None else tr["day0"]
     ev_t = (ev_tu - t0) / 1e6
@@ -1768,9 +1771,11 @@ def run_book_day(tr, bk, strats_fills, tick, ref, t_close, configs_size=1000.0, 
     pr = p_ref if p_ref is not None else tr["px"][0] * SCALE
     out = []
     for strat, fill, mode in strats_fills:
-        r = engine(ev_t, side, st, en, pf, pl, tr["px"], tr["qty"], bt, bk["bid"], bk["bq"], bk["ask"], bk["aq"], ns, nb,
+        mk = 1 if (mode == 1 or mk_book) else 0
+        b_ = (bt, bk["bid"], bk["bq"], bk["ask"], bk["aq"]) if (mode == 1 or mk) else (E_F64, E_I64, E_F64, E_I64, E_F64)
+        r = engine(ev_t, side, st, en, pf, pl, tr["px"], tr["qty"], *b_, ns, nb,
                    -1, -1e9, -1, -1e9, int(tick), int(ref), *ws, *wb, strat, configs_size / pr, delta, fill, 1.0,
-                   mode, 1 if mode == 1 else 0, t_close, DAY + 1.0, MIN_NOTIONAL)
+                   mode, mk, t_close, DAY + 1.0, MIN_NOTIONAL)
         out.append(r)
     return out
 
@@ -1793,7 +1798,7 @@ def control_i(days_a=20, days_c=10):
                                                                       2.0, p0t, tk, 60.0, DAY)
                     tr = dict(t_us=tt, px=tp, qty=tq, ibm=ts, quote=tq * tp * SCALE, day0=0)
                     bk = dict(t_us=np.rint(bt * 1e6).astype(np.int64), bid=bb, bq=bq, ask=ba, aq=aq)
-                    out = run_book_day(tr, bk, runs, tk, p0t * tk, DAY - 600, p_ref=1.0)
+                    out = run_book_day(tr, bk, runs, tk, p0t * tk, DAY - 600, p_ref=1.0, mk_book=True)
                     for (s, f, m), r in zip(runs, out):
                         rows.append(dict(market=sp_name, S=S, alpha=alpha, day=dd, strat=STRAT_NAME[s], fill=FILL_NAME[f],
                                          half_spread_bp=S * 5 / 2, **dict(zip(RES_NAMES, r))))
@@ -1867,14 +1872,17 @@ def _um_one(job):
 
 def control_ii(workers=3):
     days = um_days()
-    jobs_ = [(s, d) for d in days for s in UM_SYMS]
+    heavy = {"BTCUSDT"}                        # 90-270 MB bookTicker zips: one at a time (memory)
     t0 = time.time()
     dfs = []
-    with cf.ProcessPoolExecutor(workers) as ex:
-        for i, df in enumerate(ex.map(_um_one, jobs_), 1):
-            dfs.append(df)
-            if i % 17 == 0:
-                print(f"  control (ii): {i}/{len(jobs_)} symbol-days, {time.time() - t0:.0f}s", flush=True)
+    for js, w in (([(s, d) for d in days for s in UM_SYMS if s not in heavy], workers),
+                  ([(s, d) for d in days for s in UM_SYMS if s in heavy], 1)):
+        with cf.ProcessPoolExecutor(w) as ex:
+            for i, df in enumerate(ex.map(_um_one, js), 1):
+                dfs.append(df)
+                if i % 16 == 0 or i == len(js):
+                    print(f"  control (ii): {i}/{len(js)} symbol-days ({'BTC' if w == 1 else 'others'}), "
+                          f"{time.time() - t0:.0f}s", flush=True)
     df = pd.concat(dfs, ignore_index=True)
     miss = df[df.missing.fillna("") != ""][["day", "sym", "missing"]]
     df = df[df.missing.fillna("") == ""].copy()
