@@ -56,6 +56,19 @@ def main():
     c["edge_ub95"] = [e + _q(0.95, d) * s for e, s, d in zip(c.edge_estimate, c.edge_se, df)]
     c["edge_mde80"] = [(_q(1 - ss.ALPHA / ss.N_PRIMARY, d) + stats.norm.ppf(0.8)) * s for s, d in zip(c.edge_se, df)]
     c["verdict"] = [ss.verdict(p, ok, ub, E) for p, ok, ub, E in zip(c.p_holm, c.other_ok, c.edge_ub_strict, c.threshold_E)]
+    # Part A, Control (ii): "a cell whose verdict changes under the F1 bias correction is INCONCLUSIVE". Recompute the
+    # verdicts with the corrected statistic and edge (Holm re-run on the corrected p-values) and compare.
+    if "corr_p_one_sided" in c:
+        has = c.corr_p_one_sided.notna()
+        p2 = np.where(has, c.corr_p_one_sided, c.p_one_sided)
+        ph2 = ss.holm(p2)
+        e2 = np.where(has, c.get("corr_edge_estimate", c.edge_estimate), c.edge_estimate)
+        s2 = np.where(has, c.get("corr_edge_se", c.edge_se), c.edge_se)
+        d2 = np.where(has, c.get("corr_edge_df", c.edge_df), c.edge_df).astype(float)
+        ub2 = [e + _q(1 - ss.ALPHA / ss.N_PRIMARY, d) * s for e, s, d in zip(e2, s2, d2)]
+        c["verdict_corrected"] = [ss.verdict(p, ok, ub, E) for p, ok, ub, E in zip(ph2, c.other_ok, ub2, c.threshold_E)]
+        c["corr_changes_verdict"] = has & (c.verdict_corrected != c.verdict)
+        c.loc[c.corr_changes_verdict, "verdict"] = "INCONCLUSIVE"
     # a failed positive control (Part C) or a sign disagreement across bar sizes caps the verdict at INCONCLUSIVE:
     # it can neither PASS nor be read as NO EDGE
     c.loc[c.force_inconclusive, "verdict"] = "INCONCLUSIVE"
