@@ -231,6 +231,11 @@ notes:
 - [ ] **Line check, every day:** the digest's LINE (the old MoneyLine on the closed bar) matches TradingView's
       daily chart within 0.05%, along with the colour and flip date. Use COINBASE:ETHUSD etc. for crypto, never
       the ETF's own chart. A mismatch means: no buys for that asset until it is explained.
+      - Your TradingView MoneyLine is now the October 2026 version, which is a different indicator. For this check,
+        add TradingView's built-in **Supertrend** with ATR Period 10 and Factor 2 on the default chart data.
+      - Its colour matches the old MoneyLine on about 99.97% of bars.
+      - Its line can differ for a while after a flip: on about 10% of flips it restarts from a different band. So
+        compare the line between flips, and the colour and flip date always.
 - [ ] **Replication:** stock bars from `get_equity_historicals` (`adjustment_type: split`) match TradingView's
       closes. Check what time `begins_at` carries on daily bars; the code uses its UTC date. For crypto, Coinbase
       closes match `data/tv_full/*_1D.csv` and every flip lands on the same day.
