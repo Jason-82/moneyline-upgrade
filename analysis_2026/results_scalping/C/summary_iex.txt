@@ -8,3 +8,11 @@ panel names outside the B-R universe (exclusion rules (b)-(d) / scan flag, as in
   IEX day 2026-09-09: 22 panel L4 names
   IEX day 2026-09-16: 23 panel L4 names
   IEX day 2026-10-16: 27 panel L4 names
+  streamed 2026-05-28: rc=0 736s
+  streamed 2026-08-05: rc=0 982s
+  streamed 2026-09-09: rc=0 795s
+  streamed 2026-09-16: rc=0 1024s
+  streamed 2026-10-16: rc=0 1107s
+Control (iii): 117 L4 name-days, 27 at the NBBO; IEX fills 589 vs bar fills 74; bought $163,715 vs $123,047
+
+total 2662s
