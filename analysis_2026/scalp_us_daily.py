@@ -2264,6 +2264,17 @@ def _ew(P, ii, a, d):
 
 # ============================================================================ main
 
+def _trim():
+    """Return freed heap memory to the OS (the qlib long frame is ~2 GB before it is pivoted)."""
+    import ctypes
+    import gc
+    gc.collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except OSError:
+        pass
+
+
 def say_factory(path):
     fh = open(path, "w")
 
@@ -2289,6 +2300,8 @@ def build_all(smoke=False, say=print):
         S, Fd = load_bh("2009-01-02", "2011-03-31", ("2010-01-01", "2010-12-31"))
     else:
         S, Fd = load_bh()
+    del S.present, Fd.present
+    _trim()
     say(f"B-H loaded: {S.N} stock symbols, {Fd.N} fund symbols, {S.T} days ({time.time() - t0:.0f}s)")
     fr = fund_returns(Fd, FUNDS_E)
     t1 = time.time()
@@ -2297,6 +2310,7 @@ def build_all(smoke=False, say=print):
     say(f"rule (e): {int(eflag.any(1).sum())} unknown symbols flagged as funds ({time.time() - t1:.0f}s)")
     t1 = time.time()
     trailing(S)
+    _trim()
     say(f"trailing statistics: {time.time() - t1:.0f}s")
     BR = load_br()
     br_flag = "B-R"

@@ -1,3 +1,22 @@
 B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (29s)
 rule (e): 239 unknown symbols flagged as funds (69s)
 trailing statistics: 59s
+cost model fitted on 37 names (pilot40 (B-R stand-in)): b = 4.089, -0.663, 0.394, 0.292; S = 1.219; R2 = 0.67
+cost_model.csv written before any return (/home/user/moneyline-upgrade/analysis_2026/results_scalping/B/cost_model.csv)
+
+Controls (ii)/(iii) on the S&P 500 PIT set (38s):
+                                                                      control                      universe  estimate          t  n_trades
+                      (ii) known answer: B1 gross (m=0) S&P 500 PIT 2001-2010                   all members  0.000620   2.776006   98381.0
+                                   (ii) B1 gross, no impact either (m=0, Y=0)                   all members  0.000765   3.390248   98381.0
+                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000182   1.297793  222242.0
+                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.007543 -39.724786  222242.0
+                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000141   0.276274   11552.0
+                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.008188 -19.694980   11552.0
+                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000550   1.207213   98381.0
+                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.008627 -13.059652   98381.0
+                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000193   0.335163    9290.0
+                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.008014 -17.520047    9290.0
+(iii) large-cap survivorship effect B1 gross (m=0) (qlib-available minus all)                    difference  0.000368        NaN       NaN
+(iii) large-cap survivorship effect B1 net (m=1.5) (qlib-available minus all)                    difference -0.001084        NaN       NaN
+(iii) large-cap survivorship effect E1 gross (m=0) (qlib-available minus all)                    difference  0.000052        NaN       NaN
+(iii) large-cap survivorship effect E1 net (m=1.5) (qlib-available minus all)                    difference  0.000174        NaN       NaN
