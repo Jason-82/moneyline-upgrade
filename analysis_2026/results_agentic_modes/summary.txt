@@ -43,3 +43,14 @@ Reading:
   tax), and at 0.95% every mode trails it. The ETFs trail buy & hold after tax in every mode.
 - Short windows and correlated coins: about two independent crypto bear markets in this data. Treat the
   differences between modes as small relative to their uncertainty.
+
+Broader crypto test of split (2026-10-19; split_crypto.py -> split_crypto.txt, split_crypto_per_asset.csv):
+- 21 surviving coins one by one, 0.15%/side: median after-tax immediate 22.7 / split 25.7 / confirm5 21.1; split beats
+  immediate on 14/21 coins (median +2.1 pts) with a shallower max drawdown on 17/21. At 0.95%/side: 12.1 / 18.4 / 15.7,
+  split ahead on 16/21. A 200-bar start gives the same paired picture (14/21 and 16/21).
+- Top-20 basket incl. dead coins 2019-2026 (survivorship-free), held construction, study costs: after-tax immediate
+  37.3 / split 34.9 / confirm5 29.9; Sharpe_xs 1.14 / 1.08 / 0.93; max DD -51.0 / -49.1 / -51.1. Split vs immediate
+  dSharpe -0.06 (p 0.79 that split is better; not significant either way). At 0.95%: 26.5 / 26.8 / 24.7 (a tie).
+  Split beats confirm5 in every version (p 0.027 at study costs).
+- Reading: split is never the worst mode, has shallower drawdowns in most tests and ties or wins at Robinhood-like costs;
+  the strictest test gives immediate 2-4 points a year more at low costs, within noise. Split became the crypto default.

@@ -1,0 +1,84 @@
+
+===== 21 coins, cost 0.15%/side, warm-up 120: medians
+            CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+mode                                              
+BUY & HOLD   12.66       10.84       0.58   -94.28
+confirm5     29.40       21.13       0.67   -79.37
+immediate    32.74       22.74       0.74   -73.64
+split        38.39       25.71       0.77   -71.32
+  split vs immediate: after-tax better on 14/21, median diff +2.09; Sharpe better on 13/21; shallower maxDD on 17/21 (median +2.3 pts)
+  split vs confirm5: after-tax better on 15/21, median diff +4.57; Sharpe better on 18/21; shallower maxDD on 19/21 (median +5.4 pts)
+  confirm5 vs immediate: after-tax better on 9/21, median diff -1.89; Sharpe better on 8/21; shallower maxDD on 10/21 (median -4.0 pts)
+
+===== 21 coins, cost 0.15%/side, warm-up 200: medians
+            CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+mode                                              
+BUY & HOLD   14.09       12.17       0.56   -94.28
+confirm5     26.37       16.58       0.63   -79.36
+immediate    36.68       24.16       0.75   -73.03
+split        31.75       22.58       0.71   -71.07
+  split vs immediate: after-tax better on 14/21, median diff +3.20; Sharpe better on 12/21; shallower maxDD on 17/21 (median +2.3 pts)
+  split vs confirm5: after-tax better on 14/21, median diff +3.96; Sharpe better on 16/21; shallower maxDD on 19/21 (median +7.1 pts)
+  confirm5 vs immediate: after-tax better on 9/21, median diff -0.56; Sharpe better on 7/21; shallower maxDD on 10/21 (median -4.0 pts)
+
+===== 21 coins, cost 0.95%/side, warm-up 120: medians
+            CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+mode                                              
+BUY & HOLD   12.66       10.84       0.58   -94.28
+confirm5     21.23       15.66       0.58   -84.10
+immediate    18.11       12.05       0.54   -80.23
+split        27.39       18.36       0.63   -78.20
+  split vs immediate: after-tax better on 16/21, median diff +4.45; Sharpe better on 15/21; shallower maxDD on 14/21 (median +4.6 pts)
+  split vs confirm5: after-tax better on 13/21, median diff +1.96; Sharpe better on 15/21; shallower maxDD on 13/21 (median +4.3 pts)
+  confirm5 vs immediate: after-tax better on 12/21, median diff +2.53; Sharpe better on 11/21; shallower maxDD on 9/21 (median -1.2 pts)
+
+===== 21 coins, cost 0.95%/side, warm-up 200: medians
+            CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+mode                                              
+BUY & HOLD   14.09       12.17       0.56   -94.28
+confirm5     18.29       10.36       0.55   -84.10
+immediate    21.79       12.57       0.57   -79.81
+split        20.22       13.31       0.57   -77.59
+  split vs immediate: after-tax better on 16/21, median diff +4.82; Sharpe better on 14/21; shallower maxDD on 15/21 (median +4.6 pts)
+  split vs confirm5: after-tax better on 13/21, median diff +1.84; Sharpe better on 14/21; shallower maxDD on 14/21 (median +5.2 pts)
+  confirm5 vs immediate: after-tax better on 14/21, median diff +3.01; Sharpe better on 12/21; shallower maxDD on 9/21 (median -1.2 pts)
+
+===== crypto top-20 basket incl. dead coins 2019-2026, daily, costs study
+           CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+immediate   48.72       33.48       1.07   -50.28
+split       42.72       29.57       0.98   -48.57
+confirm5    34.59       23.89       0.81   -59.61
+BH          15.25       13.14       0.56   -90.78
+  split vs immediate: dSharpe -0.095, one-sided p 0.876, halves -0.155/-0.021
+  split vs confirm5: dSharpe +0.164, one-sided p 0.027, halves +0.230/+0.076
+  confirm5 vs immediate: dSharpe -0.260, one-sided p 0.933, halves -0.385/-0.097
+
+===== crypto top-20 basket incl. dead coins 2019-2026, held, costs study
+           CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+immediate   53.67       37.32       1.14   -50.97
+split       49.91       34.91       1.08   -49.07
+confirm5    42.83       29.88       0.93   -51.09
+BH          20.63       18.07       0.61   -87.72
+  split vs immediate: dSharpe -0.059, one-sided p 0.790, halves -0.100/-0.011
+  split vs confirm5: dSharpe +0.146, one-sided p 0.027, halves +0.205/+0.069
+  confirm5 vs immediate: dSharpe -0.205, one-sided p 0.904, halves -0.306/-0.080
+
+===== crypto top-20 basket incl. dead coins 2019-2026, daily, costs 0.95%
+           CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+immediate   33.36       22.21       0.82   -57.26
+split       30.99       21.39       0.78   -54.18
+confirm5    26.40       18.53       0.68   -63.65
+BH          15.25       13.14       0.56   -90.78
+  split vs immediate: dSharpe -0.041, one-sided p 0.699, halves -0.110/+0.042
+  split vs confirm5: dSharpe +0.100, one-sided p 0.115, halves +0.177/-0.004
+  confirm5 vs immediate: dSharpe -0.140, one-sided p 0.798, halves -0.287/+0.046
+
+===== crypto top-20 basket incl. dead coins 2019-2026, held, costs 0.95%
+           CAGR_%  CAGR_tax_%  Sharpe_xs  maxDD_%
+immediate   38.94       26.50       0.91   -56.92
+split       38.32       26.84       0.89   -53.62
+confirm5    34.83       24.65       0.81   -56.55
+BH          20.63       18.07       0.61   -87.72
+  split vs immediate: dSharpe -0.012, one-sided p 0.568, halves -0.062/+0.046
+  split vs confirm5: dSharpe +0.084, one-sided p 0.132, halves +0.156/-0.009
+  confirm5 vs immediate: dSharpe -0.096, one-sided p 0.737, halves -0.218/+0.055
