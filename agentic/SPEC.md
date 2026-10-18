@@ -42,6 +42,7 @@ standard library only.
 | file | owner | purpose |
 |---|---|---|
 | `config.py` | done | load/validate config, state paths, `tranches_for` |
+| `entry.py` | done | entry policy (join / join_recent / fresh_only), shared by `signals.py` and `planner.py` |
 | `indicator.py` | A | N-confirmed MoneyLine with separate entry/exit N, tranche targets, tv_export reader |
 | `backtest.py` | A | modes vs buy & hold on any OHLC (fractional weights) |
 | `calendar.py` | B | NYSE trading days and holidays, closed-bar dates, execution session, `valid_until` |
@@ -113,7 +114,10 @@ def tv_export_targets(df, mode_name) -> pd.DataFrame
   - immediate → immediate_green
   - confirm5 → confirm_green
   - split → 0.5·immediate + 0.5·confirm
-- Also returns `level`, `pending` = cnt, `direction`.
+- Also returns `level`, `pending` = cnt, `direction`, and `confirm_green_early` (the confirmed state from the close
+  on which ConfirmCount reaches 5). `signals.py` and the tv backtest trade `confirm_green_early` by default
+  (`signal.tv_confirm: count`; Direction flips one bar later in every export checked); `direction` uses
+  `confirm_green`.
 - The last row of an export is the live, forming bar. The caller (`signals.py`) drops rows after the expected closed
   bar date.
 
@@ -267,13 +271,55 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 
 `flags` are read from the state dir: STOP, FLATTEN, BLOCK_BUYS.
 
+**Entry policy** (`entry.py`; config `entry`, per-asset override `asset.entry`):
+- `full_tf` = Σ w_k · green_k (the signal's `target_frac`); `entry_tf` = Σ w_k · green_k · eligible_k, capped at
+  `full_tf`. Recomputed here from the tranche fields (section 12) with the planner's strategy start.
+- eligible_k: `join` always; `join_recent` if `bars_since_green_flip` ≤ `max_join_bars` and, with
+  `max_join_rise_frac`, close ≤ `flip_close` × (1 + rise); `fresh_only` also needs `last_green_flip_date` ≥ the
+  strategy start (`entry.start_date`, else `strategy_start.json`, else the signals date). No flip in the history, or
+  a signals file without the fields → not eligible.
+- `strategy_start.json` is written by `write_plan` for the first plan with `live: true` (its signals date); the plan
+  records the start it used in `strategy_start` (`entry.start_date`, else the recorded date, else the signals date)
+  and per-asset `fresh_only` starts that differ in `strategy_start_assets`.
+- A held position (worth ≥ `min_order_usd`) covers, first, the eligible tranches this system bought after their flip
+  (a journaled buy placed after the flip bar closed), then the green tranches that may not be bought; `entry_tf`
+  adds what it covers of the latter. So an old half the sleeve holds stays held while a fresh half is added, and the
+  day after a fresh-half buy the old half is not bought instead.
+- Buys raise a position only up to `entry_tf`; sells cut it only down to `full_tf`; between the two it is held. A
+  green tranche that may not be bought adds its reason to the order reason (partial buy) or to `skipped`.
+
 **Sizing:**
 - `capital = min(snapshot.total_value, cfg.capital.max_usd)`
-- per enabled asset: `target_usd = capital × alloc_frac × target_frac`
-- Crypto-class assets are capped together at `max_crypto_frac × capital`. Scale them down proportionally.
-- `current_usd` = vehicle position qty × mid. Mid = (bid+ask)/2, else last.
-- Trade only if `|target_usd − current_usd| > max(min_order_usd, rebalance_band_frac × capital × alloc_frac)`, or
-  if target_frac == 0 and the position is non-zero (a full exit always sells everything sellable). A position worth
+- Class caps: `allocation.class_max_frac` {crypto, equity} × capital; default crypto = `max_crypto_frac`, equity 1.0.
+- `allocation.method` `fixed` (default when the block is absent): `slot_usd = capital × alloc_frac`; a class whose
+  Σ slot_usd × min(full_tf, max(entry_tf, current/slot_usd)) (what the plan will hold; a holding without a quote
+  counts at full_tf) exceeds its cap is scaled down proportionally (both targets).
+- `allocation.method` `slots`: `slot_usd = slot_frac × capital` for every asset. A position worth less than
+  `min_order_usd` is dust, not a holding (it may compete as a new entry).
+  1. Every holding counts at its current value until the positions show it sold (an exit or a trim frees room only
+     in a later plan, so a sell that is not placed or not filled never makes room); an enabled asset skipped this run
+     whose sleeve holds shares reserves max(slot, sleeve qty × mid) and counts at its value in step 4 (a slot
+     without a quote).
+  2. Green holdings, earliest into their run first (the first journaled buy after the run's first green flip
+     closed; none = first; ties in config order), keep up to a whole slot (`cap_usd`): the last one in gets the room
+     left, so a partial slot grows only when capital frees up. Holdings are never trimmed to make room.
+  3. New entries (not held, entry_tf > 0) in `priority` order (`crypto_first`: crypto class first, then equity;
+     within a class the newest eligible green flip first, ties in config order; `equity_first`, `newest_flip`,
+     `config_order`) take min(room, class room): a full slot, or a partial one if ≥ half a slot, else they wait
+     (`skipped`: "no free slot"). `wash_sale_block_symbols` take no slot; BLOCK_BUYS and FLATTEN hand out none.
+  4. Buys (holdings first, then new entries, in priority order) are capped so the sleeve's positions, counted at
+     their current value, plus this plan's buys stay within capital and each class cap ("no free capital" below
+     `min_order_usd`).
+  - `plan["allocation"]` = {method, priority, slot_frac, slot_usd, held[], new[{asset, usd, partial}],
+    waiting[{asset, reason}], blocked (flag, if any)}; `format_plan` prints it as a `SLOTS` line.
+- `full_usd = slot_usd × full_tf × scale`, `entry_usd = min(slot_usd × entry_tf × scale, cap_usd)`.
+- `current_usd` = the sleeve's qty × mid. Mid = (bid+ask)/2, else last. The sleeve's qty is
+  min(position, `ledger.sleeve_status` sleeve qty): config `sleeve_initial_qty` at the first baseline plus this
+  system's own fills. Shares outside the sleeve are never sold (warning). No reconciled baseline → no orders; a
+  vehicle whose captured position disagrees with baseline + own fills → that asset is skipped with an error.
+- band = max(min_order_usd, rebalance_band_frac × slot_usd). Sell to `full_usd` if current > full_usd + band; buy to
+  `entry_usd` if current < entry_usd − band; a full exit (full_tf == 0, position non-zero) always sells everything
+  sellable, whatever the entry policy. A position worth
   less than `min_order_usd` with target 0 is "dust": sell it only if the vehicle allows that size; otherwise skip
   with a warning.
 
@@ -293,7 +339,12 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   `time_in_force` 'gtc' (Robinhood allows only gtc for crypto limits, valid 90 days), so the plan's `valid_until`
   matters: the next plan cancels it.
 - **Full exits:** sell the snapshot's sellable quantity (`shares_available_for_sells` / `quantity_transferable`),
-  never more.
+  capped at the sleeve's qty, never more.
+- **Market orders** (fractional) only while `market_open(now)` and `execution_session(now)` is today (before 15:45 ET).
+- **Crypto pair metadata** (`asset_increment`, `quote_increment`) is required; without it the asset is skipped with
+  an error. A price that rounds to 0 at its tick skips the asset, never the whole plan.
+- **notional_usd** is q × price rounded up to the cent; max_order_usd, max_day_usd and buying power hold on those
+  rounded values.
 - **Buys:**
   - capped by available buying power (crypto: `crypto_buying_power`)
   - capped per order at `max_order_usd`; split into several orders only if needed, keys `…|0`, `…|1`
@@ -310,9 +361,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   - `plan_id` = `f"{signals_date}-{sha1(json.dumps(orders_core, sort_keys=True))[:8]}"`, so identical inputs give
     an identical plan.
   - `key` = `f"{asset}|{vehicle_symbol}|{side}|{i}"`.
-- **Cancels:** every open order in the snapshot that belongs to this account and is not in this plan, i.e. stale
-  plan orders, goes into `plan["cancels"]` as cancel tool params. A plan never places a new order for a symbol that
-  still has an open order: it cancels first and says "re-run plan after the cancel settles".
+- **Cancels:** every open order of this system (`ledger.is_own_order`, or agent-initiated on a managed vehicle)
+  that is not in this plan, i.e. stale plan orders, goes into `plan["cancels"]` as cancel tool params; STOP cancels
+  the same set. The user's own orders are never cancelled: on a managed vehicle they hold that asset back ("cancel
+  it in the app"), elsewhere they are ignored. A plan never places a new order for a symbol that still has an open
+  order: it cancels first and says "re-run plan after the cancel settles (`plan --attempt N`)".
 
 **Plan JSON** (written to `plans/plan_<plan_id>.json` and copied to `plan_current.json`):
 
@@ -368,6 +421,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
     7. the ledger's placed notional today (ET date) + this notional ≤ `max_day_usd`
     8. the same `ref_id` was not already placed successfully today (a retry of a transport failure is allowed if
        the journal shows no order id for that ref_id)
+    9. added after review: the plan has `live: true`, `created_at` not in the future, a lifetime ≤ 24 h and a
+       planner-shaped `plan_id`; the call's `ref_id` equals `ref_id(plan_id, key, attempt)`; the order has a
+       planner shape (equity: gfd regular_hours limit, or market without limit_price; crypto: gtc limit; never
+       dollar_amount / tax_lots / stop_price); a market order only in regular hours before 15:45 ET; caps 6-7 use
+       max(plan notional, quantity × limit_price or × the newest captured quote); config `live` must be `true`
   - **cancel:** `cancel_equity_order`, `cancel_crypto_order` → allow if `order_id` is in `plan.cancels`, or the
     journal shows an order this system placed. Cancels are allowed even under STOP (the kill switch must be able to
     pull orders).
@@ -383,23 +441,39 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 - For place/cancel it appends to `journal.jsonl`:
   `{ts, event, tool, plan_id, key, ref_id, params (minus account numbers), order_id, state, placed_agent, agent_initiated, error}`.
 - For a successful place it adds `notional_usd` from the matching plan order to `ledger.json[ET date]`.
-- **Approval check:** if config `account.approvals_required`, a successful place response with `data.order` not null
-  and `data.order.placed_agent == "agentic"` means the agent's order went live without the user's approval. Write
-  STOP with that reason and print a loud warning on stderr.
-  - `data.order == null` is recorded as `"state": "proposal_pending_approval?"`. The exact approval response shape
-    must be confirmed in shadow mode (README).
+- **Approval check:** if config `account.approvals_required`, a successful place response with any non-null
+  `data.order` (whatever `placed_agent` says: an approval happens later, in the app) means the agent's order went
+  live without the user's approval. Write STOP with that reason and print a loud warning on stderr (the warning is
+  printed even if STOP cannot be written).
+  - `data.order` null or omitted, with no order fields in `data`, is recorded as
+    `"state": "proposal_pending_approval?"`; order fields without `data.order` → STOP ("unrecognised"). The exact
+    approval response shape must be confirmed on the first live order (README).
+  - `get_equity_orders` / `get_crypto_orders` results are checked too: an order carrying a ref_id of a journaled
+    proposal or of the current plan (approved orders carry the approval's id), or a recent one with
+    `placed_agent` / `initiator_type` agentic, → STOP once per order (journal event `approval_bypass`).
+- A Robinhood tool outside the allowlist that ran → STOP.
+- `PostToolUseFailure` events (the same script is registered for them): a failed place is journaled as
+  `failed_or_unknown` (the order may exist) and its plan notional is counted in the ledger.
+- Files are written ASCII-escaped, so odd characters in a response never drop a capture or journal line.
 - Never block (always exit 0); log errors to `hook.log`.
 
 ## 11. .claude/settings.json (D)
 
+`.claude/settings.json` is authoritative; its PreToolUse entry is:
+
 ```json
-{"hooks": {
-   "PreToolUse":  [{"matcher": "mcp__.*([Rr]obinhood).*", "hooks": [{"type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/agentic/hooks/pre_tool_use.py\""}]}],
-   "PostToolUse": [{"matcher": "mcp__.*([Rr]obinhood).*", "hooks": [{"type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/agentic/hooks/post_tool_use.py\""}]}]},
- "permissions": {"deny": [ ...the option, alert, scan, watchlist and exercise tools for server names robinhood-trading, Robinhood, robinhood-for-agents... ]}}
+{"matcher": "mcp__.*[Rr][Oo][Bb][Ii][Nn][Hh][Oo][Oo][Dd].*",
+ "hooks": [{"type": "command", "timeout": 30,
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/pre_tool_use.py\" || exit 2"}]}
 ```
 
-Check the matcher syntax against Claude Code's hooks documentation.
+- `-I` (isolated mode) ignores `PYTHON*` variables and user site-packages and keeps the working directory off
+  `sys.path`; `|| exit 2` blocks the call if the interpreter itself fails (fail closed).
+- PostToolUse and PostToolUseFailure run `python3 -I ".../post_tool_use.py"` with the same matcher (never blocking).
+- `permissions.deny` lists the option, alert, scan, watchlist and exercise tools for the server names
+  robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus
+  `Bash(python3 -m agentic resume:*)`, `run --replan`, `plan --replan`, `Edit(private/agentic/**)` and
+  `Write(private/agentic/**)`.
 
 ## 12. signals.py, cli.py (E)
 
@@ -420,10 +494,19 @@ For each enabled asset (and disabled ones with `--all`):
 Signals JSON per asset:
 
 ```
-{name, class, mode, source, signal_symbol, vehicle_type, vehicle_symbol, bar_date, expected_bar_date, close,
- tranches:[{weight,n_entry,n_exit,green,pending,line,last_flip_date}], target_frac, prev_target_frac (previous bar),
- changed (bool), line_n1, dist_to_line_pct, atr10, errors[], warnings[]}
+{name, class, mode, source, signal_symbol, vehicle_type, vehicle_symbol, alloc_frac, slot_frac (slots: the size the
+ plan uses, shown as the digest's ALLOC; else null), bar_date, expected_bar_date, close,
+ tranches:[{weight,n_entry,n_exit,green,pending,line,last_flip_date,
+            last_green_flip_date,bars_since_green_flip,flip_close}], target_frac, prev_target_frac (previous bar),
+ changed (bool), line_n1, dist_to_line_pct, atr10, entry_policy, entry_frac, entry_notes[], errors[], warnings[]}
 ```
+
+- Per tranche: the last confirmed red → green flip (`flip == +1`; tv_export: a False → True step of the immediate or
+  confirm series), the bars since it in the asset's own series, and the close on it; all null without a flip in the
+  history. `entry_frac` is `entry.entry_frac` with the asset's effective entry config and start
+  (`entry.start_date`, else `strategy_start.json`, else the run date); `entry_notes` say why a green tranche may
+  not be bought. The digest prints them (`entry join_recent: green 35 bars, too late to join (max 20): ...`).
+- The file also carries `strategy_start` (the recorded start, or null).
 
 - Written to `signals/signals_<run date UTC>.json` with `generated_at`.
 - Writes a digest (text table like plan section 9) to `digests/` and prints it.
@@ -434,12 +517,12 @@ Signals JSON per asset:
 |---|---|
 | `init` | create the state dirs; copy the example config if missing (never overwrite) |
 | `signals [--all]` | compute signals |
-| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → positions (equity, crypto) → open orders → historicals for robinhood-feed symbols (interval day, adjustment_type split, start = 700 days ago) → quotes for every vehicle symbol |
+| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (interval day, adjustment_type split, start = 700 days ago) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill |
 | `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call) |
 | `run` | `signals` then `plan` |
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
 | `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
-| `stop`, `flatten`, `resume` | create or remove the flag files; resume asks for confirmation |
+| `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps

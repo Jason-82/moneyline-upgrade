@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import os
+from datetime import date
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -41,6 +43,14 @@ VALID_CLASSES = ("crypto", "equity")
 VALID_SOURCES = ("computed", "tv_export")
 VALID_FEEDS = ("coinbase", "robinhood", "yfinance", "csv")
 VALID_VEHICLES = ("crypto", "equity")
+ENTRY_POLICIES = ("join", "join_recent", "fresh_only")
+ALLOC_METHODS = ("fixed", "slots")
+PRIORITIES = ("crypto_first", "equity_first", "newest_flip", "config_order")
+
+# Joining a green run that started before we act (HANDOFF 5.4). Global block; an asset may override any key.
+DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": None, "start_date": None}
+# "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing.
+DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first"}
 
 
 class ConfigError(ValueError):
@@ -48,7 +58,13 @@ class ConfigError(ValueError):
 
 
 def state_dir() -> Path:
-    return Path(os.environ.get("AGENTIC_STATE_DIR") or (REPO / "private" / "agentic"))
+    """AGENTIC_STATE_DIR (a relative value resolves against the repo root, so the hooks and the CLI agree whatever
+    their working directory) or <repo>/private/agentic."""
+    env = os.environ.get("AGENTIC_STATE_DIR")
+    if not env:
+        return REPO / "private" / "agentic"
+    p = Path(env).expanduser()
+    return p if p.is_absolute() else (REPO / p).resolve()
 
 
 def paths(base: Path | None = None) -> dict[str, Path]:
@@ -68,6 +84,7 @@ def paths(base: Path | None = None) -> dict[str, Path]:
         "STOP": b / "STOP",                  # kill switch: no new orders at all
         "FLATTEN": b / "FLATTEN",            # sells toward zero only
         "BLOCK_BUYS": b / "BLOCK_BUYS",      # set by reconcile/data checks; exits still allowed
+        "strategy_start": b / "strategy_start.json",   # first live plan's date (entry policy fresh_only)
     }
 
 
@@ -82,6 +99,107 @@ def _merge(default: dict, override: dict) -> dict:
     out = copy.deepcopy(default)
     for k, v in (override or {}).items():
         out[k] = v
+    return out
+
+
+def _bool(d: dict, key: str, default: bool, where: str) -> bool:
+    """A JSON true/false (a quoted "false" would be truthy, so anything else is an error)."""
+    v = d.get(key, default)
+    if not isinstance(v, bool):
+        raise ConfigError(f"{where}{key} must be true or false (JSON booleans, unquoted), not {v!r}")
+    d[key] = v
+    return v
+
+
+def _sleeve_qty(v) -> dict:
+    if not isinstance(v, dict):
+        raise ConfigError("sleeve_initial_qty must be an object {VEHICLE_SYMBOL: quantity}")
+    out = {}
+    for k, q in v.items():
+        if str(k).startswith("_"):
+            continue
+        try:
+            f = float(q)
+        except (TypeError, ValueError):
+            f = float("nan")
+        if isinstance(q, bool) or not (f >= 0 and f != float("inf")):
+            raise ConfigError(f"sleeve_initial_qty.{k} must be a number >= 0")
+        out[str(k).upper().strip()] = f
+    return out
+
+
+def _frac(v, where: str, lo: float = 0.0, lo_open: bool = True) -> float:
+    """A JSON number in (lo, 1] (or [lo, 1] with lo_open=False)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v > 1 or v < lo \
+            or (lo_open and v == lo):
+        raise ConfigError(f"{where} must be a number in {'(' if lo_open else '['}{lo:g}, 1], not {v!r}")
+    return float(v)
+
+
+def _entry(e, where: str, full: bool) -> dict:
+    """Validate an entry block; `full` fills the defaults (the global block), else only the keys given (an asset's
+    override)."""
+    if not isinstance(e, dict):
+        raise ConfigError(f"{where} must be an object like {json.dumps(DEFAULT_ENTRY)}")
+    e = {k: v for k, v in e.items() if not str(k).startswith("_")}
+    bad = sorted(set(e) - set(DEFAULT_ENTRY))
+    if bad:
+        raise ConfigError(f"{where}: unknown keys {bad}; allowed: {sorted(DEFAULT_ENTRY)}")
+    out = {**DEFAULT_ENTRY, **e} if full else dict(e)
+    if "policy" in out and out["policy"] not in ENTRY_POLICIES:
+        raise ConfigError(f"{where}.policy must be one of {ENTRY_POLICIES}, not {out['policy']!r}")
+    n = out.get("max_join_bars", 0)
+    if isinstance(n, bool) or not isinstance(n, int) or n < 0:
+        raise ConfigError(f"{where}.max_join_bars must be a whole number of bars >= 0, not {n!r}")
+    r = out.get("max_join_rise_frac")
+    if r is not None and (isinstance(r, bool) or not isinstance(r, (int, float)) or not math.isfinite(r) or r < 0):
+        raise ConfigError(f"{where}.max_join_rise_frac must be null or a number >= 0 (0.10 = 10%), not {r!r}")
+    d = out.get("start_date")
+    if d is not None:
+        try:
+            ok = isinstance(d, str) and len(d) == 10 and date.fromisoformat(d).isoformat() == d
+        except ValueError:
+            ok = False
+        if not ok:
+            raise ConfigError(f"{where}.start_date must be null or an ISO date YYYY-MM-DD, not {d!r}")
+    return out
+
+
+def _allocation(a, limits: dict) -> dict:
+    if not isinstance(a, dict):
+        raise ConfigError("allocation must be an object like "
+                          '{"method": "slots", "slot_frac": 0.20, "priority": "crypto_first"}')
+    a = {k: v for k, v in a.items() if not str(k).startswith("_")}
+    bad = sorted(set(a) - {*DEFAULT_ALLOCATION, "class_max_frac"})
+    if bad:
+        raise ConfigError(f"allocation: unknown keys {bad}")
+    out = {**DEFAULT_ALLOCATION, **a}
+    if out["method"] not in ALLOC_METHODS:
+        raise ConfigError(f"allocation.method must be one of {ALLOC_METHODS}, not {out['method']!r}")
+    if out["priority"] not in PRIORITIES:
+        raise ConfigError(f"allocation.priority must be one of {PRIORITIES}, not {out['priority']!r}")
+    out["slot_frac"] = _frac(out["slot_frac"], "allocation.slot_frac")
+    if out["method"] == "slots" and out["slot_frac"] > float(limits["max_asset_frac"]) + 1e-12:
+        raise ConfigError(f"allocation.slot_frac {out['slot_frac']:g} exceeds limits.max_asset_frac "
+                          f"{limits['max_asset_frac']}")
+    caps = a.get("class_max_frac")
+    if caps is None:
+        caps = {}
+    if not isinstance(caps, dict):
+        raise ConfigError('allocation.class_max_frac must be an object like {"crypto": 0.60, "equity": 1.0}')
+    caps = {k: v for k, v in caps.items() if not str(k).startswith("_")}
+    if set(caps) - set(VALID_CLASSES):
+        raise ConfigError(f"allocation.class_max_frac: classes must be in {VALID_CLASSES}")
+    if "crypto" not in caps:             # backward compatible: limits.max_crypto_frac, read as older configs had it
+        try:                             # (a number or numeric string; above 1 = no cap)
+            old = float(limits["max_crypto_frac"])
+        except (TypeError, ValueError):
+            old = float("nan")
+        if not math.isfinite(old) or old < 0:
+            raise ConfigError(f"limits.max_crypto_frac must be a number >= 0, not {limits['max_crypto_frac']!r}")
+        caps["crypto"] = min(old, 1.0)
+    out["class_max_frac"] = {k: _frac(caps.get(k, 1.0), f"allocation.class_max_frac.{k}", lo_open=False)
+                             for k in VALID_CLASSES}
     return out
 
 
@@ -105,14 +223,17 @@ def validate(cfg: dict) -> dict:
         if abs(tot - 1.0) > 1e-9:
             raise ConfigError(f"mode {name}: tranche weights must sum to 1 (got {tot})")
     c["modes"] = modes
-    c["live"] = bool(c.get("live", False))
+    _bool(c, "live", False, "")
     acct = c.setdefault("account", {})
-    acct.setdefault("approvals_required", True)
+    _bool(acct, "approvals_required", True, "account.")
+    c["sleeve_initial_qty"] = _sleeve_qty(c.get("sleeve_initial_qty") or {})
     c.setdefault("tax", {"st_rate": 0.35, "lt_rate": 0.20})
     c.setdefault("wash_sale_block_symbols", [])
     cap = c.setdefault("capital", {})
     if float(cap.get("max_usd", 0)) <= 0:
         raise ConfigError("capital.max_usd must be > 0 (the most this sleeve may deploy)")
+    c["entry"] = _entry(c.get("entry", {}), "entry", full=True)
+    c["allocation"] = _allocation(c.get("allocation", {}), c["limits"])
     names = set()
     alloc = 0.0
     for a in c.get("assets", []):
@@ -125,7 +246,7 @@ def validate(cfg: dict) -> dict:
         if a.get("mode", "immediate") not in modes:
             raise ConfigError(f"{n}: unknown mode {a.get('mode')!r}; defined: {sorted(modes)}")
         a.setdefault("mode", "immediate")
-        a.setdefault("enabled", False)
+        _bool(a, "enabled", False, f"{n}: ")
         s = a.get("signal") or {}
         if s.get("source", "computed") not in VALID_SOURCES:
             raise ConfigError(f"{n}: signal.source must be one of {VALID_SOURCES}")
@@ -142,16 +263,18 @@ def validate(cfg: dict) -> dict:
         v = a.get("vehicle") or {}
         if v.get("type") not in VALID_VEHICLES or not v.get("symbol"):
             raise ConfigError(f"{n}: vehicle needs type in {VALID_VEHICLES} and a symbol")
-        v.setdefault("fractional", False)
+        _bool(v, "fractional", False, f"{n}: vehicle.")
         a["vehicle"] = v
         f = float(a.get("alloc_frac", 0))
         if not (0 <= f <= c["limits"]["max_asset_frac"] + 1e-12):
             raise ConfigError(f"{n}: alloc_frac must be within [0, max_asset_frac={c['limits']['max_asset_frac']}]")
         a["alloc_frac"] = f
+        if "entry" in a:
+            a["entry"] = _entry(a["entry"], f"{n}: entry", full=False)
         if a["enabled"]:
             alloc += f
-    if alloc > 1.0 + 1e-9:
-        raise ConfigError(f"enabled assets allocate {alloc:.2f} > 1.0 of capital")
+    if alloc > 1.0 + 1e-9 and c["allocation"]["method"] == "fixed":
+        raise ConfigError(f"enabled assets allocate {alloc:.2f} > 1.0 of capital (or use allocation.method slots)")
     return c
 
 

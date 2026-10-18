@@ -1,0 +1,45 @@
+Execution modes vs buy & hold - agentic.backtest.compare_modes on public price data (no account data).
+Regenerate: python3 analysis_2026/results_agentic_modes/run_modes.py  ->  modes.csv (all rows, windows "full" and "2022+").
+It needs the gitignored data downloads (data/crypto_4h, data/etf), which are not in the public repo; this summary is
+written by hand from modes.csv.
+
+Modes (old MoneyLine, computed from OHLC):
+  immediate = 100% on the first close beyond the line (N=1)
+  split     = 50% at N=1 + 50% after 5 consecutive closes beyond the line (N=5 entries and exits)
+  confirm5  = 100% at N=5
+Conventions: decided at the close, traded at the next open; cost per side on every weight change; cash earns
+T-bills; strategies pay 35% on each calendar year's growth (losses carried forward), buy & hold pays 20% once
+at the end. trades_per_yr counts orders (weight changes): about 2 per round trip, and split places about 1.5x
+as many orders as immediate, each half-size. The first 120 bars are warm-up.
+Crypto: daily bars from flip_delay.load_crypto_daily, 365 bars/yr, fills 7 days a week (the spot-ETF route
+waits for NYSE sessions: see gate.py). History starts 2017-12 (ETH, BTC) and 2020-12 (SOL).
+ETFs: flip_delay.load_etf (dividend-adjusted closes), 252 bars/yr, from 1995 (SPY), 1999 (QQQ), 2000 (IWM).
+
+Full history, after-tax CAGR % / max drawdown %:
+asset cost    immediate      split          confirm5       buy & hold
+ETH   0.15%   30.0 / -64     35.6 / -52     37.1 / -59     14.8 / -94
+ETH   0.95%   18.6 / -71     26.9 / -57     31.3 / -62     14.8 / -94
+SOL   0.15%  129.2 / -67    131.2 / -66    117.3 / -73    100.5 / -96
+SOL   0.95%  105.5 / -74    113.5 / -69    104.7 / -75    100.5 / -96
+BTC   0.15%   22.1 / -54     21.8 / -54     19.3 / -58     18.0 / -83
+BTC   0.95%   11.5 / -64     13.8 / -61     13.5 / -64     18.0 / -83
+SPY   0.02%    3.5 / -36      4.2 / -33      4.8 / -39     10.0 / -55
+QQQ   0.02%    5.3 / -48      5.7 / -40      5.9 / -49      9.6 / -83
+IWM   0.02%    2.1 / -40      3.6 / -32      4.6 / -30      7.6 / -59
+
+Reading:
+- Crypto, 0.15%/side: SOL and BTC favour the immediate flip (or split) over confirm5 (SOL +11.8 points after tax,
+  BTC +2.8). ETH is the exception: confirm5 is 7.1 points ahead. The 21-coin basket in HANDOFF 5.15 is worse at
+  every delay, so one coin is not evidence for delaying crypto. Keep immediate for crypto by default.
+- Crypto, 0.95%/side (Robinhood direct): turnover is what costs (cost x |change in weight|), and split's orders
+  are half-size. split beats immediate on all three (confirm5 on ETH and BTC), and on BTC every mode trails buy &
+  hold after tax. Prefer the ETF route (0.02%) where it exists; on a direct-crypto vehicle consider split.
+- ETFs: confirm5 > split > immediate after tax on SPY, QQQ and IWM, as in HANDOFF 5.15. But every mode trails
+  buy & hold after tax by 3.0-6.5 points a year; the gain is drawdown (-30% to -49% vs -55% to -83%).
+- split lands between immediate and confirm5 on after-tax return in 6 of 9 full-history rows and is above both on
+  SOL (both costs) and BTC at 0.95%. It has the shallowest drawdown in 8 of 9 rows (IWM: confirm5).
+- Since 2022 (modes.csv, window 2022+): every mode beats buy & hold on ETH and SOL, whose buy & hold lost money
+  (-6.4% and -7.4% a year). On BTC only split and confirm5 at 0.15% edge past it (11.2 and 11.4 vs 11.1 after
+  tax), and at 0.95% every mode trails it. The ETFs trail buy & hold after tax in every mode.
+- Short windows and correlated coins: about two independent crypto bear markets in this data. Treat the
+  differences between modes as small relative to their uncertainty.

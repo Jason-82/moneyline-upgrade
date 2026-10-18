@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*[Rr][Oo][Bb][Ii][Nn][Hh][Oo][Oo][Dd].*",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/pre_tool_use.py\" || exit 2"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__.*[Rr][Oo][Bb][Ii][Nn][Hh][Oo][Oo][Dd].*",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/post_tool_use.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "mcp__.*[Rr][Oo][Bb][Ii][Nn][Hh][Oo][Oo][Dd].*",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/agentic/hooks/post_tool_use.py\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "mcp__robinhood-trading__place_option_order",
+      "mcp__robinhood-trading__review_option_order",
+      "mcp__robinhood-trading__cancel_option_order",
+      "mcp__robinhood-trading__exercise_option",
+      "mcp__robinhood-trading__cancel_option_exercise",
+      "mcp__robinhood-trading__create_alert",
+      "mcp__robinhood-trading__update_alert",
+      "mcp__robinhood-trading__delete_alert",
+      "mcp__robinhood-trading__mark_alerts_read",
+      "mcp__robinhood-trading__create_scan",
+      "mcp__robinhood-trading__update_scan_config",
+      "mcp__robinhood-trading__update_scan_filters",
+      "mcp__robinhood-trading__create_watchlist",
+      "mcp__robinhood-trading__update_watchlist",
+      "mcp__robinhood-trading__add_to_watchlist",
+      "mcp__robinhood-trading__remove_from_watchlist",
+      "mcp__robinhood-trading__add_option_to_watchlist",
+      "mcp__robinhood-trading__remove_option_from_watchlist",
+      "mcp__robinhood-trading__follow_watchlist",
+      "mcp__robinhood-trading__unfollow_watchlist",
+      "mcp__Robinhood__place_option_order",
+      "mcp__Robinhood__review_option_order",
+      "mcp__Robinhood__cancel_option_order",
+      "mcp__Robinhood__exercise_option",
+      "mcp__Robinhood__cancel_option_exercise",
+      "mcp__Robinhood__create_alert",
+      "mcp__Robinhood__update_alert",
+      "mcp__Robinhood__delete_alert",
+      "mcp__Robinhood__mark_alerts_read",
+      "mcp__Robinhood__create_scan",
+      "mcp__Robinhood__update_scan_config",
+      "mcp__Robinhood__update_scan_filters",
+      "mcp__Robinhood__create_watchlist",
+      "mcp__Robinhood__update_watchlist",
+      "mcp__Robinhood__add_to_watchlist",
+      "mcp__Robinhood__remove_from_watchlist",
+      "mcp__Robinhood__add_option_to_watchlist",
+      "mcp__Robinhood__remove_option_from_watchlist",
+      "mcp__Robinhood__follow_watchlist",
+      "mcp__Robinhood__unfollow_watchlist",
+      "mcp__robinhood-for-agents__place_option_order",
+      "mcp__robinhood-for-agents__review_option_order",
+      "mcp__robinhood-for-agents__cancel_option_order",
+      "mcp__robinhood-for-agents__exercise_option",
+      "mcp__robinhood-for-agents__cancel_option_exercise",
+      "mcp__robinhood-for-agents__create_alert",
+      "mcp__robinhood-for-agents__update_alert",
+      "mcp__robinhood-for-agents__delete_alert",
+      "mcp__robinhood-for-agents__mark_alerts_read",
+      "mcp__robinhood-for-agents__create_scan",
+      "mcp__robinhood-for-agents__update_scan_config",
+      "mcp__robinhood-for-agents__update_scan_filters",
+      "mcp__robinhood-for-agents__create_watchlist",
+      "mcp__robinhood-for-agents__update_watchlist",
+      "mcp__robinhood-for-agents__add_to_watchlist",
+      "mcp__robinhood-for-agents__remove_from_watchlist",
+      "mcp__robinhood-for-agents__add_option_to_watchlist",
+      "mcp__robinhood-for-agents__remove_option_from_watchlist",
+      "mcp__robinhood-for-agents__follow_watchlist",
+      "mcp__robinhood-for-agents__unfollow_watchlist",
+      "mcp__claude_ai_Robinhood__add_option_to_watchlist",
+      "mcp__claude_ai_Robinhood__add_to_watchlist",
+      "mcp__claude_ai_Robinhood__cancel_option_exercise",
+      "mcp__claude_ai_Robinhood__cancel_option_order",
+      "mcp__claude_ai_Robinhood__create_alert",
+      "mcp__claude_ai_Robinhood__create_scan",
+      "mcp__claude_ai_Robinhood__create_watchlist",
+      "mcp__claude_ai_Robinhood__delete_alert",
+      "mcp__claude_ai_Robinhood__exercise_option",
+      "mcp__claude_ai_Robinhood__follow_watchlist",
+      "mcp__claude_ai_Robinhood__mark_alerts_read",
+      "mcp__claude_ai_Robinhood__place_option_order",
+      "mcp__claude_ai_Robinhood__remove_from_watchlist",
+      "mcp__claude_ai_Robinhood__remove_option_from_watchlist",
+      "mcp__claude_ai_Robinhood__review_option_order",
+      "mcp__claude_ai_Robinhood__unfollow_watchlist",
+      "mcp__claude_ai_Robinhood__update_alert",
+      "mcp__claude_ai_Robinhood__update_scan_config",
+      "mcp__claude_ai_Robinhood__update_scan_filters",
+      "mcp__claude_ai_Robinhood__update_watchlist",
+      "Bash(python3 -m agentic resume:*)",
+      "Bash(python3 -m agentic run --replan:*)",
+      "Bash(python3 -m agentic plan --replan:*)",
+      "Edit(private/agentic/**)",
+      "Write(private/agentic/**)"
+    ]
+  }
+}

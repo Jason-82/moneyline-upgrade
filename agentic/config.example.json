@@ -17,8 +17,23 @@
     "max_crypto_frac": 0.60,
     "min_order_usd": 5
   },
+  "allocation": {
+    "_comment": "slots: every enabled asset's full position is slot_frac x capital (alloc_frac is ignored). Held positions keep their whole slot; the rest of capital goes to new entries in priority order (a partial slot only if at least half a slot is left). class_max_frac caps each class's share of capital (1.0 = no cap). method fixed: per-asset alloc_frac, class caps scale targets down. README section 9.",
+    "method": "slots",
+    "slot_frac": 0.20,
+    "priority": "crypto_first",
+    "class_max_frac": {"crypto": 0.60, "equity": 1.0}
+  },
+  "entry": {
+    "_comment": "Joining a green run late (HANDOFF 5.4). join_recent: buy a green tranche only within max_join_bars bars of its own green flip (and, with max_join_rise_frac, at most that far above the flip close). join: any time. fresh_only: join_recent, and only flips on or after start_date (null = the first live plan's date). An asset may override any key with its own \"entry\". Held positions are never sold because their run is old.",
+    "policy": "join_recent",
+    "max_join_bars": 20,
+    "max_join_rise_frac": null,
+    "start_date": null
+  },
   "tax": {"st_rate": 0.35, "lt_rate": 0.20},
   "wash_sale_block_symbols": [],
+  "sleeve_initial_qty": {"_comment": "Shares the account already holds when the first reconcile runs belong to you, not the sleeve, and are never sold by the plan. To hand some to the sleeve, list them here before that first reconcile, e.g. \"ETHA\": 9."},
   "modes": {
     "_comment_immediate": "full position on the first close beyond the line (N=1)",
     "immediate": [{"weight": 1.0, "n_entry": 1, "n_exit": 1}],
@@ -73,7 +88,7 @@
       "enabled": false,
       "alloc_frac": 0.25,
       "mode": "split",
-      "signal": {"source": "tv_export", "path": "private/tv_exports/COINBASE_ETHUSD_1D*.csv"},
+      "signal": {"source": "tv_export", "path": "private/tv_exports/COINBASE_ETHUSD_1D*.csv", "tv_confirm": "count"},
       "vehicle": {"type": "equity", "symbol": "ETHA", "fractional": true},
       "_comment": "Follows the NEW (Oct 2026) TradingView MoneyLine from a fresh daily CSV export (Direction / ConfirmCount / MoneyLine Level columns). Enable this OR the computed ETH entry, not both."
     }
