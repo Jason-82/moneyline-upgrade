@@ -137,7 +137,10 @@ Controls
       at 23:50 with an in-file flatten instead of a next-day file (C2). Both legs use identical inputs, so the
       trades-only minus true-book difference, which is all the control feeds into Part A, is not affected by it.
   D2  A-RH needs data/scalping/rh/currency_pairs.json (a read-only get_currency_pairs response saved by an agent
-      session); until it exists the stratum is skipped and reported as missing.
+      session); until it exists the stratum is skipped and reported as missing. (Present since 2026-10-18 02:27:
+      78 matching USDT pairs, 76 after excluding PAXG and USDC.)
+  D3  Control (ii): 18 of the 340 drawn symbol-days have no bookTicker/trades file in the archive (ORBS, STPT and
+      OXT before 2023-10-10), so the bias is estimated on 322 symbol-days.
 Notes (the draw as specified, not deviations)
   N1  Band A ($50-200k) has only 1, 2 and 0 eligible pairs in 2025-10, -11 and -12, so min(k, n) yields 3 band-A
       pair-months in the first quarter (33 in the first half vs 60 in the second); bands B-D are full.
@@ -146,10 +149,10 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures as cf
+import hashlib
 import io
 import json
 import math
-import os
 import sys
 import time
 import zipfile
@@ -235,11 +238,28 @@ DELTA1 = {s: cfg_name(s, 1000, F1, 1.0, 1.0) for s in (Q1, Q2, Q5, Q1LO)}
 F2CFG = {s: cfg_name(s, 1000, F2, 0.25, 1.0) for s in (Q1, Q2, Q5, Q3, Q1LO)}
 
 
+def _src_hash(*spans) -> str:
+    """Hash of the source text between pairs of markers (R2: cached results carry the version of the code that made
+    them; a cache made by different simulation code is recomputed, and --analyze refuses mixed versions)."""
+    s = Path(__file__).read_text()
+    h = hashlib.sha1()
+    for a, b in spans:
+        i = s.index(a)
+        h.update(s[i:s.index(b, i)].encode())
+    return h.hexdigest()[:12]
+
+
+_SEC = "# " + "=" * 92 + " "
+_SIM_SPANS = (("SEED = 20261018", "def cfg_name("), ("MAIN_CONFIGS = (", "PRIMARY = {"), (_SEC + "data", _SEC + "unit tests"))
+SIM_VERSION = _src_hash(*_SIM_SPANS)
+CTRL_VERSION = _src_hash(*_SIM_SPANS, ("def run_book_day(", "def control_i("), (_SEC + "Control (ii)/(iii)", "def control_ii("))
+
+
 # ============================================================================================ universe
 def load_klines() -> pd.DataFrame:
     k = pd.read_parquet(KLINES)
     k["day"] = pd.to_datetime(k["day"]).dt.normalize()
-    return k
+    return k.drop_duplicates(["sym", "day"]).reset_index(drop=True)      # U6: the archive repeats 3 sym-days
 
 
 def exclusions(k: pd.DataFrame) -> pd.DataFrame:
@@ -416,9 +436,15 @@ def spot_key(sym, d):
 
 
 def fetch_spot(sym, d):
+    """The day's trades CSV bytes, or None only if the archive has no such file (R1: a None from the download is
+    confirmed against the bucket listing, so a transient 403/404 cannot turn a traded day into a zero pair-day)."""
+    key = spot_key(sym, d)
     for k in range(3):
         try:
-            return s3_get_zip_csv(spot_key(sym, d))
+            b = s3_get_zip_csv(key)
+            if b is None and any(k_ == key for k_, _ in s3_ls(key, delimiter="")[1]):
+                raise IOError(f"{key} is listed in the archive but could not be downloaded")
+            return b
         except (IOError, zipfile.BadZipFile):
             if k == 2:
                 raise
@@ -1385,6 +1411,7 @@ def run_segment(stratum: str, sym: str, months: list[tuple[int, str]], configs, 
                 df = pd.DataFrame(rows.pop(mo))
                 for c_, v in mstats.get(mo, {}).items():
                     df[c_] = v
+                df["engine_version"] = SIM_VERSION
                 p = out_dir / stratum / sym
                 p.mkdir(parents=True, exist_ok=True)
                 df.to_parquet(p / f"{mo}.parquet", index=False)
@@ -1557,10 +1584,10 @@ def _done(stratum, sym, m, names) -> bool:
     if not p.exists():
         return False
     try:
-        c = pd.read_parquet(p, columns=["config"]).config
+        c = pd.read_parquet(p, columns=["config", "engine_version"])
     except Exception:
         return False
-    return set(names) <= set(c)
+    return set(names) <= set(c.config) and set(c.engine_version) == {SIM_VERSION}
 
 
 def run_job(job) -> dict:
@@ -1845,7 +1872,9 @@ def _um_one(job):
     sym, d = job
     out = DATA / "control_ii" / f"{d:%Y-%m-%d}_{sym}.parquet"
     if out.exists():
-        return pd.read_parquet(out)
+        old = pd.read_parquet(out)
+        if "engine_version" in old and set(old.engine_version) == {CTRL_VERSION}:
+            return old
     bb, bt = _um_fetch(sym, d)
     base = dict(day=pd.Timestamp(d), sym=sym)
     if bb is None or bt is None:
@@ -1865,6 +1894,7 @@ def _um_one(job):
                      n_trades=len(tr["px"]), n_book=len(bk["bid"]), day_usd=float(tr["quote"].sum()), tick=g,
                      **dict(zip(RES_NAMES, r))) for (s, f, m), r in zip(CTRL_RUNS, out_r)]
         df = pd.DataFrame(rows)
+    df["engine_version"] = CTRL_VERSION
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out, index=False)
     return df
@@ -1944,8 +1974,56 @@ def load_rows(stratum: str, data_dir: Path = DATA) -> pd.DataFrame:
     return df
 
 
+def completeness(df: pd.DataFrame, stratum: str) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """R3: every expected pair-month must be present, in its drawn band, with every configuration on every day and a
+    single engine version; days without a trades file are cross-checked against the klines. Returns (per pair-month
+    table, no-data days with kline volume, problems)."""
+    k, _, elig, dr, arh = universe(write=False)
+    if stratum == "main":
+        exp, names, rule = dr[["sym", "month", "band"]], [cfg_name(*c) for c in MAIN_CONFIGS], None
+    else:
+        if arh is None:
+            return pd.DataFrame(), pd.DataFrame(), []
+        e = elig[elig.eligible & elig.sym.isin(arh.sym[~arh.excluded])]
+        exp, names, rule = e[["sym", "month", "band"]], [cfg_name(*c) for c in ARH_CONFIGS], arh_rule
+    probs = []
+    got = df.groupby(["sym", "month", "config"]).size() if len(df) else pd.Series(dtype=int)
+    band_got = df.groupby(["sym", "month"]).band.agg(lambda v: "|".join(sorted(set(v)))) if len(df) else pd.Series(dtype=str)
+    rows = []
+    for s, mo, b in exp.itertuples(index=False):
+        ms = pd.Timestamp(mo + "-01")
+        days = [(ms + pd.Timedelta(days=i)).date() for i in range(ms.days_in_month)]
+        n_exp = sum(1 for d in days if rule is None or rule(d))
+        n = [int(got.get((s, mo, c), 0)) for c in names]
+        ok = all(x == n_exp for x in n) and band_got.get((s, mo), b) == b
+        rows.append(dict(sym=s, month=mo, band=b, days_expected=n_exp, min_rows=min(n), max_rows=max(n),
+                         band_in_results=band_got.get((s, mo), ""), complete=ok))
+    comp = pd.DataFrame(rows)
+    if not comp.complete.all():
+        probs.append(f"{int((~comp.complete).sum())} of {len(comp)} expected pair-months are missing or incomplete")
+    extra = set(map(tuple, df[["sym", "month"]].drop_duplicates().to_numpy())) - set(zip(exp.sym, exp.month)) if len(df) else set()
+    if extra:
+        probs.append(f"{len(extra)} pair-months in the results were not expected (stale files?): {sorted(extra)[:5]}")
+    if len(df) and set(df.engine_version.fillna("none")) != {SIM_VERSION}:
+        probs.append(f"results come from engine versions {sorted(set(df.engine_version.fillna('none')))}, code is {SIM_VERSION}")
+    # days without a trades file (or without the next day's) although the klines show quote volume
+    u = df[df.config == names[0]][["sym", "band", "day", "has_data", "has_next"]].copy() if len(df) else pd.DataFrame()
+    nod = pd.DataFrame()
+    if len(u):
+        kq = k.groupby(["sym", "day"]).quote_volume.max()
+        u["kline_qv"] = [float(kq.get((s, pd.Timestamp(d)), 0.0)) for s, d in zip(u.sym, u.day)]
+        u["kline_qv_next"] = [float(kq.get((s, pd.Timestamp(d) + pd.Timedelta(days=1)), 0.0)) for s, d in zip(u.sym, u.day)]
+        nod = u[((~u.has_data) & (u.kline_qv > 0)) | (u.has_data & ~u.has_next & (u.kline_qv_next > 0))]
+    return comp, nod, probs
+
+
 def net(u: pd.DataFrame, fm=0.0, ft=2.0) -> np.ndarray:
-    return (u.gross_usd - fm * 1e-4 * u.maker_usd - ft * 1e-4 * u.taker_usd).to_numpy()
+    """Net $ per pair-day. R4: a non-finite value raises (SS.cluster2_t would silently drop it)."""
+    x = (u.gross_usd - fm * 1e-4 * u.maker_usd - ft * 1e-4 * u.taker_usd).to_numpy()
+    if not np.isfinite(x).all() or not np.isfinite(u.filled_usd.to_numpy()).all():
+        bad = u[~np.isfinite(x) | ~np.isfinite(u.filled_usd.to_numpy())]
+        raise ValueError(f"non-finite pair-day results: {bad[['sym', 'day', 'config']].head().to_dict('records')}")
+    return x
 
 
 def spy_after_tax(start="2025-10-01", end="2026-09-30") -> float:
@@ -2008,7 +2086,7 @@ def cell_stats(u: pd.DataFrame, size: float, fm=0.0, ft=2.0, spy=np.nan, boot=Tr
     exit_pnl = (u.exit_cost_usd - ft * 1e-4 * u.exit_usd).sum()
     out = dict(
         n_units=n, n_pairs=u.sym.nunique(), n_days=u.day.nunique(), mean_usd=m, se=se, t=t, p_one_sided=p, df=dfree,
-        mde_usd=SS.mde(se, dfree), share_active=float(act.mean()), mean_active_usd=float(x[act].mean()) if act.any() else np.nan,
+        mde_usd=SS.mde(se), mde_t_usd=SS.mde(se, dfree), share_active=float(act.mean()), mean_active_usd=float(x[act].mean()) if act.any() else np.nan,
         edge_bp=1e4 * R, edge_se_bp=1e4 * Rse, edge_df=Rdf,
         edge_ub_bp=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf), edge_ub95_bp=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf, level=0.95),
         edge_lo95_bp=1e4 * R - SS.stats.t.ppf(0.975, Rdf) * 1e4 * Rse, edge_hi95_bp=1e4 * R + SS.stats.t.ppf(0.975, Rdf) * 1e4 * Rse,
@@ -2069,7 +2147,7 @@ def primary_cells(df: pd.DataFrame, bias: dict) -> pd.DataFrame:
                      cond_delta1s=bool(np.nanmean(x1) > 0), cond_dropworst=bool(md > 0),
                      cond_biascorr=bool(mc > 0) if np.isfinite(bb_) else False,
                      share_active=float((u.n_fills > 0).mean()),
-                     mde=SS.mde(se, dfree), edge_ub=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf),
+                     mde=SS.mde(se), mde_t=SS.mde(se, dfree), edge_ub=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf),
                      edge_ub95=SS.upper_bound(1e4 * R, 1e4 * Rse, Rdf, level=0.95),
                      mean_half1=h1.mean() if len(h1) else np.nan, mean_half2=h2.mean() if len(h2) else np.nan,
                      n_half1=len(h1), n_half2=len(h2), mean_delta1s=float(np.nanmean(x1)), n_delta1s=len(u1),
@@ -2093,8 +2171,10 @@ def _splits(df: pd.DataFrame, ages: pd.Series) -> pd.DataFrame:
     def terc(v):
         r = v.rank(method="first")
         return pd.cut(r, 3, labels=["T1 low", "T2", "T3 high"]) if v.notna().sum() >= 3 else pd.Series(np.nan, index=v.index)
-    pm["spread_vol_tercile"] = pm.groupby("band").sv.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
-    pm["vol_tercile"] = pm.groupby("band").vol.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
+    # R5: terciles are cut within each band-month cross-section, so a pair-month's label uses only values known
+    # before that month (cutting over the whole year's pair-months would use later months' distribution)
+    pm["spread_vol_tercile"] = pm.groupby(["band", "month"]).sv.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
+    pm["vol_tercile"] = pm.groupby(["band", "month"]).vol.transform(lambda v: terc(v.dropna()).reindex(v.index).astype(object))
     pm["tick_class"] = np.where(pm.st <= 1.5, "tick-constrained (<=1.5 ticks)", np.where(pm.st >= 3, "wide (>=3 ticks)",
                                                                                          np.where(pm.st.notna(), "1.5-3 ticks", None)))
     fm = pd.to_datetime(pm.sym.map(ages).fillna("") + "-01", errors="coerce")
@@ -2103,7 +2183,17 @@ def _splits(df: pd.DataFrame, ages: pd.Series) -> pd.DataFrame:
     return df.merge(pm.drop(columns=["st", "sv", "vol"]), on=["sym", "month", "band"], how="left")
 
 
-def analyze(data_dir: Path = DATA, res_dir: Path | None = None, boot=True):
+def flag_table(df: pd.DataFrame) -> pd.DataFrame:
+    """Pair-days per config and band carrying each engine flag (R6)."""
+    fb = df.flag_bits.astype(int)
+    out = df.assign(**{nm: (fb & bit) > 0 for nm, bit in (("stopped", FLAG_STOPPED), ("queue_overflow", FLAG_OVERFLOW),
+                                                          ("residual_inventory", FLAG_RESIDUAL), ("markout_buffer_full", FLAG_MKFULL),
+                                                          ("no_trades_file", FLAG_NODATA), ("no_next_day_file", FLAG_NONEXT))})
+    return out.groupby(["config", "band"])[["stopped", "queue_overflow", "residual_inventory", "markout_buffer_full",
+                                            "no_trades_file", "no_next_day_file"]].sum().reset_index()
+
+
+def analyze(data_dir: Path = DATA, res_dir: Path | None = None, boot=True, check=True, allow_incomplete=False):
     global RES
     if res_dir is not None:
         RES = res_dir
@@ -2116,7 +2206,24 @@ def analyze(data_dir: Path = DATA, res_dir: Path | None = None, boot=True):
     df = load_rows("main", data_dir)
     if df.empty:
         say("no Part A pair-day results under", data_dir / "main"); return
+    if check:                                   # R3: no silent loss of pair-months, no stale or mixed engine versions
+        comp, nod, probs = completeness(df, "main")
+        comp.to_csv(RES / "completeness.csv", index=False)
+        nod.to_csv(RES / "nodata_with_kline_volume.csv", index=False)
+        say(f"completeness: {int(comp.complete.sum())}/{len(comp)} drawn pair-months complete; "
+            f"{len(nod)} pair-days lack the day's or the next day's trades file although the klines show volume "
+            f"(counted as specified: zero, or stopped-trading valuation)")
+        if probs:
+            for p_ in probs:
+                say("PROBLEM:", p_)
+            if not allow_incomplete:
+                log.close()
+                raise SystemExit("Part A results are incomplete or stale; rerun --run (see completeness.csv) "
+                                 "or pass --allow-incomplete for a provisional look")
     bias = _bias()
+    if not bias:
+        say("WARNING: control_ii_bias.json missing: condition 5 is set False for every cell (run --controls first)")
+    flag_table(df).to_csv(RES / "flags.csv", index=False)
     spy = spy_after_tax()
     ages = listing_dates(sorted(df.sym.unique()), RES / "listing_dates.csv") if res_dir is None else pd.Series(dtype=str)
     df = _splits(df, ages)
@@ -2202,6 +2309,11 @@ def analyze(data_dir: Path = DATA, res_dir: Path | None = None, boot=True):
     # ---------------------------------------------------------------- A-RH stratum (exploratory, outside Holm)
     ar = load_rows("arh", data_dir)
     if not ar.empty:
+        if check:
+            comp_a, _, probs_a = completeness(ar, "arh")
+            comp_a.to_csv(RES / "completeness_arh.csv", index=False)
+            for p_ in probs_a:
+                say("A-RH PROBLEM (exploratory stratum, not blocking):", p_)
         rows = []
         for s in (Q1, Q2, Q5, Q1LO):
             for b in sorted(ar.band.unique()) + ["all"]:
@@ -2246,6 +2358,7 @@ def main():
     ap.add_argument("--stratum", choices=["main", "arh", "both"], default="both")
     ap.add_argument("--analyze", action="store_true", help="primary_cells.csv and the reporting tables")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--allow-incomplete", action="store_true", help="analyze even if pair-months are missing (provisional)")
     a = ap.parse_args()
     pd.set_option("display.width", 250); pd.set_option("display.max_columns", 40); pd.set_option("display.max_rows", 300)
     if not any((a.universe, a.tests, a.controls, a.smoke, a.run, a.analyze)):
@@ -2278,7 +2391,7 @@ def main():
         if a.stratum in ("arh", "both"):
             run_all("arh", a.workers)
     if a.analyze:
-        analyze()
+        analyze(allow_incomplete=a.allow_incomplete)
 
 
 if __name__ == "__main__":

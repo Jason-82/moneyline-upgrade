@@ -1,47 +1,51 @@
-B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (34s)
-rule (e): 239 unknown symbols flagged as funds (73s)
-trailing statistics: 47s
-cost model fitted on 37 names (pilot40 (B-R stand-in)): b = 4.089, -0.663, 0.394, 0.292; S = 1.219; R2 = 0.67
+B-H loaded: 6858 stock symbols, 2245 fund symbols, 5345 days (33s)
+rule (e): 239 unknown symbols flagged as funds (67s)
+trailing statistics: 32s
+cost model fitted on 1097 names (B-R): b = 4.281, -0.555, 0.256, 0.719; S = 1.251; R2 = 0.68
 cost_model.csv written before any return (/home/user/moneyline-upgrade/analysis_2026/results_scalping/B/cost_model.csv)
+Points where the pre-registration could not be followed as written (see the module docstring):
+  - B-H sell fees: an upper bound (SEC 0.30 bp + TAF $0.000119/sh, cap $5.95) instead of the dated schedule.
+  - D3's 4.9%-of-shares-outstanding cap: B-R only (current snapshot); B-H has no shares outstanding.
+  - qlib freezes 2,155 names at 2020-11-10: missing exits after the sample end are censored, not delisted.
 
-Controls (ii)/(iii) on the S&P 500 PIT set (32s):
+Controls (ii)/(iii) on the S&P 500 PIT set (26s):
                                                                       control                      universe  estimate          t  n_trades
-                      (ii) known answer: B1 gross (m=0) S&P 500 PIT 2001-2010                   all members  0.000620   2.776006   98381.0
+                      (ii) known answer: B1 gross (m=0) S&P 500 PIT 2001-2010                   all members  0.000620   2.776404   98381.0
                                    (ii) B1 gross, no impact either (m=0, Y=0)                   all members  0.000765   3.390248   98381.0
-                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000182   1.297793  222242.0
-                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.007543 -39.724786  222242.0
-                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000141   0.276274   11552.0
-                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.008188 -19.694980   11552.0
-                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000222   1.580344  188148.0
-                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.007288 -37.237732  188148.0
-                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000193   0.335163    9290.0
-                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.008014 -17.520047    9290.0
+                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000182   1.298780  222242.0
+                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.007536 -39.669181  222242.0
+                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020   all members (dead included)  0.000142   0.277692   11552.0
+                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020   all members (dead included) -0.008171 -19.644180   11552.0
+                         (iii) survivorship: B1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000222   1.581350  188148.0
+                         (iii) survivorship: B1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.007280 -37.182946  188148.0
+                         (iii) survivorship: E1 gross (m=0) S&P PIT 2001-2020 members qlib has on each date  0.000194   0.336538    9290.0
+                         (iii) survivorship: E1 net (m=1.5) S&P PIT 2001-2020 members qlib has on each date -0.007996 -17.470135    9290.0
 (iii) large-cap survivorship effect B1 gross (m=0) (qlib-available minus all)                    difference  0.000040        NaN       NaN
-(iii) large-cap survivorship effect B1 net (m=1.5) (qlib-available minus all)                    difference  0.000255        NaN       NaN
+(iii) large-cap survivorship effect B1 net (m=1.5) (qlib-available minus all)                    difference  0.000256        NaN       NaN
 (iii) large-cap survivorship effect E1 gross (m=0) (qlib-available minus all)                    difference  0.000052        NaN       NaN
-(iii) large-cap survivorship effect E1 net (m=1.5) (qlib-available minus all)                    difference  0.000174        NaN       NaN
+(iii) large-cap survivorship effect E1 net (m=1.5) (qlib-available minus all)                    difference  0.000175        NaN       NaN
 
-Synthetic no-edge market (27s); parameters from B-H band medians: {1: {'s': 0.03142325580120087, 'sig20': 0.02324558235704899, 'adv': 91614.0, 'zero_vol_share': 0.008686130515513812}, 2: {'s': 0.01496814750134945, 'sig20': 0.02079818956553936, 'adv': 290663.0, 'zero_vol_share': 0.0012406939737626965}, 3: {'s': 0.008540414273738861, 'sig20': 0.02059473842382431, 'adv': 865725.5, 'zero_vol_share': 0.00031211392928343074}, 4: {'s': 0.005703851580619812, 'sig20': 0.02115827240049839, 'adv': 2785877.5, 'zero_vol_share': 0.00010839415591890056}}
- cell  net_estimate       net_t  gross_estimate     gross_t  n_trades  true_half_spread  median_s_estimate
-B1-L1     -0.061144 -241.263862        0.013735   84.283056     35852          0.015712           0.042657
-B1-L2     -0.022400 -173.591923        0.004520   36.405686     35866          0.007484           0.014544
-B1-L3     -0.011579  -94.315834        0.001552   12.667265     35867          0.004270           0.007272
-B1-L4     -0.006769  -55.235439        0.000458    3.769438     35867          0.002852           0.004404
-B2-L1     -0.067963  -20.864799        0.009160    7.096533       528          0.015712           0.042657
-B2-L2     -0.022179   -5.554754        0.004211    1.382179        57          0.007484           0.014544
-B2-L3           NaN         NaN             NaN         NaN         0          0.004270           0.007272
-B2-L4           NaN         NaN             NaN         NaN         0          0.002852           0.004404
-B3-L1     -0.040553 -217.218530       -0.003776  -42.494632    122440          0.015712           0.042657
-B3-L2     -0.015844 -224.575890       -0.002629  -50.774193    117692          0.007484           0.014544
-B3-L3     -0.007212 -140.288612       -0.000706  -14.753245    112257          0.004270           0.007272
-B3-L4     -0.003424  -74.112920        0.000167    3.623736    111791          0.002852           0.004404
-B4-L1     -0.014969  -82.445705        0.003747   25.851920     60038          0.015712           0.042657
-B4-L2     -0.007305  -82.013743       -0.003319  -41.381967     81879          0.007484           0.014544
-B4-L3     -0.006384  -98.425064       -0.005058  -81.329560    101564          0.004270           0.007272
-B4-L4     -0.006727 -112.053659       -0.006132 -104.274838    113331          0.002852           0.004404
-E1-L1     -0.085948  -19.874519       -0.011538   -7.542218       468          0.015712           0.042657
-E1-L2     -0.027762   -4.987044        0.001236    0.349601        43          0.007484           0.014544
-E1-L3           NaN         NaN             NaN         NaN         0          0.004270           0.007272
-E1-L4           NaN         NaN             NaN         NaN         0          0.002852           0.004404
+Synthetic no-edge market (22s); parameters from B-H band medians: {1: {'s': 0.023329859599471092, 'sig20': 0.02324558235704899, 'adv': 91614.0, 'zero_vol_share': 0.008686130515513812}, 2: {'s': 0.010778861120343208, 'sig20': 0.02079818956553936, 'adv': 290663.0, 'zero_vol_share': 0.0012406939737626965}, 3: {'s': 0.0068447706289589405, 'sig20': 0.02059473842382431, 'adv': 865725.5, 'zero_vol_share': 0.00031211392928343074}, 4: {'s': 0.005231792107224464, 'sig20': 0.02115827240049839, 'adv': 2785877.5, 'zero_vol_share': 0.00010839415591890056}}
+ cell  net_estimate       net_t  gross_estimate    gross_t  n_trades  true_half_spread  median_s_estimate
+B1-L1     -0.045517 -285.474349        0.008438  49.367780     26721          0.011665           0.030223
+B1-L2     -0.016737 -112.195843        0.002463  16.189486     26732          0.005389           0.010117
+B1-L3     -0.009290  -66.862429        0.001127   8.089288     26730          0.003422           0.005609
+B1-L4     -0.005948  -47.258747        0.000442   3.533144     26731          0.002616           0.003797
+B2-L1     -0.048694  -16.248560        0.005145   4.237429       392          0.011665           0.030223
+B2-L2     -0.017586   -4.082058        0.001669   0.510749        34          0.005389           0.010117
+B2-L3           NaN         NaN             NaN        NaN         0          0.003422           0.005609
+B2-L4           NaN         NaN             NaN        NaN         0          0.002616           0.003797
+B3-L1     -0.032927 -174.619082       -0.006042 -55.717043     83686          0.011665           0.030223
+B3-L2     -0.013504 -200.066173       -0.004097 -69.174061     81116          0.005389           0.010117
+B3-L3     -0.006536 -122.157364       -0.001400 -27.363715     81531          0.003422           0.005609
+B3-L4     -0.003200  -62.072204       -0.000014  -0.289004     83409          0.002616           0.003797
+B4-L1     -0.013826  -81.621840       -0.001718 -11.652768     49372          0.011665           0.030223
+B4-L2     -0.008980  -92.327565       -0.006344 -70.840116     64258          0.005389           0.010117
+B4-L3     -0.007371  -94.805810       -0.006350 -85.013783     77452          0.003422           0.005609
+B4-L4     -0.007047 -104.222297       -0.006520 -97.803283     85553          0.002616           0.003797
+E1-L1     -0.061101  -19.012134       -0.007441  -5.188979       339          0.011665           0.030223
+E1-L2     -0.018956   -3.593847       -0.000312  -0.080502        28          0.005389           0.010117
+E1-L3           NaN         NaN             NaN        NaN         0          0.003422           0.005609
+E1-L4           NaN         NaN             NaN        NaN         0          0.002616           0.003797
 
-total 222s
+total 217s

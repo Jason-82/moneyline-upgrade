@@ -1,0 +1,7 @@
+cost model: Part B cost_model.csv (B-R); b = 4.281, -0.555, 0.256, 0.719, S = 1.251
+
+Control (i) Roll market; band parameters from 6 pilot names (panel bars not yet pulled):
+  L1: {'p_traded': 0.14743589743589744, 'sigma_5m': 0.005873198037780362, 'n_stock_sessions': 108, 'source': 'point-in-time band'}
+  L2: {'p_traded': 0.4551282051282052, 'sigma_5m': 0.0042473903081909695, 'n_stock_sessions': 62, 'source': 'point-in-time band'}
+  L3: {'p_traded': 0.5512820512820513, 'sigma_5m': 0.0024631105168218936, 'n_stock_sessions': 25, 'source': 'point-in-time band'}
+  L4: {'p_traded': 0.9423076923076923, 'sigma_5m': 0.002423831858105076, 'n_stock_sessions': 100, 'source': 'point-in-time band'}

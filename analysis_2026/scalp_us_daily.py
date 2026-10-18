@@ -7,8 +7,9 @@ controls), "Part E" (daily rule only; the intraday ORB leg is in scalp_us_intrad
     python3 -m analysis_2026.scalp_us_daily --controls      # known answer (ii), survivorship (iii), synthetic no-edge
     python3 -m analysis_2026.scalp_us_daily --smoke         # one year of B-H, timings and counts only (scratch output)
     python3 -m analysis_2026.scalp_us_daily --run           # full primary analysis, exploratory, B6, Part D
-    python3 -m analysis_2026.scalp_us_daily --run --nulls 20   # plus the 20 null panels (Control (i), PASS condition 8)
-    python3 -m analysis_2026.scalp_us_daily --nulls 20      # null panels only; rerun --run afterwards for cond_null
+    python3 -m analysis_2026.scalp_us_daily --run --nulls 20   # 20 null panels first (Control (i)), then the run,
+                                                            # so PASS condition 8 (cond_null) is filled
+    python3 -m analysis_2026.scalp_us_daily --nulls 20      # null panels only (a later --run reads null_panels.csv)
     (--br-root DIR reads daily_split/daily_none.parquet from DIR instead of data/scalping/rh)
 
 Data (gitignored): data/scalping/qlib/panel.parquet (B-H), data/scalping/ref/*.csv (ETF flags and names),
@@ -44,6 +45,8 @@ was taken where one exists; none was changed after seeing a result):
     off-grid exclusion, which the pre-registration defines for qlib's P, is not applied to B-R.
  4. s_it "data to t-1": EDGE, ADV60, sigma60 and the tick term use data through t-1 (P of the last real bar
     before t). Each taker leg pays the cost as of its own day: s, sigma20, ADV60, c and D_k of that day.
+    The impact term uses the order size Q as written (not the smaller pro-rata fill) on every taker leg of
+    Parts B and E (the costlier reading); D3 and D4 charge impact at the realized size, as Part D says.
     Below L1 (ADV60 < $50k, possible on exit days) c = 1.25 and D_k = $974 (L1 values).
  5. sigma20 = SD of simple returns between consecutive real bars inside the 20-day window (data to t-1;
     B3's sigma_t uses data to t); with fewer than 5 such returns the 60-day window is used. sigma60 for the
@@ -115,6 +118,21 @@ was taken where one exists; none was changed after seeing a result):
     data/universe_recent_raw (2024-08 onward) for symbols the scan does not list, after rules (a)-(d); they are
     split-adjusted only, so their price-level rules use split-adjusted prices (they are mostly L5/L6 names).
     B-R returns are split-adjusted, not dividend-adjusted (Robinhood's "all" adjustment is intraday only).
+26. Rules (a)-(e) are applied exactly as written; as written, rule (b)'s "Rights?" and "Units?" also remove
+    ADRs named "... representing the right to receive ..." and MLPs with "Common Units" (counted in
+    exclusions.csv). Pre-decimal prices (2000, and Nasdaq names into mid-2001) are off the cent grid, so the
+    90%-on-grid rule removes most such name-days from L1-L4; R_2001 rests on the 2000 name-days that pass.
+27. The B-H panel is loaded 2000-01-03..2021-03-31 (trailing windows before the sample, exits after it).
+    The one-price and split screens gate the signal strategies (B1, B2, E1, the D2 sample, B6); B3 and B4
+    bid every eligible name-day, so the screens do not apply to them.
+28. Exploratory legs are gross (no costs) band excess: overnight close(t)->open(t+1) and intraday
+    open(t+1)->close(t+1) against the same windows of the band. B1-ON pays m s/2 at the close and at the open
+    (2 x s at the open as the sensitivity). B4's overnight/intraday split is of the raw gross log return held,
+    share-weighted night by night over the GTC sessions. The open(t+1)-based benchmark is the band's EW
+    open(t+1)->close(t+1) return (for B4 it replaces nothing after close(t+1)).
+29. D1 reports, per band, medians over B-R eligible name-days of the round-trip cost m s + 2 Y sigma20
+    sqrt(max(0, Q - D_k)/ADV60) and of the paper gain from one's own buying, Y sigma20 sqrt(Q/ADV60) (temporary)
+    and 2/3 of it (permanent, as in D4), at Q = 1/5/10/25% of ADV60.
 Points where the pre-registration could not be followed are listed in summary.txt (B-R and its universe
 not yet pulled; shares outstanding only in B-R; historical B-H fee schedules).
 """
@@ -841,10 +859,15 @@ def rule_e(S, fr, chunk=800):
     return flag
 
 
-def b6_twins(P, fr, rows):
+def b6_twins(P, fr, rows, chunk=400):
     """For B6: per name-day the most correlated fund (max R^2, 250 days, data to t-1, >= 100 pairs), its beta,
-    and the SD of the residual over the 60-day window with that twin and beta."""
-    r = daily_returns(P)[rows]
+    and the SD of the residual over the 60-day window with that twin and beta (rows processed in chunks)."""
+    rall = daily_returns(P)
+    out = [_b6_twins_chunk(rall[rows[a:a + chunk]], fr) for a in range(0, len(rows), chunk)]
+    return tuple(np.concatenate([o[k] for o in out]) for k in range(4))
+
+
+def _b6_twins_chunk(r, fr):
     best = np.full(r.shape, -1.0); tw = np.full(r.shape, -1, np.int16)
     beta = np.full(r.shape, np.nan); sdu = np.full(r.shape, np.nan)
     for k, f in enumerate(FUNDS_B6):
@@ -1081,20 +1104,26 @@ def bench_values(P, EL, a_off, a_open, b_off, b_open, pen=0.30):
     return g
 
 
+def _gkey(P, EL):
+    if getattr(EL, "gkey", None) is None:
+        EL.gkey = (EL.t - P.s0) * 8 + EL.gb
+    return EL.gkey
+
+
 def band_sums(P, EL, R):
     ok = np.isfinite(R)
-    key = (EL.t - P.s0) * 8 + EL.gb
+    key = _gkey(P, EL)
     n = (P.s1 - P.s0 + 1) * 8
     Ssum = np.bincount(key[ok], weights=R[ok], minlength=n)
     Ncnt = np.bincount(key[ok], minlength=n).astype(float)
     return Ssum, Ncnt
 
 
-def band_excess(P, EL, R, pos, weights=None):
+def band_excess(P, EL, R, pos, sums=None):
     """Benchmark for trades at EL positions pos: EW of R over the band's other eligible names that day,
     excluding every name traded that day in the same group (the trades in pos)."""
-    Ssum, Ncnt = band_sums(P, EL, R)
-    key = (EL.t[pos] - P.s0) * 8 + EL.gb[pos]
+    Ssum, Ncnt = sums if sums is not None else band_sums(P, EL, R)
+    key = _gkey(P, EL)[pos]
     Rt = R[pos]
     ok = np.isfinite(Rt)
     n = len(Ssum)
@@ -1126,10 +1155,10 @@ def c2c_net(P, tr, m=M0, Y=Y0, Q=Q0, pen=0.30, exit_mult=1.0, entry_taker=True):
     """Net return per trade. q = min(Q, 10% of the entry day's $ volume); entry cost at q, exit cost at the
     exit notional, sell fees; the delisting rule replaces the exit with the last close x (1 - pen)."""
     q = np.fmin(Q, 0.1 * tr["dv_ent"])                  # fmin: S&P PIT rows without volume trade at Q
-    ce = leg_cost(P, tr["i"], tr["ent"], q, m, Y) if entry_taker else 0.0
+    ce = leg_cost(P, tr["i"], tr["ent"], Q, m, Y) if entry_taker else 0.0      # impact at the order size Q
     g = np.where(tr["flag"] == 1, (1 + tr["glast"]) * (1 - pen) - 1, tr["g"])
     qe = q * (1 + g)
-    cx = leg_cost(P, tr["i"], tr["ext"], qe, m * exit_mult, Y)
+    cx = leg_cost(P, tr["i"], tr["ext"], Q, m * exit_mult, Y)
     fee = fee_frac(P, tr["ext"], qe, qe / np.maximum(tr["p_exit"], 1e-9))
     normal = tr["flag"] != 1
     r = np.where(normal, (1 + g) * (1 - cx - fee) / (1 + ce) - 1, (1 + g) / (1 + ce) - 1)
@@ -1176,7 +1205,7 @@ def b3_net(P, tr, m=M0, Y=Y0, Q=Q0, pen=0.30):
     q = np.fmin(Q, 0.1 * tr["dv_ent"] * tr["f"])
     g = np.where(tr["flag"] == 1, (1 + tr["glast"]) * (1 - pen) - 1, tr["g"])
     qe = q * (1 + g)
-    cx = leg_cost(P, tr["i"], tr["ext"], qe, m, Y)
+    cx = leg_cost(P, tr["i"], tr["ext"], Q, m, Y)                               # impact at the order size Q
     fee = fee_frac(P, tr["ext"], qe, qe / np.maximum(tr["p_exit"], 1e-9))
     r = np.where(tr["flag"] != 1, (1 + g) * (1 - cx - fee) - 1, g)
     return r, q
@@ -1190,6 +1219,7 @@ def b4_trades(P, band_mask, Q=Q0, NS=5, tgt=0.0, touch=False):
     names = ["t", "i", "q", "r1", "B", "A", "phi", "pg", "pnot", "psh", "fday", "fflag", "fglast", "on", "hold"]
     tr = dict(zip(names, out[:-1]))
     tr["n_orders"] = int(out[-1].sum())
+    tr["Q"] = Q
     tr["kind"] = "b4"; tr["NS"] = NS
     keep = tr["fflag"] != 3
     for k in names:
@@ -1198,9 +1228,9 @@ def b4_trades(P, band_mask, Q=Q0, NS=5, tgt=0.0, touch=False):
     return tr
 
 
-def b4_net(P, tr, EL=None, benchR=None, m=M0, Y=Y0, pen=0.30, raw=False):
-    """B4 metric: raw fill -> close(t+1) plus band excess from close(t+1) to the exits. benchR[j] = benchmark
-    (EL-aligned) from close t+1 to close t+2+j (j < NS) and to the forced exit (j = NS)."""
+def b4_net(P, tr, EL=None, BC=None, m=M0, Y=Y0, pen=0.30, raw=False):
+    """B4 metric: raw fill -> close(t+1) plus band excess from close(t+1) to the exits. The benchmark of piece j
+    runs from close t+1 to close t+2+j (j < NS) or to the forced exit (j = NS, gap rule from t+1+NS)."""
     i, t, NS = tr["i"], tr["t"], tr["NS"]
     t1 = t + 1
     kk = P.KK[i, t]
@@ -1217,19 +1247,19 @@ def b4_net(P, tr, EL=None, benchR=None, m=M0, Y=Y0, pen=0.30, raw=False):
     d = np.where(tr["fday"] >= 0, tr["fday"], t1)
     g = np.where(tr["fflag"] == 1, (1 + tr["fglast"]) * (1 - pen) - 1, pg[:, NS])
     v_rem = tr["psh"][:, NS] * tr["B"] * (1 + tr["r1"]) * (1 + np.nan_to_num(g))   # $ value of the remainder at exit
-    cx = leg_cost(P, i, d, v_rem, m, Y)
+    cx = leg_cost(P, i, d, tr["Q"], m, Y)                                       # impact at the order size Q
     pex = P.C[i, d] / kk
     fee = fee_frac(P, d, v_rem, v_rem / np.maximum(pex, 1e-9))
     gf = np.where(tr["fflag"] == 1, g, (1 + np.nan_to_num(g)) * (1 - cx - fee) - 1)
     after += np.where(has, fr * gf, 0.0)
     r_tot = (1 + tr["r1"]) * (1 + after) - 1
-    if raw or benchR is None:
+    if raw or BC is None:
         return r_tot, r_tot
     pos = np.searchsorted(EL.key, t * P.N + i)
     bench = np.zeros(len(i))
     for j in range(NS + 1):
         frj = phi[:, j]
-        bj = band_excess(P, EL, benchR[j], pos)
+        bj = BC.excess(pos, 1, False, (2 + j) if j < NS else (1 + NS), False, pen)
         bench += np.where(frj > 0, frj * np.nan_to_num(bj), 0.0)
     x = (1 + tr["r1"]) * (1 + after - bench) - 1
     tr["_r1"], tr["_after"], tr["_bench"] = tr["r1"], after, bench
@@ -1282,9 +1312,16 @@ def month_of(P, t):
 
 
 class Bench:
-    """Cache of benchmark gross returns (EL-aligned) by window."""
+    """Cache of benchmark gross returns (EL-aligned) and their band-day sums, by window."""
     def __init__(self, P, EL):
-        self.P, self.EL, self.c = P, EL, {}
+        self.P, self.EL, self.c, self.s = P, EL, {}, {}
+
+    def excess(self, pos, a_off, a_open, b_off, b_open, pen=0.30):
+        k = (a_off, a_open, b_off, b_open, pen)
+        R = self.get(*k)
+        if k not in self.s:
+            self.s[k] = band_sums(self.P, self.EL, R)
+        return band_excess(self.P, self.EL, R, pos, self.s[k])
 
     def get(self, a_off, a_open, b_off, b_open, pen=0.30):
         k = (a_off, a_open, b_off, b_open, pen)
@@ -1292,7 +1329,9 @@ class Bench:
             keep = {(0, False, 1, False, 0.30)} | {(1, False, b, False, 0.30) for b in range(2, 8)}
             extra = [x for x in self.c if x not in keep]
             while len(extra) > 8:                                 # keep memory bounded (EL-aligned float32 arrays)
-                del self.c[extra.pop(0)]
+                kk = extra.pop(0)
+                del self.c[kk]
+                self.s.pop(kk, None)
             self.c[k] = bench_values(self.P, self.EL, a_off, a_open, b_off, b_open, pen).astype(np.float32)
         return self.c[k]
 
@@ -1330,7 +1369,7 @@ def run_cell(P, EL, BC, sig, strat, band, m=M0, Y=Y0, Q=Q0, pen=0.30, variant=No
         if v.get("gross"):
             r = np.where(tr["flag"] == 1, (1 + tr["glast"]) * (1 - pen) - 1, tr["g"])
         bk = v.get("bench", (a_off, a_open, b_off, b_open))
-        x = r if v.get("raw") else r - band_excess(P, EL, BC.get(*bk, pen=pen), tr["pos"])
+        x = r if v.get("raw") else r - BC.excess(tr["pos"], *bk, pen=pen)
         lags = max(10, (b_off - a_off) + 4)
         return dict(t=tr["t"], x=x, w=np.ones(len(x)), h=tr["hold"], r=r, q=q, tr=tr, lags=lags,
                     n_orders=len(pos))
@@ -1342,7 +1381,7 @@ def run_cell(P, EL, BC, sig, strat, band, m=M0, Y=Y0, Q=Q0, pen=0.30, variant=No
         r, q = b3_net(P, tr, m, Y, Q, pen)
         x = r
         if v.get("bench"):
-            x = r - band_excess(P, EL, BC.get(*v["bench"], pen=pen), tr["pos"])
+            x = r - BC.excess(tr["pos"], *v["bench"], pen=pen)
         w = np.ones(len(x)) if v.get("ew") else q
         return dict(t=tr["t"], x=x, w=w, h=tr["hold"], r=r, q=q, tr=tr, lags=max(10, v.get("exit_off", 1) + 4),
                     n_orders=tr["n_orders"])
@@ -1350,11 +1389,10 @@ def run_cell(P, EL, BC, sig, strat, band, m=M0, Y=Y0, Q=Q0, pen=0.30, variant=No
         NS = v.get("NS", 5)
         tr = v.get("tr") or _trades_cached(P, EL, strat, band, v, Q, lambda: b4_trades(
             P, el_mask(P, EL, inband), Q=Q, NS=NS, tgt=v.get("tgt", 0.0), touch=v.get("touch", False)))
-        benchR = [BC.get(1, False, 2 + j, False, pen) for j in range(NS)] + [BC.get(1, False, 1 + NS, False, pen)]
-        x, r = b4_net(P, tr, EL, None if v.get("raw") else benchR, m, Y, pen)
+        x, r = b4_net(P, tr, EL, None if v.get("raw") else BC, m, Y, pen)
         if v.get("bench_open"):
             pos = np.searchsorted(EL.key, tr["t"] * P.N + tr["i"])
-            bo = band_excess(P, EL, BC.get(1, True, 1, False, pen), pos)
+            bo = BC.excess(pos, 1, True, 1, False, pen)
             x = (1 + tr["_r1"] - bo) * (1 + tr["_after"] - tr["_bench"]) - 1
         return dict(t=tr["t"], x=x, w=np.ones(len(x)), h=tr["hold"], r=r, q=tr["q"], tr=tr, lags=max(10, NS + 1 + 4),
                     n_orders=tr["n_orders"])
@@ -1772,6 +1810,7 @@ def run_nulls(S, cf, ry, n, out_csv):
         rows.append({"null": j} | primary_stats_only(P, EL, BC, sig))
         print(f"  null panel {j}: {time.time() - t0:.0f}s", flush=True)
         del P, EL, BC, sig
+        _TRC.clear(); _trim()
         pd.DataFrame(rows).to_csv(out_csv, index=False)
     return pd.DataFrame(rows)
 
@@ -1884,7 +1923,7 @@ def run_pit_controls(cf, ry, out):
     PIT = load_pit()
     trailing(PIT); spread(PIT, cf, ry); fee_schedule(PIT); PIT.FIRE = can_fire(PIT)
     res = []
-    s0_all, s1_all = PIT.s0, PIT.s1
+    s1_all = PIT.s1
     # (ii) known answer: B1 gross (m = 0) on S&P PIT 2001-2010
     PIT.s1 = int(np.searchsorted(PIT.dates.values, np.datetime64("2010-12-31"), side="right") - 1)
     EL = build_el(PIT); BC = Bench(PIT, EL); sig = signals(EL)
@@ -2005,7 +2044,7 @@ def run_d2(P, EL, BC, sig):
         for h in (1, 5, 20):
             tr = c2c_trades(P, EL, pos, 0, False, h, False)
             g = np.where(tr["flag"] == 1, (1 + tr["glast"]) * 0.7 - 1, tr["g"])
-            x = g - band_excess(P, EL, BC.get(0, False, h, False), tr["pos"])
+            x = g - BC.excess(tr["pos"], 0, False, h, False)
             st = cell_stats(P, tr["t"], x, lags=h + 4)
             rows.append({"panel": P.name, "band": BANDS[b], "h": h} |
                         {k: st[k] for k in ("estimate", "se", "t", "p_one_sided", "n_trades", "half1", "half2")})
@@ -2440,6 +2479,11 @@ def main(argv=None):
         syn.to_csv(outB / "controls_synthetic.csv", index=False)
         say(f"\nSynthetic no-edge market ({time.time() - t1:.0f}s); parameters from B-H band medians: {params}")
         say(syn.to_string(index=False))
+    if a.nulls and not a.smoke:                                   # before --run, so cond_null can use them
+        t1 = time.time()
+        run_nulls(S, cf, ry, a.nulls, outB / "null_panels.csv")
+        say(f"{a.nulls} null panels: {time.time() - t1:.0f}s")
+        _TRC.clear(); _trim()
     if a.run or a.smoke:
         t1 = time.time()
         EL, BC, sig = prepare(S, cf, ry)
@@ -2454,7 +2498,10 @@ def main(argv=None):
         npath = outB / "null_panels.csv"
         if npath.exists() and not a.smoke:
             nd = pd.read_csv(npath)
-            nulls = {c: nd[c].to_numpy() for c in nd.columns if c != "null"}
+            if len(nd) >= 20:                                     # PASS condition 8 needs all 20 null panels
+                nulls = {c: nd[c].to_numpy() for c in nd.columns if c != "null"}
+            else:
+                say(f"null_panels.csv has {len(nd)} panels (< 20): cond_null left empty")
         t1 = time.time()
         prim, rep, trades = run_primary(S, EL, BC, sig, Fd, BRp, nulls, quiet=False)
         say(f"primary cells + per-cell report: {time.time() - t1:.0f}s; trades per cell: "
@@ -2499,11 +2546,7 @@ def main(argv=None):
         d4 = pd.concat([run_d4(BRx, ELx, br_flag), run_d4(S, EL, "B-H 2011-2020", (2011, 2020))])
         d4.to_csv(outD / "d4_accumulate_exit.csv", index=False)
         say(f"Part D: {time.time() - t1:.0f}s")
-    if a.nulls and not a.smoke:
-        t1 = time.time()
-        nd = run_nulls(S, cf, ry, a.nulls, outB / "null_panels.csv")
-        say(f"{a.nulls} null panels: {time.time() - t1:.0f}s. Rerun --run to fill cond_null.")
-    elif a.nulls and a.smoke:
+    if a.nulls and a.smoke:
         t1 = time.time()
         nd = run_nulls(S, cf, ry, a.nulls, SCRATCH / "smoke_nulls.csv")
         say(f"{a.nulls} null panels (smoke year): {time.time() - t1:.0f}s")
