@@ -10,8 +10,9 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-16. Most recent additions:
+**Last updated:** 2026-10-18. Most recent additions:
 
+- `agentic/`: MoneyLine execution on the Robinhood Agentic account (section 8, `agentic/README.md`)
 - the Larsson Line (EMA 32/58) long-history study (section 5.19), and a note on the new
   October 2026 MoneyLine read from exports (section 2)
 - the 2x S&P + gold study (the other instance's 50% SSO / 50% GLD) and leverage + trend (section 5.18)
@@ -701,6 +702,20 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   3. Claude previews and places only those orders. A PreToolUse hook blocks anything
      that doesn't match exactly, and a STOP file cancels the agent's open orders.
   4. With approvals on, the user approves in the app.
+- **Built (2026-10-18): `agentic/`**, runbook `agentic/README.md`, contract `agentic/SPEC.md`.
+  - **Daily use:** `/moneyline` in Claude Code (`.claude/commands/moneyline.md`).
+  - **Hooks** in `.claude/settings.json` guard every Robinhood MCP tool. The PreToolUse hook fails closed and
+    allows a place call only if it exactly matches a plan order within the caps. The PostToolUse hook captures
+    results, keeps the journal and the ledger, and writes STOP if an order skips approval.
+  - **Signal:** the old MoneyLine computed from OHLC (exact replica), by the user's choice, so no daily exports
+    are needed. `tv_export` remains available for the new indicator.
+  - **Modes** (per asset): `immediate`, `split` (half at N=1, half at N=5) and `confirm5`.
+  - **Allocation:** `slots` (default 5 × 20%, `crypto_first`, crypto cap 0.60) or `fixed`.
+  - **Entry policy:** `join_recent` (default; join only within 20 bars of the green flip), `join`, or
+    `fresh_only`.
+  - **The sleeve sells only shares it bought itself.**
+  - **Status:** shadow mode (`live: false`) by default. Not yet run against the real Robinhood MCP; the connector
+    failed to connect in the cloud session. Mode backtests are in `analysis_2026/results_agentic_modes/`.
 - **Gate verdicts:**
   - ETH: TRADE via spot ETF.
   - SOL: PROBATION (≤10%).
@@ -725,15 +740,9 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
    Optional: a nightly cloud scan of ~2,300 stocks from the daily parquet, as
    information.
 
-1. Build the phase-1 signal job (`signal_job.py`):
-   - fetch adapters (Coinbase, a stock OHLC source)
-   - `moneyline_ref` on closed bars
-   - fixed-fraction sizing with caps
-   - data checks
-   - digest
-   - the `plan.json` writer
-
-   Then add the PreToolUse hook script and a journal/reconcile module, with tests.
+1. Phase-1 signal job, planner, hooks and journal: **done** (`agentic/`, section 8). Next for the user:
+   run the README's shadow mode on their machine for 4-8 weeks, record the exact approval response shape
+   on the first live order, and compare the line value with TradingView daily.
 2. Add a `__main__` to `confirmation.py`, and commit scripts for the remaining
    interactive numbers: the crash-window table, HOOD concentration, 20%-sizing
    leverage, wick calibration.
@@ -799,6 +808,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
+| `agentic/`, `.claude/settings.json`, `.claude/commands/moneyline.md`, `analysis_2026/results_agentic_modes/` | Execution of the MoneyLine on the Robinhood Agentic account (section 8): signals, data feeds, planner, Claude Code safety hooks, `/moneyline` command; `python3 -m agentic --help`; tests `python3 -m pytest tests/test_agentic_*.py -q`. State in `private/agentic/` (gitignored). |
 | `analysis_2026/larsson.py`, `analysis_2026/results_larsson/`, `analysis_2026/LARSSON_PREREG.md` | Larsson Line (EMA32/58) long-history study (section 5.19): S&P 500 1929-2026 and the pre-1928 Dow, 13 ETFs, 21 coins, point-in-time S&P and crypto top-20 baskets (daily-rebalanced and held), old MoneyLine and SMA200 comparators, realisation-based tax via `sso_gold.simulate`. `python3 -m analysis_2026.larsson` (about 30 min). Uses `data/sso_gold/`, `data/etf/`, `data/crypto_4h/`, `data/crypto_binance/` and `data/universe_pit_all/` (all gitignored). |
 | `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |

@@ -1,6 +1,6 @@
 # Agentic trading plan — running the indicator strategy through Robinhood + Claude
 
-Status: **design, not yet built.** Written 2026-10-13, revised the same day after an
+Status: **built in `agentic/` (2026-10-18; runbook `agentic/README.md`), in shadow mode until the user goes live.** Originally: Written 2026-10-13, revised the same day after an
 adversarial review (35 of 37 high/medium findings confirmed and applied). Companion
 to `HANDOFF.md`. Not financial advice; the account owner is fully responsible for
 every trade an agent places.
