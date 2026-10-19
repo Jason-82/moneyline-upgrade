@@ -1,0 +1,177 @@
+{
+ "quick": false,
+ "martingale": {
+  "S1_zero": {
+   "trades": 27218,
+   "mean": 0.0016005362575875755,
+   "se": 0.0010724789225686937,
+   "t": 1.492370827907864,
+   "tranches_per_trade": 2.540928797119553,
+   "mean_fee_engine": 0.0,
+   "mean_fee_recomputed": 0.0,
+   "max_abs_fee_diff": 0.0,
+   "max_abs_identity_diff": 0.0,
+   "bad_closing_notional": 0,
+   "fill_audit_violations": 0,
+   "liquidations": 0,
+   "coins": 160,
+   "years": 50,
+   "sigma_hourly": 0.01,
+   "rule": "trades >= 20,000 and |mean| <= 2 SE (before costs; no funding on the synthetic frames)",
+   "passed": true
+  },
+  "R0_zero": {
+   "trades": 23859,
+   "mean": 0.001996988712796744,
+   "se": 0.0011885913004415262,
+   "t": 1.6801306824767455,
+   "tranches_per_trade": 2.546250890649231,
+   "mean_fee_engine": 0.0,
+   "mean_fee_recomputed": 0.0,
+   "max_abs_fee_diff": 0.0,
+   "max_abs_identity_diff": 0.0,
+   "bad_closing_notional": 0,
+   "fill_audit_violations": 0,
+   "liquidations": 0,
+   "coins": 160,
+   "years": 50,
+   "sigma_hourly": 0.01,
+   "rule": "trades >= 20,000 and |mean| <= 2 SE (before costs; no funding on the synthetic frames)",
+   "passed": true
+  },
+  "S1_base": {
+   "trades": 27218,
+   "mean": -0.00038637048329928116,
+   "se": 0.0010713265377686237,
+   "t": -0.36064679598436894,
+   "tranches_per_trade": 2.540928797119553,
+   "mean_fee_engine": 0.0019869067408868723,
+   "mean_fee_recomputed": 0.0019869067408868723,
+   "max_abs_fee_diff": 0.0,
+   "max_abs_identity_diff": 1.0755285551056204e-16,
+   "bad_closing_notional": 0,
+   "fill_audit_violations": 0,
+   "liquidations": 0,
+   "coins": 160,
+   "years": 50,
+   "sigma_hourly": 0.01,
+   "mean_plus_recomputed_fee": 0.001600536257587591,
+   "rule": "|mean + mean recomputed round-trip fee| <= 2 SE ('about minus the round-trip cost'), recomputed fees = engine fees (1e-12), ret_gross - ret - fees - funding = 0 (1e-12)",
+   "passed": true
+  },
+  "R0_base": {
+   "trades": 23859,
+   "mean": 5.902424330975956e-06,
+   "se": 0.0011873173517604233,
+   "t": 0.004971227214210667,
+   "tranches_per_trade": 2.546250890649231,
+   "mean_fee_engine": 0.0019910862884657834,
+   "mean_fee_recomputed": 0.0019910862884657834,
+   "max_abs_fee_diff": 0.0,
+   "max_abs_identity_diff": 1.0278236595162582e-16,
+   "bad_closing_notional": 0,
+   "fill_audit_violations": 0,
+   "liquidations": 0,
+   "coins": 160,
+   "years": 50,
+   "sigma_hourly": 0.01,
+   "mean_plus_recomputed_fee": 0.0019969887127967594,
+   "rule": "|mean + mean recomputed round-trip fee| <= 2 SE ('about minus the round-trip cost'), recomputed fees = engine fees (1e-12), ret_gross - ret - fees - funding = 0 (1e-12)",
+   "passed": true
+  }
+ },
+ "drift_adjust": {
+  "drift_0": {
+   "trades": 10772,
+   "mean_unadjusted": 0.000949232508961915,
+   "se_unadjusted": 0.0017538284498377023,
+   "t_unadjusted": 0.5412345255602143,
+   "mean_adjusted": 0.0011786094982292735,
+   "se_adjusted": 0.0017554322234579138,
+   "t_adjusted": 0.6714070087579946,
+   "passed": true,
+   "coins": 64,
+   "years": 50
+  },
+  "drift_0.0001": {
+   "trades": 15297,
+   "mean_unadjusted": 0.0377974454125303,
+   "se_unadjusted": 0.001827544222574475,
+   "t_unadjusted": 20.682096195343913,
+   "mean_adjusted": 0.0019509850675643243,
+   "se_adjusted": 0.0015902143232659162,
+   "t_adjusted": 1.2268692584515728,
+   "passed": true,
+   "coins": 64,
+   "years": 50
+  },
+  "rule": "|drift-adjusted mean| <= 2 SE at drift 0 and +1e-4/h; unadjusted mean > 2 SE at the positive drift"
+ },
+ "grid_ga": {
+  "deployments": 3192,
+  "mean_zero_fees": -0.0004262408753126671,
+  "se_zero_fees": 0.0002999160268598247,
+  "t_zero_fees": -1.4212007266683495,
+  "mean_base_fees": -0.0018099780038357167,
+  "se_base_fees": 0.00029728642028581837,
+  "t_base_fees": -6.0883305806419274,
+  "fill_audit_violations": 0,
+  "ends": {
+   "14_days": 1074,
+   "r0_entry": 1311,
+   "below_lower_band": 771,
+   "window_end": 36
+  },
+  "r0_positions": 1973,
+  "coins": 240,
+  "days": 730,
+  "sigma_day": 0.02,
+  "passed": true,
+  "rule": "|mean| <= 2 SE per deployment before fees, mean < 0 after fees, audits empty"
+ },
+ "trend": {
+  "S1_base": {
+   "trades": 695,
+   "mean": 1.5410384691457102,
+   "se": 0.30927470537463686,
+   "t": 4.982749776704139,
+   "fill_audit_violations": 0
+  },
+  "S1_zero": {
+   "trades": 695,
+   "mean": 1.5447538201452562,
+   "se": 0.3096442621890021,
+   "t": 4.98880169528981,
+   "fill_audit_violations": 0
+  },
+  "passed": true,
+  "coins": 12,
+  "years": 20,
+  "rule": "ROWS['S1'] (base fees) mean trade return > 2 SE on regime-drift paths"
+ },
+ "passed": true,
+ "summary": {
+  "S1_trades": 27218,
+  "S1_t_before_costs": 1.492370827907864,
+  "R0_trades": 23859,
+  "R0_t_before_costs": 1.6801306824767455,
+  "S1_after_costs_gap_over_se": 1.4939761138758065,
+  "R0_after_costs_gap_over_se": 1.681933402081461,
+  "fee_recompute_max_diff": 0.0,
+  "drift_adjusted_t": [
+   0.6714070087579946,
+   1.2268692584515728
+  ],
+  "GA_t_before_fees": -1.4212007266683495,
+  "GA_mean_after_fees_negative": true,
+  "trend_S1_t": 4.982749776704139,
+  "parts_passed": {
+   "martingale": true,
+   "drift_adjust": true,
+   "grid_ga": true,
+   "trend": true
+  }
+ },
+ "seconds_inner": 110.3,
+ "seconds": 110.3
+}

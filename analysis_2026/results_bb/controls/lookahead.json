@@ -1,0 +1,5651 @@
+{
+ "quick": false,
+ "passed": true,
+ "crypto_cut_counts": {
+  "cuts": 60,
+  "in_2025_06_2026_10": 19,
+  "weekend": 24,
+  "near_window": 36,
+  "m1_era": 28,
+  "on_hour_boundary": 0
+ },
+ "stock_cut_counts": {
+  "cuts": 50,
+  "near_open": 24,
+  "in_2025_06_2026_10": 14,
+  "flat_bar_pending": 12
+ },
+ "crypto_mismatches": 0,
+ "stock_mismatches": 0,
+ "crypto_decisions_compared": {
+  "rank_rows": 9903,
+  "fills": 184408,
+  "orders": 52094,
+  "exits": 51504,
+  "signals": 109142,
+  "exit_decisions": 42801,
+  "pending_entries": 35,
+  "ga_deploy": 420,
+  "ga_end": 406,
+  "ga_fills": 72877,
+  "ga_marks": 3426,
+  "sizing": 39968,
+  "equity": 1029022
+ },
+ "stock_decisions_compared": {
+  "fills": 263622,
+  "orders": 90415,
+  "signals": 212613,
+  "book_entries": 70188,
+  "book_equity": 364164
+ },
+ "crypto_cuts_where_a_later_decision_changed": 60,
+ "stock_cuts_where_a_later_decision_changed": 50,
+ "fill_audit_violations_perturbed": 0,
+ "stock_base_fill_audit_violations": 0,
+ "crypto_runs": 4459,
+ "stock_runs": 300,
+ "account_rtol": 1e-12,
+ "account_max_rel_diff_full_runs": 5.175973979848847e-16,
+ "accounts_compared": {
+  "R0": 60,
+  "R0 + G-A (H10 overlay)": 60,
+  "S12_all_top3": 60,
+  "S12_top10": 60,
+  "S12_top3": 60,
+  "S12_top6": 60,
+  "S1_L1": 60
+ },
+ "core_coins": [
+  "BTC",
+  "ETH",
+  "SOL",
+  "LINK",
+  "EOS"
+ ],
+ "rows": [
+  "R0",
+  "S1",
+  "S1_L1",
+  "S8",
+  "S11",
+  "H4_touch",
+  "S12_top3",
+  "S12_top6",
+  "S12_top10",
+  "S12_all_top3",
+  "G-A",
+  "account R0",
+  "account S1_L1",
+  "accounts S12 (K = k) on the cut's top-k coins",
+  "account R0 + G-A (H10 overlay, merge_ga)",
+  "volume_ranks 40/all/all_tradfi"
+ ],
+ "stock_sample": {
+  "members_dead": [
+   "ANSS",
+   "BRL-200812",
+   "CELG",
+   "CPWR-201412",
+   "CTX-200908",
+   "EDS-200808",
+   "GAS-201606",
+   "HMA-201401",
+   "KRFT-201507",
+   "MON-201806",
+   "PSFT-200501",
+   "WEN-200809"
+  ],
+  "members_close_only": [
+   "ARG-201605",
+   "CEG-201203",
+   "FDO-201507",
+   "HSP-201509",
+   "MJN-201706",
+   "ROH-200904",
+   "SNI-201803",
+   "STJ-201701",
+   "SVU",
+   "TEG-201506",
+   "XL-201809",
+   "XTO-201006"
+  ],
+  "members_other": [
+   "ADBE",
+   "BGG",
+   "CBRE",
+   "CIEN",
+   "CITGQ-200912",
+   "DOW",
+   "EQ-200906",
+   "FRC",
+   "GL",
+   "JEF",
+   "LEHMQ-201203",
+   "MMM",
+   "NXTL-200508",
+   "ODFL",
+   "X",
+   "XEC"
+  ],
+  "close_only_rows_since_2001": {
+   "ADBE": 0,
+   "ANSS": 0,
+   "ARG-201605": 1,
+   "BGG": 0,
+   "BRL-200812": 1507,
+   "CBRE": 0,
+   "CEG-201203": 1509,
+   "CELG": 0,
+   "CIEN": 0,
+   "CITGQ-200912": 1849,
+   "CPWR-201412": 0,
+   "CTX-200908": 2169,
+   "DOW": 0,
+   "EDS-200808": 1922,
+   "EQ-200906": 785,
+   "FDO-201507": 5,
+   "FRC": 0,
+   "GAS-201606": 1,
+   "GL": 0,
+   "HMA-201401": 3285,
+   "HSP-201509": 2,
+   "JEF": 0,
+   "KRFT-201507": 0,
+   "LEHMQ-201203": 1938,
+   "MJN-201706": 3,
+   "MMM": 0,
+   "MON-201806": 4,
+   "NXTL-200508": 1159,
+   "ODFL": 0,
+   "PSFT-200501": 1009,
+   "ROH-200904": 1509,
+   "SNI-201803": 4,
+   "STJ-201701": 5,
+   "SVU": 2,
+   "TEG-201506": 3,
+   "WEN-200809": 1946,
+   "X": 0,
+   "XEC": 0,
+   "XL-201809": 4,
+   "XTO-201006": 15
+  },
+  "close_only_sessions_in_pending_or_open_spans": {
+   "ADBE": 0,
+   "ANSS": 0,
+   "ARG-201605": 1,
+   "BGG": 0,
+   "BRL-200812": 0,
+   "CBRE": 0,
+   "CEG-201203": 1,
+   "CELG": 0,
+   "CIEN": 0,
+   "CITGQ-200912": 0,
+   "CPWR-201412": 0,
+   "CTX-200908": 0,
+   "DOW": 0,
+   "EDS-200808": 0,
+   "EQ-200906": 0,
+   "FDO-201507": 8,
+   "FRC": 0,
+   "GAS-201606": 0,
+   "GL": 0,
+   "HMA-201401": 0,
+   "HSP-201509": 1,
+   "JEF": 0,
+   "KRFT-201507": 0,
+   "LEHMQ-201203": 0,
+   "MJN-201706": 3,
+   "MMM": 0,
+   "MON-201806": 0,
+   "NXTL-200508": 0,
+   "ODFL": 0,
+   "PSFT-200501": 0,
+   "ROH-200904": 1,
+   "SNI-201803": 2,
+   "STJ-201701": 1,
+   "SVU": 1,
+   "TEG-201506": 2,
+   "WEN-200809": 0,
+   "X": 0,
+   "XEC": 0,
+   "XL-201809": 2,
+   "XTO-201006": 8
+  }
+ },
+ "crypto_cuts": [
+  {
+   "t": "2020-02-20 17:31:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 32,
+    "fills": 208,
+    "orders": 58,
+    "exits": 39,
+    "signals": 165,
+    "exit_decisions": 40,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 48,
+    "equity": 612
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 58,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 11.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "ETH"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "XLM",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ]
+   },
+   "seconds": 42.8
+  },
+  {
+   "t": "2020-04-07 10:56:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 38,
+    "fills": 230,
+    "orders": 60,
+    "exits": 60,
+    "signals": 168,
+    "exit_decisions": 57,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 42,
+    "equity": 1176
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 11.6
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "XRP",
+     "XTZ"
+    ],
+    "S12_all_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ]
+   },
+   "seconds": 44.0
+  },
+  {
+   "t": "2020-04-08 15:07:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 38,
+    "fills": 230,
+    "orders": 60,
+    "exits": 60,
+    "signals": 168,
+    "exit_decisions": 57,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 42,
+    "equity": 1188
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 13.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "XRP",
+     "XTZ"
+    ],
+    "S12_all_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ]
+   },
+   "seconds": 49.1
+  },
+  {
+   "t": "2020-04-30 06:42:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 38,
+    "fills": 236,
+    "orders": 62,
+    "exits": 60,
+    "signals": 176,
+    "exit_decisions": 57,
+    "pending_entries": 6,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 44,
+    "equity": 1452
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 12.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "XRP",
+     "XTZ"
+    ],
+    "S12_all_top3": [
+     "BCH",
+     "BTC",
+     "ETH"
+    ]
+   },
+   "seconds": 46.5
+  },
+  {
+   "t": "2020-08-22 01:05:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 50,
+    "fills": 672,
+    "orders": 190,
+    "exits": 163,
+    "signals": 457,
+    "exit_decisions": 163,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 158,
+    "equity": 2820
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 12.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK",
+     "XTZ"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "EOS",
+     "ETC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "VET",
+     "XRP",
+     "XTZ"
+    ],
+    "S12_all_top3": [
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK"
+    ]
+   },
+   "seconds": 44.1
+  },
+  {
+   "t": "2020-10-22 16:10:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 56,
+    "fills": 724,
+    "orders": 208,
+    "exits": 197,
+    "signals": 490,
+    "exit_decisions": 167,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 172,
+    "equity": 3552
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 12.5
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LINK"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "EOS",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "VET",
+     "XRP",
+     "XTZ"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "LINK"
+    ]
+   },
+   "seconds": 44.7
+  },
+  {
+   "t": "2020-11-12 17:46:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 59,
+    "fills": 784,
+    "orders": 226,
+    "exits": 204,
+    "signals": 536,
+    "exit_decisions": 173,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 186,
+    "equity": 3804
+   },
+   "runs": 76,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1040,
+    "seconds": 12.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LINK"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK",
+     "UNI",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BNB",
+     "BTC",
+     "EOS",
+     "ETH",
+     "LINK",
+     "LTC",
+     "TRX",
+     "UNI",
+     "XRP",
+     "XTZ",
+     "YFI"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "LINK"
+    ]
+   },
+   "seconds": 43.9
+  },
+  {
+   "t": "2021-02-08 11:05:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 68,
+    "fills": 1152,
+    "orders": 316,
+    "exits": 288,
+    "signals": 737,
+    "exit_decisions": 250,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 260,
+    "equity": 4860
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 13.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "DOT",
+     "ETH",
+     "LINK",
+     "LTC",
+     "SUSHI",
+     "UNI",
+     "XLM",
+     "XRP",
+     "YFI"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 43.3
+  },
+  {
+   "t": "2021-02-20 10:02:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 68,
+    "fills": 1209,
+    "orders": 329,
+    "exits": 292,
+    "signals": 801,
+    "exit_decisions": 256,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 272,
+    "equity": 5004
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 14.6
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BTC",
+     "DOT",
+     "ETH",
+     "LINK",
+     "LTC",
+     "SUSHI",
+     "UNI",
+     "XLM",
+     "XRP",
+     "YFI"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 49.0
+  },
+  {
+   "t": "2021-04-11 19:08:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 74,
+    "fills": 1334,
+    "orders": 369,
+    "exits": 340,
+    "signals": 920,
+    "exit_decisions": 304,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 292,
+    "equity": 5604
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 13.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BNB",
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "ETH",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "DOT",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BNB",
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 50.7
+  },
+  {
+   "t": "2021-04-25 08:38:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 74,
+    "fills": 1452,
+    "orders": 395,
+    "exits": 384,
+    "signals": 969,
+    "exit_decisions": 337,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 318,
+    "equity": 5772
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 57,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 12.5
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BNB",
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "ETH",
+     "LTC",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BCH",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "DOT",
+     "ETH",
+     "LINK",
+     "LTC",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BNB",
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 47.5
+  },
+  {
+   "t": "2021-09-13 11:49:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 89,
+    "fills": 1765,
+    "orders": 484,
+    "exits": 478,
+    "signals": 1171,
+    "exit_decisions": 387,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 350,
+    "equity": 7464
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1037,
+    "seconds": 12.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "DOGE",
+     "ETH"
+    ],
+    "S12_top6": [
+     "AXS",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "AXS",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "EOS",
+     "ETC",
+     "ETH",
+     "MATIC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "DOGE",
+     "ETH"
+    ]
+   },
+   "seconds": 49.0
+  },
+  {
+   "t": "2021-12-11 17:18:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 98,
+    "fills": 1966,
+    "orders": 541,
+    "exits": 541,
+    "signals": 1257,
+    "exit_decisions": 435,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 398,
+    "equity": 8532
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1040,
+    "seconds": 13.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "ETH",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "AXS",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "DOT",
+     "ETH",
+     "FTM",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 48.1
+  },
+  {
+   "t": "2021-12-24 13:15:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 98,
+    "fills": 1966,
+    "orders": 541,
+    "exits": 541,
+    "signals": 1257,
+    "exit_decisions": 435,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 398,
+    "equity": 8688
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 51,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1040,
+    "seconds": 12.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "ETH",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "AXS",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "DOT",
+     "ETH",
+     "FTM",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 47.1
+  },
+  {
+   "t": "2022-01-22 19:54:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 101,
+    "fills": 1934,
+    "orders": 533,
+    "exits": 531,
+    "signals": 1249,
+    "exit_decisions": 426,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 378,
+    "equity": 9036
+   },
+   "runs": 78,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 15.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "ETH",
+     "MANA",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "DOT",
+     "ETH",
+     "FTM",
+     "GALA",
+     "LUNA",
+     "MANA",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SHIB",
+     "SOL"
+    ]
+   },
+   "seconds": 54.0
+  },
+  {
+   "t": "2022-04-01 00:19:00+00:00",
+   "cat": "month_start",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 110,
+    "fills": 1994,
+    "orders": 560,
+    "exits": 536,
+    "signals": 1310,
+    "exit_decisions": 431,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 406,
+    "equity": 9864
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 52,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 15.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LUNA"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "ETH",
+     "LUNA",
+     "SAND",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top10": [
+     "ADA",
+     "ATOM",
+     "BTC",
+     "ETH",
+     "FTM",
+     "GALA",
+     "LUNA",
+     "MATIC",
+     "SAND",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "LUNA"
+    ]
+   },
+   "seconds": 50.9
+  },
+  {
+   "t": "2022-05-16 18:21:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 113,
+    "fills": 2048,
+    "orders": 566,
+    "exits": 561,
+    "signals": 1315,
+    "exit_decisions": 457,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 404,
+    "equity": 10404
+   },
+   "runs": 77,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 14.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LUNA"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "ETH",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top10": [
+     "ADA",
+     "APE",
+     "ATOM",
+     "BTC",
+     "ETH",
+     "FTM",
+     "GALA",
+     "GMT",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "GMT",
+     "LUNA"
+    ]
+   },
+   "seconds": 51.9
+  },
+  {
+   "t": "2022-06-01 00:44:00+00:00",
+   "cat": "month_start",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 116,
+    "fills": 2017,
+    "orders": 557,
+    "exits": 556,
+    "signals": 1323,
+    "exit_decisions": 454,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 386,
+    "equity": 10596
+   },
+   "runs": 79,
+   "changed_after": 1,
+   "runs_changed": 49,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 16.5
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LUNA",
+     "SOL"
+    ],
+    "S12_top6": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top10": [
+     "APE",
+     "AVAX",
+     "BTC",
+     "ETH",
+     "FTM",
+     "GALA",
+     "GMT",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL",
+     "WAVES",
+     "XRP",
+     "ZIL"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "GMT"
+    ]
+   },
+   "seconds": 53.9
+  },
+  {
+   "t": "2022-06-18 12:05:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 116,
+    "fills": 2023,
+    "orders": 559,
+    "exits": 556,
+    "signals": 1326,
+    "exit_decisions": 454,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 386,
+    "equity": 10800
+   },
+   "runs": 79,
+   "changed_after": 1,
+   "runs_changed": 52,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 15.0
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LUNA",
+     "SOL"
+    ],
+    "S12_top6": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top10": [
+     "APE",
+     "AVAX",
+     "BTC",
+     "ETH",
+     "FTM",
+     "GALA",
+     "GMT",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL",
+     "WAVES",
+     "XRP",
+     "ZIL"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "GMT"
+    ]
+   },
+   "seconds": 50.2
+  },
+  {
+   "t": "2022-06-24 14:53:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 116,
+    "fills": 2024,
+    "orders": 559,
+    "exits": 557,
+    "signals": 1326,
+    "exit_decisions": 455,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 386,
+    "equity": 10872
+   },
+   "runs": 79,
+   "changed_after": 1,
+   "runs_changed": 52,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 12.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "LUNA",
+     "SOL"
+    ],
+    "S12_top6": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL"
+    ],
+    "S12_top10": [
+     "APE",
+     "AVAX",
+     "BTC",
+     "ETH",
+     "FTM",
+     "GALA",
+     "GMT",
+     "LUNA",
+     "NEAR",
+     "SHIB",
+     "SOL",
+     "WAVES",
+     "XRP",
+     "ZIL"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "GMT"
+    ]
+   },
+   "seconds": 48.4
+  },
+  {
+   "t": "2022-07-19 07:42:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 119,
+    "fills": 2012,
+    "orders": 556,
+    "exits": 556,
+    "signals": 1312,
+    "exit_decisions": 454,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 380,
+    "equity": 11172
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 51,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 15.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NEAR",
+     "SOL"
+    ],
+    "S12_top10": [
+     "ADA",
+     "APE",
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "FTM",
+     "GMT",
+     "NEAR",
+     "SOL",
+     "WAVES",
+     "ZIL"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "GMT"
+    ]
+   },
+   "seconds": 51.5
+  },
+  {
+   "t": "2022-10-12 15:20:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 128,
+    "fills": 2178,
+    "orders": 606,
+    "exits": 604,
+    "signals": 1415,
+    "exit_decisions": 496,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 444,
+    "equity": 12192
+   },
+   "runs": 76,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 15.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "ETC",
+     "ETH",
+     "MATIC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "AVAX",
+     "BNB",
+     "BTC",
+     "ETC",
+     "ETH",
+     "GMT",
+     "MATIC",
+     "OP",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 51.9
+  },
+  {
+   "t": "2023-02-14 14:41:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 140,
+    "fills": 2326,
+    "orders": 644,
+    "exits": 643,
+    "signals": 1432,
+    "exit_decisions": 529,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 468,
+    "equity": 13692
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1046,
+    "seconds": 14.5
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "DOGE",
+     "ETH"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "APT",
+     "BNB",
+     "BTC",
+     "CHZ",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "MASK",
+     "MATIC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "DOGE",
+     "ETH"
+    ]
+   },
+   "seconds": 50.5
+  },
+  {
+   "t": "2023-04-29 03:05:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 146,
+    "fills": 2536,
+    "orders": 706,
+    "exits": 706,
+    "signals": 1537,
+    "exit_decisions": 586,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 520,
+    "equity": 14580
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 13.6
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "MATIC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "APT",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETC",
+     "ETH",
+     "LTC",
+     "MATIC",
+     "OP",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "APT",
+     "BTC",
+     "ETH"
+    ]
+   },
+   "seconds": 48.1
+  },
+  {
+   "t": "2023-05-11 15:31:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 149,
+    "fills": 2519,
+    "orders": 702,
+    "exits": 701,
+    "signals": 1524,
+    "exit_decisions": 582,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 508,
+    "equity": 14724
+   },
+   "runs": 76,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 13.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "MATIC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "APT",
+     "ARB",
+     "BNB",
+     "BTC",
+     "CFX",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "MATIC",
+     "OP",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "APT",
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 51.1
+  },
+  {
+   "t": "2023-07-22 17:26:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 155,
+    "fills": 2602,
+    "orders": 733,
+    "exits": 718,
+    "signals": 1555,
+    "exit_decisions": 601,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 516,
+    "equity": 15588
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 13.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ARB",
+     "BNB",
+     "BTC",
+     "CFX",
+     "DOGE",
+     "ETH",
+     "LINA",
+     "LTC",
+     "MASK",
+     "PEPE",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "ARB",
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 41.8
+  },
+  {
+   "t": "2023-09-29 08:49:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 161,
+    "fills": 2671,
+    "orders": 749,
+    "exits": 747,
+    "signals": 1589,
+    "exit_decisions": 628,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 538,
+    "equity": 16416
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1043,
+    "seconds": 15.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "ETH",
+     "LTC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LINA",
+     "LTC",
+     "MATIC",
+     "PEPE",
+     "SOL",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 46.9
+  },
+  {
+   "t": "2023-10-16 08:57:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 164,
+    "fills": 2687,
+    "orders": 753,
+    "exits": 752,
+    "signals": 1609,
+    "exit_decisions": 633,
+    "pending_entries": 2,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 544,
+    "equity": 16620
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1046,
+    "seconds": 15.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "MATIC",
+     "PEPE",
+     "SOL",
+     "TRB",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 51.6
+  },
+  {
+   "t": "2023-10-28 23:17:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 164,
+    "fills": 2817,
+    "orders": 798,
+    "exits": 757,
+    "signals": 1680,
+    "exit_decisions": 637,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 598,
+    "equity": 16764
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 56,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1046,
+    "seconds": 13.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ],
+    "S12_top6": [
+     "BCH",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BCH",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LTC",
+     "MATIC",
+     "PEPE",
+     "SOL",
+     "TRB",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "XRP"
+    ]
+   },
+   "seconds": 42.3
+  },
+  {
+   "t": "2024-02-24 06:48:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 176,
+    "fills": 3290,
+    "orders": 919,
+    "exits": 909,
+    "signals": 1949,
+    "exit_decisions": 755,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 662,
+    "equity": 18192
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 13.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LINK",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "GAS",
+     "LINK",
+     "ORDI",
+     "SOL",
+     "TIA",
+     "TRB",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 40.7
+  },
+  {
+   "t": "2024-04-28 14:35:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 182,
+    "fills": 3543,
+    "orders": 983,
+    "exits": 983,
+    "signals": 2114,
+    "exit_decisions": 817,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 708,
+    "equity": 18960
+   },
+   "runs": 77,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 14.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "AVAX",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ARB",
+     "AVAX",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "LINK",
+     "ORDI",
+     "PEPE",
+     "SHIB",
+     "SOL",
+     "TRB",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 44.1
+  },
+  {
+   "t": "2024-06-05 00:40:00+00:00",
+   "cat": "early",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 188,
+    "fills": 3521,
+    "orders": 987,
+    "exits": 966,
+    "signals": 2052,
+    "exit_decisions": 804,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 694,
+    "equity": 19416
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1046,
+    "seconds": 15.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "PEPE",
+     "SHIB",
+     "SOL",
+     "WIF",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 45.1
+  },
+  {
+   "t": "2024-07-17 14:01:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 191,
+    "fills": 3565,
+    "orders": 994,
+    "exits": 994,
+    "signals": 2099,
+    "exit_decisions": 830,
+    "pending_entries": 0,
+    "ga_deploy": 0,
+    "ga_end": 0,
+    "ga_fills": 0,
+    "ga_marks": 0,
+    "sizing": 702,
+    "equity": 19954
+   },
+   "runs": 76,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 15.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SHIB",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEPE",
+     "SHIB",
+     "SOL",
+     "WIF",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 51.0
+  },
+  {
+   "t": "2024-08-08 13:32:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 194,
+    "fills": 3575,
+    "orders": 999,
+    "exits": 999,
+    "signals": 2093,
+    "exit_decisions": 835,
+    "pending_entries": 0,
+    "ga_deploy": 1,
+    "ga_end": 1,
+    "ga_fills": 846,
+    "ga_marks": 12,
+    "sizing": 702,
+    "equity": 20262
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 15.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEOPLE",
+     "PEPE",
+     "SOL",
+     "WIF",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 46.8
+  },
+  {
+   "t": "2024-09-23 06:58:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 197,
+    "fills": 3579,
+    "orders": 1001,
+    "exits": 999,
+    "signals": 2095,
+    "exit_decisions": 835,
+    "pending_entries": 0,
+    "ga_deploy": 1,
+    "ga_end": 1,
+    "ga_fills": 846,
+    "ga_marks": 12,
+    "sizing": 706,
+    "equity": 20906
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 13.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEOPLE",
+     "PEPE",
+     "SOL",
+     "WIF",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 47.4
+  },
+  {
+   "t": "2024-09-27 05:29:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 197,
+    "fills": 3581,
+    "orders": 1001,
+    "exits": 999,
+    "signals": 2096,
+    "exit_decisions": 835,
+    "pending_entries": 0,
+    "ga_deploy": 1,
+    "ga_end": 1,
+    "ga_fills": 846,
+    "ga_marks": 12,
+    "sizing": 706,
+    "equity": 20962
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 14.6
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEOPLE",
+     "PEPE",
+     "SOL",
+     "WIF",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 45.3
+  },
+  {
+   "t": "2024-09-29 06:51:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 197,
+    "fills": 3582,
+    "orders": 1002,
+    "exits": 999,
+    "signals": 2096,
+    "exit_decisions": 835,
+    "pending_entries": 0,
+    "ga_deploy": 2,
+    "ga_end": 1,
+    "ga_fills": 848,
+    "ga_marks": 13,
+    "sizing": 708,
+    "equity": 20990
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1052,
+    "seconds": 14.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEOPLE",
+     "PEPE",
+     "SOL",
+     "WIF",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 43.4
+  },
+  {
+   "t": "2024-10-04 20:34:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 200,
+    "fills": 3593,
+    "orders": 1005,
+    "exits": 1005,
+    "signals": 2098,
+    "exit_decisions": 839,
+    "pending_entries": 0,
+    "ga_deploy": 2,
+    "ga_end": 1,
+    "ga_fills": 982,
+    "ga_marks": 18,
+    "sizing": 714,
+    "equity": 21060
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 54,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 14.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NOT",
+     "ORDI",
+     "PEPE",
+     "SATS",
+     "SOL",
+     "WIF",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 47.7
+  },
+  {
+   "t": "2024-11-09 23:12:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 203,
+    "fills": 3794,
+    "orders": 1079,
+    "exits": 1047,
+    "signals": 2216,
+    "exit_decisions": 880,
+    "pending_entries": 9,
+    "ga_deploy": 6,
+    "ga_end": 5,
+    "ga_fills": 1677,
+    "ga_marks": 61,
+    "sizing": 802,
+    "equity": 21564
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 14.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NEIRO",
+     "PEPE",
+     "SATS",
+     "SOL",
+     "SUI",
+     "WIF",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 46.0
+  },
+  {
+   "t": "2024-11-25 08:14:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 203,
+    "fills": 3880,
+    "orders": 1100,
+    "exits": 1057,
+    "signals": 2255,
+    "exit_decisions": 890,
+    "pending_entries": 0,
+    "ga_deploy": 6,
+    "ga_end": 6,
+    "ga_fills": 1678,
+    "ga_marks": 63,
+    "sizing": 820,
+    "equity": 21788
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 55,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1055,
+    "seconds": 15.0
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "NEIRO",
+     "PEPE",
+     "SATS",
+     "SOL",
+     "SUI",
+     "WIF",
+     "WLD",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 44.6
+  },
+  {
+   "t": "2025-03-31 21:22:00+00:00",
+   "cat": "m1",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 215,
+    "fills": 4170,
+    "orders": 1177,
+    "exits": 1177,
+    "signals": 2390,
+    "exit_decisions": 971,
+    "pending_entries": 0,
+    "ga_deploy": 8,
+    "ga_end": 8,
+    "ga_fills": 2095,
+    "ga_marks": 74,
+    "sizing": 898,
+    "equity": 23552
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 53,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 14.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "PEPE",
+     "PNUT",
+     "SOL",
+     "SUI",
+     "TRUMP",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 44.6
+  },
+  {
+   "t": "2025-07-03 09:46:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 227,
+    "fills": 4396,
+    "orders": 1244,
+    "exits": 1242,
+    "signals": 2470,
+    "exit_decisions": 1026,
+    "pending_entries": 0,
+    "ga_deploy": 11,
+    "ga_end": 10,
+    "ga_fills": 2332,
+    "ga_marks": 97,
+    "sizing": 950,
+    "equity": 24868
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 47,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1048,
+    "seconds": 14.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "TRUMP",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 45.3
+  },
+  {
+   "t": "2025-08-14 08:53:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 230,
+    "fills": 4598,
+    "orders": 1306,
+    "exits": 1282,
+    "signals": 2605,
+    "exit_decisions": 1066,
+    "pending_entries": 16,
+    "ga_deploy": 16,
+    "ga_end": 15,
+    "ga_fills": 2460,
+    "ga_marks": 120,
+    "sizing": 1022,
+    "equity": 25456
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 47,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 1.9234918047570337e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1048,
+    "seconds": 14.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "TRUMP",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 44.0
+  },
+  {
+   "t": "2025-09-01 00:38:00+00:00",
+   "cat": "month_start",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 233,
+    "fills": 4665,
+    "orders": 1327,
+    "exits": 1323,
+    "signals": 2630,
+    "exit_decisions": 1099,
+    "pending_entries": 0,
+    "ga_deploy": 17,
+    "ga_end": 16,
+    "ga_fills": 2742,
+    "ga_marks": 130,
+    "sizing": 1054,
+    "equity": 25708
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 46,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 2.8953625565253006e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 14.7
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "TRUMP",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 44.4
+  },
+  {
+   "t": "2025-09-03 12:23:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 233,
+    "fills": 4666,
+    "orders": 1328,
+    "exits": 1323,
+    "signals": 2631,
+    "exit_decisions": 1099,
+    "pending_entries": 0,
+    "ga_deploy": 17,
+    "ga_end": 16,
+    "ga_fills": 2842,
+    "ga_marks": 132,
+    "sizing": 1054,
+    "equity": 25736
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 2.8953625565253006e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 15.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "TRUMP",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 46.2
+  },
+  {
+   "t": "2025-10-05 20:53:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 236,
+    "fills": 4831,
+    "orders": 1380,
+    "exits": 1374,
+    "signals": 2798,
+    "exit_decisions": 1141,
+    "pending_entries": 0,
+    "ga_deploy": 19,
+    "ga_end": 18,
+    "ga_fills": 2907,
+    "ga_marks": 141,
+    "sizing": 1130,
+    "equity": 26184
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 49,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.2259652720373036e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1048,
+    "seconds": 15.8
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 47.2
+  },
+  {
+   "t": "2025-10-11 11:29:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 236,
+    "fills": 4844,
+    "orders": 1381,
+    "exits": 1381,
+    "signals": 2800,
+    "exit_decisions": 1143,
+    "pending_entries": 0,
+    "ga_deploy": 19,
+    "ga_end": 18,
+    "ga_fills": 3036,
+    "ga_marks": 147,
+    "sizing": 1130,
+    "equity": 26268
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 47,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.2259652720373036e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1048,
+    "seconds": 13.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "FARTCOIN",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 43.9
+  },
+  {
+   "t": "2025-11-01 01:33:00+00:00",
+   "cat": "month_start",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 239,
+    "fills": 4819,
+    "orders": 1373,
+    "exits": 1373,
+    "signals": 2758,
+    "exit_decisions": 1138,
+    "pending_entries": 0,
+    "ga_deploy": 19,
+    "ga_end": 19,
+    "ga_fills": 3167,
+    "ga_marks": 152,
+    "sizing": 1114,
+    "equity": 26562
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 46,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.2259652720373036e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 14.0
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "MYX",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 46.0
+  },
+  {
+   "t": "2025-11-19 18:52:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 239,
+    "fills": 4828,
+    "orders": 1376,
+    "exits": 1373,
+    "signals": 2763,
+    "exit_decisions": 1138,
+    "pending_entries": 0,
+    "ga_deploy": 19,
+    "ga_end": 19,
+    "ga_fills": 3167,
+    "ga_marks": 152,
+    "sizing": 1114,
+    "equity": 26814
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 46,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.2259652720373036e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 15.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ADA",
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "MYX",
+     "PEPE",
+     "SOL",
+     "SUI",
+     "XRP"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 45.8
+  },
+  {
+   "t": "2025-12-20 14:04:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 242,
+    "fills": 4791,
+    "orders": 1365,
+    "exits": 1364,
+    "signals": 2766,
+    "exit_decisions": 1132,
+    "pending_entries": 0,
+    "ga_deploy": 19,
+    "ga_end": 19,
+    "ga_fills": 3167,
+    "ga_marks": 152,
+    "sizing": 1090,
+    "equity": 27248
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 47,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 1.3496180101652062e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 14.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP"
+    ],
+    "S12_top10": [
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ENA",
+     "ETH",
+     "MYX",
+     "SOL",
+     "SUI",
+     "XPL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 46.4
+  },
+  {
+   "t": "2026-01-17 10:11:00+00:00",
+   "cat": "window",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 245,
+    "fills": 4835,
+    "orders": 1389,
+    "exits": 1366,
+    "signals": 2823,
+    "exit_decisions": 1134,
+    "pending_entries": 0,
+    "ga_deploy": 20,
+    "ga_end": 19,
+    "ga_fills": 3246,
+    "ga_marks": 155,
+    "sizing": 1124,
+    "equity": 27640
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 49,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 1.158351891705079e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 15.3
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "SOL",
+     "SUI",
+     "XPL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.7
+  },
+  {
+   "t": "2026-01-18 18:10:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 245,
+    "fills": 4837,
+    "orders": 1389,
+    "exits": 1366,
+    "signals": 2823,
+    "exit_decisions": 1134,
+    "pending_entries": 0,
+    "ga_deploy": 20,
+    "ga_end": 19,
+    "ga_fills": 3255,
+    "ga_marks": 156,
+    "sizing": 1124,
+    "equity": 27654
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 1.158351891705079e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1049,
+    "seconds": 16.4
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "SOL",
+     "SUI",
+     "XPL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 50.3
+  },
+  {
+   "t": "2026-02-24 07:57:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 248,
+    "fills": 4886,
+    "orders": 1396,
+    "exits": 1393,
+    "signals": 2837,
+    "exit_decisions": 1144,
+    "pending_entries": 0,
+    "ga_deploy": 20,
+    "ga_end": 20,
+    "ga_fills": 3359,
+    "ga_marks": 159,
+    "sizing": 1130,
+    "equity": 28172
+   },
+   "runs": 75,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.883856004803927e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1051,
+    "seconds": 13.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "ASTER",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "PEPE",
+     "RIVER",
+     "SOL",
+     "SUI",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.8
+  },
+  {
+   "t": "2026-03-29 15:41:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 251,
+    "fills": 4846,
+    "orders": 1384,
+    "exits": 1384,
+    "signals": 2766,
+    "exit_decisions": 1136,
+    "pending_entries": 0,
+    "ga_deploy": 20,
+    "ga_end": 20,
+    "ga_fills": 3359,
+    "ga_marks": 159,
+    "sizing": 1106,
+    "equity": 28634
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.883856004803927e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1047,
+    "seconds": 14.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "PEPE",
+     "PIPPIN",
+     "RIVER",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.9
+  },
+  {
+   "t": "2026-04-11 05:34:00+00:00",
+   "cat": "weekend",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 254,
+    "fills": 4853,
+    "orders": 1387,
+    "exits": 1384,
+    "signals": 2769,
+    "exit_decisions": 1136,
+    "pending_entries": 1,
+    "ga_deploy": 21,
+    "ga_end": 20,
+    "ga_fills": 3359,
+    "ga_marks": 159,
+    "sizing": 1112,
+    "equity": 28816
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.883856004803927e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1047,
+    "seconds": 14.0
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "PEPE",
+     "PIPPIN",
+     "RIVER",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 48.0
+  },
+  {
+   "t": "2026-04-11 09:48:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 254,
+    "fills": 4853,
+    "orders": 1387,
+    "exits": 1384,
+    "signals": 2769,
+    "exit_decisions": 1136,
+    "pending_entries": 1,
+    "ga_deploy": 21,
+    "ga_end": 20,
+    "ga_fills": 3359,
+    "ga_marks": 159,
+    "sizing": 1112,
+    "equity": 28816
+   },
+   "runs": 73,
+   "changed_after": 1,
+   "runs_changed": 48,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.883856004803927e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1047,
+    "seconds": 15.1
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "PEPE",
+     "PIPPIN",
+     "RIVER",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.8
+  },
+  {
+   "t": "2026-06-06 16:19:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 260,
+    "fills": 5010,
+    "orders": 1441,
+    "exits": 1437,
+    "signals": 2834,
+    "exit_decisions": 1189,
+    "pending_entries": 0,
+    "ga_deploy": 25,
+    "ga_end": 25,
+    "ga_fills": 4019,
+    "ga_marks": 213,
+    "sizing": 1166,
+    "equity": 29600
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 47,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 5.175973979848847e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1045,
+    "seconds": 14.5
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "PEPE",
+     "RAVE",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.8
+  },
+  {
+   "t": "2026-09-15 00:33:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 269,
+    "fills": 5217,
+    "orders": 1496,
+    "exits": 1492,
+    "signals": 2943,
+    "exit_decisions": 1243,
+    "pending_entries": 0,
+    "ga_deploy": 30,
+    "ga_end": 29,
+    "ga_fills": 4393,
+    "ga_marks": 254,
+    "sizing": 1224,
+    "equity": 31014
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 46,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 4.076184427447182e-16,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1045,
+    "seconds": 14.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "LAB",
+     "SOL",
+     "WLD",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 49.2
+  },
+  {
+   "t": "2026-09-24 18:21:00+00:00",
+   "cat": "w16",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 269,
+    "fills": 5310,
+    "orders": 1535,
+    "exits": 1498,
+    "signals": 2994,
+    "exit_decisions": 1248,
+    "pending_entries": 0,
+    "ga_deploy": 30,
+    "ga_end": 30,
+    "ga_fills": 4445,
+    "ga_marks": 262,
+    "sizing": 1274,
+    "equity": 31140
+   },
+   "runs": 72,
+   "changed_after": 1,
+   "runs_changed": 43,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1045,
+    "seconds": 14.2
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "LAB",
+     "SOL",
+     "WLD",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 42.6
+  },
+  {
+   "t": "2026-10-01 02:45:00+00:00",
+   "cat": "month_start",
+   "mismatches": [],
+   "compared": {
+    "rank_rows": 272,
+    "fills": 5334,
+    "orders": 1543,
+    "exits": 1503,
+    "signals": 3036,
+    "exit_decisions": 1252,
+    "pending_entries": 0,
+    "ga_deploy": 30,
+    "ga_end": 30,
+    "ga_fills": 4445,
+    "ga_marks": 262,
+    "sizing": 1274,
+    "equity": 31238
+   },
+   "runs": 74,
+   "changed_after": 1,
+   "runs_changed": 46,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0,
+   "accounts": [
+    "R0",
+    "S1_L1",
+    "S12_top3",
+    "S12_top6",
+    "S12_top10",
+    "S12_all_top3",
+    "R0 + G-A (H10 overlay)"
+   ],
+   "perturb": {
+    "files": 1047,
+    "seconds": 13.9
+   },
+   "s12_coins": {
+    "S12_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ],
+    "S12_top6": [
+     "BTC",
+     "DOGE",
+     "ETH",
+     "SOL",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_top10": [
+     "AKE",
+     "BNB",
+     "BTC",
+     "DOGE",
+     "ETH",
+     "HYPE",
+     "LAB",
+     "NEAR",
+     "SOL",
+     "WLD",
+     "XRP",
+     "ZEC"
+    ],
+    "S12_all_top3": [
+     "BTC",
+     "ETH",
+     "SOL"
+    ]
+   },
+   "seconds": 42.8
+  }
+ ],
+ "stock_cuts": [
+  {
+   "session": "2023-03-27 00:00:00",
+   "minute": 108,
+   "t": "2023-03-27 15:18:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 8345,
+    "orders": 2870,
+    "signals": 6566,
+    "book_entries": 2240,
+    "book_equity": 11184
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2019-12-10 00:00:00",
+   "minute": 379,
+   "t": "2019-12-10 20:49:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 7334,
+    "orders": 2535,
+    "signals": 5836,
+    "book_entries": 1982,
+    "book_equity": 9528
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-02-12 00:00:00",
+   "minute": 220,
+   "t": "2025-02-12 18:10:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 9021,
+    "orders": 3102,
+    "signals": 7036,
+    "book_entries": 2398,
+    "book_equity": 12128
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2022-07-07 00:00:00",
+   "minute": 92,
+   "t": "2022-07-07 15:02:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 8181,
+    "orders": 2812,
+    "signals": 6447,
+    "book_entries": 2196,
+    "book_equity": 10822
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2015-06-10 00:00:00",
+   "minute": 219,
+   "t": "2015-06-10 17:09:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 5808,
+    "orders": 1985,
+    "signals": 4661,
+    "book_entries": 1539,
+    "book_equity": 7260
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-05-28 00:00:00",
+   "minute": 59,
+   "t": "2026-05-28 14:29:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9485,
+    "orders": 3267,
+    "signals": 7353,
+    "book_entries": 2518,
+    "book_equity": 12774
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-11-02 00:00:00",
+   "minute": 26,
+   "t": "2010-11-02 13:56:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3547,
+    "orders": 1199,
+    "signals": 2995,
+    "book_entries": 934,
+    "book_equity": 4946
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2008-08-18 00:00:00",
+   "minute": 168,
+   "t": "2008-08-18 16:18:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 2564,
+    "orders": 872,
+    "signals": 2319,
+    "book_entries": 683,
+    "book_equity": 3832
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2008-09-22 00:00:00",
+   "minute": 18,
+   "t": "2008-09-22 13:48:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 2590,
+    "orders": 879,
+    "signals": 2335,
+    "book_entries": 687,
+    "book_equity": 3880
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2002-12-27 00:00:00",
+   "minute": 151,
+   "t": "2002-12-27 17:01:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 267,
+    "orders": 94,
+    "signals": 309,
+    "book_entries": 73,
+    "book_equity": 994
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2001-08-30 00:00:00",
+   "minute": 248,
+   "t": "2001-08-30 17:38:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 81,
+    "orders": 27,
+    "signals": 108,
+    "book_entries": 20,
+    "book_equity": 334
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2014-05-22 00:00:00",
+   "minute": 111,
+   "t": "2014-05-22 15:21:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 5287,
+    "orders": 1800,
+    "signals": 4283,
+    "book_entries": 1402,
+    "book_equity": 6732
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2023-11-17 00:00:00",
+   "minute": 100,
+   "t": "2023-11-17 16:10:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 8512,
+    "orders": 2931,
+    "signals": 6682,
+    "book_entries": 2281,
+    "book_equity": 11512
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-02-27 00:00:00",
+   "minute": 231,
+   "t": "2026-02-27 18:21:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9399,
+    "orders": 3239,
+    "signals": 7310,
+    "book_entries": 2500,
+    "book_equity": 12650
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-06-17 00:00:00",
+   "minute": 242,
+   "t": "2025-06-17 17:32:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9112,
+    "orders": 3135,
+    "signals": 7098,
+    "book_entries": 2423,
+    "book_equity": 12300
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-07-31 00:00:00",
+   "minute": 346,
+   "t": "2025-07-31 19:16:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9181,
+    "orders": 3157,
+    "signals": 7143,
+    "book_entries": 2440,
+    "book_equity": 12360
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-07-30 00:00:00",
+   "minute": 297,
+   "t": "2026-07-30 18:27:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9536,
+    "orders": 3282,
+    "signals": 7386,
+    "book_entries": 2530,
+    "book_equity": 12860
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-10-05 00:00:00",
+   "minute": 358,
+   "t": "2026-10-05 19:28:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9580,
+    "orders": 3298,
+    "signals": 7406,
+    "book_entries": 2540,
+    "book_equity": 12952
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-01-22 00:00:00",
+   "minute": 46,
+   "t": "2026-01-22 15:16:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": true,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9358,
+    "orders": 3228,
+    "signals": 7281,
+    "book_entries": 2492,
+    "book_equity": 12600
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-08-11 00:00:00",
+   "minute": 15,
+   "t": "2006-08-11 13:45:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1551,
+    "orders": 527,
+    "signals": 1560,
+    "book_entries": 420,
+    "book_equity": 2818
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-12-10 00:00:00",
+   "minute": 110,
+   "t": "2010-12-10 16:20:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3614,
+    "orders": 1216,
+    "signals": 3045,
+    "book_entries": 947,
+    "book_equity": 5000
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-03-19 00:00:00",
+   "minute": 183,
+   "t": "2010-03-19 16:33:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3217,
+    "orders": 1091,
+    "signals": 2757,
+    "book_entries": 853,
+    "book_equity": 4630
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-04-21 00:00:00",
+   "minute": 297,
+   "t": "2006-04-21 18:27:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1485,
+    "orders": 507,
+    "signals": 1488,
+    "book_entries": 403,
+    "book_equity": 2662
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2009-12-07 00:00:00",
+   "minute": 376,
+   "t": "2009-12-07 20:46:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3069,
+    "orders": 1039,
+    "signals": 2658,
+    "book_entries": 815,
+    "book_equity": 4490
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2011-10-27 00:00:00",
+   "minute": 183,
+   "t": "2011-10-27 16:33:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 4006,
+    "orders": 1349,
+    "signals": 3346,
+    "book_entries": 1055,
+    "book_equity": 5444
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-07-26 00:00:00",
+   "minute": 91,
+   "t": "2006-07-26 15:01:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1537,
+    "orders": 520,
+    "signals": 1546,
+    "book_entries": 415,
+    "book_equity": 2794
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-05-27 00:00:00",
+   "minute": 161,
+   "t": "2025-05-27 16:11:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 9090,
+    "orders": 3126,
+    "signals": 7086,
+    "book_entries": 2417,
+    "book_equity": 12270
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-02-02 00:00:00",
+   "minute": 128,
+   "t": "2010-02-02 16:38:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3157,
+    "orders": 1066,
+    "signals": 2709,
+    "book_entries": 837,
+    "book_equity": 4566
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2022-07-20 00:00:00",
+   "minute": 51,
+   "t": "2022-07-20 14:21:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 8182,
+    "orders": 2813,
+    "signals": 6448,
+    "book_entries": 2197,
+    "book_equity": 10840
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-01-27 00:00:00",
+   "minute": 164,
+   "t": "2006-01-27 17:14:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1401,
+    "orders": 482,
+    "signals": 1409,
+    "book_entries": 382,
+    "book_equity": 2546
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-02-11 00:00:00",
+   "minute": 9,
+   "t": "2010-02-11 14:39:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3162,
+    "orders": 1068,
+    "signals": 2713,
+    "book_entries": 838,
+    "book_equity": 4580
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-05-05 00:00:00",
+   "minute": 328,
+   "t": "2006-05-05 18:58:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1496,
+    "orders": 509,
+    "signals": 1508,
+    "book_entries": 404,
+    "book_equity": 2682
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2007-03-19 00:00:00",
+   "minute": 76,
+   "t": "2007-03-19 14:46:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1882,
+    "orders": 642,
+    "signals": 1826,
+    "book_entries": 507,
+    "book_equity": 3116
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2004-06-21 00:00:00",
+   "minute": 6,
+   "t": "2004-06-21 13:36:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 755,
+    "orders": 255,
+    "signals": 803,
+    "book_entries": 201,
+    "book_equity": 1736
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2013-10-16 00:00:00",
+   "minute": 6,
+   "t": "2013-10-16 13:36:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 5000,
+    "orders": 1689,
+    "signals": 4060,
+    "book_entries": 1315,
+    "book_equity": 6432
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-10-09 00:00:00",
+   "minute": 380,
+   "t": "2026-10-09 19:50:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9582,
+    "orders": 3299,
+    "signals": 7407,
+    "book_entries": 2541,
+    "book_equity": 12960
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2007-06-04 00:00:00",
+   "minute": 277,
+   "t": "2007-06-04 18:07:00+00:00",
+   "cat": "random",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 2014,
+    "orders": 694,
+    "signals": 1918,
+    "book_entries": 546,
+    "book_equity": 3222
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2002-03-05 00:00:00",
+   "minute": 34,
+   "t": "2002-03-05 15:04:00+00:00",
+   "cat": "random",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 157,
+    "orders": 59,
+    "signals": 190,
+    "book_entries": 46,
+    "book_equity": 580
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-08-22 00:00:00",
+   "minute": 155,
+   "t": "2025-08-22 16:05:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9200,
+    "orders": 3165,
+    "signals": 7154,
+    "book_entries": 2447,
+    "book_equity": 12392
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-09-23 00:00:00",
+   "minute": 100,
+   "t": "2026-09-23 15:10:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": true,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9576,
+    "orders": 3298,
+    "signals": 7406,
+    "book_entries": 2540,
+    "book_equity": 12936
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-10-27 00:00:00",
+   "minute": 72,
+   "t": "2025-10-27 14:42:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": true,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9280,
+    "orders": 3199,
+    "signals": 7229,
+    "book_entries": 2471,
+    "book_equity": 12482
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-04-20 00:00:00",
+   "minute": 188,
+   "t": "2026-04-20 16:38:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9449,
+    "orders": 3256,
+    "signals": 7334,
+    "book_entries": 2512,
+    "book_equity": 12720
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2025-08-14 00:00:00",
+   "minute": 158,
+   "t": "2025-08-14 16:08:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": false,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9193,
+    "orders": 3165,
+    "signals": 7154,
+    "book_entries": 2447,
+    "book_equity": 12380
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2026-03-25 00:00:00",
+   "minute": 10,
+   "t": "2026-03-25 13:40:00+00:00",
+   "cat": "2025-06..2026-10",
+   "near_open": true,
+   "in_2025_06_2026_10": true,
+   "mismatches": [],
+   "compared": {
+    "fills": 9425,
+    "orders": 3243,
+    "signals": 7316,
+    "book_entries": 2503,
+    "book_equity": 12686
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2005-06-01 00:00:00",
+   "minute": 107,
+   "t": "2005-06-01 15:17:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1102,
+    "orders": 381,
+    "signals": 1156,
+    "book_entries": 305,
+    "book_equity": 2214
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2005-05-24 00:00:00",
+   "minute": 1,
+   "t": "2005-05-24 13:31:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1094,
+    "orders": 378,
+    "signals": 1149,
+    "book_entries": 302,
+    "book_equity": 2204
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-12-14 00:00:00",
+   "minute": 6,
+   "t": "2010-12-14 14:36:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3620,
+    "orders": 1217,
+    "signals": 3047,
+    "book_entries": 948,
+    "book_equity": 5004
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2014-08-01 00:00:00",
+   "minute": 127,
+   "t": "2014-08-01 15:37:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 5427,
+    "orders": 1850,
+    "signals": 4388,
+    "book_entries": 1438,
+    "book_equity": 6830
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2006-04-20 00:00:00",
+   "minute": 16,
+   "t": "2006-04-20 13:46:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": true,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 1485,
+    "orders": 507,
+    "signals": 1487,
+    "book_entries": 403,
+    "book_equity": 2660
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  },
+  {
+   "session": "2010-03-26 00:00:00",
+   "minute": 135,
+   "t": "2010-03-26 15:45:00+00:00",
+   "cat": "flat_bar_pending",
+   "near_open": false,
+   "in_2025_06_2026_10": false,
+   "mismatches": [],
+   "compared": {
+    "fills": 3226,
+    "orders": 1093,
+    "signals": 2762,
+    "book_entries": 855,
+    "book_equity": 4640
+   },
+   "runs": 6,
+   "runs_changed": 6,
+   "audit_perturbed": 0,
+   "acct_max_rel_diff": 0.0
+  }
+ ],
+ "rule": "every decision stamped before each cut unchanged; cut-count minimums met; the perturbation changes a later decision in some run; perturbed runs' fill audits empty",
+ "summary": {
+  "crypto_cuts": 60,
+  "stock_cuts": 50,
+  "crypto_runs": 4459,
+  "stock_runs": 300,
+  "decisions_compared": 2597008,
+  "mismatches": 0,
+  "counts_ok": true,
+  "cut_counts": {
+   "cuts": 60,
+   "in_2025_06_2026_10": 19,
+   "weekend": 24,
+   "near_window": 36,
+   "m1_era": 28,
+   "on_hour_boundary": 0
+  },
+  "stock_cut_counts": {
+   "cuts": 50,
+   "near_open": 24,
+   "in_2025_06_2026_10": 14,
+   "flat_bar_pending": 12
+  },
+  "bites": [
+   60,
+   50
+  ],
+  "audit_perturbed": 0,
+  "account_max_rel_diff_full_runs": 5.175973979848847e-16
+ },
+ "seconds_inner": 948.4,
+ "seconds": 948.4
+}

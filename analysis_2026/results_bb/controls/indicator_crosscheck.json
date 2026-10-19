@@ -1,0 +1,54 @@
+{
+ "passed": true,
+ "detail": {
+  "window": [
+   "2018-01-01",
+   "2026-09-30"
+  ],
+  "ref": {
+   "handoff_text_1x_spot": 12.4,
+   "csv_1x_spot": 12.411885302636572,
+   "csv_1x_perp": 7.018323713670135
+  },
+  "bench_perp_5.14cfg": {
+   "multiple": 6.642736370292012,
+   "positions": 64,
+   "log10_ratio_vs_12.4": -0.2710746681864917,
+   "cagr": 24.16811646462602,
+   "max_dd": -59.25356429468358
+  },
+  "bench_spot_5.14cfg": {
+   "multiple": 12.015717232669546,
+   "positions": 64,
+   "log10_ratio_vs_12.4": -0.013671985686583602,
+   "cagr": 32.872826822476675,
+   "max_dd": -56.45256977044172
+  },
+  "bench_perp_H2cfg": {
+   "multiple": 5.368274376648866,
+   "positions": 64,
+   "log10_ratio_vs_12.4": -0.36358698030768405,
+   "cagr": 21.180894862097244,
+   "max_dd": -59.996083652470645
+  },
+  "pass": true
+ },
+ "lines": [
+  "Indicator cross-check (benchmark only): BTC moneyline_ref 1x, 2018-01-01 .. 2026-09-30",
+  "  HANDOFF 5.14 text: 12.4x at 1x spot; results_leverage csv: 1x spot 12.41x, 1x perp 7.02x",
+  "  bench_perp_5.14cfg  :    6.64x  (CAGR  24.2%, max DD  -59.3%, 64 positions; log10 ratio to 12.4x -0.27)",
+  "  bench_spot_5.14cfg  :   12.02x  (CAGR  32.9%, max DD  -56.5%, 64 positions; log10 ratio to 12.4x -0.01)",
+  "  bench_perp_H2cfg    :    5.37x  (CAGR  21.2%, max DD  -60.0%, 64 positions; log10 ratio to 12.4x -0.36)",
+  "  same order of magnitude as 12.4x (|log10 ratio| < 1, perp benchmark, 5.14's sizing): PASS"
+ ],
+ "rule": "|log10(benchmark multiple / 12.4)| < 1 (moneyline_ref BTC 1x, perpetual, 5.14's sizing)",
+ "summary": {
+  "multiple": 6.642736370292012,
+  "log10_ratio_vs_12.4": -0.2710746681864917,
+  "window": [
+   "2018-01-01",
+   "2026-09-30"
+  ]
+ },
+ "seconds": 0.9
+}

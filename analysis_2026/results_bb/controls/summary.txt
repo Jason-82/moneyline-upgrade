@@ -1,0 +1,69 @@
+BB replication controls (pre-registration: Controls, run before primary results are read)
+generated 2026-10-19T12:55:43+00:00; full run; 1252.5s
+
+liquidation              PASS
+  rule: exactly one liquidation, at the hand-computed price, net = - posted isolated margin, account loses M x posted margin; working stops give a stop instead
+  cases: 12
+  passed_cases: 12
+  max_liq_px_rel_err: 1.9796572240899964e-16
+grid_path_check          PASS
+  rule: |engine - 1-second P&L| <= 10% of the 1-second gross grid profit on every non-stress path
+  paths: 6
+  max_rel_to_grid_profit: 0.0007058057043601103
+  stress_paths_ok: true
+indicator_crosscheck     PASS
+  rule: |log10(benchmark multiple / 12.4)| < 1 (moneyline_ref BTC 1x, perpetual, 5.14's sizing)
+  multiple: 6.642736370292012
+  log10_ratio_vs_12.4: -0.2710746681864917
+  window: ["2018-01-01", "2026-09-30"]
+engine_known_answer      PASS
+  S1_trades: 27218
+  S1_t_before_costs: 1.492370827907864
+  R0_trades: 23859
+  R0_t_before_costs: 1.6801306824767455
+  S1_after_costs_gap_over_se: 1.4939761138758065
+  R0_after_costs_gap_over_se: 1.681933402081461
+  fee_recompute_max_diff: 0.0
+  drift_adjusted_t: [0.6714070087579946, 1.2268692584515728]
+  GA_t_before_fees: -1.4212007266683495
+  GA_mean_after_fees_negative: true
+  trend_S1_t: 4.982749776704139
+  parts_passed: {"martingale": true, "drift_adjust": true, "grid_ga": true, "trend": true}
+inference_known_answer   PASS
+  rule: pass if the point rejection rate <= 0.05 ('at most about 5%', read as Addendum 2 reads the same phrase for the bound; bb_stats ok_reject); the Clopper-Pearson 95% interval and the one-sided binomial flag are reported only
+  n_paths: 200
+  reject_rate: 0.015
+  reject_ci95: [0.003104107621553509, 0.0432082819177126]
+  miss_rate_95: 0.055
+  widened: true
+  level95: 0.955
+  level_noedge: 0.99625
+  true_mean_independent: 0.0010197276075555792
+  trades_per_path: 73.1
+fill_audit               PASS
+  rule: every engine's fills_audit empty, and bench_fill_audit empty on the indicator benchmark
+  runs: 432
+  fills: 650746
+  violations: 0
+  crypto_runs: 286
+  grid_runs: 36
+  stock_runs: 5
+  bench_runs: 105
+lookahead                PASS
+  rule: every decision stamped before each cut unchanged; cut-count minimums met; the perturbation changes a later decision in some run; perturbed runs' fill audits empty
+  crypto_cuts: 60
+  stock_cuts: 50
+  crypto_runs: 4459
+  stock_runs: 300
+  decisions_compared: 2597008
+  mismatches: 0
+  counts_ok: true
+  cut_counts: {"cuts": 60, "in_2025_06_2026_10": 19, "weekend": 24, "near_window": 36, "m1_era": 28, "on_hour_boundary": 0}
+  stock_cut_counts: {"cuts": 50, "near_open": 24, "in_2025_06_2026_10": 14, "flat_bar_pending": 12}
+  bites: [60, 50]
+  audit_perturbed: 0
+  account_max_rel_diff_full_runs: 5.175973979848847e-16
+
+all_passed: True
+level95 (bootstrap-t level for 95% bounds): 0.955
+level_noedge (NO EDGE bound level): 0.99625

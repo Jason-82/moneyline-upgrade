@@ -1,0 +1,3538 @@
+{
+ "quick": false,
+ "passed": true,
+ "runs": [
+  {
+   "kind": "crypto",
+   "what": "BTC R0",
+   "positions": 33,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC S1",
+   "positions": 37,
+   "fills": 118,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC S1_L1",
+   "positions": 37,
+   "fills": 118,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC S8",
+   "positions": 118,
+   "fills": 355,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC S11",
+   "positions": 49,
+   "fills": 155,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC S16",
+   "positions": 390,
+   "fills": 951,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC H4_touch",
+   "positions": 44,
+   "fills": 165,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BTC moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 51,
+   "fills": 102,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BTC moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 51,
+   "fills": 102,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BTC moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 16,
+   "fills": 31,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP R0",
+   "positions": 13,
+   "fills": 50,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP S1",
+   "positions": 16,
+   "fills": 59,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP S1_L1",
+   "positions": 16,
+   "fills": 59,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP S8",
+   "positions": 38,
+   "fills": 131,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP S11",
+   "positions": 20,
+   "fills": 75,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP S16",
+   "positions": 87,
+   "fills": 248,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP H4_touch",
+   "positions": 19,
+   "fills": 74,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XRP moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XRP moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XRP moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 11,
+   "fills": 22,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK R0",
+   "positions": 25,
+   "fills": 97,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK S1",
+   "positions": 28,
+   "fills": 105,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK S1_L1",
+   "positions": 28,
+   "fills": 105,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK S8",
+   "positions": 61,
+   "fills": 203,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK S11",
+   "positions": 35,
+   "fills": 132,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK S16",
+   "positions": 148,
+   "fills": 405,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LINK H4_touch",
+   "positions": 39,
+   "fills": 143,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LINK moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LINK moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LINK moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 4,
+   "fills": 8,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH R0",
+   "positions": 22,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH S1",
+   "positions": 25,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH S1_L1",
+   "positions": 25,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH S8",
+   "positions": 51,
+   "fills": 163,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH S11",
+   "positions": 30,
+   "fills": 102,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH S16",
+   "positions": 111,
+   "fills": 291,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BCH H4_touch",
+   "positions": 36,
+   "fills": 131,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BCH moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 54,
+   "fills": 108,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BCH moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 54,
+   "fills": 108,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BCH moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 0,
+   "fills": 0,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR R0",
+   "positions": 10,
+   "fills": 42,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR S1",
+   "positions": 11,
+   "fills": 45,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR S1_L1",
+   "positions": 11,
+   "fills": 45,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR S8",
+   "positions": 43,
+   "fills": 144,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR S11",
+   "positions": 25,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR S16",
+   "positions": 103,
+   "fills": 300,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEAR H4_touch",
+   "positions": 20,
+   "fills": 73,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "NEAR moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 39,
+   "fills": 77,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "NEAR moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 39,
+   "fills": 77,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL R0",
+   "positions": 4,
+   "fills": 11,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL S1",
+   "positions": 5,
+   "fills": 16,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL S1_L1",
+   "positions": 5,
+   "fills": 16,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL S8",
+   "positions": 11,
+   "fills": 33,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL S11",
+   "positions": 9,
+   "fills": 28,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL S16",
+   "positions": 26,
+   "fills": 63,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "POL H4_touch",
+   "positions": 8,
+   "fills": 29,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "POL moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 13,
+   "fills": 26,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "POL moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 13,
+   "fills": 26,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR R0",
+   "positions": 24,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR S1",
+   "positions": 25,
+   "fills": 94,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR S1_L1",
+   "positions": 25,
+   "fills": 94,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR S8",
+   "positions": 81,
+   "fills": 233,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR S11",
+   "positions": 34,
+   "fills": 121,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR S16",
+   "positions": 205,
+   "fills": 527,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XMR H4_touch",
+   "positions": 43,
+   "fills": 145,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XMR moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 48,
+   "fills": 95,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XMR moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 48,
+   "fills": 95,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XMR moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 6,
+   "fills": 12,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO R0",
+   "positions": 13,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO S1",
+   "positions": 20,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO S1_L1",
+   "positions": 20,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO S8",
+   "positions": 43,
+   "fills": 145,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO S11",
+   "positions": 28,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO S16",
+   "positions": 94,
+   "fills": 281,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ALGO H4_touch",
+   "positions": 25,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ALGO moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 51,
+   "fills": 101,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ALGO moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 51,
+   "fills": 101,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ALGO moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 3,
+   "fills": 6,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ R0",
+   "positions": 17,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ S1",
+   "positions": 20,
+   "fills": 73,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ S1_L1",
+   "positions": 20,
+   "fills": 73,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ S8",
+   "positions": 42,
+   "fills": 142,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ S11",
+   "positions": 38,
+   "fills": 136,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ S16",
+   "positions": 101,
+   "fills": 270,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XTZ H4_touch",
+   "positions": 24,
+   "fills": 93,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XTZ moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XTZ moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XTZ moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 1,
+   "fills": 2,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS R0",
+   "positions": 12,
+   "fills": 41,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS S1",
+   "positions": 13,
+   "fills": 50,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS S1_L1",
+   "positions": 13,
+   "fills": 50,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS S8",
+   "positions": 25,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS S11",
+   "positions": 27,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS S16",
+   "positions": 51,
+   "fills": 161,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AXS H4_touch",
+   "positions": 14,
+   "fills": 52,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AXS moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 37,
+   "fills": 74,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AXS moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 37,
+   "fills": 74,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH R0",
+   "positions": 34,
+   "fills": 124,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH S1",
+   "positions": 35,
+   "fills": 126,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH S1_L1",
+   "positions": 35,
+   "fills": 126,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH S8",
+   "positions": 102,
+   "fills": 318,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH S11",
+   "positions": 48,
+   "fills": 176,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH S16",
+   "positions": 277,
+   "fills": 706,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH H4_touch",
+   "positions": 45,
+   "fills": 165,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETH moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETH moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 49,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETH moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 16,
+   "fills": 32,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE R0",
+   "positions": 18,
+   "fills": 71,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE S1",
+   "positions": 21,
+   "fills": 83,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE S1_L1",
+   "positions": 21,
+   "fills": 83,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE S8",
+   "positions": 31,
+   "fills": 111,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE S11",
+   "positions": 27,
+   "fills": 99,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE S16",
+   "positions": 80,
+   "fills": 239,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE H4_touch",
+   "positions": 14,
+   "fills": 52,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DOGE moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DOGE moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DOGE moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 2,
+   "fills": 4,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC R0",
+   "positions": 22,
+   "fills": 82,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC S1",
+   "positions": 28,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC S1_L1",
+   "positions": 28,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC S8",
+   "positions": 52,
+   "fills": 162,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC S11",
+   "positions": 38,
+   "fills": 137,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC S16",
+   "positions": 124,
+   "fills": 324,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LTC H4_touch",
+   "positions": 35,
+   "fills": 125,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LTC moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LTC moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LTC moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 13,
+   "fills": 25,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM R0",
+   "positions": 18,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM S1",
+   "positions": 19,
+   "fills": 68,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM S1_L1",
+   "positions": 19,
+   "fills": 68,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM S8",
+   "positions": 48,
+   "fills": 165,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM S11",
+   "positions": 35,
+   "fills": 125,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM S16",
+   "positions": 120,
+   "fills": 323,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ATOM H4_touch",
+   "positions": 28,
+   "fills": 103,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ATOM moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 55,
+   "fills": 109,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ATOM moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 55,
+   "fills": 109,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ATOM moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 3,
+   "fills": 6,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL R0",
+   "positions": 7,
+   "fills": 27,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL S1",
+   "positions": 10,
+   "fills": 37,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL S1_L1",
+   "positions": 10,
+   "fills": 37,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL S8",
+   "positions": 26,
+   "fills": 92,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL S11",
+   "positions": 25,
+   "fills": 87,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL S16",
+   "positions": 46,
+   "fills": 138,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FIL H4_touch",
+   "positions": 11,
+   "fills": 48,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "FIL moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 40,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "FIL moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 40,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA R0",
+   "positions": 12,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA S1",
+   "positions": 14,
+   "fills": 55,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA S1_L1",
+   "positions": 14,
+   "fills": 55,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA S8",
+   "positions": 39,
+   "fills": 133,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA S11",
+   "positions": 23,
+   "fills": 87,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA S16",
+   "positions": 80,
+   "fills": 251,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "LUNA H4_touch",
+   "positions": 16,
+   "fills": 65,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LUNA moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 39,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "LUNA moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 39,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC R0",
+   "positions": 23,
+   "fills": 87,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC S1",
+   "positions": 24,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC S1_L1",
+   "positions": 24,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC S8",
+   "positions": 68,
+   "fills": 210,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC S11",
+   "positions": 30,
+   "fills": 111,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC S16",
+   "positions": 149,
+   "fills": 414,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ZEC H4_touch",
+   "positions": 34,
+   "fills": 121,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ZEC moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ZEC moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ZEC moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 4,
+   "fills": 8,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET R0",
+   "positions": 19,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET S1",
+   "positions": 20,
+   "fills": 85,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET S1_L1",
+   "positions": 20,
+   "fills": 85,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET S8",
+   "positions": 45,
+   "fills": 166,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET S11",
+   "positions": 36,
+   "fills": 135,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET S16",
+   "positions": 111,
+   "fills": 345,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "VET H4_touch",
+   "positions": 24,
+   "fills": 94,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "VET moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 38,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "VET moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 38,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "VET moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 9,
+   "fills": 18,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA R0",
+   "positions": 18,
+   "fills": 67,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA S1",
+   "positions": 21,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA S1_L1",
+   "positions": 21,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA S8",
+   "positions": 51,
+   "fills": 172,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA S11",
+   "positions": 34,
+   "fills": 123,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA S16",
+   "positions": 126,
+   "fills": 364,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "THETA H4_touch",
+   "positions": 23,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "THETA moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 82,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "THETA moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 82,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "THETA moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 5,
+   "fills": 9,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB R0",
+   "positions": 8,
+   "fills": 32,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB S1",
+   "positions": 9,
+   "fills": 34,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB S1_L1",
+   "positions": 9,
+   "fills": 34,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB S8",
+   "positions": 20,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB S11",
+   "positions": 21,
+   "fills": 80,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB S16",
+   "positions": 46,
+   "fills": 128,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SHIB H4_touch",
+   "positions": 9,
+   "fills": 35,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SHIB moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 34,
+   "fills": 68,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SHIB moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 34,
+   "fills": 68,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL R0",
+   "positions": 20,
+   "fills": 75,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL S1",
+   "positions": 20,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL S1_L1",
+   "positions": 20,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL S8",
+   "positions": 57,
+   "fills": 198,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL S11",
+   "positions": 33,
+   "fills": 124,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL S16",
+   "positions": 158,
+   "fills": 449,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL H4_touch",
+   "positions": 26,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SOL moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SOL moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA R0",
+   "positions": 19,
+   "fills": 71,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA S1",
+   "positions": 24,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA S1_L1",
+   "positions": 24,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA S8",
+   "positions": 55,
+   "fills": 189,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA S11",
+   "positions": 34,
+   "fills": 123,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA S16",
+   "positions": 126,
+   "fills": 370,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ADA H4_touch",
+   "positions": 28,
+   "fills": 108,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ADA moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ADA moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ADA moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 11,
+   "fills": 22,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX R0",
+   "positions": 32,
+   "fills": 119,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX S1",
+   "positions": 36,
+   "fills": 135,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX S1_L1",
+   "positions": 36,
+   "fills": 135,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX S8",
+   "positions": 97,
+   "fills": 290,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX S11",
+   "positions": 42,
+   "fills": 147,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX S16",
+   "positions": 261,
+   "fills": 632,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "TRX H4_touch",
+   "positions": 43,
+   "fills": 157,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "TRX moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 48,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "TRX moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 48,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "TRX moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 13,
+   "fills": 25,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC R0",
+   "positions": 18,
+   "fills": 68,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC S1",
+   "positions": 20,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC S1_L1",
+   "positions": 20,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC S8",
+   "positions": 43,
+   "fills": 142,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC S11",
+   "positions": 30,
+   "fills": 113,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC S16",
+   "positions": 76,
+   "fills": 221,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETC H4_touch",
+   "positions": 25,
+   "fills": 96,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETC moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETC moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 50,
+   "fills": 100,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ETC moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 9,
+   "fills": 17,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI R0",
+   "positions": 17,
+   "fills": 66,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI S1",
+   "positions": 18,
+   "fills": 66,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI S1_L1",
+   "positions": 18,
+   "fills": 66,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI S8",
+   "positions": 45,
+   "fills": 141,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI S11",
+   "positions": 31,
+   "fills": 112,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI S16",
+   "positions": 121,
+   "fills": 333,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "UNI H4_touch",
+   "positions": 25,
+   "fills": 94,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "UNI moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "UNI moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT R0",
+   "positions": 12,
+   "fills": 45,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT S1",
+   "positions": 12,
+   "fills": 44,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT S1_L1",
+   "positions": 12,
+   "fills": 44,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT S8",
+   "positions": 29,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT S11",
+   "positions": 17,
+   "fills": 60,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT S16",
+   "positions": 81,
+   "fills": 226,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "FTT H4_touch",
+   "positions": 18,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "FTT moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 23,
+   "fills": 46,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "FTT moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 43,
+   "fills": 85,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "FTT moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 0,
+   "fills": 0,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH R0",
+   "positions": 14,
+   "fills": 50,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH S1",
+   "positions": 19,
+   "fills": 70,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH S1_L1",
+   "positions": 19,
+   "fills": 70,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH S8",
+   "positions": 43,
+   "fills": 139,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH S11",
+   "positions": 25,
+   "fills": 85,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH S16",
+   "positions": 91,
+   "fills": 253,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DASH H4_touch",
+   "positions": 23,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DASH moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 46,
+   "fills": 92,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DASH moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 46,
+   "fills": 92,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DASH moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 4,
+   "fills": 8,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP R0",
+   "positions": 9,
+   "fills": 33,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP S1",
+   "positions": 11,
+   "fills": 40,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP S1_L1",
+   "positions": 11,
+   "fills": 40,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP S8",
+   "positions": 22,
+   "fills": 73,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP S11",
+   "positions": 21,
+   "fills": 78,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP S16",
+   "positions": 60,
+   "fills": 164,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ICP H4_touch",
+   "positions": 13,
+   "fills": 49,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ICP moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 38,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "ICP moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 40,
+   "fills": 80,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND R0",
+   "positions": 8,
+   "fills": 31,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND S1",
+   "positions": 10,
+   "fills": 39,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND S1_L1",
+   "positions": 10,
+   "fills": 39,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND S8",
+   "positions": 19,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND S11",
+   "positions": 26,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND S16",
+   "positions": 58,
+   "fills": 170,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SAND H4_touch",
+   "positions": 11,
+   "fills": 46,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SAND moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "SAND moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR R0",
+   "positions": 11,
+   "fills": 40,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR S1",
+   "positions": 14,
+   "fills": 49,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR S1_L1",
+   "positions": 14,
+   "fills": 49,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR S8",
+   "positions": 40,
+   "fills": 135,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR S11",
+   "positions": 25,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR S16",
+   "positions": 75,
+   "fills": 220,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "HBAR H4_touch",
+   "positions": 15,
+   "fills": 60,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "HBAR moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 43,
+   "fills": 86,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "HBAR moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 43,
+   "fills": 86,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "HBAR moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 0,
+   "fills": 0,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB R0",
+   "positions": 30,
+   "fills": 112,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB S1",
+   "positions": 33,
+   "fills": 126,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB S1_L1",
+   "positions": 33,
+   "fills": 126,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB S8",
+   "positions": 95,
+   "fills": 292,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB S11",
+   "positions": 40,
+   "fills": 145,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB S16",
+   "positions": 265,
+   "fills": 690,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB H4_touch",
+   "positions": 44,
+   "fills": 162,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BNB moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BNB moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 45,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "BNB moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 18,
+   "fills": 36,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX R0",
+   "positions": 14,
+   "fills": 59,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX S1",
+   "positions": 16,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX S1_L1",
+   "positions": 16,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX S8",
+   "positions": 42,
+   "fills": 142,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX S11",
+   "positions": 23,
+   "fills": 91,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX S16",
+   "positions": 95,
+   "fills": 291,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AVAX H4_touch",
+   "positions": 21,
+   "fills": 80,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AVAX moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AVAX moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT R0",
+   "positions": 11,
+   "fills": 46,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT S1",
+   "positions": 17,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT S1_L1",
+   "positions": 17,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT S8",
+   "positions": 33,
+   "fills": 106,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT S11",
+   "positions": 28,
+   "fills": 102,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT S16",
+   "positions": 91,
+   "fills": 250,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOT H4_touch",
+   "positions": 21,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DOT moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 81,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "DOT moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 81,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM R0",
+   "positions": 22,
+   "fills": 81,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM S1",
+   "positions": 22,
+   "fills": 80,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM S1_L1",
+   "positions": 22,
+   "fills": 80,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM S8",
+   "positions": 30,
+   "fills": 102,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM S11",
+   "positions": 36,
+   "fills": 130,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM S16",
+   "positions": 80,
+   "fills": 234,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XLM H4_touch",
+   "positions": 30,
+   "fills": 103,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XLM moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 52,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XLM moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 52,
+   "fills": 104,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "XLM moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 8,
+   "fills": 16,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC R0",
+   "positions": 15,
+   "fills": 59,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC S1",
+   "positions": 16,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC S1_L1",
+   "positions": 16,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC S8",
+   "positions": 35,
+   "fills": 127,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC S11",
+   "positions": 24,
+   "fills": 93,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC S16",
+   "positions": 85,
+   "fills": 256,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MATIC H4_touch",
+   "positions": 16,
+   "fills": 65,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "MATIC moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 32,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "MATIC moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 32,
+   "fills": 64,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "MATIC moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 4,
+   "fills": 8,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS R0",
+   "positions": 12,
+   "fills": 46,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS S1",
+   "positions": 12,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS S1_L1",
+   "positions": 12,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS S8",
+   "positions": 30,
+   "fills": 98,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS S11",
+   "positions": 23,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS S16",
+   "positions": 86,
+   "fills": 221,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EOS H4_touch",
+   "positions": 19,
+   "fills": 71,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "EOS moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 43,
+   "fills": 86,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "EOS moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 43,
+   "fills": 86,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "EOS moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 11,
+   "fills": 21,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO R0",
+   "positions": 13,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO S1",
+   "positions": 17,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO S1_L1",
+   "positions": 17,
+   "fills": 62,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO S8",
+   "positions": 45,
+   "fills": 139,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO S11",
+   "positions": 30,
+   "fills": 110,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO S16",
+   "positions": 79,
+   "fills": 236,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "NEO H4_touch",
+   "positions": 20,
+   "fills": 76,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "NEO moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 87,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "NEO moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 87,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "NEO moneyline_ref benchmark spot 2017-08-17..2019-12-31",
+   "positions": 12,
+   "fills": 23,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE R0",
+   "positions": 18,
+   "fills": 65,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE S1",
+   "positions": 22,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE S1_L1",
+   "positions": 22,
+   "fills": 79,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE S8",
+   "positions": 44,
+   "fills": 143,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE S11",
+   "positions": 31,
+   "fills": 113,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE S16",
+   "positions": 99,
+   "fills": 280,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "AAVE H4_touch",
+   "positions": 29,
+   "fills": 105,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AAVE moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "AAVE moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 44,
+   "fills": 88,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA R0",
+   "positions": 11,
+   "fills": 40,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA S1",
+   "positions": 17,
+   "fills": 66,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA S1_L1",
+   "positions": 17,
+   "fills": 66,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA S8",
+   "positions": 28,
+   "fills": 95,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA S11",
+   "positions": 26,
+   "fills": 99,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA S16",
+   "positions": 62,
+   "fills": 174,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "MANA H4_touch",
+   "positions": 18,
+   "fills": 71,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "MANA moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "MANA moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 42,
+   "fills": 84,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD R0",
+   "positions": 11,
+   "fills": 41,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD S1",
+   "positions": 12,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD S1_L1",
+   "positions": 12,
+   "fills": 47,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD S8",
+   "positions": 35,
+   "fills": 124,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD S11",
+   "positions": 25,
+   "fills": 90,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD S16",
+   "positions": 92,
+   "fills": 270,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "EGLD H4_touch",
+   "positions": 20,
+   "fills": 77,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "EGLD moneyline_ref benchmark perp 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 82,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "bench",
+   "what": "EGLD moneyline_ref benchmark spot 2020-01-01..2026-10-16",
+   "positions": 41,
+   "fills": 82,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BTC R0 (grid window)",
+   "positions": 12,
+   "fills": 35,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-A through",
+   "positions": 16,
+   "fills": 1241,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-B through",
+   "positions": 22,
+   "fills": 506,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-0 through",
+   "positions": 120,
+   "fills": 17332,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-A touch",
+   "positions": 16,
+   "fills": 1245,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-B touch",
+   "positions": 22,
+   "fills": 506,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BTC G-0 touch",
+   "positions": 120,
+   "fills": 17344,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "ETH R0 (grid window)",
+   "positions": 11,
+   "fills": 37,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-A through",
+   "positions": 8,
+   "fills": 1220,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-B through",
+   "positions": 26,
+   "fills": 610,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-0 through",
+   "positions": 120,
+   "fills": 31145,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-A touch",
+   "positions": 8,
+   "fills": 1226,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-B touch",
+   "positions": 26,
+   "fills": 610,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "ETH G-0 touch",
+   "positions": 120,
+   "fills": 31191,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "SOL R0 (grid window)",
+   "positions": 9,
+   "fills": 31,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-A through",
+   "positions": 7,
+   "fills": 2034,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-B through",
+   "positions": 22,
+   "fills": 706,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-0 through",
+   "positions": 120,
+   "fills": 41489,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-A touch",
+   "positions": 7,
+   "fills": 2038,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-B touch",
+   "positions": 22,
+   "fills": 706,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "SOL G-0 touch",
+   "positions": 120,
+   "fills": 41574,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "BNB R0 (grid window)",
+   "positions": 12,
+   "fills": 42,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-A through",
+   "positions": 17,
+   "fills": 2571,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-B through",
+   "positions": 29,
+   "fills": 990,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-0 through",
+   "positions": 120,
+   "fills": 20698,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-A touch",
+   "positions": 17,
+   "fills": 2579,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-B touch",
+   "positions": 29,
+   "fills": 990,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "BNB G-0 touch",
+   "positions": 120,
+   "fills": 20811,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "XRP R0 (grid window)",
+   "positions": 4,
+   "fills": 13,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-A through",
+   "positions": 3,
+   "fills": 1019,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-B through",
+   "positions": 9,
+   "fills": 191,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-0 through",
+   "positions": 121,
+   "fills": 40600,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-A touch",
+   "positions": 3,
+   "fills": 1103,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-B touch",
+   "positions": 9,
+   "fills": 191,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "XRP G-0 touch",
+   "positions": 121,
+   "fills": 41696,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "crypto",
+   "what": "DOGE R0 (grid window)",
+   "positions": 4,
+   "fills": 15,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-A through",
+   "positions": 2,
+   "fills": 92,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-B through",
+   "positions": 10,
+   "fills": 289,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-0 through",
+   "positions": 121,
+   "fills": 43892,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-A touch",
+   "positions": 2,
+   "fills": 94,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-B touch",
+   "positions": 10,
+   "fills": 289,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "grid",
+   "what": "DOGE G-0 touch",
+   "positions": 121,
+   "fills": 45025,
+   "violations": 0,
+   "first": []
+  },
+  {
+   "kind": "stocks",
+   "what": "stocks members 1d 2001-01-01..2026-10-16",
+   "positions": 43811,
+   "fills": 129586,
+   "violations": 0,
+   "first": [],
+   "names": 1070
+  },
+  {
+   "kind": "stocks",
+   "what": "stocks members 1w 2001-01-01..2026-10-16",
+   "positions": 12273,
+   "fills": 42674,
+   "violations": 0,
+   "first": [],
+   "names": 1070
+  },
+  {
+   "kind": "stocks",
+   "what": "stocks members 1d 1996-01-01..2000-12-31",
+   "positions": 5135,
+   "fills": 15878,
+   "violations": 0,
+   "first": [],
+   "names": 1070
+  },
+  {
+   "kind": "stocks",
+   "what": "stocks etfs 1d 2001-01-01..2026-10-16",
+   "positions": 1285,
+   "fills": 3348,
+   "violations": 0,
+   "first": [],
+   "names": 14
+  },
+  {
+   "kind": "stocks",
+   "what": "stocks user 1d 2001-01-01..2026-10-16",
+   "positions": 371,
+   "fills": 1059,
+   "violations": 0,
+   "first": [],
+   "names": 7
+  }
+ ],
+ "crypto_rows": [
+  "R0",
+  "S1",
+  "S1_L1",
+  "S8",
+  "S11",
+  "S16",
+  "H4_touch"
+ ],
+ "coins": [
+  "BTC",
+  "ETH",
+  "SOL",
+  "BNB",
+  "XRP",
+  "DOGE",
+  "ADA",
+  "AVAX",
+  "LINK",
+  "LTC",
+  "TRX",
+  "DOT",
+  "BCH",
+  "ATOM",
+  "ETC",
+  "XLM",
+  "NEAR",
+  "FIL",
+  "UNI",
+  "MATIC",
+  "POL",
+  "LUNA",
+  "FTT",
+  "EOS",
+  "XMR",
+  "ZEC",
+  "DASH",
+  "NEO",
+  "ALGO",
+  "VET",
+  "ICP",
+  "AAVE",
+  "XTZ",
+  "THETA",
+  "SAND",
+  "MANA",
+  "AXS",
+  "SHIB",
+  "HBAR",
+  "EGLD"
+ ],
+ "grid_coins": [
+  "BTC",
+  "ETH",
+  "SOL",
+  "BNB",
+  "XRP",
+  "DOGE"
+ ],
+ "bench_runs": "bb_bench.ml_coin (H2's moneyline_ref benchmark): perpetual Full, spot Full and spot pre-perpetual block, audited by bench_fill_audit",
+ "rule": "every engine's fills_audit empty, and bench_fill_audit empty on the indicator benchmark",
+ "summary": {
+  "runs": 432,
+  "fills": 650746,
+  "violations": 0,
+  "crypto_runs": 286,
+  "grid_runs": 36,
+  "stock_runs": 5,
+  "bench_runs": 105
+ },
+ "seconds": 86.5
+}

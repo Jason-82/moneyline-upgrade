@@ -1,0 +1,117 @@
+{
+ "liquidation": {
+  "passed": true,
+  "cases": 12,
+  "passed_cases": 12,
+  "max_liq_px_rel_err": 1.9796572240899964e-16,
+  "seconds": 1.0
+ },
+ "grid_path_check": {
+  "passed": true,
+  "paths": 6,
+  "max_rel_to_grid_profit": 0.0007058057043601103,
+  "stress_paths_ok": true,
+  "seconds": 4.7
+ },
+ "indicator_crosscheck": {
+  "passed": true,
+  "multiple": 6.642736370292012,
+  "log10_ratio_vs_12.4": -0.2710746681864917,
+  "window": [
+   "2018-01-01",
+   "2026-09-30"
+  ],
+  "seconds": 0.9
+ },
+ "engine_known_answer": {
+  "passed": true,
+  "S1_trades": 27218,
+  "S1_t_before_costs": 1.492370827907864,
+  "R0_trades": 23859,
+  "R0_t_before_costs": 1.6801306824767455,
+  "S1_after_costs_gap_over_se": 1.4939761138758065,
+  "R0_after_costs_gap_over_se": 1.681933402081461,
+  "fee_recompute_max_diff": 0.0,
+  "drift_adjusted_t": [
+   0.6714070087579946,
+   1.2268692584515728
+  ],
+  "GA_t_before_fees": -1.4212007266683495,
+  "GA_mean_after_fees_negative": true,
+  "trend_S1_t": 4.982749776704139,
+  "parts_passed": {
+   "martingale": true,
+   "drift_adjust": true,
+   "grid_ga": true,
+   "trend": true
+  },
+  "seconds": 110.3
+ },
+ "inference_known_answer": {
+  "passed": true,
+  "n_paths": 200,
+  "reject_rate": 0.015,
+  "reject_ci95": [
+   0.003104107621553509,
+   0.0432082819177126
+  ],
+  "miss_rate_95": 0.055,
+  "widened": true,
+  "level95": 0.955,
+  "level_noedge": 0.99625,
+  "true_mean_independent": 0.0010197276075555792,
+  "trades_per_path": 73.1,
+  "seconds": 100.5
+ },
+ "fill_audit": {
+  "passed": true,
+  "runs": 432,
+  "fills": 650746,
+  "violations": 0,
+  "crypto_runs": 286,
+  "grid_runs": 36,
+  "stock_runs": 5,
+  "bench_runs": 105,
+  "seconds": 86.5
+ },
+ "lookahead": {
+  "passed": true,
+  "crypto_cuts": 60,
+  "stock_cuts": 50,
+  "crypto_runs": 4459,
+  "stock_runs": 300,
+  "decisions_compared": 2597008,
+  "mismatches": 0,
+  "counts_ok": true,
+  "cut_counts": {
+   "cuts": 60,
+   "in_2025_06_2026_10": 19,
+   "weekend": 24,
+   "near_window": 36,
+   "m1_era": 28,
+   "on_hour_boundary": 0
+  },
+  "stock_cut_counts": {
+   "cuts": 50,
+   "near_open": 24,
+   "in_2025_06_2026_10": 14,
+   "flat_bar_pending": 12
+  },
+  "bites": [
+   60,
+   50
+  ],
+  "audit_perturbed": 0,
+  "account_max_rel_diff_full_runs": 5.175973979848847e-16,
+  "seconds": 948.4
+ },
+ "all_passed": true,
+ "level95": 0.955,
+ "level_noedge": 0.99625,
+ "quick": false,
+ "valid_gate": true,
+ "partial": false,
+ "generated": "2026-10-19T12:55:43+00:00",
+ "seconds": 1252.5,
+ "prereg": "analysis_2026/BB_REPLICATION_PREREG.md, Controls; Addendum 2 (inference control)"
+}
