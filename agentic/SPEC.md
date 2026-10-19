@@ -43,6 +43,7 @@ standard library only.
 |---|---|---|
 | `config.py` | done | load/validate config, state paths, `tranches_for` |
 | `entry.py` | done | entry policy (join / join_recent / fresh_only), shared by `signals.py` and `planner.py` |
+| `universe.py` | done | crypto universe: every Robinhood coin, filtered, mapped to a spot ETF or direct (section 13) |
 | `indicator.py` | A | N-confirmed MoneyLine with separate entry/exit N, tranche targets, tv_export reader |
 | `backtest.py` | A | modes vs buy & hold on any OHLC (fractional weights) |
 | `calendar.py` | B | NYSE trading days and holidays, closed-bar dates, execution session, `valid_until` |
@@ -203,8 +204,27 @@ optional), ascending, one row per bar, closed bars only.
   - Drops interpolated bars and bars after `last_closed_equity_session`.
 - `fetch_yfinance(symbol, start)`: optional import; `auto_adjust=False`, split-adjusted OHLC, never 'Adj Close'.
 - `load_csv(path)`: via `screener.data.normalise`.
-- `get_bars(asset, cfg, now_utc, inbox_dir) -> df`: dispatches on `asset["signal"]["feed"]`. It fetches at least
-  `limits.min_bars + 150` bars (about 2 years of crypto; for stocks request ≥ 700 calendar days).
+- `get_bars(asset, cfg, now_utc, inbox_dir, offline=False) -> df`: dispatches on `asset["signal"]["feed"]`. It fetches at least
+  `limits.min_bars + 150` bars (about 2 years of crypto; for stocks request ≥ 700 calendar days), or the asset's own
+  `min_bars + 150` if larger (universe coins).
+- **Coinbase cache** (`coinbase_daily_cached(product, start, now_utc, opener=None, *, base, pace, sleep, issues,
+  retries, timeout, offline)`, used by `get_bars` and the universe):
+  - Stored in `<state>/cache/coinbase/<PRODUCT>.csv` (date, OHLC, volume) plus `meta.json` (per product
+    `history_from`, the earliest start ever requested, `full_fetch`, the UTC date of the last full fetch, and `gaps`,
+    the days missing from Coinbase's own history at that fetch).
+  - Only bars after the last cached closed bar are fetched, none when it is the last closed bar. Older history is
+    fetched only for a start earlier than `history_from`.
+  - A missing, unreadable or corrupt cache (NaN or ≤ 0 prices, duplicate or unsorted dates) is fetched again in
+    full; so is one with missing days that are not in `gaps`, at most once per UTC day (Coinbase skips days
+    without trades, so a permanent hole is neither fetched again nor warned about).
+  - `offline`: no request; the cached bars as they are, DataError without a readable cache (after the universe
+    scan found Coinbase unreachable). `retries` / `timeout` per request (default 3 / 30 s).
+  - A bar is cached only once it closed at least 5 minutes before the fetch.
+  - Requests are paced by `Pacer` (`PACER`, at most 5 per second), on top of the retry and backoff above.
+- `coinbase_products(now_utc, opener=None, *, base, pace, sleep, retries, timeout)`: `GET https://api.exchange.coinbase.com/products`,
+  cached for the UTC day in `cache/coinbase/products.json`, returning `{products: {ID: {base, quote, online}},
+  fetched_at, error}`. A failed fetch falls back to an older cache; `products` is None without one.
+- `median_dollar_volume(df, n=30)`: the median close × volume of the last `n` bars.
 
 ```python
 def check_bars(df, expected_last: date, min_bars: int) -> dict(errors=[...], warnings=[...])
@@ -258,7 +278,9 @@ Returns:
 
 - **Errors:**
   - a required capture is missing: portfolio, equity positions, open equity orders; plus crypto positions and open
-    crypto orders if any crypto vehicle is enabled
+    crypto orders if any crypto vehicle is enabled or the crypto universe may trade coins directly
+    (`config.direct_crypto_possible`), or, as the CLI passes `crypto=cli.crypto_needed(cfg)`, while the reconciled
+    positions or this system's orders since then hold a coin (`ledger.holds_crypto`; fetch-list uses the same test)
   - a capture is older than `snapshot_max_age_min`
   - a quote needed for a planned order is older than `quote_max_age_min` or has bid/ask ≤ 0
   - a capture belongs to a different account number than the config. Captures store `tool_input`; check
@@ -306,9 +328,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
      closed; none = first; ties in config order), keep up to a whole slot (`cap_usd`): the last one in gets the room
      left, so a partial slot grows only when capital frees up. Holdings are never trimmed to make room.
   3. New entries (not held, entry_tf > 0) in `priority` order (`crypto_first`: crypto class first, then equity;
-     within a class the newest eligible green flip first, ties in config order; `equity_first`, `newest_flip`,
-     `config_order`) take min(room, class room): a full slot, or a partial one if ≥ half a slot, else they wait
-     (`skipped`: "no free slot"). `wash_sale_block_symbols` take no slot; BLOCK_BUYS and FLATTEN hand out none.
+     within a class the newest eligible green flip first, ties in config order, in which universe coins follow
+     the explicit assets, the higher `dollar_volume_usd` of the signal first, then by name; `equity_first`,
+     `newest_flip` (the same ties), `config_order`) take min(room, class room): a full slot, or a partial one if ≥ half a slot,
+     else they wait (`skipped`: "no free slot"). `wash_sale_block_symbols` and hold-only universe coins take no
+     slot; BLOCK_BUYS and FLATTEN hand out none.
   4. Buys (holdings first, then new entries, in priority order) are capped so the sleeve's positions, counted at
      their current value, plus this plan's buys stay within capital and each class cap ("no free capital" below
      `min_order_usd`).
@@ -345,6 +369,14 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 - **Market orders** (fractional) only while `market_open(now)` and `execution_session(now)` is today (before 15:45 ET).
 - **Crypto pair metadata** (`asset_increment`, `quote_increment`) is required; without it the asset is skipped with
   an error. A price that rounds to 0 at its tick skips the asset, never the whole plan.
+- **Quotes it needs:** a missing, stale or unusable quote for an asset the plan would trade skips that asset; its
+  `skipped` reason names the call to repeat, and `plan["refetch"]` holds the exact calls (`get_equity_quotes`
+  `{symbols}`, `get_crypto_quotes` `{symbols, rhs_account_number}`, 20 symbols each). It is also an error, except
+  for a universe coin's new entry. With slots, a universe candidate without a quote still competes for a slot; one
+  that gets a slot holds it while its quote is fetched, and one that does not needs no quote and is not reported.
+  `cli.format_calls` prints the calls first as `RE-FETCH QUOTES`; `plan` without `--attempt` keeps the attempt
+  while the current plan lists them.
+- **Hold-only universe coins** (`asset.universe.hold_only`): no buys; sells and exits as usual.
 - **notional_usd** is q × price rounded up to the cent; max_order_usd, max_day_usd and buying power hold on those
   rounded values.
 - **Buys:**
@@ -380,7 +412,7 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
                         "limit_price": "25.43", "time_in_force": "gfd", "market_hours": "regular_hours", "ref_id": "..."},
              "notional_usd": 305.16, "reason": "target 0.50 -> 1.00 (tranche 2: 5/5 closes above the line)"}],
  "cancels": [{"tool": "cancel_equity_order", "params": {"account_number": "...", "order_id": "..."}, "reason": "..."}],
- "skipped": [{"asset": "...", "reason": "..."}], "warnings": [], "errors": []}
+ "skipped": [{"asset": "...", "reason": "..."}], "warnings": [], "errors": [], "refetch": []}
 ```
 
 - All params are strings, exactly as they will be sent. Claude copies them verbatim; the hook compares them
@@ -484,7 +516,8 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   (never blocking).
 - `permissions.deny` lists the option, alert, scan, watchlist and exercise tools for the server names
   robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus `Bash(*agentic resume*)`,
-  `Bash(*agentic*--replan*)` (any interpreter path in front), `Edit(private/agentic/**)`
+  `Bash(*agentic*--replan*)` (any interpreter path in front), `Bash(*agentic*init*--update*)`,
+  `Edit(private/agentic/**)`
   (Claude Code applies Edit rules to every file-editing tool; a Write(path) rule is ignored with a warning). Deny rules match command text and are not a security boundary: `resume` refusing to
   run without a terminal is the real guard. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
   tool.
@@ -514,8 +547,22 @@ Signals JSON per asset:
  plan uses, shown as the digest's ALLOC; else null), bar_date, expected_bar_date, close,
  tranches:[{weight,n_entry,n_exit,green,pending,line,last_flip_date,
             last_green_flip_date,bars_since_green_flip,flip_close}], target_frac, prev_target_frac (previous bar),
- changed (bool), line_n1, dist_to_line_pct, atr10, entry_policy, entry_frac, entry_notes[], errors[], warnings[]}
+ changed (bool), line_n1, dist_to_line_pct, atr10, entry_policy, entry_frac, entry_notes[], errors[], warnings[],
+ dollar_volume_usd (Coinbase feeds: median close x volume of the last 30 bars), held (the sleeve holds the vehicle),
+ universe (generated coins: {outcome, reason, dollar_volume_usd, rank, held, hold_only}; else null)}
 ```
+
+- With the crypto universe on (and the crypto class requested), the file also has `universe: {assets, report}`:
+  the generated assets (section 13) after the explicit ones, and the report. Watch-only coins are included, with
+  `enabled: false`.
+- **The digest:**
+  - a `SCAN` line: assets scanned, green, partial, eligible to buy today (enabled, no errors, `entry_frac` > 0),
+    held, changed today, with errors
+  - `universe.summary_lines`
+  - a table of the explicit assets and of every universe coin that is held (`*`), changed today, eligible or in
+    error
+  - an `OTHERS` line with the rest by state
+  - `format_digest(sig, full=True)` (`signals --all`) prints every asset and every coin's outcome.
 
 - Per tranche: the last confirmed red → green flip (`flip == +1`; tv_export: a False → True step of the immediate or
   confirm series), the bars since it in the asset's own series, and the close on it; all null without a flip in the
@@ -534,14 +581,15 @@ own hints name the interpreter running it (`config.cli_command()`):
 | command | does |
 |---|---|
 | `init` | create the state dirs; copy the example config if missing (never overwrite) |
-| `signals [--all]` | compute signals |
-| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (interval day, adjustment_type split, start = 700 days ago) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill |
+| `init --update` | add every top-level block of `config.example.json` the private config lacks (e.g. `universe`, `allocation`, `entry`), changing no existing value or asset; validates the result and prints what it adds; needs a terminal and a typed `update` (like `resume`), then writes `config.json.bak-<UTC time>` and the config. `.claude/settings.json` denies it like `resume` (`Bash(*agentic*init*--update*)`) |
+| `signals [--all]` | compute signals (`--all`: disabled assets too, and the full digest) |
+| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (interval day, adjustment_type split, start = 700 days ago) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill. With the crypto universe on (section 13): `get_currency_pairs {limit: 700}` (follow `next`), then `get_equity_tradability` (10 symbols per call) for the mapped ETFs of the scanned coins, and quotes (20 symbols per call) for every held vehicle plus every universe coin that is green and entry-eligible on crypto signals computed from the Coinbase cache: the ETF for a mapped coin, else the pair. Without any `get_currency_pairs` capture it prints stage 1 only (the pair list and every mapped ETF's tradability) and "Then run fetch-list again". The crypto reads are listed whenever `cli.crypto_needed` holds: a crypto vehicle, the universe trading coins directly or holding one for exits, or a coin in the reconciled positions or this system's orders since then (so reconcile never compares against a missing capture); `rhs_account_number` must then be filled in (checked with the same universe needs) |
 | `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call) |
 | `run` | `signals` then `plan` |
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
 | `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
 | `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
-| `doctor` | install check (`doctor.py`): Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; PASS/WARN/FAIL lines, exit 1 on any FAIL |
+| `doctor` | install check (`doctor.py`): Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps
@@ -555,4 +603,75 @@ own hints name the interpreter running it (`config.cli_command()`):
   5. read back status
   6. report
 
-  The command never invents or edits order parameters, and stops on any hook block.
+  The command never invents or edits order parameters, and stops on any hook block. It makes stage-1 fetch-list calls
+  and then fetch-list again when asked, and makes `RE-FETCH QUOTES` calls once, before any place call, then plans
+  again with the same attempt.
+
+## 13. universe.py
+
+```python
+def build_universe(cfg, now_utc, inbox_dir, fetch=None, *, products=None, held=None, base=None)
+    -> tuple[list[dict], dict]
+```
+
+- **Config** `universe.crypto` (validated in `config.py`; `enabled` is false when the block is absent):
+  - `source`: `robinhood` or `list`
+  - `symbols`, `exclude`: coin codes (the default `exclude` is the stablecoins and wrapped tokens in
+    `config.DEFAULT_EXCLUDE`)
+  - `mode`, `entry` (override keys of the `entry` block)
+  - `min_history_bars` (null = `limits.min_bars`; ≥ 30), `min_dollar_volume_usd` (5,000,000), `max_assets` (30)
+  - `etf_map` {coin: ticker} (default BTC IBIT, ETH ETHA, SOL BSOL, XRP XRPC, LTC LTCC, NEAR NRR; null drops a
+    coin; one ticker per coin)
+  - `prefer_etf`, `direct_crypto` (true)
+- **Candidates:**
+  - `source: robinhood`: the USD pairs of the newest complete `get_currency_pairs` fetch with any USD pair (first
+    page and its cursor pages; any age, warning past 7 days; a newer fetch with no USD pairs, results null or [], is
+    skipped with a warning), plus `symbols`. Without a usable capture: `symbols` only, with a warning.
+  - `source: list`: `symbols` only.
+  - Plus the coins the sleeve may hold: `sleeve_vehicles(base)`, the reconciled sleeve plus buys journaled since the
+    baseline, including a held mapped ETF's coin.
+  - **Universe off** (`enabled: false`): only the coins of the last scan (`last_scan_coins`: the universe assets of
+    the newest signals file that has a universe section) that the sleeve still holds and no explicit asset covers,
+    each hold only ("universe.crypto is off"), until they exit; none for a config that never ran the universe.
+- **Outcomes in order** (each coin gets one, with a reason and a category):
+  - `explicit`: an explicit asset has the coin's name (enabled or not), or an enabled one trades the coin, its
+    mapped ETF, or on its Coinbase `<CODE>-USD` signal
+  - excluded: `exclude` (stablecoin/wrapped or by config); a Robinhood pair that is not `tradable` (robinhood
+    source only); no online Coinbase `<CODE>-USD` (products list or a candle 404); a Coinbase data error; a last
+    bar older than the last closed bar; fewer than `min_history_bars` bars; pegged (the last 90 closes all within
+    3% of their median: stablecoin/wrapped, so an unlisted stablecoin is caught); median dollar volume of the last
+    30 bars below `min_dollar_volume_usd`; beyond `max_assets` by that volume
+  - **Circuit breaker:** scan requests use 1 retry and a 10 s timeout; after 2 network errors in a row
+    (`coinbase_down` in the report) no further Coinbase request is made this run: the remaining coins are scanned
+    from current cached bars only ("Coinbase unreachable: not scanned" otherwise), and `compute_signals` /
+    `fetch_needs` compute every signal from the cache (`offline`)
+  - a coin that passes gets its vehicle:
+    - a coin the sleeve holds directly stays direct (hold only if its ETF is preferred or `direct_crypto` is false)
+    - a held mapped ETF stays the vehicle (hold only unless `prefer_etf` and the newest tradability capture
+      confirms it)
+    - a mapped coin with `prefer_etf` trades the ETF when the newest `get_equity_tradability` capture of the
+      configured account (at most 7 days old) says `tradeable: true`, `state: active`, tradable for some account
+      type and not halted in regular hours; `fractional` from `fractional_tradability`. Otherwise it is `watch`,
+      never direct.
+    - other coins are `direct` with `direct_crypto`, else `watch`
+    - a symbols-only coin without a tradable Robinhood pair is `watch`
+  - a held coin that fails a filter is kept with `hold_only` set (no buys)
+- **Assets:** each generated asset is `{name: CODE, class: crypto, enabled: outcome in (etf, direct), alloc_frac: 0,
+  mode, signal: {computed, coinbase, CODE-USD}, vehicle, min_bars: min_history_bars, universe: {outcome, reason,
+  dollar_volume_usd, rank, held, hold_only}, entry?}`, ordered by dollar volume, then code.
+- **Report:** `{enabled, source, generated_at, pairs{file, captured_at, age_days, pages, complete}, products,
+  tradability, coinbase_down, warnings[], coins[{coin, outcome, reason, category, vehicle, dollar_volume_usd, bars,
+  rank, held, hold_only}], counts}`.
+- **Allocation `fixed`:** generated assets have `alloc_frac` 0: never bought, and the planner sells a held one only
+  on a full exit (red or FLATTEN), never as a trim toward its zero target.
+- `with_universe(cfg, signals) -> (cfg, warnings)`:
+  - adds the signals file's generated assets for `plan`, the snapshot and reconcile, each re-checked: a coin code no
+    explicit asset covers, the signal Coinbase `<CODE>-USD`, and the vehicle the coin itself (with `direct_crypto`)
+    or its `etf_map` ticker (with `prefer_etf`); either one for a watch-only or hold-only asset, which is never
+    bought
+  - takes mode, entry and `min_bars` from the config; anything else is ignored with a warning
+  - with the universe off, keeps only hold-only assets (one warning counts the rest)
+- `fetch_needs(cfg, now_utc, inbox_dir)`: what fetch-list adds (section 12): `{stage1, tradability, equity_quotes,
+  crypto_quotes, candidates, crypto_vehicles, report}`; `crypto_vehicles`: an enabled generated asset trades a coin,
+  so crypto positions and orders are fetched (`cli.crypto_needed`).
+- **Tests:** `tests/test_agentic_universe.py`, with no network.

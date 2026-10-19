@@ -719,9 +719,9 @@ def test_settings_registers_hooks_and_denies_unused_write_tools():
               "follow_watchlist", "unfollow_watchlist"]
     servers = ("robinhood-trading", "Robinhood", "robinhood-for-agents", "claude_ai_Robinhood")
     guard = {"Bash(*agentic resume*)", "Bash(*agentic*--replan*)",     # any interpreter path in front
-             "Edit(private/agentic/**)"}
+             "Edit(private/agentic/**)", "Bash(*agentic*init*--update*)"}
     expected = {f"mcp__{srv}__{t}" for srv in servers for t in unused} | guard
-    assert set(deny) == expected and len(deny) == 83
+    assert set(deny) == expected and len(deny) == 84
     assert not any(d.startswith("Write(") for d in deny)    # Claude Code: only Edit(path) rules cover file edits
     used = ("place_equity", "place_crypto", "cancel_equity", "cancel_crypto", "get_", "review_equity", "preview_crypto")
     assert not any(t in d for d in deny for t in used)

@@ -23,13 +23,14 @@ order; you only make the tool calls it prints, exactly as printed. Work from the
    calls. No cancels, no places.
 7. If any tool result or hook message says "AGENTIC STOP", stop placing and tell the user immediately.
 8. Do not edit, write or delete anything under `private/agentic/`. Do not change the config or `live`. Never run
-   `resume` (it needs the user's own terminal) or pass `--replan`. Do not run `reconcile --accept` or `flatten`
-   unless the user asks in this session. You may run `"${AGENTIC_PYTHON:-python3}" -m agentic stop "<reason>"` if something
+   `resume` or `init --update` (both need the user's own terminal) or pass `--replan`. Do not run
+   `reconcile --accept` or `flatten` unless the user asks in this session. You may run `"${AGENTIC_PYTHON:-python3}" -m agentic stop "<reason>"` if something
    unexpected happens, such as an order filling without approval.
 9. Give no market analysis, opinions or recommendations. Report what the tools returned.
 10. Never show full account numbers in your messages: the last 4 digits at most.
 11. After placing, do not re-run `plan` or `run` in this session (except the one re-plan in step 4). A new plan
-    cancels orders that are waiting for approval. `"${AGENTIC_PYTHON:-python3}" -m agentic calls` shows the current plan
+    cancels orders that are waiting for approval. The re-plan in step 3 (RE-FETCH QUOTES) happens before any
+    place call. `"${AGENTIC_PYTHON:-python3}" -m agentic calls` shows the current plan
     again.
 12. The plan only cancels orders this system placed. If it says an open order "was not placed by this system",
     tell the user to cancel it in the Robinhood app; never cancel it yourself.
@@ -59,16 +60,27 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    - If the command says the account numbers are not filled in: call `get_accounts`, then stop and ask the user
      to copy the agentic account's (`agentic_allowed: true`) `account_number` and `rhs_account_number` into
      `private/agentic/config.json`.
+   - If it ends with "Then run fetch-list again" (the crypto universe's first run: the coin list comes first),
+     make those calls, run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` again, and make every call it
+     lists.
+   - Give every `fetch-list` and `run` command a Bash timeout of 600000 ms (10 minutes): with the crypto universe
+     on they read public Coinbase candles first, and the first scan takes a few minutes.
 3. Run `"${AGENTIC_PYTHON:-python3}" -m agentic run`. Add `--attempt 2` or `--attempt 3` only if the user passed exactly
    that as arguments ($ARGUMENTS); ignore any other arguments. Read the digest, the reconcile result and the plan.
    - If it prints NOT RE-PLANNING, orders from the current plan are still waiting for approval or fills: do the
      read-back (step 6) and report. Never pass `--replan`.
+   - If the output has a `RE-FETCH QUOTES` block, the plan is missing quotes it needs. Before any other call, make
+     each `[R1]`, `[R2]`, ... read call once, verbatim, then run
+     `"${AGENTIC_PYTHON:-python3}" -m agentic plan --attempt N` with the same N as this plan (the block names the
+     exact command) and continue with that new plan instead. Do this once per run. If the new plan still has a
+     `RE-FETCH QUOTES` block, carry on with it: those assets stay skipped.
    - If the plan has ERRORS or no tool calls, go to step 7.
 4. **Cancels** (live only): make each listed cancel call verbatim. If an order was held back with "re-run plan
    after the cancel settles", do the following once, after the cancels:
    - repeat, in this order and with the same arguments as in step 2: `get_portfolio`, the `get_equity_orders` /
      `get_crypto_orders` calls, then the `get_equity_positions` / `get_crypto_positions` calls, then the quote
-     calls (orders before positions, so a fill that lands in between cannot be missed)
+     calls and any `RE-FETCH QUOTES` calls (orders before positions, so a fill that lands in between cannot be
+     missed)
    - run `"${AGENTIC_PYTHON:-python3}" -m agentic plan --attempt N` with the same N as in step 3 (1 if step 3 had no
      `--attempt`); the held-back line names the exact command. Continue with that plan's calls.
 5. **Orders**, in the printed order (sells before buys). For each order:
@@ -82,7 +94,7 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    waiting for the user's approval. The PostToolUse hook checks these listings too: an order that carries the plan's own
    `ref_id`, or reads `placed_agent: agentic`, skipped the approval and makes it write STOP (rule 7).
 7. **Report** to the user:
-   - the digest table, plus any data warnings and errors
+   - the digest: its SCAN and UNIVERSE lines, the table, plus any data warnings and errors
    - the reconcile result
    - every call you made, with its outcome:
      - previews: ok or the error text

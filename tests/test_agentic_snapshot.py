@@ -35,8 +35,11 @@ def iso(dt):
 def make_cfg(crypto=False, **limits):
     raw = json.loads(cfgmod.EXAMPLE.read_text())
     raw["account"] = {"account_number": ACCT, "rhs_account_number": RHS, "approvals_required": True}
+    raw["universe"]["crypto"]["enabled"] = False         # explicit assets only (universe: test_agentic_universe)
     for a in raw["assets"]:
         a["enabled"] = a["name"] == "ETH" or (crypto and a["name"] == "SOL")
+        if a["name"] == "SOL":
+            a["vehicle"] = {"type": "crypto", "symbol": "SOL"}
     raw["limits"].update(limits)
     return cfgmod.validate(raw)
 

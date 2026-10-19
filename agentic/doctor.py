@@ -19,7 +19,8 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from agentic.config import EXAMPLE, REPO, ConfigError, cli_command, load_config, paths
+from agentic.config import (COIN_CODE, DEFAULT_EXCLUDE, EXAMPLE, REPO, ConfigError, cli_command, crypto_universe,
+                            load_config, paths)
 
 UTC = timezone.utc
 PRE_HOOK = REPO / "agentic" / "hooks" / "pre_tool_use.py"
@@ -67,7 +68,7 @@ def _short(p: Path) -> str:
 
 
 def _read_settings(d: Path, name: str) -> tuple[dict | None, str | None]:
-    """(settings, problem). A UTF-8 BOM (Notepad's "UTF-8 with BOM") is read past so the other checks still run, but
+    """(settings, problem). A UTF-8 BOM (an editor's "UTF-8 with BOM") is read past so the other checks still run, but
     it is reported: Claude Code is not known to accept it, and a settings file it cannot parse drops its hooks, deny
     rules or env."""
     f = d / name
@@ -82,7 +83,8 @@ def _read_settings(d: Path, name: str) -> tuple[dict | None, str | None]:
         return None, f".claude/{name} is not a JSON object"
     if raw.startswith(b"\xef\xbb\xbf"):
         return s, (f".claude/{name} starts with a UTF-8 byte order mark (saved as 'UTF-8 with BOM'): save it as plain "
-                   "UTF-8 (Notepad: Save as, Encoding UTF-8) so Claude Code is sure to read it")
+                   f"UTF-8 so Claude Code is sure to read it (`code .claude/{name}`, then in VS Code click the "
+                   "encoding in the status bar, 'Save with Encoding', 'UTF-8')")
     return s, None
 
 
@@ -300,6 +302,7 @@ def run(settings_dir: Path | None = None) -> int:
             rep.add("PASS", "state dir", f"{_short(base)} is writable")
         except OSError as e:
             rep.add("FAIL", "state dir", f"{_short(base)} is not writable ({type(e).__name__})")
+    cfg = None
     try:
         cfg = load_config()
         acct = cfg["account"]
@@ -320,6 +323,8 @@ def run(settings_dir: Path | None = None) -> int:
     except Exception as e:                         # noqa: BLE001
         rep.add("FAIL", "config", f"cannot read ({type(e).__name__})")
     _check_ignored(rep, p["config"])
+    if cfg is not None:
+        check_universe(rep, cfg, p)
 
     # ---- settings.json hooks
     problems = []
@@ -378,6 +383,80 @@ def run(settings_dir: Path | None = None) -> int:
     print(f"doctor: {'all checks passed' if not rep.failed else f'{rep.failed} FAIL'}"
           + ("" if not rep.failed else " (README section 1)"))
     return 1 if rep.failed else 0
+
+
+def check_universe(rep: Report, cfg: dict, p: dict) -> None:
+    """The crypto universe (README section 10): on/off and source, the newest get_currency_pairs capture, explicit
+    crypto assets that bypass a mapped ETF or keep a coin out, and the Coinbase cache. WARN lines only."""
+    u = crypto_universe(cfg)
+    cmd = cli_command()
+    if not u["enabled"]:
+        rep.add("PASS", "universe", f"crypto universe off (explicit assets only); a config from before it has no "
+                                    f"universe block: `{cmd} init --update` adds it")
+    else:
+        rep.add("PASS", "universe", f"crypto universe on: source {u['source']}, at most {u['max_assets']} coins with "
+                                    f"median volume >= ${u['min_dollar_volume_usd']:,.0f}/day, "
+                                    f"{len(u['etf_map'])} coins mapped to spot ETFs "
+                                    f"({'preferred' if u['prefer_etf'] else 'not preferred'}), direct crypto "
+                                    f"{'on' if u['direct_crypto'] else 'off'}")
+        if (cfg.get("allocation") or {}).get("method") != "slots":
+            rep.add("WARN", "universe", "allocation.method is fixed: universe coins get alloc_frac 0, so they are "
+                                        "never bought, and a held one is kept until its signal turns red (or "
+                                        "FLATTEN), then sold; use allocation.method slots (README section 9)")
+        gone = [c for c in DEFAULT_EXCLUDE if c not in u["exclude"]]
+        if gone:
+            rep.add("WARN", "universe", f"universe.crypto.exclude lacks {', '.join(gone)} (stablecoins and wrapped "
+                                        "tokens have no trend to follow): add them back unless that is intended")
+    try:
+        from agentic import universe
+        pc = universe.pairs_capture(p["inbox"]) if p["inbox"].is_dir() else None
+    except Exception as e:                         # noqa: BLE001 - pandas missing etc.: reported above
+        pc, err = None, f"{type(e).__name__}"
+    else:
+        err = None
+    coins = set(u["symbols"]) | set(u["etf_map"]) | set((pc or {}).get("pairs") or {})
+    for a in cfg.get("assets", []):
+        v = a.get("vehicle") or {}
+        code = str(v.get("symbol") or "").upper().split("-")[0]
+        if a.get("enabled") and v.get("type") == "crypto" and code in u["etf_map"]:
+            rep.add("WARN", "crypto vehicle", f"{a['name']} trades {code} directly (about 0.95% per side) while "
+                                              f"universe.crypto.etf_map has {u['etf_map'][code]}: consider "
+                                              f'"vehicle": {{"type": "equity", "symbol": "{u["etf_map"][code]}", '
+                                              '"fractional": true}')
+        name = str(a.get("name") or "").upper()
+        if u["enabled"] and COIN_CODE.match(name):                         # as universe._claims (any class)
+            if a.get("class") == "crypto" and not a.get("enabled"):
+                rep.add("WARN", "universe", f"the disabled explicit asset {a['name']} keeps {name} out of the "
+                                            "universe: delete the entry to let the universe trade it, or enable it to "
+                                            "trade it with its own settings")
+            elif a.get("class") != "crypto" and name in coins:
+                rep.add("WARN", "universe", f"the {a.get('class')} asset {a['name']} shares the coin code {name}: the "
+                                            f"coin {name} is kept out of the universe; rename the asset (e.g. "
+                                            f"{name}-STOCK) to let the universe trade the coin")
+    if u["enabled"] and u["source"] == "robinhood":
+        if err:
+            rep.add("WARN", "currency pairs", f"cannot read the inbox ({err})")
+        elif pc is None:
+            rep.add("WARN", "currency pairs", "no get_currency_pairs capture yet: /moneyline's fetch-list captures "
+                                              "it; until then only universe.crypto.symbols are scanned")
+        elif not pc["pairs"]:
+            rep.add("WARN", "currency pairs", f"the get_currency_pairs capture {pc['empty']} has no USD pairs: only "
+                                              "universe.crypto.symbols are scanned until /moneyline captures it again")
+        elif pc["age_days"] > universe.PAIRS_STALE_DAYS:
+            rep.add("WARN", "currency pairs", f"the newest get_currency_pairs capture is {pc['age_days']:.0f} days "
+                                              "old: run /moneyline to refresh the coin list")
+        else:
+            rep.add("PASS", "currency pairs", f"newest get_currency_pairs capture {pc['age_days'] * 24:.0f} h old, "
+                                              f"{len(pc['pairs'])} USD pairs")
+    cb = p["cache"] / "coinbase"
+    csvs = sorted(cb.glob("*-USD.csv")) if cb.is_dir() else []
+    wants = u["enabled"] or any((a.get("signal") or {}).get("feed") == "coinbase" for a in cfg.get("assets", []))
+    if csvs:
+        rep.add("PASS", "coinbase cache", f"{_short(cb)}: daily candles for {len(csvs)} products")
+    elif wants:
+        rep.add("WARN", "coinbase cache", f"none yet ({_short(cb)}): the first `{cmd} signals` fills it (the first "
+                                          "universe scan downloads about 2 years per coin, at most 5 requests a "
+                                          "second)")
 
 
 def _check_ignored(rep: Report, config_path: Path) -> None:

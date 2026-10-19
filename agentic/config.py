@@ -10,6 +10,7 @@ import copy
 import json
 import math
 import os
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -54,6 +55,24 @@ PRIORITIES = ("crypto_first", "equity_first", "newest_flip", "config_order")
 DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
 # "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing.
 DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first"}
+
+# Crypto universe (README section 10): every coin Robinhood offers, filtered, each traded through its US spot ETF
+# where one is mapped and confirmed tradable on the account, else directly. Off when the block is absent.
+# Stablecoins and wrapped / pegged tokens have no trend to follow (universe.py also drops any coin whose last 90
+# closes stay within 3% of their median, so an unlisted stablecoin is caught too).
+DEFAULT_EXCLUDE = ("USDC", "USDT", "DAI", "PYUSD", "USDP", "TUSD", "GUSD", "FDUSD", "USDS", "EURC",
+                   "WBTC", "WETH", "CBBTC", "CBETH", "STETH", "PAXG", "XAUT")
+DEFAULT_ETF_MAP = {"BTC": "IBIT", "ETH": "ETHA", "SOL": "BSOL", "XRP": "XRPC", "LTC": "LTCC", "NEAR": "NRR"}
+UNIVERSE_SOURCES = ("robinhood", "list")
+# min_dollar_volume_usd: median daily close x volume on Coinbase over the last 30 closed bars. max_assets 30: the
+# MoneyLine's crypto edge was measured on the top-20 basket incl. dead coins; small coins lost money even with the
+# signal in 2022-25 (HANDOFF 5.11). min_history_bars None = limits.min_bars.
+DEFAULT_UNIVERSE_CRYPTO = {"enabled": False, "source": "robinhood", "symbols": [], "exclude": list(DEFAULT_EXCLUDE),
+                           "mode": "split", "entry": None, "min_history_bars": None,
+                           "min_dollar_volume_usd": 5_000_000, "max_assets": 30, "etf_map": dict(DEFAULT_ETF_MAP),
+                           "prefer_etf": True, "direct_crypto": True}
+COIN_CODE = re.compile(r"^[A-Z0-9]{1,15}$")
+TICKER = re.compile(r"^[A-Z][A-Z0-9.]{0,9}$")
 
 
 class ConfigError(ValueError):
@@ -104,6 +123,7 @@ def paths(base: Path | None = None) -> dict[str, Path]:
         "FLATTEN": b / "FLATTEN",            # sells toward zero only
         "BLOCK_BUYS": b / "BLOCK_BUYS",      # set by reconcile/data checks; exits still allowed
         "strategy_start": b / "strategy_start.json",   # first live plan's date (entry policy fresh_only)
+        "cache": b / "cache",                # public market data (Coinbase candles and product list)
     }
 
 
@@ -222,6 +242,78 @@ def _allocation(a, limits: dict) -> dict:
     return out
 
 
+def _codes(v, where: str, pattern=COIN_CODE) -> list[str]:
+    if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
+        raise ConfigError(f"{where} must be a list of codes like [\"DOGE\", \"LINK\"]")
+    out = []
+    for x in v:
+        k = x.strip().upper()
+        if not pattern.match(k):
+            raise ConfigError(f"{where}: {x!r} is not a coin code")
+        if k not in out:
+            out.append(k)
+    return out
+
+
+def _universe(u, c: dict) -> dict:
+    """Validate the `universe` block; {"crypto": {...}} with every default filled (enabled false when absent)."""
+    if u is None:
+        u = {}
+    if not isinstance(u, dict):
+        raise ConfigError('universe must be an object like {"crypto": {"enabled": true}}')
+    u = {k: v for k, v in u.items() if not str(k).startswith("_")}
+    if set(u) - {"crypto"}:
+        raise ConfigError(f"universe: unknown keys {sorted(set(u) - {'crypto'})}; only \"crypto\" exists")
+    raw = u.get("crypto") or {}
+    if not isinstance(raw, dict):
+        raise ConfigError("universe.crypto must be an object")
+    raw = {k: v for k, v in raw.items() if not str(k).startswith("_")}
+    bad = sorted(set(raw) - set(DEFAULT_UNIVERSE_CRYPTO))
+    if bad:
+        raise ConfigError(f"universe.crypto: unknown keys {bad}; allowed: {sorted(DEFAULT_UNIVERSE_CRYPTO)}")
+    w = "universe.crypto."
+    out = {**copy.deepcopy(DEFAULT_UNIVERSE_CRYPTO), **raw}
+    for k in ("enabled", "prefer_etf", "direct_crypto"):
+        _bool(out, k, DEFAULT_UNIVERSE_CRYPTO[k], w)
+    if out["source"] not in UNIVERSE_SOURCES:
+        raise ConfigError(f"{w}source must be one of {UNIVERSE_SOURCES}, not {out['source']!r}")
+    out["symbols"] = _codes(out["symbols"], w + "symbols")
+    out["exclude"] = _codes(out["exclude"], w + "exclude")
+    if out["mode"] not in c["modes"]:
+        raise ConfigError(f"{w}mode: unknown mode {out['mode']!r}; defined: {sorted(c['modes'])}")
+    if out["entry"] is not None:
+        out["entry"] = _entry(out["entry"], w + "entry", full=False)
+    n = out["min_history_bars"]
+    if n is None:
+        n = int(c["limits"]["min_bars"])
+    if isinstance(n, bool) or not isinstance(n, int) or n < 30:
+        raise ConfigError(f"{w}min_history_bars must be null (= limits.min_bars) or a whole number >= 30, not {n!r}")
+    out["min_history_bars"] = n
+    v = out["min_dollar_volume_usd"]
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+        raise ConfigError(f"{w}min_dollar_volume_usd must be a number >= 0, not {v!r}")
+    out["min_dollar_volume_usd"] = float(v)
+    m = out["max_assets"]
+    if isinstance(m, bool) or not isinstance(m, int) or not 1 <= m <= 200:
+        raise ConfigError(f"{w}max_assets must be a whole number from 1 to 200, not {m!r}")
+    em = out["etf_map"]
+    if not isinstance(em, dict):
+        raise ConfigError(f'{w}etf_map must be an object like {{"BTC": "IBIT"}}')
+    etfs: dict[str, str] = {}
+    for coin, etf in em.items():
+        if str(coin).startswith("_") or etf is None:         # null drops a mapping
+            continue
+        k = str(coin).strip().upper()
+        t = str(etf).strip().upper() if isinstance(etf, str) else ""
+        if not COIN_CODE.match(k) or not TICKER.match(t):
+            raise ConfigError(f"{w}etf_map: {coin!r}: {etf!r} must map a coin code to an ETF ticker")
+        if t in etfs.values():
+            raise ConfigError(f"{w}etf_map: {t} is mapped to more than one coin")
+        etfs[k] = t
+    out["etf_map"] = etfs
+    return {"crypto": out}
+
+
 def validate(cfg: dict) -> dict:
     """Fill defaults and check the structure. Returns a new dict; raises ConfigError."""
     if not isinstance(cfg, dict):
@@ -253,6 +345,7 @@ def validate(cfg: dict) -> dict:
         raise ConfigError("capital.max_usd must be > 0 (the most this sleeve may deploy)")
     c["entry"] = _entry(c.get("entry", {}), "entry", full=True)
     c["allocation"] = _allocation(c.get("allocation", {}), c["limits"])
+    c["universe"] = _universe(c.get("universe"), c)
     names = set()
     alloc = 0.0
     for a in c.get("assets", []):
@@ -301,7 +394,21 @@ def load_config(path: str | Path | None = None) -> dict:
     p = Path(path) if path else paths()["config"]
     if not p.exists():
         raise ConfigError(f"no config at {p}; run `{cli_command()} init` and edit it")
-    return validate(json.loads(p.read_text(encoding="utf-8-sig")))     # -sig: Notepad's "UTF-8 with BOM" too
+    return validate(json.loads(p.read_text(encoding="utf-8-sig")))     # -sig: a "UTF-8 with BOM" file too
+
+
+def crypto_universe(cfg: dict) -> dict:
+    """The validated universe.crypto block (all defaults, enabled false, for a config that has none)."""
+    u = (cfg.get("universe") or {}).get("crypto")
+    return u if isinstance(u, dict) and "etf_map" in u else _universe(None, {"limits": DEFAULT_LIMITS,
+                                                                                  "modes": DEFAULT_MODES})["crypto"]
+
+
+def direct_crypto_possible(cfg: dict) -> bool:
+    """An enabled asset trades a coin directly, or the crypto universe may (crypto captures are then required)."""
+    u = crypto_universe(cfg)
+    return any(a.get("enabled") and (a.get("vehicle") or {}).get("type") == "crypto" for a in cfg.get("assets", [])) \
+        or (u["enabled"] and u["direct_crypto"])
 
 
 def tranches_for(asset: dict, cfg: dict) -> list[dict]:

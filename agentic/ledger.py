@@ -422,6 +422,21 @@ def sleeve_status(snapshot: dict, base=None, journal=None) -> dict:
     return dict(baseline=True, sleeve=sleeve, mismatches=reconcile(exp, captured)["mismatches"])
 
 
+def holds_crypto(base=None) -> bool:
+    """The reconciled positions hold a coin, or this system placed a crypto order since that baseline. Crypto
+    positions and orders must then be captured whatever the config says (reconcile compares them, and a held coin
+    needs its exit), e.g. after direct_crypto or the crypto universe is turned off."""
+    ref = read_json(paths(base)["positions_ref"], None)
+    as_of = None
+    if isinstance(ref, dict):
+        own = (ref.get("sleeve") or {}).get("crypto")
+        if any(q > QTY_TOL for q in list(_qtys(ref.get("crypto")).values()) + list(_qtys(own).values())):
+            return True
+        as_of = parse_ts(ref.get("as_of"))
+    return any(p["kind"] == "crypto" and (as_of is None or p["ts"] is None or p["ts"] >= as_of - timedelta(days=1))
+               for p in journal_index(read_journal(base))["places"])
+
+
 def reconcile_snapshot(snapshot: dict, base=None, now_utc=None, write: bool = True, accept: bool = False,
                        initial_sleeve: dict | None = None) -> dict:
     """The `reconcile` command: expected = positions_reconciled.json + fills of this system's orders since then.

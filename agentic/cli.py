@@ -15,7 +15,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agentic import ledger
-from agentic.config import EXAMPLE, REPO, ConfigError, cli_command, ensure_dirs, load_config, paths, validate
+from agentic.config import (EXAMPLE, REPO, ConfigError, cli_command, crypto_universe, direct_crypto_possible,
+                            ensure_dirs, load_config, paths, validate)
 
 UTC = timezone.utc
 CRYPTO_COST, ETF_COST = 0.0095, 0.0002        # per side: Robinhood direct crypto (default route), spot ETF / stock
@@ -45,11 +46,83 @@ def _crypto_vehicles(cfg: dict) -> list[dict]:
     return [a for a in cfg["assets"] if a.get("enabled") and a["vehicle"]["type"] == "crypto"]
 
 
+def effective_config(cfg: dict, sig: dict | None = None) -> tuple[dict, list[str]]:
+    """The config plus the crypto universe's assets from the signals file (`sig`, default the newest one), re-checked
+    against the config (universe.with_universe; with the universe off, the held coins it keeps for exits)."""
+    from agentic.signals import latest_signals
+    from agentic.universe import with_universe
+    if sig is None:
+        sig, _ = latest_signals()
+    return with_universe(cfg, sig)
+
+
+def crypto_needed(cfg: dict, needs: dict | None = None) -> bool:
+    """Crypto positions and orders must be captured: an enabled asset or the universe may trade a coin directly, an
+    enabled universe asset trades a coin this run (`needs`, e.g. a held coin kept for exits after direct_crypto was
+    turned off), or the reconciled positions or this system's recent orders hold a coin (reconcile compares them).
+    fetch-list, the snapshot and the account check all use this, so they agree."""
+    return direct_crypto_possible(cfg) or bool((needs or {}).get("crypto_vehicles")) or ledger.holds_crypto()
+
+
 # ------------------------------------------------------------------ init / flags / status
+
+def init_update(cfg_path: Path, example: Path = EXAMPLE) -> tuple[dict, list[str]]:
+    """The private config with every top-level block of the example that it lacks (e.g. universe, allocation,
+    entry), nothing else changed: (merged config, added keys). Raises ConfigError if the result does not validate."""
+    raw = json.loads(Path(cfg_path).read_text(encoding="utf-8-sig"))
+    ex = json.loads(Path(example).read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ConfigError("config.json is not a JSON object")
+    added = [k for k in ex if not str(k).startswith("_") and k not in raw]
+    merged = dict(raw, **{k: ex[k] for k in added})
+    validate(merged)
+    return merged, added
+
+
+def _init_update(p: dict) -> int:
+    f = p["config"]
+    if not f.exists():
+        print(f"no config at {f}: run `{cli_command()} init` first")
+        return 2
+    merged, added = init_update(f)
+    if not added:
+        print(f"config is up to date: it has every top-level block of {EXAMPLE.name}; nothing changed")
+        return 0
+    print(f"would add these blocks from {EXAMPLE.name}, unchanged (existing values and assets are never touched):")
+    for k in added:
+        print(f"  {k}: {json.dumps(merged[k])[:300]}")
+    if "universe" in added and crypto_universe(validate(merged))["enabled"]:
+        print("  note: this turns the crypto universe on (README section 10); `allocation` decides how much each "
+              "coin gets, and `live` stays as it is")
+    if not sys.stdin.isatty():                   # an agent's shell has no terminal: only the user changes the config
+        print("refusing to change the config without an interactive terminal: run this in your own terminal "
+              "(Git Bash window: prefix it with winpty)", file=sys.stderr)
+        return 2
+    if input("type 'update' to write these blocks into config.json: ").strip().lower() != "update":
+        print("not changed")
+        return 1
+    backup = f.with_name(f"config.json.bak-{_now().strftime('%Y%m%dT%H%M%SZ')}")
+    shutil.copyfile(f, backup)
+    tmp = f.with_name(f".config.json.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")     # key order kept
+    ledger.replace_file(tmp, f)
+    try:
+        os.chmod(f, 0o600)
+        os.chmod(backup, 0o600)
+    except OSError:
+        pass
+    print(f"backup: {_rel(backup)}")
+    print(f"added: {', '.join(added)}. Next: `{cli_command()} doctor`, then `{cli_command()} signals --all` to see "
+          "what the new blocks do before the next /moneyline")
+    return 0
+
 
 def cmd_init(args) -> int:
     p = ensure_dirs()
-    if p["config"].exists():
+    if getattr(args, "update", False):
+        return _init_update(p)
+    existed = p["config"].exists()
+    if existed:
         print(f"config exists, not overwritten: {p['config']}")
     else:
         shutil.copyfile(EXAMPLE, p["config"])
@@ -61,6 +134,9 @@ def cmd_init(args) -> int:
     base = p["base"].resolve()
     if base.is_relative_to(REPO) and not base.is_relative_to(REPO / "private"):
         print(f"WARNING: {base} is inside the public repo but not under private/: make sure git ignores it")
+    if existed:
+        print(f"config older than the example? `{cli_command()} init --update` adds the example's missing top-level "
+              "blocks (e.g. universe) without changing anything else")
     print("next: fill in account.account_number and account.rhs_account_number there (from get_accounts, the "
           f"account with agentic_allowed=true), choose assets and modes, then run `{cli_command()} doctor` and "
           f"`{cli_command()} fetch-list`")
@@ -118,7 +194,9 @@ def cmd_status(args) -> int:
         print(f"config: ok, {'LIVE' if cfg['live'] else 'SHADOW (live=false)'}, "
               f"{sum(1 for a in cfg['assets'] if a.get('enabled'))} enabled assets, "
               f"capital max ${float(cfg['capital']['max_usd']):,.0f}, max_day_usd {cfg['limits']['max_day_usd']}, "
-              f"allocation {cfg['allocation']['method']}, entry {cfg['entry']['policy']}")
+              f"allocation {cfg['allocation']['method']}, entry {cfg['entry']['policy']}, crypto universe "
+              + (f"on ({crypto_universe(cfg)['source']}, max {crypto_universe(cfg)['max_assets']})"
+                 if crypto_universe(cfg)["enabled"] else "off"))
     except ConfigError as e:
         cfg = None
         print(f"config: {e}")
@@ -128,6 +206,8 @@ def cmd_status(args) -> int:
     if sig:
         print(f"signals: {f.name} generated {sig.get('generated_at')}")
         for a in sig.get("assets", []):
+            if a.get("universe") and not (a.get("held") or a.get("changed") or a.get("errors")):
+                continue                              # universe coins: only held, changed or in error
             err = f"  ERRORS {len(a['errors'])}" if a.get("errors") else ""
             print(f"  {a['name']:<9} bar {a.get('bar_date')}  target {a.get('target_frac')}  "
                   f"prev {a.get('prev_target_frac')}{'  NEW' if a.get('changed') else ''}{err}")
@@ -165,15 +245,28 @@ def _orders_since(now: datetime) -> str:
     return f"{start.date().isoformat()}T00:00:00Z"
 
 
-def fetch_calls(cfg: dict, now_utc=None) -> list[dict]:
-    """The Robinhood MCP read calls for this run, in order, with exact arguments ({tool, params, why})."""
+def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict]:
+    """The Robinhood MCP read calls for this run, in order, with exact arguments ({tool, params, why}). `needs`
+    (default: universe.fetch_needs, which reads the Coinbase cache) adds, with the crypto universe on (or off but
+    still holding coins), the pair list, the ETF tradability checks and the quotes the plan can need."""
     from agentic.data import history_days
     from agentic.snapshot import pair_for
+    from agentic.universe import QUOTE_CHUNK, TRADABILITY_CHUNK, chunks, fetch_needs
     now = now_utc or _now()
     acct = cfg["account"]
     an, rhs = str(acct.get("account_number") or ""), str(acct.get("rhs_account_number") or "")
     enabled = [a for a in cfg["assets"] if a.get("enabled")]
-    crypto = bool(_crypto_vehicles(cfg))
+    uni = crypto_universe(cfg)["enabled"]
+    if needs is None:
+        needs = fetch_needs(cfg, now)
+    needs = needs or {}
+    if needs.get("stage1"):                          # no coin list yet: capture it, then fetch-list again
+        return [dict(tool="get_currency_pairs", params={"limit": 700},
+                     why="every coin Robinhood offers (the crypto universe), with order increments")] + \
+            [dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
+                  why="is each mapped spot ETF tradable on this account") for syms in
+             chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK)]
+    crypto = crypto_needed(cfg, needs)
     since = _orders_since(now)
     calls = [dict(tool="get_accounts", params={}, why="confirm the agentic account (agentic_allowed=true)"),
              dict(tool="get_portfolio", params={"account_number": an}, why="total value, cash, buying power"),
@@ -187,6 +280,10 @@ def fetch_calls(cfg: dict, now_utc=None) -> list[dict]:
     calls.append(dict(tool="get_equity_positions", params={"account_number": an}, why="stock/ETF positions"))
     if crypto:
         calls.append(dict(tool="get_crypto_positions", params={"rhs_account_number": rhs}, why="crypto positions"))
+    if uni:
+        calls.append(dict(tool="get_currency_pairs", params={"limit": 700},
+                          why="every coin Robinhood offers (the crypto universe), with order increments"))
+    elif crypto:
         calls.append(dict(tool="get_currency_pairs", params={"limit": 100},
                           why="crypto order size and price increments"))
     rh = [a for a in enabled if a["signal"].get("source") == "computed" and a["signal"].get("feed") == "robinhood"]
@@ -198,27 +295,42 @@ def fetch_calls(cfg: dict, now_utc=None) -> list[dict]:
                               params={"symbols": syms[i:i + 10], "start_time": f"{start}T00:00:00Z",
                                       "interval": "day", "bounds": "regular", "adjustment_type": "split"},
                               why="daily split-adjusted bars for stock signals"))
-    eq = sorted({str(a["vehicle"]["symbol"]).upper() for a in enabled if a["vehicle"]["type"] == "equity"})
-    if eq:
-        calls.append(dict(tool="get_equity_quotes", params={"symbols": eq}, why="prices for sizing (fetch last)"))
-    if crypto:
-        pairs = sorted({pair_for(a["vehicle"]["symbol"]) for a in _crypto_vehicles(cfg)})
-        calls.append(dict(tool="get_crypto_quotes", params={"symbols": pairs, "rhs_account_number": rhs},
+    for syms in chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK):
+        calls.append(dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
+                          why="is each mapped spot ETF tradable on this account (chooses ETF vs signal only)"))
+    eq = sorted({str(a["vehicle"]["symbol"]).upper() for a in enabled if a["vehicle"]["type"] == "equity"}
+                | set(needs.get("equity_quotes") or []))
+    for syms in chunks(eq, QUOTE_CHUNK if uni else max(len(eq), 1)):
+        calls.append(dict(tool="get_equity_quotes", params={"symbols": syms}, why="prices for sizing (fetch last)"))
+    pairs = sorted({pair_for(a["vehicle"]["symbol"]) for a in _crypto_vehicles(cfg)}
+                   | set(needs.get("crypto_quotes") or []))
+    for syms in chunks(pairs, QUOTE_CHUNK if uni else max(len(pairs), 1)):
+        calls.append(dict(tool="get_crypto_quotes", params={"symbols": syms, "rhs_account_number": rhs},
                           why="crypto prices on this account's routing (fetch last)"))
     return calls
 
 
-def cmd_fetch_list(args) -> int:
-    cfg = load_config()
+def _accounts_missing(cfg: dict, crypto: bool) -> bool:
+    """Print the get_accounts step if account_number (or, when crypto is needed, rhs_account_number) is not filled."""
     acct = cfg["account"]
     missing = [k for k in ("account_number", "rhs_account_number")
-               if _placeholder(acct.get(k)) and (k == "account_number" or _crypto_vehicles(cfg))]
+               if _placeholder(acct.get(k)) and (k == "account_number" or crypto)]
     if missing:
         print(f"account.{' and account.'.join(missing)} not filled in. Make this call first, then put the agentic "
               "account's account_number and rhs_account_number (agentic_allowed=true) into config.json:\n"
               " 1. get_accounts {}")
+    return bool(missing)
+
+
+def cmd_fetch_list(args) -> int:
+    cfg = load_config()
+    if _accounts_missing(cfg, crypto_needed(cfg)):
         return 2
-    calls = fetch_calls(cfg)
+    from agentic.universe import fetch_needs
+    needs = fetch_needs(cfg, _now())
+    if not needs.get("stage1") and _accounts_missing(cfg, crypto_needed(cfg, needs)):    # as fetch_calls decides
+        return 2
+    calls = fetch_calls(cfg, needs=needs)
     if args.json:
         print(json.dumps(calls, indent=1))
         return 0
@@ -227,6 +339,19 @@ def cmd_fetch_list(args) -> int:
           "\"cursor\" set to that value, verbatim, until \"next\" is empty.")
     for i, c in enumerate(calls, 1):
         print(f"{i:>2}. {c['tool']} {json.dumps(c['params'])}    # {c['why']}")
+    if needs.get("stage1"):
+        print("(crypto universe, first run: no get_currency_pairs capture yet, so the coin list comes first)")
+        print(f"Then run fetch-list again: {cli_command()} fetch-list")
+        return 0
+    r = needs.get("report") or {}
+    if r.get("enabled") or r.get("coins"):
+        print(f"(crypto universe{'' if r.get('enabled') else ' (off: held coins only)'}: "
+              f"{sum(1 for c in r['coins'] if c['outcome'] in ('etf', 'direct', 'watch'))} coins "
+              f"scanned; quotes for {len(needs['candidates'])} held or green and entry-eligible today"
+              + (f": {', '.join(needs['candidates'])}" if needs["candidates"] else "") + ")")
+        if r.get("coinbase_down"):
+            print(f"WARNING: Coinbase unreachable ({r['coinbase_down']}): coins without current cached bars were not "
+                  "scanned")
     print(f"Then run: {cli_command()} run")
     return 0
 
@@ -238,7 +363,7 @@ def _signals(args, cfg, now) -> tuple[dict, int]:
     classes = [args.cls] if getattr(args, "cls", None) else None
     sig = compute_signals(cfg, now, paths()["inbox"], include_disabled=getattr(args, "all", False), classes=classes)
     f = write_signals(sig)
-    text = format_digest(sig)
+    text = format_digest(sig, full=getattr(args, "all", False))
     d = write_digest(sig, text)
     print(text)
     print(f"signals: {_rel(f)}  digest: {_rel(d)}")
@@ -269,7 +394,7 @@ def plan_calls(plan: dict) -> list[dict]:
 def format_calls(plan: dict) -> str:
     calls = plan_calls(plan)
     if not calls:
-        return "EXACT TOOL CALLS: none"
+        return "\n".join(_refetch_lines(plan) + ["EXACT TOOL CALLS: none"])
     live = bool(plan.get("live"))
     lines = ["EXACT TOOL CALLS - copy each params object verbatim (all values are strings; never edit, round or "
              "re-type them). Preview before place. Stop at the first hook block or tool error."]
@@ -280,7 +405,17 @@ def format_calls(plan: dict) -> str:
         skip = not live and c["kind"] != "preview"
         tag = "  (shadow: do not call)" if skip else ""
         lines.append(f"[{i}] {c['tool']} {json.dumps(c['params'])}{tag}    # {c['note']}")
-    return "\n".join(lines)
+    return "\n".join(_refetch_lines(plan) + lines)
+
+
+def _refetch_lines(plan: dict) -> list[str]:
+    calls = plan.get("refetch") or []
+    if not calls:
+        return []
+    return (["RE-FETCH QUOTES - this plan is missing quotes it needs. Before any other call: make these read calls "
+             "once, verbatim, then re-plan with the same attempt "
+             f"(`{cli_command()} plan --attempt {plan.get('attempt') or 1}`) and use that plan instead:"]
+            + [f"[R{i}] {c['tool']} {json.dumps(c['params'])}" for i, c in enumerate(calls, 1)])
 
 
 def _valid_plan(now) -> dict | None:
@@ -296,7 +431,8 @@ def default_attempt(now) -> int:
     (the re-plan after those cancels settle must keep the wider collar), else 1."""
     from agentic.planner import CANCEL_MSG
     plan = _valid_plan(now)
-    if plan and any(isinstance(x, dict) and CANCEL_MSG in str(x.get("reason")) for x in plan.get("skipped") or []):
+    if plan and (plan.get("refetch") or any(isinstance(x, dict) and CANCEL_MSG in str(x.get("reason"))
+                                            for x in plan.get("skipped") or [])):
         return min(max(int(plan.get("attempt") or 1), 1), 3)
     return 1
 
@@ -333,8 +469,10 @@ def _plan(args, cfg, now) -> tuple[dict | None, int]:
     if sig is None:
         print(f"no signals file: run `{cli_command()} signals` (or `run`)", file=sys.stderr)
         return None, 2
-    snap = build_snapshot(paths()["inbox"], cfg, now)
+    cfg, uwarn = effective_config(cfg, sig)
+    snap = build_snapshot(paths()["inbox"], cfg, now, crypto=crypto_needed(cfg))
     plan = make_plan(sig, snap, cfg, now, attempt=attempt)
+    plan["warnings"] += uwarn
     pf = write_plan(plan)
     print(format_plan(plan))
     print(format_calls(plan))
@@ -351,7 +489,8 @@ def cmd_plan(args) -> int:
 
 def _reconcile(cfg, now, accept: bool) -> int:
     from agentic.snapshot import build_snapshot
-    snap = build_snapshot(paths()["inbox"], cfg, now)
+    eff = effective_config(cfg)[0]
+    snap = build_snapshot(paths()["inbox"], eff, now, crypto=crypto_needed(eff))
     res = ledger.reconcile_snapshot(snap, now_utc=now, accept=accept, initial_sleeve=cfg.get("sleeve_initial_qty"))
     if res.get("skipped"):
         print("RECONCILE SKIPPED (missing or stale captures: nothing compared)")
@@ -480,9 +619,13 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog=cli_command(), description="MoneyLine execution on the Robinhood agentic "
                                  "account. Runbook: agentic/README.md. State: private/agentic (or AGENTIC_STATE_DIR).")
     sub = ap.add_subparsers(dest="cmd", required=True, metavar="command")
-    sub.add_parser("init", help="create the state dirs; copy the example config if missing").set_defaults(func=cmd_init)
+    s = sub.add_parser("init", help="create the state dirs; copy the example config if missing")
+    s.add_argument("--update", action="store_true", help="add the example's top-level blocks the config lacks "
+                   "(e.g. universe), changing nothing else; writes a backup first (terminal only)")
+    s.set_defaults(func=cmd_init)
     s = sub.add_parser("signals", help="compute signals (phase 1) and write the digest")
-    s.add_argument("--all", action="store_true", help="include disabled assets")
+    s.add_argument("--all", action="store_true", help="include disabled assets; print every asset and every "
+                   "universe coin's outcome")
     s.add_argument("--class", dest="cls", choices=("crypto", "equity"), help="only this asset class (cron: crypto)")
     s.set_defaults(func=cmd_signals)
     s = sub.add_parser("fetch-list", help="print the Robinhood read calls Claude must make now")

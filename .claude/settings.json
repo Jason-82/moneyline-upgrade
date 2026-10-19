@@ -122,7 +122,8 @@
       "mcp__claude_ai_Robinhood__update_watchlist",
       "Edit(private/agentic/**)",
       "Bash(*agentic resume*)",
-      "Bash(*agentic*--replan*)"
+      "Bash(*agentic*--replan*)",
+      "Bash(*agentic*init*--update*)"
     ]
   }
 }

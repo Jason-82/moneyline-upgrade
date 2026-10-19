@@ -131,7 +131,7 @@ def strip_accounts(params) -> dict | None:
 
 def read_json(path, default=None):
     try:
-        with open(path, encoding="utf-8-sig") as f:      # a UTF-8 BOM (Windows Notepad) is skipped, not an error
+        with open(path, encoding="utf-8-sig") as f:      # a UTF-8 BOM (some Windows editors add one) is skipped
             return json.load(f)
     except FileNotFoundError:
         return default

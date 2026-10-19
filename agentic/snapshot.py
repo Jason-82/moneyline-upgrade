@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from agentic import calendar as cal
+from agentic.config import direct_crypto_possible
 from agentic.data import unwrap_mcp
 from agentic.ledger import ET, iso_z, num, parse_ts
 
@@ -324,15 +325,16 @@ def mid(quote: dict | None) -> float | None:
 
 # ------------------------------------------------------------------ snapshot
 
-def build_snapshot(inbox_dir, cfg: dict, now_utc=None) -> dict:
+def build_snapshot(inbox_dir, cfg: dict, now_utc=None, crypto: bool | None = None) -> dict:
     """Validated account snapshot (SPEC section 6) from the newest captures. Quote freshness is judged per planned
-    order by the planner (quote_problem); everything else that is wrong is in `errors` / `warnings`."""
+    order by the planner (quote_problem); everything else that is wrong is in `errors` / `warnings`. `crypto`: are
+    crypto positions and orders required (None: config.direct_crypto_possible; the CLI also requires them while the
+    account holds a coin, as fetch-list does)?"""
     now = cal.as_utc(now_utc)
     lim = cfg["limits"]
     acct = cfg.get("account") or {}
     caps = load_captures(inbox_dir)
-    crypto_on = any(a.get("enabled") and (a.get("vehicle") or {}).get("type") == "crypto"
-                    for a in cfg.get("assets", []))
+    crypto_on = direct_crypto_possible(cfg) if crypto is None else crypto
     errors, warnings, info = [], [], {}
     snap = dict(as_of=None, total_value=None, cash=None, buying_power=None, crypto_buying_power=None,
                 equity_positions={}, crypto_positions={}, quotes={}, open_orders=[], orders=[], pairs={},

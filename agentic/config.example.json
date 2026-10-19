@@ -31,6 +31,22 @@
     "max_join_rise_frac": 0.50,
     "start_date": null
   },
+  "universe": {
+    "crypto": {
+      "_comment": "Scan every coin Robinhood offers (README section 10). source robinhood: the USD pairs of the newest get_currency_pairs capture that are tradable (fetch-list captures it), plus symbols; source list: symbols only. Filters: exclude, a Coinbase <CODE>-USD pair, min_history_bars (null = limits.min_bars), min_dollar_volume_usd (median daily volume on Coinbase over the last 30 bars), then the max_assets most liquid. A coin in etf_map trades that spot ETF when get_equity_tradability confirms it on the account (else it is watched only, never switched to direct crypto); other coins trade directly (about 0.95% per side) if direct_crypto. An explicit asset with the coin's name, or trading the same vehicle, takes precedence; a disabled one keeps the coin out.",
+      "enabled": true,
+      "source": "robinhood",
+      "symbols": [],
+      "exclude": ["USDC", "USDT", "DAI", "PYUSD", "USDP", "TUSD", "GUSD", "FDUSD", "USDS", "EURC", "WBTC", "WETH", "CBBTC", "CBETH", "STETH", "PAXG", "XAUT"],
+      "mode": "split",
+      "min_history_bars": null,
+      "min_dollar_volume_usd": 5000000,
+      "max_assets": 30,
+      "etf_map": {"BTC": "IBIT", "ETH": "ETHA", "SOL": "BSOL", "XRP": "XRPC", "LTC": "LTCC", "NEAR": "NRR"},
+      "prefer_etf": true,
+      "direct_crypto": true
+    }
+  },
   "tax": {"st_rate": 0.35, "lt_rate": 0.20},
   "wash_sale_block_symbols": [],
   "sleeve_initial_qty": {"_comment": "Shares the account already holds when the first reconcile runs belong to you, not the sleeve, and are never sold by the plan. To hand some to the sleeve, list them here before that first reconcile, e.g. \"ETHA\": 9."},
@@ -41,6 +57,7 @@
     "split": [{"weight": 0.5, "n_entry": 1, "n_exit": 1}, {"weight": 0.5, "n_entry": 5, "n_exit": 5}],
     "confirm5": [{"weight": 1.0, "n_entry": 5, "n_exit": 5}]
   },
+  "_comment_assets": "With the crypto universe enabled, explicit crypto entries are optional overrides: an enabled one trades the coin with its own settings, a disabled one keeps the coin out of the universe (delete it to let the universe trade the coin).",
   "assets": [
     {
       "name": "ETH",
@@ -59,8 +76,8 @@
       "alloc_frac": 0.10,
       "mode": "split",
       "signal": {"source": "computed", "feed": "coinbase", "symbol": "SOL-USD"},
-      "vehicle": {"type": "crypto", "symbol": "SOL"},
-      "_comment": "PROBATION in gate.py (short history). Direct crypto costs ~0.95% per side on Robinhood's default route; check with preview_crypto_order, or switch the vehicle to a spot SOL ETF."
+      "vehicle": {"type": "equity", "symbol": "BSOL", "fractional": true},
+      "_comment": "PROBATION in gate.py (short history). Disabled, so it keeps SOL out of the universe; delete this entry to let the universe trade SOL (through BSOL), or enable it. Direct crypto (\"vehicle\": {\"type\": \"crypto\", \"symbol\": \"SOL\"}) costs ~0.95% per side on Robinhood's default route."
     },
     {
       "name": "BTC",
@@ -69,8 +86,8 @@
       "alloc_frac": 0.20,
       "mode": "split",
       "signal": {"source": "computed", "feed": "coinbase", "symbol": "BTC-USD"},
-      "vehicle": {"type": "crypto", "symbol": "BTC"},
-      "_comment": "NO-SIGNAL in gate.py (holding beat the signal after tax)."
+      "vehicle": {"type": "equity", "symbol": "IBIT", "fractional": true},
+      "_comment": "NO-SIGNAL in gate.py (holding beat the signal after tax). Disabled, so it keeps BTC out of the universe; delete this entry to let the universe trade BTC (through IBIT)."
     },
     {
       "name": "SPY",

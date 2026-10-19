@@ -26,6 +26,8 @@ TOOLS = {"equity": ("place_equity_order", "review_equity_order", "cancel_equity_
          "crypto": ("place_crypto_order", "preview_crypto_order", "cancel_crypto_order", "rhs_account_number")}
 FRACTIONAL_MSG = "fractional orders are market orders: re-run the plan in regular hours before 15:45 ET"
 CANCEL_MSG = "re-run plan after the cancel settles"
+REFETCH_MSG = "exact call under RE-FETCH QUOTES"
+QUOTE_CHUNK = 20
 WHOLE_MISS_FRAC = 0.10
 ONE = Decimal(1)
 CENT = Decimal("0.01")
@@ -199,6 +201,31 @@ class _Ctx:
             self.plan["warnings"].append(f"{it['name']}: {reason}")
 
 
+def _need_quote(plan: dict, it: dict, prob: str, error: bool) -> None:
+    """A quote this plan needs is missing, stale or unusable: skip the asset with the exact call to repeat (collected
+    in plan["refetch"]); an error too unless it is a universe coin's new entry (one candidate's quote must not block
+    the plan)."""
+    plan.setdefault("_need", {"equity": set(), "crypto": set()})[it["vtype"]].add(it["qkey"])
+    if error:
+        plan["errors"].append(f"{it['name']}: {prob}")
+    plan["skipped"].append(dict(asset=it["name"], reason=(
+        f"{prob}; re-fetch: get_{it['vtype']}_quotes for {it['qkey']} ({REFETCH_MSG}) once, then re-plan with the "
+        f"same attempt (`{cli_command()} plan --attempt {plan['attempt']}`)")))
+
+
+def _refetch_calls(plan: dict) -> list[dict]:
+    need = plan.pop("_need", None) or {}
+    out = []
+    for kind in ("equity", "crypto"):
+        syms = sorted(need.get(kind) or ())
+        for i in range(0, len(syms), QUOTE_CHUNK):
+            params = {"symbols": syms[i:i + QUOTE_CHUNK]}
+            if kind == "crypto":
+                params["rhs_account_number"] = plan["rhs_account_number"]
+            out.append(dict(tool=f"get_{kind}_quotes", params=params, why="quotes this plan needs (missing or stale)"))
+    return out
+
+
 def _chunks(ctx: _Ctx, it: dict, qty: Decimal, per: Decimal, lpx: Decimal, step: Decimal, room: Decimal,
             min_size: Decimal = Decimal(0)) -> list[tuple[Decimal, Decimal]]:
     """Split `qty` into orders of at most `per`, keeping the cent-rounded notionals within `room`."""
@@ -297,8 +324,7 @@ def _orders_for(ctx: _Ctx, it: dict, side: str) -> list[dict]:
     lim, q = ctx.lim, it["quote"]
     prob = quote_problem(q, it["qkey"], ctx.now, lim["quote_max_age_min"])
     if prob:
-        ctx.plan["errors"].append(f"{it['name']}: {prob}")
-        ctx.skip(it, prob)
+        _need_quote(ctx.plan, it, prob, error=not (side == "buy" and it.get("candidate")))
         return []
     delta, m = abs(it["delta"]), it["mid"]
     if it["vtype"] == "equity":
@@ -404,13 +430,26 @@ def _class_caps(cfg: dict) -> dict[str, float]:
     return dict(caps) if caps else {"crypto": float(cfg["limits"]["max_crypto_frac"]), "equity": 1.0}
 
 
+def _liquidity(it: dict) -> float:
+    """The signal's median Coinbase dollar volume (0 without one, e.g. a stock)."""
+    return ledger.num((it.get("sig") or {}).get("dollar_volume_usd")) or 0.0
+
+
+def _tie(it: dict, order: dict) -> tuple:
+    """Config order, in which the universe's coins follow the explicit assets, the more liquid on Coinbase first,
+    then by name (explicit assets keep their own order, whatever their class or liquidity)."""
+    if isinstance(it["asset"].get("universe"), dict):
+        return 1, -_liquidity(it), it["name"]
+    return 0, float(order[it["name"]]), ""
+
+
 def _ranked(its: list[dict], priority: str, order: dict) -> list[dict]:
-    """Slot priority: crypto_first / equity_first (that class first, then the newest green flip, then config order),
-    newest_flip, or config_order."""
-    out = sorted(its, key=lambda it: order[it["name"]])
+    """Slot priority: crypto_first / equity_first (that class first, then the newest green flip, then config order as
+    in _tie), newest_flip (newest flip, then _tie), or config_order."""
     if priority == "config_order":
-        return out
-    out.sort(key=lambda it: it.get("flip") or "", reverse=True)          # stable: ties keep config order
+        return sorted(its, key=lambda it: order[it["name"]])
+    out = sorted(its, key=lambda it: _tie(it, order))
+    out.sort(key=lambda it: it.get("flip") or "", reverse=True)          # stable: ties keep _tie order
     if priority in ("crypto_first", "equity_first"):
         first = priority.split("_")[0]
         out.sort(key=lambda it: it["asset"]["class"] != first)
@@ -482,11 +521,14 @@ def _slot_alloc(its: list[dict], reserved: list[tuple], capital: float, cfg: dic
     wash = {str(x).upper() for x in cfg.get("wash_sale_block_symbols") or []}
     for it in ranked:                                    # 3. new entries
         cls = it["asset"]["class"]
-        if id(it) in held_ids or it["etf"] <= 0 or it.get("mid") is None:
+        if id(it) in held_ids or it["etf"] <= 0 or (it.get("mid") is None and not it.get("no_quote")):
             continue
         it["slot_usd"] = 0.0                             # (a dust holding too) no buy unless it gets a slot
         if blocked:
             skip(it, blocked[1])
+            continue
+        if it.get("hold_only"):
+            skip(it, f"hold only ({it['hold_only']}): no new buys")
             continue
         if it["vsym"] in wash:
             skip(it, f"{it['vsym']} is in wash_sale_block_symbols: no buys")
@@ -534,7 +576,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             "attempt": attempt, "account_number": str(acct.get("account_number") or ""),
             "rhs_account_number": str(acct.get("rhs_account_number") or ""), "capital_usd": 0.0,
             "signals_file": sfile or f"signals/signals_{sdate}.json", "signals_date": sdate, "flags": sorted(fl),
-            "orders": [], "cancels": [], "skipped": [], "warnings": [], "errors": []}
+            "orders": [], "cancels": [], "skipped": [], "warnings": [], "errors": [], "refetch": []}
     errors, warnings, skipped = plan["errors"], plan["warnings"], plan["skipped"]
     enabled = [a for a in cfg.get("assets", []) if a.get("enabled")]
     managed_v = {_vkey(a["vehicle"]["type"], a["vehicle"]["symbol"]) for a in enabled}
@@ -653,6 +695,9 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             if float(snapshot.get("total_value") or 0) > float(cfg["capital"]["max_usd"]) + 1 and big not in warnings:
                 warnings.append(big)
         it["quote"] = (snapshot.get("quotes") or {}).get(it["qkey"])
+        uinfo = a.get("universe") if isinstance(a.get("universe"), dict) else {}
+        it["hold_only"], it["uni"] = uinfo.get("hold_only"), bool(uinfo)
+        it["candidate"] = bool(uinfo) and slots and it["qty"] <= 0       # a universe coin's possible new entry
         intents.append(it)
 
     def skip(it, reason):
@@ -683,8 +728,11 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         it["mid"] = mid(it["quote"])
         if it["mid"] is None:
             prob = quote_problem(it["quote"], it["qkey"], now, lim["quote_max_age_min"]) or f"{it['qkey']}: no price"
-            errors.append(f"{name}: {prob}")
-            skipped.append(dict(asset=name, reason=prob))
+            if it["candidate"]:                          # needs a quote only if it gets a slot (below)
+                it["no_quote"] = prob
+                live.append(it)
+                continue
+            _need_quote(plan, it, prob, error=True)
             if it["qty"] > 0:
                 reserved.append((it["asset"], None))
             continue
@@ -707,6 +755,9 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
     for it in live:
         name, slot, sc = it["name"], it["slot_usd"], it["scale"]
         band = max(float(lim["min_order_usd"]), float(lim["rebalance_band_frac"]) * slot)
+        if it.get("no_quote") and slot > 0:              # a slot is held for it: fetch its quote and re-plan
+            _need_quote(plan, it, it["no_quote"], error=False)
+            continue
         if it["mid"] is None or (it["qty"] == 0 and slot <= 0):
             want = it["nominal"] * it["tf"] * sc
             if it["notes"] and want > max(float(lim["min_order_usd"]), float(lim["rebalance_band_frac"]) *
@@ -716,6 +767,10 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         full_usd, entry_usd, cur = slot * it["tf"] * sc, slot * it["etf"] * sc, it["current_usd"]
         entry_usd = min(entry_usd, it.get("cap_usd", entry_usd))       # slots: what the room lets it reach
         it["full"] = it["tf"] == 0 and it["qty"] > 0
+        if it["uni"] and not slots and not it["full"]:   # fixed: a universe coin has no allocation of its own
+            skip(it, "allocation.method fixed: universe coins have alloc_frac 0, so a held one is only sold on a red "
+                     "flip or FLATTEN (no trims, no buys); use allocation.method slots")
+            continue
         side = ("sell" if it["full"] or cur > full_usd + band else "buy" if cur < entry_usd - band else None)
         if side is None:
             if it.get("cap_usd") is not None and cur < slot * it["etf"] * sc - band:
@@ -723,9 +778,13 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             elif it["notes"] and cur < full_usd - band:                # only the entry policy holds this back
                 skip(it, "; ".join(it["notes"]))
             continue
+        if side == "buy" and it.get("hold_only"):
+            skip(it, f"hold only ({it['hold_only']}): no new buys")
+            continue
         it["delta"] = -cur if it["full"] else (full_usd if side == "sell" else entry_usd) - cur
-        reason = ("FLATTEN: " if flatten else "") + (f"target {cur / slot if slot > 0 else 0.0:.2f} -> "
-                                                     f"{it['etf'] if side == 'buy' else it['tf']:.2f}")
+        reason = ("FLATTEN: " if flatten else "") + (f"target {cur / slot:.2f} -> " if slot > 0 else
+                                                     "no allocation of its own (alloc_frac 0): target -> ") + \
+            f"{it['etf'] if side == 'buy' else it['tf']:.2f}"
         detail = "" if flatten else _tranche_text(it["sig"])
         reason += f" ({detail})" if detail else ""
         reason += f"; {it['asset']['class']} cap x{sc:.2f}" if sc < 1 else ""
@@ -843,6 +902,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
 
     plan["orders"] = [{k: o[k] for k in ("key", "asset", "tool", "preview_tool", "params", "preview_params",
                                          "notional_usd", "reason")} for o in kept]
+    plan["refetch"] = _refetch_calls(plan)
     kinds = sorted({o["kind"] for o in kept}) or vtypes
     plan["valid_until"] = ledger.iso_z(min(cal.valid_until(t, now, lim) for t in kinds))
     return plan
@@ -885,6 +945,8 @@ def format_plan(plan: dict, mask_accounts: bool = True) -> str:
         lines.append(f"    {o['tool']} {show(o['params'])}  # ${o['notional_usd']:.2f} {o['key']}: {o['reason']}")
     if not n:
         lines.append("no tool calls")
+    for c in plan.get("refetch") or []:
+        lines.append(f"RE-FETCH QUOTES: {c['tool']} {show(c['params'])} (exact params under EXACT TOOL CALLS)")
     for title, key in (("SKIPPED", "skipped"), ("WARNINGS", "warnings"), ("ERRORS", "errors")):
         for x in plan.get(key, []):
             lines.append(f"{title}: " + (f"{x['asset']}: {x['reason']}" if isinstance(x, dict) else str(x)))

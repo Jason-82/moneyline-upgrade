@@ -44,7 +44,8 @@ see the last bullet.
   Claude Code copies `env` values literally: `~`, `$HOME` and `%USERPROFILE%` are not expanded. If the file does
   not exist yet, this writes it with the right path (`pwd -W` prints the repo folder as `C:/...`). If it already
   exists (Claude Code keeps your "don't ask again" approvals there), the command refuses with `cannot overwrite
-  existing file` and changes nothing: add the `"env"` key to that file by hand instead.
+  existing file` and changes nothing: add the `"env"` key to that file by hand instead
+  (`code .claude/settings.local.json`).
 
   ```bash
   ( set -C; printf '{"env": {"AGENTIC_PYTHON": "%s/.venv/Scripts/python.exe"}}\n' "$(pwd -W)" > .claude/settings.local.json )
@@ -66,8 +67,7 @@ see the last bullet.
     call that fails or times out is journaled (the order may exist) and counted against `max_day_usd`
   - deny rules for the option, alert, scan and watchlist write tools
   - deny rules so the agent cannot undo a STOP or replace a plan with placed orders, or edit the plan the hook
-    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit/Write on
-    `private/agentic/**`. `resume` also refuses to run without a terminal, so only you can clear a flag. These
+    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit on `private/agentic/**` (Edit rules cover every file-editing tool). `resume` also refuses to run without a terminal, so only you can clear a flag. These
     Bash deny rules also turn off Claude Code's PowerShell tool on Windows. That is fine: everything here runs in
     Git Bash.
 - **Check the install:** `.venv/Scripts/python.exe -m agentic doctor`. It prints one PASS, WARN or FAIL line for
@@ -101,8 +101,8 @@ see the last bullet.
 .venv/Scripts/python.exe -m agentic init      # creates private/agentic/ and copies config.example.json to config.json
 ```
 
-Edit `private/agentic/config.json`, then run `.venv/Scripts/python.exe -m agentic doctor` again: once the account
-numbers are in, every line should PASS.
+Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json`), then run
+`.venv/Scripts/python.exe -m agentic doctor` again: once the account numbers are in, every line should PASS.
 
 - `account.account_number` and `account.rhs_account_number` come from `get_accounts`: use the entry with
   `agentic_allowed: true`. Stock tools take `account_number`; crypto tools take the numeric `rhs_account_number`.
@@ -124,7 +124,12 @@ numbers are in, every line should PASS.
   asset that has been green for more than 20 bars and that the sleeve does not hold is no longer bought (add
   `"entry": {"policy": "join"}` for the old behaviour). Signals files from before this change have no flip ages:
   nothing is bought until `signals` runs again.
-- `assets`: one entry per thing you trade.
+- `universe` (section 10): `"crypto": {"enabled": true, ...}` scans every coin Robinhood offers and trades each
+  through its spot ETF where one is mapped and tradable on your account, else directly. The example turns it on.
+  **Upgrading:** a config copied before the universe existed has no `universe` block, so it stays off. Run
+  `winpty .venv/Scripts/python.exe -m agentic init --update` (section 10) to add it.
+- `assets`: one entry per thing you trade. With the universe on, explicit crypto entries are optional overrides
+  (section 10).
 
   | field | meaning |
   |---|---|
@@ -147,7 +152,7 @@ numbers are in, every line should PASS.
 - **Keeping both modes ready:** only one enabled asset may trade a given vehicle. To watch the other mode daily,
   add a disabled twin, such as `ETH-SPLIT` with `mode: split`. `.venv/Scripts/python.exe -m agentic signals --all`
   shows both targets. Switching is a one-word config change.
-- `wash_sale_block_symbols`: tickers the planner must never buy (section 10).
+- `wash_sale_block_symbols`: tickers the planner must never buy (section 11).
 - **The sleeve owns only its own shares.** The first reconcile adopts the account's positions as the baseline, but
   shares already held then belong to you, not the sleeve: the plan never sells them, even on a red signal or under
   FLATTEN. From then on the sleeve owns what its own orders filled. To hand existing holdings to the sleeve,
@@ -208,8 +213,10 @@ Last Run Result 0x1 (see `status`), and the cron line's `|| echo` reaches cron m
 `"${AGENTIC_PYTHON:-python3}" -m agentic ...`, and stops if `AGENTIC_PYTHON` is not set on Windows (section 1).
 
 1. run `fetch-list` and make exactly those read calls (the PostToolUse hook saves each result to
-   `private/agentic/inbox/`)
-2. run `run`: signals, reconcile, plan
+   `private/agentic/inbox/`). On the first run with the crypto universe it asks for the coin list first, then for
+   `fetch-list` again
+2. run `run`: signals, reconcile, plan (if the plan prints `RE-FETCH QUOTES`, make those calls once and plan
+   again with the same attempt)
 3. preview each order, then place it with the plan's params verbatim (shadow mode: previews only)
 4. read the orders back and report every state
 
@@ -445,7 +452,8 @@ cost, with a 95% interval clustered by run:
 | `slots` (the example config) | every position is `slot_frac` × capital, whatever the asset. Holdings keep their whole slot, earliest into their run first (a split position can add its second half later), and are never trimmed to make room. The rest of capital goes to new entries in `priority` order: a full slot, or a partial one if at least half a slot is left; otherwise the entry waits ("no free slot"). A new entry buys only its eligible share of the slot now |
 
 - `priority`: `crypto_first` (default: crypto-class assets, then stocks; within a class the newest green flip
-  first, ties in config order), `equity_first`, `newest_flip`, `config_order`.
+  first, ties in config order, in which universe coins follow your own assets, the more liquid on Coinbase first),
+  `equity_first`, `newest_flip` (the same ties), `config_order`.
 - `class_max_frac`: each class's cap as a share of capital (default crypto = `limits.max_crypto_frac`, equity 1.0;
   1.0 = no cap). With slots it limits the room handed out; a holding above it is not sold.
 - With slots, a position counts at its value until it is sold: an exit or a trim frees its room only once the
@@ -462,14 +470,151 @@ Trade-offs:
   holding down: sells, realized short-term gains, then buys. With slots the newcomer waits instead. The price: an
   asset that flips while the slots are full may miss its run, since by the time a slot frees up it is usually too
   late to join, and an exiting asset's slot passes on only in the plan after its exit fills. The rebalance band still
-  trims a position that grows past 1.25 × its slot (section 11).
+  trims a position that grows past 1.25 × its slot (section 12).
 - **`crypto_first`** is defensible because the MoneyLine's evidence of adding value is on crypto, not stocks: it
   beats holding in about 97% of asset-years that fall more than 60%, which crypto has and stocks rarely do, and no
   timing rule beat holding stocks after tax (HANDOFF 5.11, 5.15). It is not a claim that anyone can time a bull run.
 - **The crypto cap is a correlation guardrail.** Coins flip red together, and exits fill past the line in crashes
   (ETF route: median 1-3%, worst 21-40%, HANDOFF 5.8), so full crypto slots lose together.
 
-## 10. Taxes and wash sales
+## 10. Crypto universe
+
+`universe.crypto` in the config scans every coin Robinhood offers, not a hand-picked few. Code:
+`agentic/universe.py`; contract: SPEC section 13. Each run builds the list again from the newest captures.
+
+**How coins are chosen**, in this order. `signals --all` prints every coin with its outcome and reason; the daily
+digest prints a one-line summary.
+
+1. **Candidates.** `source: robinhood` (default): every USD pair in the newest `get_currency_pairs` capture whose
+   `tradability` is `tradable` (not display-only), plus `symbols`. `source: list`: `symbols` only. `fetch-list`
+   captures the pair list on every run. With no capture yet, the first `/moneyline` asks for the pair list first,
+   then runs `fetch-list` again. A newest capture older than 7 days gives a warning. A capture with no USD pairs
+   (an empty result) is skipped with a warning, and the one before it is used.
+2. **`exclude`**: stablecoins and wrapped or pegged tokens (USDC, USDT, DAI, PYUSD, USDP, TUSD, GUSD, FDUSD, USDS,
+   EURC, WBTC, WETH, CBBTC, CBETH, STETH, PAXG, XAUT). They have no trend to follow. Your own `exclude` replaces
+   this list, so keep these in it (`doctor` warns if one is missing). A coin whose last 90 closes all stay within
+   3% of their median is dropped as pegged too, so a stablecoin missing from the list is still caught.
+3. **A Coinbase pair** `<CODE>-USD` that is online (`GET /products`, cached for the day). The signal is the old
+   MoneyLine on Coinbase daily candles, as for every crypto asset here.
+4. **History:** at least `min_history_bars` closed bars (default `limits.min_bars`, 300), ending on the last closed
+   bar.
+5. **Liquidity:** the median daily dollar volume on Coinbase (close × volume) over the last 30 closed bars must be
+   at least `min_dollar_volume_usd` (default $5,000,000).
+6. **`max_assets`** (default 30): the most liquid 30 by that dollar volume.
+
+Coins the sleeve holds are never dropped by a filter. A coin that fails one stays as **hold only**: it can be
+trimmed or sold, but not bought, so a position always keeps the asset that sells it.
+
+**Why these defaults** (HANDOFF 5.11, `analysis_2026/results_altcoins/`):
+
+- The crypto evidence for the MoneyLine comes from large coins: the 21 single coins and the survivorship-free top-20
+  basket including dead coins (section 8).
+- Across Binance volume tiers including delisted coins, the signal beat holding the same coins in every tier. But the
+  edge came from the 2022 and 2025 crash years, there was no consistent size gradient, and small coins still lost
+  money with the signal over 2022-25 (−7.6% a year after tax).
+- So `max_assets` 30 and the $5M floor keep the scan among the larger coins. Both numbers are judgments, not fitted
+  optima.
+- Coinbase volume is a proxy for Robinhood liquidity, not a measure of it.
+- **Against trading coins directly** (`direct_crypto: true`, the default): at Robinhood's 0.95% per side, the
+  signal's CAGR edge over holding is −12.2 points for BTC, −12.7 for BNB and −18.9 for ZEC, and since 2022 only
+  SOL clearly survives that cost (HANDOFF 5.9). After tax, holding BTC beat the signal baskets over 2022-25 (CAGR
+  14.3 vs 5.5 for the top 10 and 11.0 for coins 11-30; windows ending 2022-24 favor the baskets, HANDOFF 5.11). So
+  `direct_crypto: true` is a judgment, not an evidenced default: with `false`, only coins with a confirmed spot ETF
+  trade.
+
+**ETF or direct.** `etf_map` (default BTC → IBIT, ETH → ETHA, SOL → BSOL, XRP → XRPC, LTC → LTCC, NEAR → NRR):
+
+- **ETF:** with `prefer_etf` (default true), a mapped coin trades its ETF as an equity vehicle, but only when the
+  newest `get_equity_tradability` capture for your account (at most 7 days old) says it is `active` and
+  `tradeable`. `fetch-list` checks every mapped ETF of the scanned coins, 10 symbols per call.
+- **Not confirmed:** a mapped coin whose ETF is not confirmed is **watched only** that run: its signal is shown, and
+  it is never switched to direct crypto.
+- **The tickers are a starting point:** NRR is per your note; XRPC and LTCC come from public listings. The
+  tradability check decides, not this table. Fix a ticker in `etf_map`, or set a coin to `null` to drop its mapping.
+- **Direct:** a coin with no ETF trades the coin itself when `direct_crypto` is true (default). That costs about
+  **0.95% per side** on Robinhood's default route (HANDOFF 5.9; check `preview_crypto_order`), against roughly the
+  spread for an ETF. With `direct_crypto: false` such coins are watched, not traded.
+- **ETF trade-offs:** an ETF trades only in NYSE sessions, so a weekend flip waits for Monday. The wash-sale rule
+  applies to ETFs and not to spot crypto (section 11).
+- **Held vehicles stay put:** a coin the sleeve already holds directly is managed directly until it exits, and new
+  buys then go through the ETF. An ETF the sleeve holds is bought only while the newest `get_equity_tradability`
+  capture confirms it; otherwise it is hold only (sells still go through).
+
+**Your own entries, includes and excludes.**
+
+- An explicit asset in `assets` with the coin's name, or one that trades the same vehicle (the coin, its mapped ETF,
+  or on its Coinbase signal), takes precedence over the generated one.
+- **Keeping a coin out:** add it to `exclude`, or add a disabled explicit asset with its name,
+  `{"name": "DOGE", "enabled": false, ...}`. In the example, the disabled BTC and SOL entries keep those coins out
+  (BTC: holding beat the signal after tax; SOL: probation). Delete an entry to let the universe trade the coin.
+- **The difference for a coin the sleeve holds:** `exclude` keeps it as hold only, so it can still be sold. A
+  disabled explicit entry leaves the position alone, as any disabled asset does, and the plan warns that nothing
+  manages it.
+- **Adding coins:** list them in `symbols`.
+- **Mode and entry:** `mode` (default `split`) and an optional `entry` override (the keys of the `entry` block)
+  apply to every generated coin.
+
+**Sizing with many candidates.** The universe needs `allocation.method: slots`. With `fixed`, generated coins have
+`alloc_frac` 0: they are never bought, and a coin the sleeve already holds is kept (no trims) until its signal turns
+red or FLATTEN is set, then sold in full.
+
+- **Slot size:** every position is one slot. `slot_frac` 0.20 holds at most 5 positions; `slot_frac` 0.10 (with
+  `max_asset_frac` ≥ 0.10) holds up to 10.
+- **The crypto cap** (`class_max_frac.crypto`, 0.60) limits how many coins are held at once: 3 coins at 0.20, 6 at
+  0.10.
+- **Order of new entries:** the newest eligible green flip first (`crypto_first`). Ties go to the more liquid coin on
+  Coinbase, then by name.
+- **When the slots are full**, the rest wait ("no free slot") and usually miss that run: the price of not trimming
+  (section 9).
+- **Costs:** more, smaller positions mean more orders. On direct coins each one costs about 0.95%.
+
+**What changes in the daily run.**
+
+- The phase 1 job (`signals --class crypto`) scans the universe too, from the newest captures in the inbox.
+
+- `fetch-list` adds `get_currency_pairs` (limit 700; follow `next`) and `get_equity_tradability`.
+- It asks for quotes only for what a plan can need: every held vehicle, plus every scanned coin that is green and
+  entry-eligible on today's crypto signals. `fetch-list` computes those signals itself from the Coinbase cache.
+- **Missing quotes:** if the plan still lacks a quote for a coin that gets a slot, it prints `RE-FETCH QUOTES` with
+  the exact call and skips that coin. It holds the coin's slot rather than give it to the next one. `/moneyline`
+  makes that call once, then plans again with the same attempt.
+- A missing quote for a coin that gets no slot is not an error. A missing quote for a holding is, since its exit
+  cannot be sized.
+- **The digest:** a `SCAN` line (assets scanned, green, eligible to buy today, held, changed today), the universe
+  summary, a table of the explicit assets and of every coin that is held (`*`), changed today, eligible or in error,
+  then one `OTHERS` line with the rest by state. `signals --all` prints everything.
+- **The Coinbase cache:** daily candles are kept in `private/agentic/cache/coinbase/<PRODUCT>.csv`. Only bars after
+  the last cached closed bar are fetched, at most 5 requests a second. A corrupt cache, or one with missing days, is
+  fetched again, except days Coinbase itself has no candle for (remembered after a full fetch).
+- **The first scan** downloads about 2 years per coin, about 3 requests each, so allow a few minutes.
+- **Coinbase down:** each scan request is retried once with a 10 s timeout. After 2 network errors in a row the run
+  stops asking Coinbase: coins with current cached bars are still scanned, the rest are reported as
+  `Coinbase unreachable: not scanned` (held ones stay hold only), and signals come from the cache. A held coin
+  without current cached bars then has a data error, so it is skipped that run, exits included.
+
+**Upgrading a config from before the universe:**
+
+```bash
+winpty .venv/Scripts/python.exe -m agentic init --update    # winpty: Git Bash's own window; not needed in Windows Terminal
+.venv/Scripts/python.exe -m agentic doctor
+.venv/Scripts/python.exe -m agentic signals --all
+```
+
+- **What `init --update` adds:** every top-level block of `config.example.json` that your config lacks, such as
+  `universe`, `allocation` and `entry`, exactly as in the example. It never changes an existing value or asset.
+- **Before it writes:** it prints what it would add and asks you to type `update`; only then does it write a
+  timestamped backup (`config.json.bak-<time>`) and the new config. It refuses without a terminal, so only you can
+  change the config. The slash command forbids Claude to run it, and the project `.claude/settings.json` denies it
+  (`Bash(*agentic*init*--update*)`), as it does `resume`.
+- **Watch out:** adding `allocation` switches a config without one from `fixed` to `slots`. `live` stays as it is.
+- **Inspecting the config:** `code private/agentic/config.json` opens it in VS Code.
+- **Turning the universe off:** set `"enabled": false`. Nothing new is bought. Coins of its last scan that the
+  sleeve still holds stay as hold-only assets (`UNIVERSE crypto (off: held coins only ...)` in the digest) and are
+  sold on their next red flip or with FLATTEN. `fetch-list` keeps asking for crypto positions and orders while the
+  account holds a coin, so reconcile does not raise BLOCK_BUYS. `direct_crypto: false` works the same way for coins
+  held directly.
+
+## 11. Taxes and wash sales
 
 - The Agentic account is taxable. The strategy realizes short-term gains several times a year per asset, while
   holding defers them. The backtests tax strategies at 35% a year and buy & hold at 20% once. Put your own rates
@@ -483,7 +628,7 @@ Trade-offs:
 - Spot crypto is not covered by the wash-sale rule under current law (H.R. 10357 would change that). Spot crypto
   **ETFs are** securities, so it applies to them.
 
-## 11. Limitations
+## 12. Limitations
 
 - Half-day sessions are treated as full sessions.
 - Robinhood daily bars: the date is taken from `begins_at` in UTC, and `close_price` is the last trade. Both need
@@ -506,6 +651,9 @@ Trade-offs:
 - Each place call must go through Claude Code with the hooks: an order placed in the app or by another tool is not
   the sleeve's, and reconcile flags it.
 - The Robinhood login lasts about 4 days, and refresh tokens rotate: use one Claude session at a time.
+- The crypto universe: `etf_map` is a hand-kept list, so a new spot ETF is used only once you add it. Coinbase
+  volume stands in for Robinhood liquidity. The list is rebuilt every run, so a coin can drop out of it; a held one
+  stays as hold only until it is sold.
 - Always run as `.venv/Scripts/python.exe -m agentic` from the repo root (`agentic/calendar.py` would hide the
   standard `calendar` module if `agentic/` itself were on `sys.path`). The CLI's own hints name the interpreter that
   is running it, e.g. `.venv/Scripts/python.exe -m agentic plan`.
@@ -515,11 +663,11 @@ Trade-offs:
 - Without a time-zone database (no `tzdata`), US Eastern time comes from the built-in 2007+ rule. It matches the
   database from 2007 on, but not earlier dates.
 
-## 12. Files
+## 13. Files
 
 | path | contents |
 |---|---|
-| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, planner, ledger, signals, cli, doctor |
+| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, universe, planner, ledger, signals, cli, doctor |
 | `agentic/hooks/` | PreToolUse guard and PostToolUse capture/journal hooks (standard library only) |
 | `agentic/windows/` | Git Bash scripts: `crypto_signals.sh` (the phase 1 job) and `schedule_crypto_signals.sh` (Task Scheduler) |
 | `.claude/settings.json` | hooks and deny rules (committed) |
@@ -531,5 +679,7 @@ Trade-offs:
 | `private/agentic/cron.log` | output of the scheduled phase 1 job |
 | `private/agentic/STOP`, `FLATTEN`, `BLOCK_BUYS` | flags |
 | `private/agentic/strategy_start.json` | the first live plan's date (entry policy `fresh_only`) |
+| `private/agentic/cache/coinbase/` | Coinbase daily candles per product, the product list and `meta.json` (public market data) |
+| `private/agentic/config.json.bak-<time>` | the backup `init --update` writes before it changes the config |
 
 Set `AGENTIC_STATE_DIR` to keep state elsewhere (tests use a temporary directory).

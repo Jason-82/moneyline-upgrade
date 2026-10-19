@@ -723,6 +723,15 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
     `python -m agentic doctor` (checks the install and live-tests the guard hook) and a Task Scheduler script
     (`agentic/windows/`).
   - **The sleeve sells only shares it bought itself.**
+  - **Crypto universe (2026-10-19, `agentic/universe.py`, README section 10):** scans every coin Robinhood offers
+    (`get_currency_pairs`), minus stablecoins and wrapped tokens. It keeps coins with a Coinbase pair, ≥ 300 bars and
+    a median volume ≥ $5M/day, the 30 most liquid (the evidence is on large coins: 5.11).
+    - Each coin trades its spot ETF where one is mapped and confirmed tradable on the account: IBIT, ETHA, BSOL,
+      XRPC, LTCC, NRR. Otherwise it trades directly at about 0.95% per side.
+    - **Direct coins are a judgment, not evidence:** at 0.95% per side the edge over holding is −12.2 (BTC),
+      −12.7 (BNB) and −18.9 (ZEC), and since 2022 only SOL clearly survives (5.9). After tax, BTC beat the
+      baskets over 2022-25 (5.11). `direct_crypto: false` trades only coins with a confirmed spot ETF.
+    - Held coins are never dropped. `init --update` adds the block to an older config.
   - **Status:** shadow mode (`live: false`) by default. Not yet run against the real Robinhood MCP; the connector
     failed to connect in the cloud session. Mode backtests are in `analysis_2026/results_agentic_modes/`.
 - **Gate verdicts:**
