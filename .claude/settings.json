@@ -121,7 +121,6 @@
       "mcp__claude_ai_Robinhood__update_scan_filters",
       "mcp__claude_ai_Robinhood__update_watchlist",
       "Edit(private/agentic/**)",
-      "Write(private/agentic/**)",
       "Bash(*agentic resume*)",
       "Bash(*agentic*--replan*)"
     ]

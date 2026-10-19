@@ -484,8 +484,8 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   (never blocking).
 - `permissions.deny` lists the option, alert, scan, watchlist and exercise tools for the server names
   robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus `Bash(*agentic resume*)`,
-  `Bash(*agentic*--replan*)` (any interpreter path in front), `Edit(private/agentic/**)` and
-  `Write(private/agentic/**)`. Deny rules match command text and are not a security boundary: `resume` refusing to
+  `Bash(*agentic*--replan*)` (any interpreter path in front), `Edit(private/agentic/**)`
+  (Claude Code applies Edit rules to every file-editing tool; a Write(path) rule is ignored with a warning). Deny rules match command text and are not a security boundary: `resume` refusing to
   run without a terminal is the real guard. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
   tool.
 - `doctor.HOOK_COMMANDS` holds the same three command strings; tests check them, and this section, against
