@@ -1895,8 +1895,9 @@ def _verdicts_text(V: pd.DataFrame, amap: dict, meta: dict) -> str:
                  f"{_fmt(r['mde']):>9s}  {'ok' if r['conds_ok'] else 'FAILED: ' + r['failed_conditions']}"
                  + (f"  [{r['notes']}]" if r['notes'] else ""))
     L += ["", "Units: H1, HS trade parts per trade per M (drift-adjusted; 'unadjusted' = the same statistic before the "
-          "drift adjustment); H3-H8 per signal / episode per M; H2, HS Sharpe parts annualized Sharpe; H9 log points a "
-          "year; H10 account return a year.",
+          "drift adjustment); H3-H8 per signal / episode per M; H2, HS Sharpe parts annualized Sharpe; H9 mean log growth a "
+          "year (natural-log units: x100 = log points); H10 account return a year. 'ruled out@95': trade and paired "
+          "tests at the widened bootstrap-t level 0.955 (Addendum 2), portfolio tests at the nominal 95% block bound.",
           "A summary may say the strategy 'does not work' on an asset group only if that group's H1 / HS1 / HS2 is "
           "NO EDGE."]
     return "\n".join(L) + "\n"

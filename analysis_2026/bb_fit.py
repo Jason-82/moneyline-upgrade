@@ -1233,7 +1233,9 @@ def consistency(st: dict, iv: dict, acct: dict, n_tranches: int, hit_target: flo
     ok_c = bool(COUNT_LO <= n_tranches <= COUNT_HI)
     others = ok_hit and ok_gt7 and ok_ge3 and ok_wl and ok_m
     cons = others and ok_c
-    status = "consistent" if cons else ("different trading frequency" if not ok_c else "inconsistent")
+    # literal reading (audit): 'different trading frequency' only for a row that fails on count alone
+    status = "consistent" if cons else ("different trading frequency" if (others and not ok_c) else (
+        "inconsistent (also different trading frequency)" if not ok_c else "inconsistent"))
     return {"ok_hit": ok_hit, "ok_gt7": ok_gt7, "ok_ge3": ok_ge3, "ok_winloss": ok_wl, "ok_multiple": ok_m,
             "ok_count": ok_c, "consistent": cons, "status": status, "fails_only_on_count": bool(others and not ok_c),
             "hit_target": hit_target, "se_hit": se_h, "se_gt7": se_7, "se_ge3": se_3}
@@ -2553,6 +2555,7 @@ def run_h11(out: Path, jobs: int = 4, say=_say_default) -> dict:
     summ = {"n_variant_windows": n_vw, "n_consistent_tranche_rule": n_cons, "n_consistent_position_rule": n_cons_pos,
             "consistent": [f"{r.row} {r.window}" for r in Ht[Ht.consistent.astype(bool)].itertuples()],
             "different_trading_frequency": int((Ht.status == "different trading frequency").sum()),
+            "inconsistent_and_different_frequency": int((Ht.status == "inconsistent (also different trading frequency)").sum()),
             "expected_by_chance": chance, "F": F, "luck_beside": luck_note,
             "consistent_rows_note": "consistent rows are a fitted subset whose out-of-window results are the only "
                                     "evidence about them; a match is never cited as evidence that a variant works",
@@ -3135,7 +3138,8 @@ def _st_end_to_end(say, jobs: int = 4) -> None:
         Ha, Hz = H[H.group == "all"], H[H.group == EXZEC]
         assert set(H.group) == {"all", EXZEC} and set(H.unit) == {"position", "tranche"}
         assert len(Ha) == len(rows) * 2 * 2 and not Ha.duplicated(["row", "window", "unit"]).any()
-        assert H.status.isin(["consistent", "inconsistent", "different trading frequency"]).all()
+        assert H.status.isin(["consistent", "inconsistent", "different trading frequency",
+                             "inconsistent (also different trading frequency)"]).all()
         assert H[H.row == "R0+G-A"].n_grid_units.sum() > 0 and H[H.row == "R0+G-B"].n_grid_units.sum() > 0
         O = pd.read_csv(tmp / "h11" / "oow.csv")
         assert set(O.row) == rows and (O[O.group == "all"].span == "pooled").sum() >= len(rows)

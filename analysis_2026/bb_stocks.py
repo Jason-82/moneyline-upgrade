@@ -161,7 +161,8 @@ Coding choices the pre-registration leaves open (most literal reading taken; als
    lands on the next row). The ETF benchmark holds each ETF from its first raw_pit date plus 60 sessions of history
    (the Data section's ETF universe): it earns its first return on its 61st session, the first whose open the
    strategy could buy (min_history=0 holds it from the session after its first close).
-12. HS2's portfolio uses the same 20 slots of equity / 20 ("the same on the 14 ETFs"); n_slots is a parameter.
+12. HS2's portfolio uses 14 slots of equity / 14, one per ETF (Addendum 2; 20 slots of equity / 20 could never fill
+    on 14 ETFs); n_slots is a parameter.
 13. The 100 further seeds are 20261019 .. 20261118 (SEEDS_FURTHER). Ties in the atr_dist ranking are broken by the
    symbol string (dead names carry their -YYYYMM file suffix).
 14. portfolio() takes the stock_trades result, not only its trades: a name the book skips (no free slot) can take
@@ -493,12 +494,26 @@ def _tbill_session(idx) -> np.ndarray:
     return tbill_session(pd.DatetimeIndex(idx))
 
 
+GAP_DAYS = 30            # a session gap longer than this is a splice, not a return (audit, 2026-10-19)
+PENNY = 0.01             # a close below this is a post-failure OTC print, not the S&P name's return
+
+
 def session_returns(data: dict) -> dict:
-    """Total-return close-to-close arithmetic return per session, indexed by session date (first row NaN)."""
+    """Total-return close-to-close arithmetic return per session, indexed by session date (first row NaN). This is
+    the sample of bb_stats.drift_adjust's leave-out drift. Returns across a gap of more than GAP_DAYS calendar days,
+    or from or to a chart close below PENNY, are NaN: the audit found post-failure OTC penny prints (FRC, SIVB, SBNY)
+    and multi-year splices (CHK, BTUUQ-201704) in the member files, which inflated a few names' drift 5-40x. Trade
+    P&L is unaffected; only the drift sample is cleaned."""
     out = {}
     for s, f in data.items():
-        tr = pd.Series(np.asarray(f["tr"], float), index=pd.DatetimeIndex(f.index).normalize().as_unit("ns"))
-        out[s] = tr.pct_change()
+        idx = pd.DatetimeIndex(f.index).normalize().as_unit("ns")
+        tr = pd.Series(np.asarray(f["tr"], float), index=idx)
+        r = tr.pct_change()
+        c = pd.Series(np.asarray(f["close"], float), index=idx)
+        bad = (idx.to_series().diff() > pd.Timedelta(days=GAP_DAYS)).to_numpy() | (c < PENNY).to_numpy() | (
+            c.shift() < PENNY).to_numpy()
+        r[bad] = np.nan
+        out[s] = r
     return out
 
 

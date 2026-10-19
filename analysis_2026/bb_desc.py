@@ -1377,7 +1377,10 @@ def part_headline(out: Path, sims: Sims, conf: Conf, src: Src, f_cell, f_note, s
                    "max_dd_pct": s0["max_dd_pct"], "sharpe": s0["sharpe"], "days": s0["days"],
                    "n_positions_book": int(len(bk_["positions"])) if slc is None else np.nan,
                    **trade_stats(T, None), "cagr_tax_pct": bk_["tax"].get("cagr_tax") if slc is None else np.nan,
-                   "spy_cagr_tax_pct": _spy_cagr_tax(first, last), "note": SLICE_NOTE if slc is not None else "",
+                   "spy_cagr_tax_pct": _spy_cagr_tax(first, last),
+                   "note": (SLICE_NOTE + "; " if slc is not None else "") + (
+                       f"account statistics: the {bk_['n_slots']}-slot book with idle cash at the T-bill (0%-cash "
+                       f"account in routes/summary.csv); trade statistics: every signal (uncapped, the HS trade sample)"),
                    "bench_coins": f"equal-weight {univ}", "bench_same_coins": True, "bench_note": "",
                    **{f"bh_{k}": v for k, v in bstats.items()},
                    "bh_cagr_tax_pct": bb._cagr(bb.bh_after_tax(bmult), first, last) if np.isfinite(bmult) else np.nan}
@@ -1934,8 +1937,11 @@ def part_scorecard(out: Path, sims: Sims, conf: Conf, src: Src, say=print, jobs:
                                                           "sharpe_lo", "sharpe_hi")},
                      "verdict": verdict, "verdict_source": source, "verdict_descriptive": desc,
                      "verdict_descriptive_exZEC": desc_x,
-                     "note": (f"R0 suppressed {supp} midline exits under the literal rule 6 (Full window)"
-                              if rule == 6 else "")})
+                     "note": (f"R0 suppressed {supp} midline exits under the literal rule 6 (Full window); H8's "
+                              f"component (a), the 72-h minimum hold, changes 2 of 92 signals" if rule == 6 else
+                              "H8 is NO EDGE through its component (a) (72-h minimum hold) only; rule 15's own "
+                              "component (b) has a 99.625% bound of +0.36% of M, above E = 0.25%, so on its own the "
+                              "data cannot tell" if rule == 15 else "")})
     S = pd.DataFrame(rows)
     S.to_csv(d / "scorecard.csv", index=False)
     meta = {"seconds": round(time.time() - t0, 1), "rules": int(len(S)), "comparisons": int(len(D)),
