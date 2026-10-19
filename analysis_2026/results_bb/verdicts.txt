@@ -1,0 +1,36 @@
+BB-breakout replication: verdicts (analysis_2026/BB_REPLICATION_PREREG.md, 'Verdicts' and 'The answer to the user')
+One Holm family of 12 tests, one-sided 5%. NO EDGE bounds at level 0.99625 (results_bb/controls/inference.json); written 2026-10-19T13:04:48.407749+00:00.
+
+THE ANSWER (H1 crypto, H2 vs benchmarks, HS1 stocks, HS2 ETFs; in that order, before any table):
+  H1   core edge                    INCONCLUSIVE                 estimate +0.03735 [95% -0.012, +0.08669]  Holm p +0.799
+  H2   vs benchmarks                INCONCLUSIVE                 estimate -0.2741 [95% -0.8492, +0.3189]  Holm p +1
+  HS1  stocks                       NO EDGE (HARMS)              estimate -0.006712 [95% -0.008128, -0.005297]  Holm p +1
+  HS2  ETFs                         NO EDGE                      estimate -0.001928 [95% -0.003493, -0.0003641]  Holm p +1
+
+Answer map:
+  - crypto: not shown - the data cannot tell (H1 INCONCLUSIVE)
+  - stocks: it does not work (HS1 NO EDGE (HARMS))
+  - ETFs: it does not work (HS2 NO EDGE)
+  - 'The core has an edge, but not over what you already use': does not apply (H1 INCONCLUSIVE; H2 moneyline component passes: False)
+  - 'Their full strategy beats holding' (crypto, R0 (L = 3) vs 1x equal-weight buy-and-hold): may not be said; full -0.07116 [-0.5244, +0.3856] log/yr
+  - 'Their full strategy beats holding' (stocks, 1x portfolio vs equal-weight benchmark): may not be said; full -0.09032 [-0.1475, -0.03554] log/yr
+  - 'Their full strategy beats holding' (ETFs, 1x portfolio vs equal-weight benchmark): may not be said; full -0.05034 [-0.09929, -0.00394] log/yr
+  - 'You can trade it': routes not run (run desc first); undecided
+
+All 12 tests:
+  test  verdict                              p    Holm p   estimate unadjusted                   95% CI ruled out@95              UB noedge              E       MDE  conditions
+  H1    INCONCLUSIVE                   +0.0672    +0.799   +0.03735   +0.06797       [-0.012, +0.08669]      +0.0918   [0.1368770450585636]        [0.005]  +0.08526  ok
+  H2    INCONCLUSIVE                    +0.823        +1    -0.2741          -       [-0.8492, +0.3189]      +0.2488 [1.3369923828327168, 0.5755034617807969]     [0.1, 0.1]   +0.9862  FAILED: half 2023-01..2026-10 of vs_buy_and_hold not > 0; half 2020-01..2022-12 of vs_moneyline not > 0; half 2023-01..2026-10 of vs_moneyline not > 0
+  HS1   NO EDGE (HARMS)                     +1        +1  -0.006712 +0.0009217   [-0.008128, -0.005297]    -0.005449 [-0.0046293241789845, -0.041163424952844266]   [0.005, 0.1] +0.002503  FAILED: half 2001-2013 of trade_drift_adjusted_mean not > 0; half 2014-2026 of trade_drift_adjusted_mean not > 0; half 2001-2013 of sharpe_vs_benchmark not > 0; half 2014-2026 of sharpe_vs_benchmark not > 0
+  HS2   NO EDGE                         +0.992        +1  -0.001928  +0.001043  [-0.003493, -0.0003641]   -0.0003769 [0.0006144638907508014, 0.3036517978946025]   [0.005, 0.1] +0.002765  FAILED: half 2001-2013 of trade_drift_adjusted_mean not > 0; half 2014-2026 of trade_drift_adjusted_mean not > 0; half 2001-2013 of sharpe_vs_benchmark not > 0; half 2014-2026 of sharpe_vs_benchmark not > 0
+  H3    INCONCLUSIVE                    +0.115        +1  +0.007643  +0.001868    [-0.005023, +0.02031]     +0.02086 [0.029980258756714565]       [0.0025]  +0.02187  ok
+  H4    INCONCLUSIVE                    +0.902        +1  -0.009723    -0.0151    [-0.02461, +0.005163]    +0.002116  [0.00823403278734472]       [0.0025]  +0.02584  FAILED: half 2020-01..2022-12 of per_episode_S1_minus_touch not > 0; half 2023-01..2026-10 of per_episode_S1_minus_touch not > 0
+  H5    INCONCLUSIVE                    +0.599        +1   -0.01074   -0.01299     [-0.09555, +0.07408]     +0.05479  [0.08927434590857983]       [0.0025]   +0.1477  FAILED: half 2020-01..2022-12 of near_high_coefficient not > 0
+  H6    INCONCLUSIVE                    +0.273        +1    +0.0033  +0.003253    [-0.007651, +0.01425]     +0.01279  [0.01890267734881982]       [0.0025]  +0.01892  FAILED: gate rank_raw_top5pct; gate rank_residual_top5pct; half 2023-01..2026-10 of per_signal_R0pair_minus_S1 not > 0
+  H7    INCONCLUSIVE                    +0.886        +1  -0.006115  -0.008025     [-0.0162, +0.003974]   +0.0008023 [0.004729946354366569]       [0.0025]  +0.01743  FAILED: gate rule12_ranks_first_of_7; half 2020-01..2022-12 of per_signal_rule12_minus_S1W not > 0; half 2023-01..2026-10 of per_signal_rule12_minus_S1W not > 0
+  H8    NO EDGE                         +0.915        +1 -0.0002629 -0.0002387  [-0.000642, +0.0001162]   -2.865e-05 [0.00010319574012994896, 0.003632832396669889] [0.0025, 0.0025] +0.000655  FAILED: gate rule15_ranks_first_of_7; half 2020-01..2022-12 of per_signal_minhold72_minus_S1W not > 0; half 2023-01..2026-10 of per_signal_minhold72_minus_S1W not > 0; half 2023-01..2026-10 of per_signal_rule15_minus_S1W not > 0
+  H9    INCONCLUSIVE                   +0.0666    +0.799     +0.216          -      [-0.05342, +0.4634]      +0.4335   [0.5488298786509439]         [0.02]   +0.4824  ok
+  H10   INCONCLUSIVE                    +0.917        +1   -0.03404          -     [-0.07151, +0.01637]    +0.007511 [0.038720089734076646]         [0.01]  +0.07963  FAILED: half 2024-07..2025-08 of mean_daily_diff_base_fees not > 0; half 2025-09..2026-10 of mean_daily_diff_base_fees not > 0
+
+Units: H1, HS trade parts per trade per M (drift-adjusted; 'unadjusted' = the same statistic before the drift adjustment); H3-H8 per signal / episode per M; H2, HS Sharpe parts annualized Sharpe; H9 log points a year; H10 account return a year.
+A summary may say the strategy 'does not work' on an asset group only if that group's H1 / HS1 / HS2 is NO EDGE.

@@ -1,0 +1,126 @@
+{
+ "headline": [
+  {
+   "test_id": "H1",
+   "verdict": "INCONCLUSIVE",
+   "sentence": "crypto: not shown - the data cannot tell (H1 INCONCLUSIVE)"
+  },
+  {
+   "test_id": "H2",
+   "verdict": "INCONCLUSIVE",
+   "sentence": "vs benchmarks: INCONCLUSIVE"
+  },
+  {
+   "test_id": "HS1",
+   "verdict": "NO EDGE (HARMS)",
+   "sentence": "stocks: it does not work (HS1 NO EDGE (HARMS))"
+  },
+  {
+   "test_id": "HS2",
+   "verdict": "NO EDGE",
+   "sentence": "ETFs: it does not work (HS2 NO EDGE)"
+  }
+ ],
+ "does_it_work_by_group": {
+  "crypto": "crypto: not shown - the data cannot tell (H1 INCONCLUSIVE)",
+  "stocks": "stocks: it does not work (HS1 NO EDGE (HARMS))",
+  "ETFs": "ETFs: it does not work (HS2 NO EDGE)"
+ },
+ "core_edge_but_not_over_what_you_use": {
+  "applies": false,
+  "H1": "INCONCLUSIVE",
+  "H2_moneyline_component_passes": false,
+  "H2_moneyline_component_holm_p": 1.0
+ },
+ "full_strategy_beats_holding": {
+  "crypto": {
+   "may_say_full_strategy_beats_holding": false,
+   "detail": {
+    "label": "R0 (L = 3) vs 1x equal-weight buy-and-hold",
+    "full": {
+     "estimate": -0.07116482565047082,
+     "ci95": [
+      -0.5243836429886665,
+      0.38563212661730717
+     ]
+    },
+    "2020-01..2022-12": {
+     "estimate": 0.11524093784650308,
+     "ci95": [
+      -0.7260775885025128,
+      0.914502186124177
+     ]
+    },
+    "2023-01..2026-10": {
+     "estimate": -0.21867436846107247,
+     "ci95": [
+      -0.7219320857472701,
+      0.30666893647094307
+     ]
+    },
+    "interval_above_zero_full_and_both_halves": false
+   }
+  },
+  "stocks": {
+   "may_say_full_strategy_beats_holding": false,
+   "detail": {
+    "label": "1x portfolio vs equal-weight benchmark",
+    "full": {
+     "estimate": -0.09032152830359286,
+     "ci95": [
+      -0.14745843212409043,
+      -0.03553673918726853
+     ]
+    },
+    "2001-2013": {
+     "estimate": -0.10734156416181234,
+     "ci95": [
+      -0.19659579038367472,
+      -0.02267751211456395
+     ]
+    },
+    "2014-2026": {
+     "estimate": -0.07300484694021918,
+     "ci95": [
+      -0.14456073007691037,
+      -0.006003322360852926
+     ]
+    },
+    "interval_above_zero_full_and_both_halves": false
+   }
+  },
+  "ETFs": {
+   "may_say_full_strategy_beats_holding": false,
+   "detail": {
+    "label": "1x portfolio vs equal-weight benchmark",
+    "full": {
+     "estimate": -0.05033837377923141,
+     "ci95": [
+      -0.09928837703709159,
+      -0.003939646069972264
+     ]
+    },
+    "2001-2013": {
+     "estimate": -0.041988805227309224,
+     "ci95": [
+      -0.1233172726787739,
+      0.033917962786548725
+     ]
+    },
+    "2014-2026": {
+     "estimate": -0.058833468580424556,
+     "ci95": [
+      -0.11184437146095705,
+      -0.009385361249813956
+     ]
+    },
+    "interval_above_zero_full_and_both_halves": false
+   }
+  }
+ },
+ "you_can_trade_it": {
+  "rows": [],
+  "applies": null,
+  "note": "routes not run (run desc first): 'You can trade it' is undecided until results_bb/routes/ holds the gate verdicts of 'What the user could run'"
+ }
+}
