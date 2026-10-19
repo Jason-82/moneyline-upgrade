@@ -200,7 +200,9 @@ def test_rh_unwraps_mcp_wrappers(tmp_path, kind):
     got = data.load_robinhood_bars(tmp_path, ["spy"], AFTER_CLOSE)
     df = got["SPY"]
     assert list(df.index.date) == DAYS
-    assert list(df.columns) == ["open", "high", "low", "close"] and all(df[c].dtype == float for c in df.columns)
+    assert list(df.columns) == ["open", "high", "low", "close", "volume"]
+    assert all(df[c].dtype == float for c in df.columns)
+    assert df["volume"].iloc[-1] == 123456                   # shares: the stock universe's liquidity filter
     assert df.index.name == "date" and df.index.tz is None
     assert df.loc["2026-10-16", "close"] == pytest.approx(px(date(2026, 10, 16)))
     assert df.loc["2026-10-16", "low"] == pytest.approx(px(date(2026, 10, 16)) - 1.5)

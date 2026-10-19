@@ -1,16 +1,17 @@
 """Phase 1 signal job (SPEC section 12): bar feeds -> data checks -> MoneyLine tranche targets -> signals + digest.
 
 Runs without Robinhood access for Coinbase / yfinance / csv / tv_export signals. Robinhood-feed (stock) signals read
-the get_equity_historicals captures that the PostToolUse hook saved to the inbox. With the crypto universe enabled
-(universe.py) the generated coins are scanned too, and the signals file stores them and the universe report. Output
-goes to the private state dir only: signals/signals_<run date UTC>.json and digests/digest_<run date UTC>.txt.
+the get_equity_historicals captures that the PostToolUse hook saved to the inbox (through the Robinhood cache). With
+the crypto universe (universe.py) or the stock universe (stocks.py) enabled, the generated assets are scanned too, and
+the signals file stores them and the universe reports. Output goes to the private state dir only:
+signals/signals_<run date UTC>.json and digests/digest_<run date UTC>.txt.
 """
 from __future__ import annotations
 
 import json
 import math
 import os
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -18,8 +19,8 @@ import pandas as pd
 
 from agentic import calendar as cal
 from agentic import data as feeds
-from agentic import entry, universe
-from agentic.config import crypto_universe, paths, tranches_for
+from agentic import entry, stocks, universe
+from agentic.config import crosscheck_applies, crypto_universe, equity_universe, paths, tranches_for
 from agentic.indicator import (TV_CONFIRM_N, TV_MODES, moneyline_confirmed, read_tv_export, tranche_targets,
                                tv_export_targets)
 from agentic.ledger import iso_z, write_json
@@ -188,10 +189,11 @@ def _entry(out: dict, asset: dict, cfg: dict, recorded: str | None, run_date: st
 
 
 def asset_signal(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, strategy_start: str | None = None,
-                 offline: bool = False) -> dict:
+                 offline=False) -> dict:
     """One asset's signal record (SPEC section 12). Feed and data problems go to `errors`; the planner skips such an
     asset entirely. Never raises for data problems. `strategy_start`: the recorded first live plan date (None reads
-    the state dir). `offline`: Coinbase bars from the cache only (the universe scan found Coinbase unreachable)."""
+    the state dir). `offline` (True, or a set of feed names): those bars from their caches only (the universe scan
+    found Coinbase unreachable, or yfinance was already downloaded in one batch)."""
     now = cal.as_utc(now_utc)
     recorded = entry.recorded_start() if strategy_start is None else strategy_start
     exp = expected_bar_date(asset, now)
@@ -202,9 +204,11 @@ def asset_signal(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, strategy_
             raw = read_tv_export(s["path"])
             out["signal_file"] = Path(raw.attrs["path"]).name
         else:
-            raw = feeds.get_bars(asset, cfg, now, inbox_dir, offline=True) if offline else \
+            raw = feeds.get_bars(asset, cfg, now, inbox_dir, offline=offline) if offline else \
                 feeds.get_bars(asset, cfg, now, inbox_dir)
         src_file = raw.attrs.get("path")
+        out["warnings"] += [n if n.startswith(feeds.SPLIT_NOTE) else f"skipped capture: {n}"
+                            for n in raw.attrs.get("notes") or []]
     except Exception as exc:                       # one broken feed must not stop the other assets
         out["errors"].append(f"data: {type(exc).__name__}: {exc}")
         return out
@@ -219,9 +223,9 @@ def asset_signal(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, strategy_
         chk = _check_tv(df, exp, asset["class"], saved)
     else:
         chk = feeds.check_bars(df, exp, int(asset.get("min_bars") or cfg["limits"]["min_bars"]), asset["class"])
-        if s.get("feed") == "coinbase":
+        if "volume" in df.columns:                 # coinbase, yfinance, robinhood: slot ties by liquidity
             dv = feeds.median_dollar_volume(df, universe.DV_BARS)
-            out["dollar_volume_usd"] = None if dv is None else round(dv, 2)      # universe slot ties
+            out["dollar_volume_usd"] = None if dv is None or dv <= 0 else round(dv, 2)
         if s.get("feed") == "csv" and src_file and out["bar_date"] == exp.isoformat():
             saved = datetime.fromtimestamp(os.path.getmtime(src_file), timezone.utc)
             if saved < bar_close_time(asset["class"], exp, settled=True):
@@ -237,34 +241,62 @@ def asset_signal(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, strategy_
     return out
 
 
+def _feed(asset: dict) -> str:
+    s = asset.get("signal") or {}
+    return "tv_export" if s.get("source", "computed") == "tv_export" else str(s.get("feed"))
+
+
 def compute_signals(cfg: dict, now_utc=None, inbox_dir=None, include_disabled: bool = False,
-                    classes=None, build=None) -> dict:
-    """Signals for every enabled asset (all assets with include_disabled; only `classes` if given), plus the crypto
-    universe's coins when it is enabled (watch-only ones too), or, when it is off, the coins of its last scan that the
-    sleeve still holds (hold only). `build`: universe.build_universe (tests)."""
+                    classes=None, build=None, build_equity=None, skip_feeds=None) -> dict:
+    """Signals for every enabled asset (all assets with include_disabled; only `classes` if given; none whose feed is
+    in `skip_feeds`, e.g. the scheduled job skips robinhood), plus the crypto universe's coins and the stock universe's
+    tickers when enabled (watch-only ones too), or, when off, the assets of their last scan that the sleeve still holds
+    (hold only). yfinance stocks are downloaded in one batch first. `build` / `build_equity`: the universe builders
+    (tests)."""
     now = cal.as_utc(now_utc)
     inbox = Path(inbox_dir) if inbox_dir is not None else paths()["inbox"]
     keep = set(classes) if classes else None
-    assets = [a for a in cfg.get("assets", []) if (include_disabled or a.get("enabled"))
-              and (keep is None or a["class"] in keep)]
+    skip = set(skip_feeds or ())
+    every = [a for a in cfg.get("assets", []) if (include_disabled or a.get("enabled"))
+             and (keep is None or a["class"] in keep)]
+    assets = [a for a in every if _feed(a) not in skip]
+    skipped = [a["name"] for a in every if _feed(a) in skip]
     run_date = now.date().isoformat()
     recorded = entry.recorded_start() or ""
-    uni, offline = None, False
-    if keep is None or "crypto" in keep:
+    uni, uni_eq, offline, gen = None, None, set(), []
+    if (keep is None or "crypto" in keep) and "coinbase" not in skip:
         gen, report = (build or universe.build_universe)(cfg, now, inbox)
         if crypto_universe(cfg)["enabled"] or gen:
             uni = dict(assets=gen, report=report)
             assets = assets + gen
-        offline = bool(report.get("coinbase_down"))                    # no more Coinbase requests this run
+        if report.get("coinbase_down"):
+            offline.add("coinbase")                                     # no more Coinbase requests this run
+    if (keep is None or "equity" in keep) and equity_universe(cfg)["feed"] not in skip:
+        gen_eq, report_eq = (build_equity or stocks.build_equity_universe)(cfg, now, inbox, crypto_assets=gen)
+        if equity_universe(cfg)["enabled"] or gen_eq:
+            uni_eq = dict(assets=gen_eq, report=report_eq)
+            assets = assets + gen_eq
+            if equity_universe(cfg)["feed"] == "yfinance":
+                offline.add("yfinance")                                 # downloaded in one batch just now
+    yf = [a for a in assets if _feed(a) == "yfinance" and a["class"] == "equity" and not a.get("universe")]
+    if yf:                                                              # explicit yfinance stocks: one batch too
+        start = now.date() - timedelta(days=max(feeds.history_days(a, cfg) for a in yf))
+        feeds.yfinance_daily_cached(sorted({str(a["signal"]["symbol"]).upper() for a in yf}), start, now)
+        offline.add("yfinance")
     held = universe.sleeve_vehicles()
     recs = [asset_signal(a, cfg, now, inbox, recorded, offline=offline) for a in assets]
-    for r in recs:
+    quotes = None
+    for r, a in zip(recs, assets):
         r["held"] = r["vehicle_symbol"] in held["crypto" if r["vehicle_type"] == "crypto" else "equity"]
+        if crosscheck_applies(a) and not r["errors"]:
+            quotes = stocks.latest_equity_quotes(inbox) if quotes is None else quotes
+            stocks.signal_crosscheck(r, a, quotes)
     return dict(date=run_date, generated_at=iso_z(now), live=bool(cfg.get("live")),
                 crypto_bar_date=cal.last_closed_crypto_bar(now).isoformat(),
                 equity_bar_date=cal.last_closed_equity_session(now).isoformat(),
-                classes=sorted(keep) if keep else None, signals_file=f"signals/signals_{run_date}.json",
-                strategy_start=recorded or None, assets=recs, universe=uni)
+                classes=sorted(keep) if keep else None, skipped_feeds=sorted(skip) or None, skipped_assets=skipped,
+                signals_file=f"signals/signals_{run_date}.json", strategy_start=recorded or None, assets=recs,
+                universe=uni, universe_equity=uni_eq)
 
 
 def write_signals(sig: dict, base=None) -> Path:
@@ -293,19 +325,26 @@ def _state(a: dict) -> str:
     return "GREEN" if all(gs) else "RED" if not any(gs) else "PARTIAL"
 
 
-def _action(a: dict) -> str:
+SIGNAL_NOTE = "SIGNAL is the indicator target, not an order; the plan lists orders"
+
+
+def _signal(a: dict) -> str:
+    """The indicator target's change since the previous bar, stated neutrally ('1.00->0.50', 'new 0.50', '-')."""
     if a["errors"]:
         return "ERROR: no trade"
-    if not a["enabled"]:
-        u = a.get("universe") or {}
-        return f"(watch: {u['reason'].split(':')[0]})" if u.get("outcome") == "watch" else "(disabled)"
     t, p, e = a["target_frac"], a["prev_target_frac"], a.get("entry_frac")
     if p is None or abs(t - p) < 1e-9:
-        return "HOLD"
-    if t == 0:
-        return "EXIT"
-    late = f" (may buy {e:.2f})" if t > p and e is not None and e < t - 1e-9 else ""
-    return f"{'BUY' if t > p else 'SELL'} to {t:.2f}{late}"
+        out = "-"
+    elif p <= 1e-9:
+        out = f"new {t:.2f}"
+    else:
+        out = f"{p:.2f}->{t:.2f}"
+    if p is not None and t > p + 1e-9 and e is not None and e < t - 1e-9:
+        out += f" (entry-eligible {e:.2f})"
+    if not a["enabled"]:
+        u = a.get("universe") or {}
+        out += f" (watch: {u['reason'].split(':')[0]})" if u.get("outcome") == "watch" else " (disabled)"
+    return out
 
 
 def _fmt(x, spec: str, empty: str = "-") -> str:
@@ -327,7 +366,7 @@ def _asset_lines(a: dict) -> list[str]:
              f"{_fmt(a['bars_in_state'], 'd'):>5}  {'NEW' if a['changed'] else '-':<5}"
              f"{_fmt(a['line_n1'], '.4f'):>14}  {dist:>8}  "
              f"{_fmt(a['target_frac'], '.2f'):>6}  {_fmt(a['prev_target_frac'], '.2f'):>5}  {alloc:>5}  "
-             f"{_action(a)}"]
+             f"{_signal(a)}"]
     if len(a["tranches"]) > 1:
         for k, t in enumerate(a["tranches"], 1):
             n = t["n_exit"] if t["green"] else t["n_entry"]
@@ -349,11 +388,12 @@ def _asset_lines(a: dict) -> list[str]:
 
 
 def format_digest(sig: dict, full: bool = False) -> str:
-    """Text digest (plan section 9 style). Signal-level actions only; the plan sizes orders against positions.
+    """Text digest (plan section 9 style). Indicator targets only (the SIGNAL column); the plan sizes orders against
+    positions.
 
-    Readable with many assets: a SCAN summary line, the universe summary, then a table of the explicit assets and of
-    every universe coin that is held (*), changed today, eligible to buy today or in error, then one line with the
-    rest by state. `full` (signals --all): every asset in the table and every universe coin's outcome."""
+    Readable with many assets: a SCAN summary line, the universe summaries, then a table of the explicit assets and of
+    every universe coin or stock that is held (*), changed today, eligible to buy today or in error, then one line with
+    the rest by state. `full` (signals --all): every asset in the table and every universe asset's outcome."""
     mode = "LIVE" if sig.get("live") else "SHADOW (live=false)"
     cb, eb = sig["crypto_bar_date"], sig["equity_bar_date"]
     assets = sig["assets"]
@@ -366,11 +406,16 @@ def format_digest(sig: dict, full: bool = False) -> str:
              f"{partial} partial, {sum(map(_eligible, assets))} eligible to buy today, "
              f"{sum(1 for a in assets if a.get('held'))} held (*), {sum(1 for a in assets if a['changed'])} changed "
              f"today, {sum(1 for a in assets if a['errors'])} with errors"]
+    if sig.get("skipped_feeds"):
+        names = sig.get("skipped_assets") or []
+        lines.append(f"SKIPPED feed {', '.join(sig['skipped_feeds'])} (needs Claude's captures; computed in /moneyline)"
+                     + (f": {', '.join(names)}" if names else ""))
     lines += universe.summary_lines((sig.get("universe") or {}).get("report"), full)
+    lines += stocks.summary_lines((sig.get("universe_equity") or {}).get("report"), full)
     shown = [a for a in assets if full or not a.get("universe") or a.get("held") or a["changed"] or _eligible(a)
              or a["errors"]]
     lines.append(f"{'ASSET':<9}{'VEHICLE':<9}{'MODE':<11}{'SRC':<10}{'STATE':<8}{'BARS':>5}  {'FLIP':<5}{'LINE':>14}  "
-                 f"{'DIST':>8}  {'TARGET':>6}  {'PREV':>5}  {'ALLOC':>5}  ACTION")
+                 f"{'DIST':>8}  {'TARGET':>6}  {'PREV':>5}  {'ALLOC':>5}  SIGNAL")
     for a in shown:
         lines += _asset_lines(a)
     if not assets:
@@ -384,8 +429,10 @@ def format_digest(sig: dict, full: bool = False) -> str:
                    if _state(a) == "PARTIAL" else _state(a))
             groups.setdefault(key, []).append(a["name"] + (f" ({_state(a)})" if key == "watch-only" else ""))
         order = ("GREEN, not eligible", "PARTIAL, not eligible", "RED", "watch-only", "-")
-        lines.append("OTHERS (no action today): " + "; ".join(f"{k} ({len(groups[k])}): {', '.join(groups[k])}"
+        lines.append("OTHERS (no change today): " + "; ".join(f"{k} ({len(groups[k])}): {', '.join(groups[k])}"
                                                              for k in order if k in groups))
+    if assets:
+        lines.append(SIGNAL_NOTE)
     notes = []
     for a in shown:
         src = "tv" if a["source"] == "tv_export" else a.get("feed") or "?"
@@ -399,7 +446,8 @@ def format_digest(sig: dict, full: bool = False) -> str:
 
 
 def write_digest(sig: dict, text: str, base=None) -> Path:
-    suffix = "_" + "_".join(sig["classes"]) if sig.get("classes") else ""
+    parts = list(sig.get("classes") or []) + [f"no-{f}" for f in sig.get("skipped_feeds") or []]
+    suffix = "_" + "_".join(parts) if parts else ""
     f = paths(base)["digests"] / f"digest_{sig['date']}{suffix}.txt"
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(text + "\n", encoding="utf-8")

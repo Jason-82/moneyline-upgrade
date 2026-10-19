@@ -263,7 +263,9 @@ def test_full_offline_dry_run(state, monkeypatch, capsys):
     now = real_now()
     w = prepare(state, monkeypatch, now)
     caps = sorted(p.name for p in (state / "inbox").glob("*.json"))
-    assert any(n.endswith("_get_equity_historicals.json") for n in caps) and len(caps) == 11
+    hist = [n for n in caps if n.endswith("_get_equity_historicals.json")]
+    sessions = len(cal.trading_days((now - timedelta(days=700)).date(), w["eq_end"]))
+    assert len(hist) == -(-sessions // 120) and len(caps) == 10 + len(hist)    # backfill windows of <= 120 sessions
 
     # phase 1: signals (Coinbase through the fake urlopen, stock bars from the inbox capture)
     assert cli.main(["signals"]) == 0
@@ -490,7 +492,7 @@ def test_signal_flip_on_last_bar_is_new_and_exit(monkeypatch):
     assert a["tranches"][0]["last_flip_date"] == "2026-10-18" and a["bars_in_state"] == 0
     assert any("big wick" in x for x in a["warnings"])
     text = sg.format_digest(s)
-    assert "NEW" in text and "EXIT" in text
+    assert "NEW" in text and "1.00->0.00" in text and "EXIT" not in text and sg.SIGNAL_NOTE in text
 
 
 def test_signal_errors_never_raise_and_block_the_asset(monkeypatch, capsys):
@@ -605,13 +607,13 @@ def test_fetch_list_order_params_and_chunking(state, monkeypatch, capsys):
                               "vehicle": {"type": "equity", "symbol": f"S{k:02d}"}})
     cfg = validate(raw)
     calls = cli.fetch_calls(cfg, NOW)
-    tools = [c["tool"] for c in calls]
+    tools = [c["tool"] for c in calls if c["tool"] != "get_equity_historicals"]
     assert tools == ["get_accounts", "get_portfolio", "get_equity_orders", "get_crypto_orders", "get_crypto_orders",
-                     "get_equity_positions", "get_crypto_positions", "get_currency_pairs", "get_equity_historicals",
-                     "get_equity_historicals", "get_equity_quotes", "get_crypto_quotes"]       # orders before positions
+                     "get_equity_positions", "get_crypto_positions", "get_currency_pairs", "get_equity_quotes",
+                     "get_crypto_quotes"]                                                    # orders before positions
     assert calls[4]["params"] == {"rhs_account_number": RHS, "state_group": "open"}     # open gtc orders of any age
     hist = [c["params"] for c in calls if c["tool"] == "get_equity_historicals"]
-    assert [len(h["symbols"]) for h in hist] == [10, 2]
+    assert len(hist) == 12 * 4 and all(len(h["symbols"]) == 1 for h in hist)          # no cache: backfill windows
     assert hist[0]["start_time"] == "2024-11-18T00:00:00Z" and hist[0]["bounds"] == "regular"
     by = {c["tool"]: c["params"] for c in calls}
     assert by["get_equity_orders"] == {"account_number": ACCT, "created_at_gte": "2026-09-19T00:00:00Z"}

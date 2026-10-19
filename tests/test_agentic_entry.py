@@ -184,8 +184,9 @@ def example():
 
 def test_example_config_uses_slots_and_join_recent():
     c = cfgmod.validate(example())
-    assert c["allocation"] == {"method": "slots", "slot_frac": 0.20, "priority": "crypto_first",
+    assert c["allocation"] == {"method": "slots", "slot_frac": 0.10, "priority": "crypto_first", "favorites": [],
                                "class_max_frac": {"crypto": 0.60, "equity": 1.0}}
+    assert c["allocation"]["slot_frac"] <= c["limits"]["max_asset_frac"]                    # 10 slots of 10%
     assert c["entry"] == {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
 
 

@@ -62,10 +62,10 @@ COINS = {
     "BONK": ("fresh", 0.00002, 1e6), "ZRX": ("red", 0.3, 2e6),                             # illiquid
     "WIF": ("fresh", 2.0, 2e7, 200),                                                        # too little history
     "USDC": ("red", 1.0, 5e8), "USDT": ("red", 1.0, 5e8), "PYUSD": ("red", 1.0, 1e7), "WBTC": ("fresh", 60000.0, 1e8),
-    "HYPE": ("fresh", 30.0, 1e8),                                                           # no Coinbase pair
+    "NOCB": ("fresh", 30.0, 1e8),                                                           # no Coinbase pair
     "XTZ": ("red", 0.7, 1e7),                                                               # sell_only on Robinhood
 }
-NOT_ON_COINBASE = {"HYPE"}
+NOT_ON_COINBASE = {"NOCB"}
 RH_SELL_ONLY = {"XTZ"}
 ETF_UNTRADABLE = {"XRPC"}
 HELD = {"DOGE": "1500", "LINK": "12"}         # the sleeve's direct holdings (sleeve_initial_qty)
@@ -305,7 +305,7 @@ def test_build_universe_outcomes_filters_and_ranking(state):
     assert c["XRP"]["outcome"] == "watch" and "ETF XRPC not confirmed tradable" in c["XRP"]["reason"]
     assert "never switched to direct crypto" in c["XRP"]["reason"]
     assert c["DOGE"]["outcome"] == "direct" and c["DOGE"]["vehicle"] == {"type": "crypto", "symbol": "DOGE"}
-    for code, cat in (("USDC", "stablecoin/wrapped"), ("WBTC", "stablecoin/wrapped"), ("HYPE", "no Coinbase pair"),
+    for code, cat in (("USDC", "stablecoin/wrapped"), ("WBTC", "stablecoin/wrapped"), ("NOCB", "no Coinbase pair"),
                       ("WIF", "too little history"), ("BONK", "illiquid"), ("ZRX", "illiquid"),
                       ("ICP", "beyond max_assets"), ("INJ", "beyond max_assets"),
                       ("XTZ", "not tradable on Robinhood")):
@@ -411,6 +411,13 @@ def test_build_universe_keeps_held_coins_hold_only(state):
     assets, rep = build(uni_cfg(universe={"exclude": ["USDT", "LTC"]}), held={"crypto": set(), "equity": {"LTCC"}})
     c = by_coin(rep)
     assert c["LTC"]["outcome"] == "etf" and "held, so kept" in c["LTC"]["hold_only"]
+    # held with too little history: kept for exits, its signal on the bars it has (min_bars 300 would block the exit)
+    assets, rep = build(held={"crypto": {"WIF"}, "equity": set()})
+    wif = next(a for a in assets if a["name"] == "WIF")
+    assert "too little history (200 bars, need 300)" in wif["universe"]["hold_only"] and wif["min_bars"] == 200
+    bars = fake_fetch()("WIF-USD", "2020-01-01", NOW)
+    assert not any("bars, need" in e for e in feeds.check_bars(bars, bars.index[-1], wif["min_bars"])["errors"])
+    assert next(a for a in build(held=held)[0] if a["name"] == "SOL")["min_bars"] == 300
     assert c["USDC"]["outcome"] == "direct"                                 # not excluded any more: user's list
 
 
@@ -427,7 +434,7 @@ def test_build_universe_data_errors_and_stale_bars(state):
     _, rep = build(fetch=fetch, products=lambda now: {"products": None, "fetched_at": None, "error": "down"})
     c = by_coin(rep)
     assert c["ADA"]["category"] == "Coinbase data error" and c["DOT"]["category"] == "stale Coinbase data"
-    assert c["HYPE"]["category"] == "no Coinbase pair"                     # the candle 404, products unknown
+    assert c["NOCB"]["category"] == "no Coinbase pair"                     # the candle 404, products unknown
     assert any("availability not checked" in w for w in rep["warnings"])
 
 
@@ -591,7 +598,7 @@ def test_signals_cover_the_universe_and_digest_stays_compact(state, monkeypatch)
     assert lines[2].startswith("SCAN 30 assets (0 explicit, 30 universe): 13 green, 0 partial, 7 eligible to buy "
                                "today, 2 held (*), 0 changed today, 0 with errors"), lines[2]
     rows = [x.split()[0] for x in lines if x and not x.startswith((" ", "MONEYLINE", "crypto", "SCAN", "UNIVERSE",
-                                                                   "ASSET", "OTHERS", "Data", "Check"))]
+                                                                   "ASSET", "OTHERS", "SIGNAL", "Data", "Check"))]
     assert set(rows) == {"BTC", "ETH", "NEAR", "DOGE*", "AVAX", "UNI", "HBAR", "LINK*"}
     others = next(x for x in lines if x.startswith("OTHERS"))
     assert "GREEN, not eligible (5): SOL, ADA, BCH, XLM, SUI" in others and "watch-only (1): XRP (GREEN)" in others
@@ -772,7 +779,7 @@ def test_init_update_adds_missing_blocks_only(state, monkeypatch, capsys):
     assert len(backups) == 1 and json.loads(backups[0].read_text()) == old
     assert "added: allocation, entry, universe" in capsys.readouterr().out
     assert cli.main(["init", "--update"]) == 0 and "up to date" in capsys.readouterr().out
-    bad = dict(old, limits=dict(old["limits"], max_asset_frac=0.10))   # the example's slot 0.20 would not fit
+    bad = dict(old, limits=dict(old["limits"], max_asset_frac=0.05))   # the example's slot 0.10 would not fit
     f.write_text(json.dumps(bad))
     assert cli.main(["init", "--update"]) == 2 and json.loads(f.read_text()) == bad
     assert "slot_frac" in capsys.readouterr().err

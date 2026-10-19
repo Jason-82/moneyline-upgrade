@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agentic.config import (COIN_CODE, DEFAULT_EXCLUDE, EXAMPLE, REPO, ConfigError, cli_command, crypto_universe,
-                            load_config, paths)
+                            equity_universe, load_config, paths)
 
 UTC = timezone.utc
 PRE_HOOK = REPO / "agentic" / "hooks" / "pre_tool_use.py"
@@ -325,6 +325,7 @@ def run(settings_dir: Path | None = None) -> int:
     _check_ignored(rep, p["config"])
     if cfg is not None:
         check_universe(rep, cfg, p)
+        check_stocks(rep, cfg, p)
 
     # ---- settings.json hooks
     problems = []
@@ -457,6 +458,60 @@ def check_universe(rep: Report, cfg: dict, p: dict) -> None:
         rep.add("WARN", "coinbase cache", f"none yet ({_short(cb)}): the first `{cmd} signals` fills it (the first "
                                           "universe scan downloads about 2 years per coin, at most 5 requests a "
                                           "second)")
+
+
+def yfinance_needed(cfg: dict) -> list[str]:
+    """What uses the yfinance feed: enabled assets, and the stock universe when it is on with feed yfinance."""
+    out = [a["name"] for a in cfg.get("assets", []) if a.get("enabled") and (a.get("signal") or {}).get("feed") ==
+           "yfinance" and (a.get("signal") or {}).get("source", "computed") == "computed"]
+    u = equity_universe(cfg)
+    if u["enabled"] and u["feed"] == "yfinance":
+        out.append("universe.equity")
+    return out
+
+
+def check_stocks(rep: Report, cfg: dict, p: dict) -> None:
+    """The yfinance package (FAIL when the yfinance feed is used without it) and the stock universe (README section
+    13): on/off, an empty symbols list, a fixed allocation, the newest tradability capture."""
+    py = cli_command().split(" -m ")[0]
+    need = yfinance_needed(cfg)
+    if importlib.util.find_spec("yfinance") is not None:
+        try:
+            from importlib.metadata import version
+            ver = version("yfinance")
+        except Exception:                          # noqa: BLE001 - installed without metadata
+            ver = "importable"
+        rep.add("PASS", "yfinance", ver + (f" (used by {', '.join(need)})" if need else ""))
+    elif need:
+        rep.add("FAIL", "yfinance", f"not installed, but {', '.join(need)} use the yfinance feed: "
+                                    f"{py} -m pip install yfinance")
+    u = equity_universe(cfg)
+    if not u["enabled"]:
+        rep.add("PASS", "stock universe", "off (universe.equity); a config from before it has no universe.equity "
+                                          f"block: `{cli_command()} init --update` adds it")
+        return
+    rep.add("PASS", "stock universe", f"on: {len(u['symbols'])} symbols, feed {u['feed']}, at most {u['max_assets']} "
+                                      f"with median volume >= ${u['min_dollar_volume_usd']:,.0f}/day and >= "
+                                      f"{u['min_history_bars']} bars")
+    if not u["symbols"]:
+        rep.add("WARN", "stock universe", "universe.equity.symbols is empty: paste your tickers into the private "
+                                          "config (`code private/agentic/config.json`)")
+    if (cfg.get("allocation") or {}).get("method") != "slots":
+        rep.add("WARN", "stock universe", "allocation.method is fixed: universe stocks get alloc_frac 0, so they are "
+                                          "never bought; use allocation.method slots (README section 9)")
+    try:
+        from agentic import universe
+        tr, _ = universe.etf_tradability(p["inbox"], cfg) if p["inbox"].is_dir() else ({}, [])
+    except Exception as e:                         # noqa: BLE001 - pandas missing etc.: reported above
+        rep.add("WARN", "stock universe", f"cannot read the inbox ({type(e).__name__})")
+        return
+    missing = [t for t in u["symbols"] if t not in tr]
+    if missing:
+        rep.add("WARN", "tradability", f"{len(missing)} of {len(u['symbols'])} tickers have no get_equity_tradability "
+                                       "capture of the last 7 days: the next /moneyline checks them first")
+    else:
+        rep.add("PASS", "tradability", f"every ticker checked in the last 7 days "
+                                       f"({sum(1 for t in u['symbols'] if tr[t]['ok'])} tradable)")
 
 
 def _check_ignored(rep: Report, config_path: Path) -> None:

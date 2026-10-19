@@ -217,8 +217,11 @@ def handle(event: dict, now=None) -> list[str]:
     warnings = []
     if not failed:
         f = _guarded("capture", tool, secrets, H.save_capture, p["inbox"], tool, raw_ti, resp, now)
+        prob = _guarded("capture", tool, secrets, H.capture_problem, resp)
         if f is not None:
-            H.log("post", tool, "captured", "saved to the inbox", ref, secrets)
+            H.log("post", tool, "captured", "saved to the inbox" + (f" ({prob[0]})" if prob else ""), ref, secrets)
+        if prob and prob[0] == "response_too_large":
+            warnings.append(f"agentic hook: the {short} result holds no data. {H.TOO_LARGE_HELP}")
     else:
         H.log("post", tool, "failure", H.scrub(failure, secrets)[:300], ref, secrets)
     if kind == "other":

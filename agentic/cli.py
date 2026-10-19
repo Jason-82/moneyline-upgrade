@@ -7,6 +7,7 @@ Exit codes: 0 ok, 1 something needs attention (signal errors, plan errors, recon
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import shutil
@@ -15,8 +16,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agentic import ledger
-from agentic.config import (EXAMPLE, REPO, ConfigError, cli_command, crypto_universe, direct_crypto_possible,
-                            ensure_dirs, load_config, paths, validate)
+from agentic.config import (EXAMPLE, REPO, VALID_FEEDS, ConfigError, cli_command, crypto_universe,
+                            direct_crypto_possible, ensure_dirs, equity_universe, load_config, paths, validate)
 
 UTC = timezone.utc
 CRYPTO_COST, ETF_COST = 0.0095, 0.0002        # per side: Robinhood direct crypto (default route), spot ETF / stock
@@ -47,13 +48,17 @@ def _crypto_vehicles(cfg: dict) -> list[dict]:
 
 
 def effective_config(cfg: dict, sig: dict | None = None) -> tuple[dict, list[str]]:
-    """The config plus the crypto universe's assets from the signals file (`sig`, default the newest one), re-checked
-    against the config (universe.with_universe; with the universe off, the held coins it keeps for exits)."""
+    """The config plus the crypto and stock universes' assets from the signals file (`sig`, default the newest one),
+    re-checked against the config (universe.with_universe, stocks.with_equity_universe; with a universe off, the held
+    assets it keeps for exits)."""
     from agentic.signals import latest_signals
+    from agentic.stocks import with_equity_universe
     from agentic.universe import with_universe
     if sig is None:
         sig, _ = latest_signals()
-    return with_universe(cfg, sig)
+    cfg, w1 = with_universe(cfg, sig)
+    cfg, w2 = with_equity_universe(cfg, sig)
+    return cfg, w1 + w2
 
 
 def crypto_needed(cfg: dict, needs: dict | None = None) -> bool:
@@ -66,15 +71,78 @@ def crypto_needed(cfg: dict, needs: dict | None = None) -> bool:
 
 # ------------------------------------------------------------------ init / flags / status
 
-def init_update(cfg_path: Path, example: Path = EXAMPLE) -> tuple[dict, list[str]]:
-    """The private config with every top-level block of the example that it lacks (e.g. universe, allocation,
-    entry), nothing else changed: (merged config, added keys). Raises ConfigError if the result does not validate."""
+# settings blocks whose missing keys init --update adds; any other dict (etf_map, class_max_frac, account,
+# sleeve_initial_qty, modes) is a value: added whole when missing, never merged into
+MERGE_BLOCKS = {("allocation",), ("entry",), ("limits",), ("capital",), ("universe",), ("universe", "crypto"),
+                ("universe", "equity")}
+
+
+def _add_missing(raw: dict, ex: dict, path: tuple = ()) -> list[str]:
+    """Copy into `raw` the keys of `ex` it lacks, recursing into MERGE_BLOCKS; returns the added paths (a nested
+    _comment comes along silently, a top-level one never)."""
+    added = []
+    for k, v in ex.items():
+        if str(k).startswith("_") and not path:
+            continue
+        if k not in raw:
+            raw[k] = copy.deepcopy(v)
+            if not str(k).startswith("_"):
+                added.append(".".join(path + (k,)))
+        elif isinstance(v, dict) and isinstance(raw[k], dict) and path + (k,) in MERGE_BLOCKS:
+            added += _add_missing(raw[k], v, path + (k,))
+    return added
+
+
+def _leaves(v, path: str) -> list[str]:
+    if isinstance(v, dict):
+        return [p for k, x in v.items() if not str(k).startswith("_") for p in _leaves(x, f"{path}.{k}")]
+    return [path]
+
+
+def _get(d, path: str):
+    for k in path.split("."):
+        d = d.get(k) if isinstance(d, dict) else None
+    return d
+
+
+def effective_changes(raw: dict, merged: dict, added: list[str]) -> list[str]:
+    """Added settings whose effective value differs from what applied before, when the setting was missing (e.g.
+    allocation.method "fixed" -> "slots" when the whole allocation block is added)."""
+    try:
+        before = validate(raw)
+    except ConfigError:
+        return []
+    after = validate(merged)
+    out = []
+    for path in added:
+        for leaf in _leaves(_get(merged, path), path):
+            b, a = _get(before, leaf), _get(after, leaf)
+            if not isinstance(a, (dict, list)) and b is not None and b != a:
+                out.append(f"{leaf}: {json.dumps(b)} -> {json.dumps(a)}")
+    return out
+
+
+def init_update(cfg_path: Path, example: Path = EXAMPLE, kept: list | None = None) -> tuple[dict, list[str]]:
+    """The private config with every block of the example that it lacks (e.g. universe, allocation, entry) and every
+    missing setting inside its settings blocks (e.g. allocation.favorites, universe.equity), nothing else changed: no
+    existing value, list or asset is touched, and a missing nested setting whose example value would change what
+    applies now (e.g. a missing allocation.slot_frac means the code default 0.20; the example's is 0.10) is not added
+    but listed in `kept`. (merged config, added paths). Raises ConfigError if the result does not validate."""
     raw = json.loads(Path(cfg_path).read_text(encoding="utf-8-sig"))
     ex = json.loads(Path(example).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ConfigError("config.json is not a JSON object")
-    added = [k for k in ex if not str(k).startswith("_") and k not in raw]
-    merged = dict(raw, **{k: ex[k] for k in added})
+    merged = copy.deepcopy(raw)
+    added = _add_missing(merged, ex)
+    for path in [a for a in added if "." in a]:
+        ch = effective_changes(raw, merged, [path])
+        if ch:
+            *parent, key = path.split(".")
+            del _get(merged, ".".join(parent))[key]
+            added.remove(path)
+            if kept is not None:
+                kept += [f"{c.split(':')[0]}: stays {c.split(': ')[1].split(' -> ')[0]} (the example's "
+                         f"{c.split(' -> ')[1]} would change it)" for c in ch]
     validate(merged)
     return merged, added
 
@@ -84,13 +152,20 @@ def _init_update(p: dict) -> int:
     if not f.exists():
         print(f"no config at {f}: run `{cli_command()} init` first")
         return 2
-    merged, added = init_update(f)
+    kept: list[str] = []
+    merged, added = init_update(f, kept=kept)
+    for k in kept:
+        print(f"  not added: {k}; set it yourself if you want it")
     if not added:
-        print(f"config is up to date: it has every top-level block of {EXAMPLE.name}; nothing changed")
+        print(f"config is up to date: it has every block and setting of {EXAMPLE.name} (except any listed above); "
+              "nothing changed")
         return 0
-    print(f"would add these blocks from {EXAMPLE.name}, unchanged (existing values and assets are never touched):")
+    print(f"would add these from {EXAMPLE.name}, unchanged (existing values, lists and assets are never touched):")
     for k in added:
-        print(f"  {k}: {json.dumps(merged[k])[:300]}")
+        print(f"  {k}: {json.dumps(_get(merged, k))[:300]}")
+    raw = json.loads(f.read_text(encoding="utf-8-sig"))
+    for c in effective_changes(raw, merged, added):
+        print(f"  note: {c} (the block was missing, so the code default applied until now)")
     if "universe" in added and crypto_universe(validate(merged))["enabled"]:
         print("  note: this turns the crypto universe on (README section 10); `allocation` decides how much each "
               "coin gets, and `live` stays as it is")
@@ -98,7 +173,7 @@ def _init_update(p: dict) -> int:
         print("refusing to change the config without an interactive terminal: run this in your own terminal "
               "(Git Bash window: prefix it with winpty)", file=sys.stderr)
         return 2
-    if input("type 'update' to write these blocks into config.json: ").strip().lower() != "update":
+    if input("type 'update' to write these into config.json: ").strip().lower() != "update":
         print("not changed")
         return 1
     backup = f.with_name(f"config.json.bak-{_now().strftime('%Y%m%dT%H%M%SZ')}")
@@ -113,7 +188,7 @@ def _init_update(p: dict) -> int:
         pass
     print(f"backup: {_rel(backup)}")
     print(f"added: {', '.join(added)}. Next: `{cli_command()} doctor`, then `{cli_command()} signals --all` to see "
-          "what the new blocks do before the next /moneyline")
+          "what the new settings do before the next /moneyline")
     return 0
 
 
@@ -135,8 +210,8 @@ def cmd_init(args) -> int:
     if base.is_relative_to(REPO) and not base.is_relative_to(REPO / "private"):
         print(f"WARNING: {base} is inside the public repo but not under private/: make sure git ignores it")
     if existed:
-        print(f"config older than the example? `{cli_command()} init --update` adds the example's missing top-level "
-              "blocks (e.g. universe) without changing anything else")
+        print(f"config older than the example? `{cli_command()} init --update` adds the example's missing blocks and "
+              "settings (e.g. universe, allocation.favorites) without changing anything else")
     print("next: fill in account.account_number and account.rhs_account_number there (from get_accounts, the "
           f"account with agentic_allowed=true), choose assets and modes, then run `{cli_command()} doctor` and "
           f"`{cli_command()} fetch-list`")
@@ -196,7 +271,9 @@ def cmd_status(args) -> int:
               f"capital max ${float(cfg['capital']['max_usd']):,.0f}, max_day_usd {cfg['limits']['max_day_usd']}, "
               f"allocation {cfg['allocation']['method']}, entry {cfg['entry']['policy']}, crypto universe "
               + (f"on ({crypto_universe(cfg)['source']}, max {crypto_universe(cfg)['max_assets']})"
-                 if crypto_universe(cfg)["enabled"] else "off"))
+                 if crypto_universe(cfg)["enabled"] else "off") + ", stock universe "
+              + (f"on ({len(equity_universe(cfg)['symbols'])} symbols, feed {equity_universe(cfg)['feed']})"
+                 if equity_universe(cfg)["enabled"] else "off"))
     except ConfigError as e:
         cfg = None
         print(f"config: {e}")
@@ -245,13 +322,37 @@ def _orders_since(now: datetime) -> str:
     return f"{start.date().isoformat()}T00:00:00Z"
 
 
+def fetch_needs(cfg: dict, now_utc=None) -> dict:
+    """fetch-list's needs: the crypto universe's (universe.fetch_needs) and the stock universe's (stocks.fetch_needs),
+    merged. Stage 1 (those calls, then fetch-list again) while the crypto universe has no pair list yet or a universe
+    stock has no get_equity_tradability capture of the last 7 days."""
+    from agentic import stocks, universe
+    now = now_utc or _now()
+    eq1 = stocks.tradability_stage1(cfg, now)
+    if eq1:
+        etfs = universe.stage1_etfs(cfg, now)
+        return dict(stage1=True, pairs_stage1=etfs is not None, stock_stage1=eq1,
+                    tradability=sorted(set(etfs or []) | set(eq1)), equity_quotes=[], crypto_quotes=[], candidates=[],
+                    crypto_vehicles=False, report=None)
+    needs = universe.fetch_needs(cfg, now)
+    if needs.get("stage1"):
+        return needs
+    eq = stocks.fetch_needs(cfg, now, crypto_assets=needs.get("assets") or [])
+    return dict(needs, tradability=sorted(set(needs.get("tradability") or []) | set(eq["tradability"])),
+                equity_quotes=sorted(set(needs.get("equity_quotes") or []) | set(eq["equity_quotes"])),
+                historicals=eq["historicals"], stock_candidates=eq["candidates"], stock_report=eq["report"],
+                stocks_scanned=eq["scanned"])
+
+
 def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict]:
     """The Robinhood MCP read calls for this run, in order, with exact arguments ({tool, params, why}). `needs`
-    (default: universe.fetch_needs, which reads the Coinbase cache) adds, with the crypto universe on (or off but
-    still holding coins), the pair list, the ETF tradability checks and the quotes the plan can need."""
+    (default: fetch_needs, which reads the Coinbase and yfinance caches) adds, with a universe on (or off but still
+    holding its assets), the pair list, the tradability checks, the missing Robinhood bars and the quotes the plan can
+    need. Robinhood bars: only what the Robinhood cache lacks (stocks.history_calls)."""
     from agentic.data import history_days
     from agentic.snapshot import pair_for
-    from agentic.universe import QUOTE_CHUNK, TRADABILITY_CHUNK, chunks, fetch_needs
+    from agentic.stocks import history_calls
+    from agentic.universe import QUOTE_CHUNK, TRADABILITY_CHUNK, chunks
     now = now_utc or _now()
     acct = cfg["account"]
     an, rhs = str(acct.get("account_number") or ""), str(acct.get("rhs_account_number") or "")
@@ -260,12 +361,13 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
     if needs is None:
         needs = fetch_needs(cfg, now)
     needs = needs or {}
-    if needs.get("stage1"):                          # no coin list yet: capture it, then fetch-list again
-        return [dict(tool="get_currency_pairs", params={"limit": 700},
-                     why="every coin Robinhood offers (the crypto universe), with order increments")] + \
-            [dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
-                  why="is each mapped spot ETF tradable on this account") for syms in
-             chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK)]
+    trad_why = "is each mapped spot ETF or universe stock tradable on this account (vehicle; whole or fractional)"
+    if needs.get("stage1"):                          # no coin list or tradability yet: those first, then fetch-list
+        first = [dict(tool="get_currency_pairs", params={"limit": 700},
+                      why="every coin Robinhood offers (the crypto universe), with order increments")] \
+            if needs.get("pairs_stage1", True) else []
+        return first + [dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
+                             why=trad_why) for syms in chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK)]
     crypto = crypto_needed(cfg, needs)
     since = _orders_since(now)
     calls = [dict(tool="get_accounts", params={}, why="confirm the agentic account (agentic_allowed=true)"),
@@ -286,21 +388,20 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
     elif crypto:
         calls.append(dict(tool="get_currency_pairs", params={"limit": 100},
                           why="crypto order size and price increments"))
-    rh = [a for a in enabled if a["signal"].get("source") == "computed" and a["signal"].get("feed") == "robinhood"]
-    if rh:
-        start = (now - timedelta(days=max(history_days(a, cfg) for a in rh))).date().isoformat()
-        syms = sorted({str(a["signal"]["symbol"]).upper() for a in rh})
-        for i in range(0, len(syms), 10):
-            calls.append(dict(tool="get_equity_historicals",
-                              params={"symbols": syms[i:i + 10], "start_time": f"{start}T00:00:00Z",
-                                      "interval": "day", "bounds": "regular", "adjustment_type": "split"},
-                              why="daily split-adjusted bars for stock signals"))
+    starts: dict = {}
+    for a in enabled:
+        if a["signal"].get("source", "computed") == "computed" and a["signal"].get("feed") == "robinhood":
+            sym, st = str(a["signal"]["symbol"]).upper(), (now - timedelta(days=history_days(a, cfg))).date()
+            starts[sym] = min(starts.get(sym, st), st)
+    for sym, st in (needs.get("historicals") or {}).items():
+        starts[sym] = min(starts.get(sym, st), st)
+    calls += history_calls(starts, now)              # only the bars the Robinhood cache lacks, in small results
     for syms in chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK):
         calls.append(dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
-                          why="is each mapped spot ETF tradable on this account (chooses ETF vs signal only)"))
+                          why=trad_why))
     eq = sorted({str(a["vehicle"]["symbol"]).upper() for a in enabled if a["vehicle"]["type"] == "equity"}
                 | set(needs.get("equity_quotes") or []))
-    for syms in chunks(eq, QUOTE_CHUNK if uni else max(len(eq), 1)):
+    for syms in chunks(eq, QUOTE_CHUNK):
         calls.append(dict(tool="get_equity_quotes", params={"symbols": syms}, why="prices for sizing (fetch last)"))
     pairs = sorted({pair_for(a["vehicle"]["symbol"]) for a in _crypto_vehicles(cfg)}
                    | set(needs.get("crypto_quotes") or []))
@@ -326,7 +427,6 @@ def cmd_fetch_list(args) -> int:
     cfg = load_config()
     if _accounts_missing(cfg, crypto_needed(cfg)):
         return 2
-    from agentic.universe import fetch_needs
     needs = fetch_needs(cfg, _now())
     if not needs.get("stage1") and _accounts_missing(cfg, crypto_needed(cfg, needs)):    # as fetch_calls decides
         return 2
@@ -340,7 +440,11 @@ def cmd_fetch_list(args) -> int:
     for i, c in enumerate(calls, 1):
         print(f"{i:>2}. {c['tool']} {json.dumps(c['params'])}    # {c['why']}")
     if needs.get("stage1"):
-        print("(crypto universe, first run: no get_currency_pairs capture yet, so the coin list comes first)")
+        if needs.get("pairs_stage1", True):
+            print("(crypto universe, first run: no get_currency_pairs capture yet, so the coin list comes first)")
+        if needs.get("stock_stage1"):
+            print(f"(stock universe: {len(needs['stock_stage1'])} tickers have no get_equity_tradability capture of "
+                  "the last 7 days, so the tradability checks come first)")
         print(f"Then run fetch-list again: {cli_command()} fetch-list")
         return 0
     r = needs.get("report") or {}
@@ -352,6 +456,14 @@ def cmd_fetch_list(args) -> int:
         if r.get("coinbase_down"):
             print(f"WARNING: Coinbase unreachable ({r['coinbase_down']}): coins without current cached bars were not "
                   "scanned")
+    if needs.get("stocks_scanned") or needs.get("stock_report"):
+        sc, sr = needs.get("stock_candidates") or [], needs.get("stock_report") or {}
+        how = ("held or green and entry-eligible today" if sr else
+               "every tradable or held ticker (the robinhood feed: its bars come with these calls)")
+        print(f"(stock universe: {needs.get('stocks_scanned') or 0} tickers scanned; quotes for {len(sc)} {how}"
+              + (f": {', '.join(sc)}" if sc and sr else "") + ")")
+        if sr.get("data_down"):
+            print(f"WARNING: {sr['data_down']}: tickers without current cached bars were not scanned")
     print(f"Then run: {cli_command()} run")
     return 0
 
@@ -359,9 +471,11 @@ def cmd_fetch_list(args) -> int:
 # ------------------------------------------------------------------ signals / plan / run / reconcile
 
 def _signals(args, cfg, now) -> tuple[dict, int]:
+    from agentic.data import SPLIT_NOTE
     from agentic.signals import compute_signals, format_digest, write_digest, write_signals
     classes = [args.cls] if getattr(args, "cls", None) else None
-    sig = compute_signals(cfg, now, paths()["inbox"], include_disabled=getattr(args, "all", False), classes=classes)
+    sig = compute_signals(cfg, now, paths()["inbox"], include_disabled=getattr(args, "all", False), classes=classes,
+                          skip_feeds=getattr(args, "skip_feed", None))
     f = write_signals(sig)
     text = format_digest(sig, full=getattr(args, "all", False))
     d = write_digest(sig, text)
@@ -370,6 +484,11 @@ def _signals(args, cfg, now) -> tuple[dict, int]:
     bad = [a["name"] for a in sig["assets"] if a["enabled"] and a["errors"]]
     if bad:
         print(f"ALERT: signal errors for {', '.join(bad)}: these assets will not trade today", file=sys.stderr)
+    split = [a["name"] for a in sig["assets"] if any(w.startswith(SPLIT_NOTE) for w in a["warnings"])]
+    if split:
+        print(f"ACTION: {SPLIT_NOTE} for {', '.join(split)} (Robinhood bars): before any other call, run "
+              f"`{cli_command()} fetch-list` again, make every call it lists (the full history), then run again; "
+              "once per run", file=sys.stderr)
     return sig, 1 if bad else 0
 
 
@@ -460,6 +579,7 @@ def _plan(args, cfg, now) -> tuple[dict | None, int]:
     from agentic.planner import format_plan, make_plan, write_plan
     from agentic.signals import latest_signals
     from agentic.snapshot import build_snapshot
+    from agentic.stocks import cross_check
     attempt = args.attempt or default_attempt(now)
     why = None if getattr(args, "replan", False) else replan_problem(now, attempt)
     if why:
@@ -471,7 +591,7 @@ def _plan(args, cfg, now) -> tuple[dict | None, int]:
         return None, 2
     cfg, uwarn = effective_config(cfg, sig)
     snap = build_snapshot(paths()["inbox"], cfg, now, crypto=crypto_needed(cfg))
-    plan = make_plan(sig, snap, cfg, now, attempt=attempt)
+    plan = make_plan(sig, snap, cfg, now, attempt=attempt, crosscheck=cross_check(cfg, snap))
     plan["warnings"] += uwarn
     pf = write_plan(plan)
     print(format_plan(plan))
@@ -620,13 +740,17 @@ def build_parser() -> argparse.ArgumentParser:
                                  "account. Runbook: agentic/README.md. State: private/agentic (or AGENTIC_STATE_DIR).")
     sub = ap.add_subparsers(dest="cmd", required=True, metavar="command")
     s = sub.add_parser("init", help="create the state dirs; copy the example config if missing")
-    s.add_argument("--update", action="store_true", help="add the example's top-level blocks the config lacks "
-                   "(e.g. universe), changing nothing else; writes a backup first (terminal only)")
+    s.add_argument("--update", action="store_true", help="add the example's blocks and settings the config lacks "
+                   "(e.g. universe, allocation.favorites), changing nothing else; writes a backup first (terminal "
+                   "only)")
     s.set_defaults(func=cmd_init)
     s = sub.add_parser("signals", help="compute signals (phase 1) and write the digest")
     s.add_argument("--all", action="store_true", help="include disabled assets; print every asset and every "
                    "universe coin's outcome")
-    s.add_argument("--class", dest="cls", choices=("crypto", "equity"), help="only this asset class (cron: crypto)")
+    s.add_argument("--class", dest="cls", choices=("crypto", "equity"), help="only this asset class")
+    s.add_argument("--skip-feed", dest="skip_feed", action="append", choices=VALID_FEEDS, metavar="FEED",
+                   help="leave out assets on this feed, not counted as errors (repeatable; the scheduled job skips "
+                        "robinhood, whose bars need Claude's captures)")
     s.set_defaults(func=cmd_signals)
     s = sub.add_parser("fetch-list", help="print the Robinhood read calls Claude must make now")
     s.add_argument("--json", action="store_true", help="machine-readable list")

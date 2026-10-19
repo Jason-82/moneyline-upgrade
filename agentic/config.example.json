@@ -18,10 +18,12 @@
     "min_order_usd": 5
   },
   "allocation": {
-    "_comment": "slots: every enabled asset's full position is slot_frac x capital (alloc_frac is ignored). Held positions keep their whole slot; the rest of capital goes to new entries in priority order (a partial slot only if at least half a slot is left). class_max_frac caps each class's share of capital (1.0 = no cap). method fixed: per-asset alloc_frac, class caps scale targets down. README section 9.",
+    "_comment": "slots: every enabled asset's full position is slot_frac x capital (alloc_frac is ignored): 0.10 = 10 slots of 10% (slot_frac must be at most limits.max_asset_frac). Held positions keep their whole slot; the rest of capital goes to new entries in priority order (a partial slot only if at least half a slot is left). class_max_frac caps each class's share of capital (1.0 = no cap). method fixed: per-asset alloc_frac, class caps scale targets down. README section 9.",
     "method": "slots",
-    "slot_frac": 0.20,
+    "slot_frac": 0.10,
     "priority": "crypto_first",
+    "_comment_favorites": "Tie-break for new slots only, earlier first: asset names (coins and tickers), e.g. [\"ETH\", \"AAA\"]. Order: class priority, then the newest green flip, then favorites, then config order, then liquidity, then name. It never makes an asset eligible, never overrides caps, entry rules or slots, and never trims a holding.",
+    "favorites": [],
     "class_max_frac": {"crypto": 0.60, "equity": 1.0}
   },
   "entry": {
@@ -45,6 +47,17 @@
       "etf_map": {"BTC": "IBIT", "ETH": "ETHA", "SOL": "BSOL", "XRP": "XRPC", "LTC": "LTCC", "NEAR": "NRR"},
       "prefer_etf": true,
       "direct_crypto": true
+    },
+    "equity": {
+      "_comment": "Your own stock list (README section 13): put the tickers in symbols here, in this private config only (the repo is public). feed yfinance: Python downloads daily bars itself (.venv/Scripts/python.exe -m pip install yfinance) and the plan checks the last close against Robinhood's before any buy; feed robinhood: bars through Claude's captures. Each ticker needs get_equity_tradability on the account (fractional, else whole shares), min_history_bars (younger listings are watch-only), min_dollar_volume_usd (median close x volume over 30 bars), then the max_assets most liquid. An explicit asset with the ticker's name or vehicle takes precedence; a disabled one keeps the ticker out. Held tickers are never dropped (exits only).",
+      "enabled": false,
+      "symbols": [],
+      "exclude": [],
+      "mode": "split",
+      "feed": "yfinance",
+      "min_history_bars": 150,
+      "min_dollar_volume_usd": 1000000,
+      "max_assets": 60
     }
   },
   "tax": {"st_rate": 0.35, "lt_rate": 0.20},

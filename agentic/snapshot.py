@@ -14,6 +14,7 @@ from pathlib import Path
 from agentic import calendar as cal
 from agentic.config import direct_crypto_possible
 from agentic.data import unwrap_mcp
+from agentic.hooks import capture_message, capture_problem
 from agentic.ledger import ET, iso_z, num, parse_ts
 
 UTC = timezone.utc
@@ -75,13 +76,15 @@ def _stamp(name: str) -> datetime | None:
         return None
 
 
-def load_captures(inbox_dir) -> list[dict]:
-    """Inbox captures oldest first: {file, short, tool, at, input, data, error}."""
+def load_captures(inbox_dir, pattern: str = "*.json") -> list[dict]:
+    """Inbox captures oldest first: {file, short, tool, at, input, data, error}. A capture that holds no tool JSON
+    (Claude Code's 'too large' notice, or other text) has `error` set to a message that says what to do. `pattern`:
+    only these files (e.g. "*_get_equity_tradability.json")."""
     out = []
     d = Path(inbox_dir)
     if not d.is_dir():
         return out
-    for f in sorted(d.glob("*.json")):
+    for f in sorted(d.glob(pattern)):
         try:
             c = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError):
@@ -91,10 +94,14 @@ def load_captures(inbox_dir) -> list[dict]:
         cap = dict(file=f.name, tool=c.get("tool"), short=short_tool(c.get("tool")),
                    at=parse_ts(c.get("captured_at")) or _stamp(f.name),
                    input=c.get("tool_input") if isinstance(c.get("tool_input"), dict) else {}, data=None, error=None)
+        prob = (c["capture_error"], c.get("response_head") or "") if c.get("capture_error") else \
+            capture_problem(c.get("response"))
         try:
+            if prob:
+                raise ValueError(capture_message(*prob))
             cap["data"] = payload(c.get("response"))
         except (ValueError, TypeError, AttributeError) as exc:
-            cap["error"] = f"{exc.__class__.__name__}: {exc}"
+            cap["error"] = str(exc) if prob else f"{exc.__class__.__name__}: {exc}"
         if cap["at"] is not None:
             out.append(cap)
     out.sort(key=lambda c: (c["at"], c["file"]))
@@ -165,8 +172,11 @@ def parse_equity_quotes(data, captured: datetime) -> dict:
             problem = "has never traded"
         elif q.get("state") not in (None, "", "active"):
             problem = f"instrument state is {q.get('state')!r}"
+        pcd = q.get("previous_close_date")
         out[sym] = dict(bid=num(q.get("bid_price")), ask=num(q.get("ask_price")), last=num(q.get("last_trade_price")),
-                        ts=iso_z(ts), captured_at=iso_z(captured), kind="equity", problem=problem)
+                        ts=iso_z(ts), captured_at=iso_z(captured), kind="equity", problem=problem,
+                        previous_close=num(q.get("previous_close")),
+                        previous_close_date=str(pcd)[:10] if pcd else None)
     return out
 
 

@@ -3,6 +3,10 @@
 Every feed returns a DataFrame indexed by naive, normalised dates (name 'date') with float open/high/low/close
 (volume optional), ascending, one row per bar, closed bars only. Prices must be split-adjusted, not
 dividend-adjusted (see analysis_2026/moneyline_ref.py).
+
+Caches under <state>/cache/: coinbase/<PRODUCT>.csv (public candles), yfinance/<SYM>.csv (stocks downloaded by
+Python, batched) and robinhood/<SYM>.csv (get_equity_historicals captures merged in, so fetch-list asks Claude only
+for the bars that are missing).
 """
 from __future__ import annotations
 
@@ -15,14 +19,15 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from agentic import calendar as cal
-from agentic.config import DEFAULT_LIMITS, REPO, paths
+from agentic.config import DEFAULT_LIMITS, REPO, cli_command, paths
+from agentic.hooks import capture_message, capture_problem
 from analysis_2026.moneyline_ref import atr, true_range
 from screener.data import normalise
 
@@ -37,6 +42,11 @@ MAX_REQUESTS_PER_S = 5.0          # Coinbase's public limit is higher; stay poli
 SETTLE = pd.Timedelta(minutes=5)  # a bar is cached once it closed at least this long before the fetch
 OHLC = ["open", "high", "low", "close"]
 SPLIT_RATIOS = (1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 10, 2, 3, 4, 5, 10)
+SPLIT_TOL = 0.005                 # overlapping closes of two downloads / captures may differ this much, else a split
+OVERLAP_SESSIONS = 5              # incremental stock downloads re-read the last 5 sessions to catch a split
+YF_RETRIES, YF_BACKOFF_S = 2, 2.0  # per yfinance batch download
+YF_EMPTY = "yfinance returned no rows for any ticker"
+SPLIT_NOTE = "split detected"     # a Robinhood capture moved the cached closes: older bars dropped, history asked again
 
 
 class DataError(ValueError):
@@ -157,7 +167,7 @@ def _read_meta(d: Path) -> dict:
     return m if isinstance(m, dict) else {}
 
 
-def read_coinbase_cache(f) -> pd.DataFrame | None:
+def read_bar_cache(f) -> pd.DataFrame | None:
     """Cached closed daily bars (date, open, high, low, close, volume), or None when the file is missing, unreadable
     or corrupt: NaN or non-positive prices, duplicate or unsorted dates."""
     try:
@@ -170,6 +180,20 @@ def read_coinbase_cache(f) -> pd.DataFrame | None:
             or df.index.has_duplicates or not df.index.is_monotonic_increasing:
         return None
     return df.astype(float)
+
+
+read_coinbase_cache = read_bar_cache
+
+
+def _write_bars(f: Path, df: pd.DataFrame) -> None:
+    cols = df.reindex(columns=OHLC + ["volume"])
+    cols["volume"] = cols["volume"].fillna(0.0)
+    _write_atomic(f, cols.to_csv(index_label="date", date_format="%Y-%m-%d"))
+
+
+def _offline(offline, feed: str) -> bool:
+    """`offline` is True/False for every feed, or a collection of feed names (e.g. {"coinbase"})."""
+    return feed in offline if isinstance(offline, (set, frozenset, list, tuple)) else bool(offline)
 
 
 def missing_days(idx: pd.DatetimeIndex) -> int:
@@ -243,9 +267,7 @@ def coinbase_daily_cached(product: str, start, now_utc=None, opener=None, *, bas
     keep = df[df.index + pd.Timedelta(days=1) + SETTLE <= pd.Timestamp(now).tz_convert(None)]
     if len(keep) and (cached is None or len(keep) != len(cached) or keep.index[-1] != cached.index[-1]
                       or keep.index[0] != cached.index[0]):
-        cols = keep.reindex(columns=OHLC + ["volume"])
-        cols["volume"] = cols["volume"].fillna(0.0)
-        _write_atomic(f, cols.to_csv(index_label="date", date_format="%Y-%m-%d"))
+        _write_bars(f, keep)
     if m != (meta.get(product.upper()) or {}):
         meta[product.upper()] = m
         _write_atomic(d / "meta.json", json.dumps(meta, indent=1, sort_keys=True))
@@ -367,40 +389,142 @@ def _with_bar_dates(bars: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def load_robinhood_bars(inbox_dir, symbols=None, now_utc=None, issues: list | None = None) -> dict[str, pd.DataFrame]:
-    """Daily bars per symbol from saved get_equity_historicals captures (SPEC section 8).
+def robinhood_cache_dir(base=None) -> Path:
+    return paths(base)["cache"] / "robinhood"
 
-    Captures are merged in captured_at order and the newest capture's bar wins; an older capture whose overlapping
-    closes differ by more than 1% (a split since) is ignored. Only interval 'day', regular bounds and split-adjusted
-    requests are used. Interpolated bars and bars after the last closed session are dropped, judged at both now and the
-    capture's captured_at (a capture taken mid-session holds that session's bar half-formed). Reasons for skipped
-    captures are appended to `issues` if given."""
+
+def _rh_frame(bars: list[dict]) -> pd.DataFrame:
+    """OHLCV of a list of Robinhood bars (volume in shares; 0 when absent)."""
+    raw = _with_bar_dates(pd.DataFrame(bars))
+    df = normalise(raw)
+    df["volume"] = 0.0
+    if "volume" in raw.columns and "date" in raw.columns:
+        v = pd.Series(pd.to_numeric(raw["volume"], errors="coerce").to_numpy(),
+                      index=pd.to_datetime(raw["date"], errors="coerce"))
+        v = v[v.index.notna() & ~v.index.duplicated(keep="last")]
+        df["volume"] = v.reindex(df.index).fillna(0.0).to_numpy()
+    return df
+
+
+def _utc_date(x):
+    try:
+        t = pd.Timestamp(x)
+    except (ValueError, TypeError):
+        return None
+    return None if pd.isna(t) else _day(t).date()
+
+
+def _covered(ti: dict, cap_asof, df) -> list[str] | None:
+    """[from, to] (ISO dates) that a get_equity_historicals capture answered for one symbol: from its start_time to the
+    day before its end_time, at most the last session closed when it was captured."""
+    start = _utc_date(ti.get("start_time")) or (df.index[0].date() if df is not None and len(df) else None)
+    end = cap_asof.date() if cap_asof is not None else (df.index[-1].date() if df is not None and len(df) else None)
+    stop = _utc_date(ti.get("end_time"))
+    if stop is not None:
+        end = min(end, stop - timedelta(days=1)) if end else stop - timedelta(days=1)
+    if start is None or end is None or end < start:
+        return None
+    return [start.isoformat(), end.isoformat()]
+
+
+def merge_ranges(ranges) -> list[list[str]]:
+    """Date ranges [from, to] merged where they overlap or only non-trading days lie between them."""
+    out: list[list[str]] = []
+    for a, b in sorted([list(r) for r in ranges if r]):
+        if out:
+            gap = cal.trading_days(date.fromisoformat(out[-1][1]) + timedelta(days=1),
+                                   date.fromisoformat(a) - timedelta(days=1))
+            if a <= out[-1][1] or not gap:
+                out[-1][1] = max(out[-1][1], b)
+                continue
+        out.append([a, b])
+    return out
+
+
+def load_robinhood_bars(inbox_dir, symbols=None, now_utc=None, issues: list | None = None, *,
+                        cache_dir=None) -> dict[str, pd.DataFrame]:
+    """Daily bars per symbol from saved get_equity_historicals captures (SPEC section 8), merged into the cache
+    `cache_dir`/<SYM>.csv when given (robinhood_cache_dir(); meta.json keeps the date ranges the captures covered, for
+    fetch-list, and the newest capture merged, so older ones are not read again).
+
+    Captures are merged in captured_at order and the newer bar wins; when a newer capture's overlapping closes differ
+    by more than SPLIT_TOL (0.5%: a split since) the older bars are dropped and fetch-list asks for the history again
+    (a SPLIT_NOTE message in `issues`, and in attrs["notes"] until a later capture with bars is merged; meta keeps it).
+    Only interval 'day', regular bounds and split-adjusted requests are used. Interpolated bars and bars after the last
+    closed session are dropped, judged at both now and the capture's captured_at (a capture taken mid-session holds
+    that session's bar half-formed). A capture that holds no data (unreadable, or Claude Code's 'too large' notice) is
+    skipped with a message in `issues` (and in the frame's attrs["notes"] for the symbols it asked for); the others
+    still count. A capture no newer than every requested symbol's merged one is not parsed again (by its file name),
+    unless it is marked `capture_error`. Frames have OHLC and volume."""
     note = issues.append if issues is not None else (lambda _m: None)
     want = {s.upper() for s in symbols} if symbols else None
     now = cal.as_utc(now_utc)
     asof = pd.Timestamp(cal.last_closed_equity_session(now))
+    cdir = Path(cache_dir) if cache_dir is not None else None
+    meta = _read_meta(cdir) if cdir is not None else {}
+    st: dict[str, dict] = {}
+    problems: list[tuple] = []                     # (symbol, capture key, range it asked for, message)
+
+    def state(sym):
+        if sym not in st:
+            f = cdir / f"{sym}.csv" if cdir is not None else None
+            df = read_bar_cache(f) if f is not None and f.exists() else None
+            m = (meta.get(sym) or {}) if df is not None else {}
+            st[sym] = dict(df=df, covered=[list(r) for r in m.get("covered") or []],
+                           key=tuple(m.get("merged") or ("", "")), changed=False, notes=[], split=m.get("split"))
+        return st[sym]
+
+    for sym in sorted(want if want is not None else (meta if cdir is not None else [])):
+        state(sym)                                 # cached symbols count without a new capture
+    floor = min((s_["key"] for s_ in st.values()), default=("", "")) if want is not None else ("", "")
     caps = []
     for f in sorted(Path(inbox_dir).glob("*get_equity_historicals*.json")):
         try:
+            if floor > ("", "") and (_name_stamp(f.name), f.name) <= floor and not _marked(f):
+                continue                           # merged for every symbol asked for: not parsed again
             cap = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
             note(f"{f.name}: unreadable capture ({exc.__class__.__name__})")
             continue
         if isinstance(cap, dict) and str(cap.get("tool", "")).endswith("get_equity_historicals"):
-            caps.append((str(cap.get("captured_at", "")), f.name, cap))
-    parts: dict[str, list[tuple[str, pd.DataFrame]]] = {}
-    for ts, name, cap in sorted(caps, key=lambda c: (c[0], c[1])):
-        at = _parse_capture_time(ts)
+            at = _parse_capture_time(cap.get("captured_at"))
+            caps.append((at.strftime("%Y-%m-%dT%H:%M:%S.%fZ") if at else "", f.name, cap, at))
+    for ts, name, cap, at in sorted(caps, key=lambda c: (c[0], c[1])):
+        key = (ts, name)                           # by capture time (an unreadable one sorts first)
+        ti = cap.get("tool_input") if isinstance(cap.get("tool_input"), dict) else {}
+        asked = [str(x).upper() for x in ti.get("symbols") or [] if isinstance(x, str)]
+        rel = [x for x in asked if want is None or x in want]
         cap_asof = None if at is None else min(asof, pd.Timestamp(cal.last_closed_equity_session(min(at, now))))
-        adj = str((cap.get("tool_input") or {}).get("adjustment_type") or "split").lower()
+
+        def skip(msg):
+            msg = f"{name}" + (f" ({', '.join(asked)})" if asked else "") + f": {msg}"
+            note(msg)
+            for x in rel:
+                problems.append((x, key, _covered(ti, cap_asof, None), msg))
+
+        prob = (cap["capture_error"], cap.get("response_head") or "") if cap.get("capture_error") else \
+            capture_problem(cap.get("response"))
+        if prob:
+            skip(capture_message(*prob))
+            continue
+        adj = str(ti.get("adjustment_type") or "split").lower()
         if adj != "split":
             note(f"{name}: adjustment_type '{adj}' - request adjustment_type='split'")
             continue
         try:
-            items = _rh_items(unwrap_mcp(cap.get("response")))
+            raw = unwrap_mcp(cap.get("response"))
+            items = _rh_items(raw)
         except (ValueError, TypeError, AttributeError) as exc:
-            note(f"{name}: {exc}")
+            skip(f"unreadable get_equity_historicals result ({exc})")
             continue
+        data = raw.get("data") if isinstance(raw, dict) and isinstance(raw.get("data"), dict) else raw
+        for x in (data.get("not_found") or []) if isinstance(data, dict) else []:
+            x = str(x).upper()
+            if (want is None or x in want) and key > state(x)["key"]:
+                rng = _covered(ti, cap_asof, None)
+                s_ = state(x)
+                s_.update(covered=merge_ranges(s_["covered"] + [rng]) if rng else s_["covered"], key=key,
+                          changed=True)
         for it in items:
             sym = str(it.get("symbol") or "").upper()
             if not sym or (want is not None and sym not in want):
@@ -413,47 +537,318 @@ def load_robinhood_bars(inbox_dir, symbols=None, now_utc=None, issues: list | No
             if bounds != "regular":
                 note(f"{name} {sym}: bounds '{bounds}' - request regular-hours bars")
                 continue
+            s_ = state(sym)
+            if key <= s_["key"]:
+                continue                           # merged into the cache already
             bars = [b for b in (it.get("bars") or it.get("historicals") or []) if isinstance(b, dict)]
             bars = [b for b in bars if not _truthy(b.get("interpolated", False))]
-            if not bars:
-                continue
-            try:
-                df = normalise(_with_bar_dates(pd.DataFrame(bars)))
-            except (ValueError, TypeError) as exc:
-                note(f"{name} {sym}: {exc}")
-                continue
-            if cap_asof is None:                   # unknown capture time: its last bar may have been forming
-                df = df.iloc[:-1]
-                note(f"{name} {sym}: no readable captured_at; its last bar is dropped")
-            else:
-                df = df[df.index <= cap_asof]
-            parts.setdefault(sym, []).append((name, df))
+            df = None
+            if bars:
+                try:
+                    df = _rh_frame(bars)
+                except (ValueError, TypeError) as exc:
+                    note(f"{name} {sym}: {exc}")
+                    continue
+                if cap_asof is None:               # unknown capture time: its last bar may have been forming
+                    df = df.iloc[:-1]
+                    note(f"{name} {sym}: no readable captured_at; its last bar is dropped")
+                else:
+                    df = df[df.index <= cap_asof]
+            rng = _covered(ti, cap_asof, df)
+            cur = s_["df"]
+            if df is not None and len(df):
+                s_["split"] = None                 # bars merged since the split (the history asked again)
+                if cur is not None and len(cur):
+                    common = df.index.intersection(cur.index)
+                    diff = float((df.close[common] / cur.close[common] - 1).abs().max()) if len(common) else 0.0
+                    if diff > SPLIT_TOL:
+                        s_["split"] = (f"{SPLIT_NOTE} for {sym} ({name}): its closes moved by up to {diff:.1%} on "
+                                       "the cached bars (a split or an adjustment change), so the older bars were "
+                                       "dropped" + ("; run fetch-list again now (it asks for the full history), "
+                                                    "make its calls, then run again" if cdir is not None else ""))
+                        note(s_["split"])
+                        cur, s_["covered"] = None, []
+                    if cur is not None:
+                        df = pd.concat([cur[~cur.index.isin(df.index)], df]).sort_index()
+                s_["df"] = df
+            s_.update(covered=merge_ranges(s_["covered"] + [rng]) if rng else s_["covered"], key=key, changed=True)
+    for x, key, rng, msg in problems:              # still relevant: newer than the cache, or its window still missing
+        s_ = state(x)
+        if key > s_["key"] or (rng and not any(r[0] <= rng[0] and rng[1] <= r[1] for r in s_["covered"])):
+            s_["notes"].append(msg)
     out = {}
-    for sym, dfs in parts.items():
-        merged = None
-        for name, df in reversed(dfs):             # newest capture first
-            if merged is None:
-                merged = df
+    for sym, s_ in st.items():
+        df = s_["df"]
+        if cdir is not None and s_["changed"]:
+            if df is not None and len(df):
+                _write_bars(cdir / f"{sym}.csv", df)
+            meta[sym] = {"covered": s_["covered"], "merged": list(s_["key"])}
+            if s_["split"]:
+                meta[sym]["split"] = s_["split"]
+        if df is not None and len(df):
+            got = df[df.index <= asof].astype(float)
+            got.attrs["notes"] = ([s_["split"]] if s_["split"] else []) + list(s_["notes"])
+            if len(got):
+                out[sym] = got
+    if cdir is not None and any(s_["changed"] for s_ in st.values()):
+        _write_atomic(cdir / "meta.json", json.dumps(meta, indent=1, sort_keys=True))
+    return out
+
+
+_MARKED: dict[tuple, bool] = {}   # (path, mtime, size) -> the capture has capture_error; read once per process
+
+
+def _marked(f: Path) -> bool:
+    st = f.stat()
+    k = (str(f), st.st_mtime_ns, st.st_size)
+    if k not in _MARKED:
+        _MARKED[k] = b'"capture_error"' in f.read_bytes()
+    return _MARKED[k]
+
+
+def _name_stamp(name: str) -> str:
+    """The capture time in an inbox file name (<YYYYMMDDTHHMMSS.ffffffZ>_<tool>.json), formatted as the loader sorts
+    captured_at; without one, a value after every time (never skipped)."""
+    try:
+        return datetime.strptime(name[:23], "%Y%m%dT%H%M%S.%fZ").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    except ValueError:
+        return "￿"
+
+
+def robinhood_too_large(inbox_dir) -> set[tuple]:
+    """The get_equity_historicals calls whose capture is Claude Code's 'too large' notice (capture_error
+    response_too_large): {(symbols sorted, start date, end date or None)} (history_key), for fetch-list to ask a call at
+    least that large in smaller ones."""
+    out = set()
+    d = Path(inbox_dir)
+    for f in sorted(d.glob("*get_equity_historicals*.json")) if d.is_dir() else []:
+        try:
+            if b"response_too_large" not in f.read_bytes():
                 continue
-            common = df.index.intersection(merged.index)
-            if len(common) and (df.close[common] / merged.close[common] - 1).abs().max() > 0.01:
-                note(f"{name} {sym}: closes differ from a newer capture (split or adjustment change); ignored")
-                continue
-            merged = pd.concat([merged, df[~df.index.isin(merged.index)]]).sort_index()
-        if len(merged):
-            out[sym] = merged.astype(float)
+            cap = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        ti = cap.get("tool_input") if isinstance(cap, dict) else None
+        if isinstance(ti, dict) and cap.get("capture_error") == "response_too_large":
+            out.add(history_key(ti.get("symbols") or [], ti.get("start_time"), ti.get("end_time")))
+    return out
+
+
+def history_key(symbols, start, end=None) -> tuple:
+    """A get_equity_historicals request as (symbols sorted, start date, end date or None), ISO dates."""
+    return (tuple(sorted(str(s).upper() for s in symbols if isinstance(s, str))), str(start or "")[:10] or None,
+            str(end)[:10] if end else None)
+
+
+def robinhood_coverage(symbols, base=None) -> dict[str, list[list[str]]]:
+    """The date ranges the Robinhood cache holds per symbol (from meta.json; [] without a readable cache)."""
+    d = robinhood_cache_dir(base)
+    meta = _read_meta(d)
+    out = {}
+    for sym in symbols:
+        f = d / f"{sym.upper()}.csv"
+        ok = f.exists() and read_bar_cache(f) is not None
+        out[sym.upper()] = [list(r) for r in (meta.get(sym.upper()) or {}).get("covered") or []] if ok else []
     return out
 
 
 # ------------------------------------------------------------------ yfinance, CSV
 
-def fetch_yfinance(symbol: str, start, now_utc=None, asset_class: str = "equity") -> pd.DataFrame:
-    """Split-adjusted OHLC from yfinance (auto_adjust=False; 'Adj Close' is never used). Optional dependency.
-    Bars after the last closed bar of `asset_class` are dropped (crypto: the UTC day; stocks: the NYSE session)."""
+def yfinance_missing() -> str:
+    return (f"yfinance is not installed: run `{cli_command().split(' -m ')[0]} -m pip install yfinance` "
+            "(README section 13)")
+
+
+def _yf_module():
     try:
         import yfinance as yf
     except ImportError as exc:
-        raise DataError("yfinance is not installed (pip install yfinance)") from exc
+        raise DataError(yfinance_missing()) from exc
+    return yf
+
+
+def _yf_symbol(sym: str) -> str:
+    """Yahoo's spelling of a ticker: BRK.B -> BRK-B."""
+    return str(sym).upper().replace(".", "-")
+
+
+def _yf_frames(raw, symbols) -> dict[str, pd.DataFrame]:
+    """Per-symbol OHLCV frames (split-adjusted OHLC, never 'Adj Close') from one yf.download result: MultiIndex columns
+    (price, ticker) for several tickers, or plain columns for one."""
+    out: dict[str, pd.DataFrame] = {}
+    if not isinstance(raw, pd.DataFrame) or raw.empty:
+        return out
+    for sym in symbols:
+        ys = _yf_symbol(sym)
+        if isinstance(raw.columns, pd.MultiIndex):
+            lvl = next((i for i in range(raw.columns.nlevels) if ys in raw.columns.get_level_values(i)), None)
+            if lvl is None:
+                continue
+            sub = raw.xs(ys, axis=1, level=lvl)
+        elif len(symbols) == 1:
+            sub = raw
+        else:
+            continue
+        cols = {str(c).strip().lower(): c for c in sub.columns}
+        if not set(OHLC) <= set(cols):
+            continue
+        idx = pd.DatetimeIndex(sub.index)
+        idx = (idx.tz_localize(None) if idx.tz is not None else idx).normalize()
+        df = pd.DataFrame({c: pd.to_numeric(sub[cols[c]], errors="coerce").to_numpy() for c in OHLC}, index=idx)
+        df["volume"] = pd.to_numeric(sub[cols["volume"]], errors="coerce").to_numpy() if "volume" in cols else 0.0
+        df = df.dropna(subset=OHLC)
+        df = df[(df[OHLC] > 0).all(axis=1)]
+        df["volume"] = df["volume"].fillna(0.0)
+        df = df[~df.index.duplicated(keep="last")].sort_index()
+        df.index.name = "date"
+        if len(df):
+            out[sym] = df.astype(float)
+    return out
+
+
+def _yf_batch(symbols: list[str], start, sleep, retries: int) -> tuple[dict, str | None]:
+    """One batched yf.download (auto_adjust=False) with retries: (frames that came back, error when nothing did)."""
+    yf = _yf_module()
+    err = None
+    for k in range(retries + 1):
+        try:
+            raw = yf.download([_yf_symbol(x) for x in symbols], start=str(_day(start).date()), interval="1d",
+                              auto_adjust=False, actions=False, progress=False, group_by="column", threads=True)
+            got = _yf_frames(raw, symbols)
+            if got:
+                return got, None
+            err = YF_EMPTY
+        except Exception as exc:                   # yfinance raises many types on network trouble
+            err = f"{type(exc).__name__}: {str(exc)[:160]}"
+        if k < retries:
+            sleep(YF_BACKOFF_S * 2 ** k)
+    return {}, err
+
+
+def yfinance_cache_dir(base=None) -> Path:
+    return paths(base)["cache"] / "yfinance"
+
+
+def yfinance_daily_cached(symbols, start, now_utc=None, *, base=None, issues: list | None = None,
+                          offline: bool = False, sleep=None, retries: int = YF_RETRIES) -> dict:
+    """Daily stock bars from yfinance through the cache <state>/cache/yfinance/<SYM>.csv: {bars: {SYM: df}, errors:
+    {SYM: why}, down: str | None}. Split-adjusted OHLC (auto_adjust=False; 'Adj Close' is never used) and volume.
+
+    Batched yf.downloads, in this order: the cached symbols whose last bar is not the last closed NYSE session (from
+    OVERLAP_SESSIONS sessions before their last bar); a cached symbol whose overlapping closes moved by more than
+    SPLIT_TOL (a split), again in full; then the symbols without a usable cache (from `start`). Each batch is retried
+    (YF_RETRIES, backoff); a batch that still fails (`down`: an exception, or no rows at all for a batch with a cached
+    symbol) stops further downloads this run, and the cached bars are used as they are. No rows for a batch of new
+    symbols only is an error for each of them (a ticker Yahoo does not know), never `down`. Bars after the last closed
+    session are dropped (the forming session is never cached). `offline`: no download. A missing yfinance package is
+    an error per symbol (yfinance_missing)."""
+    sleep = sleep or time.sleep
+    now = cal.as_utc(now_utc)
+    note = issues.append if issues is not None else (lambda _m: None)
+    asof = pd.Timestamp(cal.last_closed_equity_session(now))
+    lo = _day(start)
+    d = yfinance_cache_dir(base)
+    meta = _read_meta(d)
+    meta0 = json.dumps(meta, sort_keys=True)
+    syms = list(dict.fromkeys(str(x).upper().strip() for x in symbols if str(x).strip()))
+    cache = {}
+    for x in syms:
+        f = d / f"{x}.csv"
+        cache[x] = read_bar_cache(f) if f.exists() else None
+        if f.exists() and cache[x] is None:
+            note(f"{x}: yfinance cache {f.name} was unreadable or corrupt; fetched again")
+    errors: dict[str, str] = {}
+    res = dict(down=None, up=False)
+    full, inc = [], []
+    for x in syms:
+        c, m = cache[x], meta.get(x) or {}
+        if c is None or lo < pd.Timestamp(m.get("history_from") or c.index[0]):
+            full.append(x)
+        elif c.index[-1] < asof:
+            inc.append(x)
+    refetch: list[str] = []
+
+    def apply(group, s0, is_full):
+        if not group or res["down"] or offline:
+            return
+        known = any(cache[x] is not None for x in group)      # Yahoo had rows for it before
+        try:                                       # new tickers only, after a batch that came back: no retries
+            got, err = _yf_batch(group, s0, sleep, retries if known or not res["up"] else 0)
+            missing = [x for x in group if x not in got]
+            if got and missing:                    # one more try for the tickers that did not come back
+                got.update(_yf_batch(missing, s0, sleep, 0)[0])
+        except DataError as exc:                   # the package is missing
+            res["down"] = str(exc)
+            return
+        if err and (known or err != YF_EMPTY):
+            res["down"] = f"yfinance download failed ({err})"
+            note(f"{res['down']}: no further downloads this run; cached bars are used as they are")
+            return
+        if err:
+            note(f"yfinance returned no rows for {', '.join(group)} (new tickers): an error for each of them"
+                 + ("" if res["up"] else " (or yfinance is unreachable)"))
+        res["up"] = res["up"] or bool(got)
+        for x in group:
+            f = got.get(x)
+            if f is None:
+                errors[x] = f"yfinance returned no rows for {x} (wrong ticker, not listed yet, or delisted?)"
+                continue
+            f = f[f.index <= asof]
+            c, m = cache[x], dict(meta.get(x) or {})
+            if not is_full and c is not None:
+                common = f.index.intersection(c.index)
+                if len(common) and float((f.close[common] / c.close[common] - 1).abs().max()) > SPLIT_TOL:
+                    note(f"{x}: yfinance closes moved by more than {SPLIT_TOL:.1%} on the overlap with the cache (a "
+                         "split since the last download): its history is fetched again")
+                    refetch.append(x)
+                    continue
+                f = pd.concat([c[~c.index.isin(f.index)], f]).sort_index()
+            else:
+                m.update(history_from=lo.date().isoformat(), full_fetch=now.date().isoformat())
+            if len(f):
+                _write_bars(d / f"{x}.csv", f)
+                cache[x] = f
+            m.pop("error", None)
+            meta[x] = m
+
+    if inc:                                        # cached first: a ticker Yahoo does not know never holds them up
+        s0 = min(cache[x].index[-1] for x in inc).date()
+        for _ in range(OVERLAP_SESSIONS):
+            s0 = cal.previous_trading_day(s0)
+        apply(inc, s0, False)
+    apply(refetch, lo, True)
+    apply(full, lo, True)
+    bars = {}
+    for x in syms:
+        c = cache[x]
+        got = c[(c.index >= lo) & (c.index <= asof)] if c is not None else None
+        if got is not None and len(got):
+            bars[x] = got.astype(float)
+            continue
+        why = errors.get(x) or (res["down"] if res["down"] else None) or (meta.get(x) or {}).get("error") \
+            or "no cached yfinance bars yet (run signals with network access)"
+        errors[x] = why
+        if not offline:
+            meta.setdefault(x, {})["error"] = why
+    if json.dumps(meta, sort_keys=True) != meta0:
+        _write_atomic(d / "meta.json", json.dumps(meta, indent=1, sort_keys=True))
+    return dict(bars=bars, errors={x: errors[x] for x in syms if x in errors and x not in bars}, down=res["down"])
+
+
+def yfinance_bars(symbol: str, start, now_utc=None, *, base=None, offline: bool = False) -> pd.DataFrame:
+    """One symbol through yfinance_daily_cached; DataError without bars."""
+    r = yfinance_daily_cached([symbol], start, now_utc, base=base, offline=offline)
+    df = r["bars"].get(str(symbol).upper())
+    if df is None:
+        raise DataError(r["errors"].get(str(symbol).upper()) or f"no yfinance bars for {symbol}")
+    return df
+
+
+def fetch_yfinance(symbol: str, start, now_utc=None, asset_class: str = "equity") -> pd.DataFrame:
+    """Split-adjusted OHLC from yfinance, uncached (auto_adjust=False; 'Adj Close' is never used): the crypto-class
+    yfinance feed. Bars after the last closed bar of `asset_class` are dropped (crypto: the UTC day; stocks: the NYSE
+    session)."""
+    yf = _yf_module()
     raw = yf.download(symbol, start=str(_day(start).date()), auto_adjust=False, actions=False, progress=False)
     if raw is None or len(raw) == 0:
         raise DataError(f"yfinance returned no rows for {symbol}")
@@ -494,24 +889,30 @@ def history_days(asset: dict, cfg: dict) -> int:
     return max(math.ceil(n * 7 / 5) + 30, 700)
 
 
-def get_bars(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, offline: bool = False) -> pd.DataFrame:
-    """Closed daily bars for an asset's signal feed. Raises DataError when the feed yields nothing. `offline`:
-    Coinbase from the cache only (coinbase_daily_cached)."""
+def get_bars(asset: dict, cfg: dict, now_utc=None, inbox_dir=None, offline=False) -> pd.DataFrame:
+    """Closed daily bars for an asset's signal feed. Raises DataError when the feed yields nothing. `offline` (True, or
+    a set of feed names): Coinbase / yfinance from their caches only. Robinhood bars go through the Robinhood cache; a
+    skipped capture's message, or a split whose history is not back yet, is in attrs["notes"]."""
     s = asset["signal"]
     feed, sym = s.get("feed"), s.get("symbol")
     now = cal.as_utc(now_utc)
     start = now.date() - timedelta(days=history_days(asset, cfg))
     if feed == "coinbase":
-        df = coinbase_daily_cached(sym, start, now, offline=offline)
+        df = coinbase_daily_cached(sym, start, now, offline=_offline(offline, "coinbase"))
     elif feed == "robinhood":
         issues: list[str] = []
-        got = load_robinhood_bars(inbox_dir or paths()["inbox"], [sym], now, issues)
+        got = load_robinhood_bars(inbox_dir or paths()["inbox"], [sym], now, issues, cache_dir=robinhood_cache_dir())
         if sym.upper() not in got:
-            why = "; ".join(issues[-3:]) or "no get_equity_historicals capture in the inbox"
+            mine = [i for i in issues if sym.upper() in i] or issues
+            why = "; ".join(mine[-3:]) or "no get_equity_historicals capture in the inbox"
             raise DataError(f"{asset['name']}: no Robinhood daily bars for {sym} ({why}); run fetch-list")
         df = got[sym.upper()]
+        notes = df.attrs.get("notes")
+        df = df[df.index >= pd.Timestamp(start)]   # the cache may hold more history than asked for
+        df.attrs["notes"] = notes or []
     elif feed == "yfinance":
-        df = fetch_yfinance(sym, start, now, asset.get("class", "equity"))
+        df = fetch_yfinance(sym, start, now, "crypto") if asset.get("class") == "crypto" else \
+            yfinance_bars(sym, start, now, offline=_offline(offline, "yfinance"))
     elif feed == "csv":
         if not s.get("path"):
             raise DataError(f"{asset['name']}: csv feed needs signal.path")

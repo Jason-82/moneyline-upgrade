@@ -243,3 +243,33 @@ def market_open(now_utc=None) -> bool:
     """09:30-16:00 ET on a trading day (half days count as full sessions)."""
     now = et_now(now_utc)
     return is_trading_day(now.date()) and SESSION_OPEN <= now.time() < SESSION_CLOSE
+
+
+def _hhmm(minutes: int) -> str:
+    return f"{minutes % 1440 // 60:02d}:{minutes % 60:02d}"
+
+
+def _offset(seconds_east: int) -> str:
+    m = abs(seconds_east) // 60
+    return f"UTC{'+' if seconds_east >= 0 else '-'}{m // 60:02d}:{m % 60:02d}"
+
+
+def job_time(daylight=None, altzone=None, timezone_=None, utc_time: str = "00:15") -> tuple[str, str]:
+    """(HH:MM, why): the local clock time of `utc_time` (00:15 UTC) under this PC's daylight-saving offset, for the
+    scheduled crypto-signals job (agentic/windows/schedule_crypto_signals.sh). On standard time that local time is an
+    hour later in UTC, so it is after the 00:00 UTC daily close in summer and winter. Defaults: time.daylight,
+    time.altzone and time.timezone (seconds west of UTC; on Windows they reflect the system time zone)."""
+    import time as _t
+    dl = _t.daylight if daylight is None else daylight
+    alt = _t.altzone if altzone is None else altzone
+    std = _t.timezone if timezone_ is None else timezone_
+    h, m = (int(x) for x in utc_time.split(":"))
+    east = -int(alt if dl else std)                         # seconds east of UTC on daylight time
+    local = h * 60 + m + east // 60
+    hhmm = _hhmm(local)
+    if not dl or alt == std:
+        return hhmm, (f"{hhmm} local = {utc_time} UTC all year ({_offset(-int(std))}, no daylight saving time): "
+                      "after the 00:00 UTC crypto close")
+    later = _hhmm(local + int(std) // 60)                   # the same local time on standard time, in UTC
+    return hhmm, (f"{hhmm} local = {utc_time} UTC on daylight time ({_offset(east)}) and {later} UTC on standard time "
+                  f"({_offset(-int(std))}): after the 00:00 UTC crypto close all year")

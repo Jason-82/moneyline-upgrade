@@ -26,6 +26,8 @@ from agentic.snapshot import _pages, _rows, code_for, load_captures, pair_for
 
 PAIRS_STALE_DAYS = 7              # warn when the newest get_currency_pairs capture is older
 TRADABILITY_MAX_AGE_DAYS = 7      # an older get_equity_tradability capture confirms nothing
+STAGE1_RETRY_HOURS = 12           # a stage-1 call tried this recently (even one that failed) is not asked first again
+HOOK_LOG_TAIL = 1 << 20           # bytes of hook.log read for recent failures
 DV_BARS = 30                      # median daily dollar volume over the last 30 closed bars
 QUOTE_CHUNK = 20                  # get_equity_quotes omits closes above 20 symbols; keep both quote calls at 20
 TRADABILITY_CHUNK = 10            # get_equity_tradability takes at most 10 symbols
@@ -127,6 +129,37 @@ def etf_tradability(inbox_dir, cfg: dict, now_utc=None, caps=None) -> tuple[dict
     return out, warnings
 
 
+def recent_attempts(inbox_dir, short: str, now_utc=None, *, base=None,
+                    hours: float = STAGE1_RETRY_HOURS) -> tuple[list[dict], bool]:
+    """(the `short` captures of the last `hours`, whatever their result: a tool error or a too-large notice too; whether
+    a `short` call failed without a capture in that time: a PostToolUseFailure line in hook.log). Fetch-list's stage 1
+    asks a call first only while it was not tried, so a failing call never holds up the reads that exits need (the
+    normal list asks it again)."""
+    now = cal.as_utc(now_utc)
+    caps = [c for c in load_captures(inbox_dir, f"*_{short}.json")
+            if c["short"] == short and now - c["at"] <= timedelta(hours=hours)]
+    failed = False
+    try:
+        with open(paths(base)["hook_log"], "rb") as fh:          # the tail: the last hours are at the end
+            size = fh.seek(0, 2)
+            fh.seek(max(0, size - HOOK_LOG_TAIL))
+            lines = fh.read().decode("utf-8", "replace").splitlines()[1 if size > HOOK_LOG_TAIL else 0:]
+    except OSError:
+        lines = []
+    for line in reversed(lines):
+        try:
+            e = json.loads(line)
+            ts = ledger.parse_ts(e.get("ts"))
+        except (ValueError, AttributeError):
+            continue
+        if ts is not None and now - ts > timedelta(hours=hours):
+            break
+        if e.get("hook") == "post" and e.get("decision") == "failure" and str(e.get("tool")).endswith("__" + short):
+            failed = True
+            break
+    return caps, failed
+
+
 def sleeve_vehicles(base=None) -> dict[str, set]:
     """Vehicles the sleeve may hold: positive quantities in the last reconciled sleeve, plus every vehicle this system
     placed a buy for since that baseline (it may have filled since). {"equity": {SYMBOL}, "crypto": {CODE}}."""
@@ -211,7 +244,8 @@ def _asset(e: dict, u: dict) -> dict:
     code = e["coin"]
     a = {"name": code, "class": "crypto", "enabled": e["outcome"] in ("etf", "direct"), "alloc_frac": 0.0,
          "mode": u["mode"], "signal": {"source": "computed", "feed": "coinbase", "symbol": f"{code}-USD"},
-         "vehicle": dict(e["vehicle"]), "min_bars": u["min_history_bars"],
+         "vehicle": dict(e["vehicle"]), "min_bars": max(30, e["bars"] or 0) if e.get("young") else
+         u["min_history_bars"],
          "universe": {k: e.get(k) for k in ("outcome", "reason", "dollar_volume_usd", "rank", "held", "hold_only")}}
     if u["entry"]:
         a["entry"] = dict(u["entry"])
@@ -374,6 +408,7 @@ def build_universe(cfg: dict, now_utc=None, inbox_dir=None, fetch=None, *, produ
         elif len(bars) < min_bars:
             if drop(e, f"too little history ({len(bars)} bars, need {min_bars})", "too little history"):
                 continue
+            e["young"] = True                        # held: its exit signal runs on the bars it has (see _asset)
         elif _pegged(bars):
             if drop(e, f"stablecoin or pegged token (its last {PEG_BARS} closes stay within {PEG_BAND:.0%} of their "
                        "median)", "stablecoin/wrapped"):
@@ -511,6 +546,20 @@ def with_universe(cfg: dict, signals: dict | None) -> tuple[dict, list[str]]:
     return out, warnings
 
 
+def stage1_etfs(cfg: dict, now_utc=None, inbox_dir=None, *, base=None) -> list[str] | None:
+    """The first run of the crypto universe (source robinhood, no get_currency_pairs capture with data yet, and none
+    tried in the last STAGE1_RETRY_HOURS): the mapped ETFs whose tradability fetch-list checks with the pair list; None
+    when no stage 1 is needed."""
+    now = cal.as_utc(now_utc)
+    inbox = Path(inbox_dir) if inbox_dir is not None else paths(base)["inbox"]
+    u = crypto_universe(cfg)
+    if not (u["enabled"] and u["source"] == "robinhood" and pairs_capture(inbox, now) is None
+            and not any(recent_attempts(inbox, "get_currency_pairs", now, base=base))):
+        return None
+    claims = _claims(cfg, u)
+    return sorted({etf for coin, etf in u["etf_map"].items() if coin not in u["exclude"] and coin not in claims})
+
+
 def fetch_needs(cfg: dict, now_utc=None, inbox_dir=None, *, base=None, build=None) -> dict:
     """What fetch-list adds for the universe: the etf_map tickers of the included coins (get_equity_tradability, to
     choose vehicles) and quotes for every held universe vehicle and every universe coin that is green and
@@ -524,9 +573,8 @@ def fetch_needs(cfg: dict, now_utc=None, inbox_dir=None, *, base=None, build=Non
     now = cal.as_utc(now_utc)
     inbox = Path(inbox_dir) if inbox_dir is not None else paths(base)["inbox"]
     u = crypto_universe(cfg)
-    if u["enabled"] and u["source"] == "robinhood" and pairs_capture(inbox, now) is None:
-        claims = _claims(cfg, u)                     # first run: the coin list first, then fetch-list again
-        etfs = sorted({etf for coin, etf in u["etf_map"].items() if coin not in u["exclude"] and coin not in claims})
+    etfs = stage1_etfs(cfg, now, inbox, base=base)
+    if etfs is not None:                             # first run: the coin list first, then fetch-list again
         return dict(stage1=True, tradability=etfs, equity_quotes=[], crypto_quotes=[], candidates=[],
                     crypto_vehicles=False, report=None)
     assets, report = (build or build_universe)(cfg, now, inbox, base=base)
@@ -549,7 +597,7 @@ def fetch_needs(cfg: dict, now_utc=None, inbox_dir=None, *, base=None, build=Non
         cands.append(a["name"])
         (cr.add(pair_for(v["symbol"])) if v["type"] == "crypto" else eq.add(v["symbol"]))
     return dict(stage1=False, tradability=tradability, equity_quotes=sorted(eq), crypto_quotes=sorted(cr),
-                candidates=cands, report=report,
+                candidates=cands, report=report, assets=assets,
                 crypto_vehicles=any(a["enabled"] and a["vehicle"]["type"] == "crypto" for a in assets))
 
 

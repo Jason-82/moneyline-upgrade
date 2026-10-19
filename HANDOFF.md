@@ -716,7 +716,8 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - **Modes** (per asset): `immediate`, `split` (half at N=1, half at N=5) and `confirm5`. Default **split** for crypto and
     stocks (FINDINGS 2026-10-19: never the worst, shallower drawdowns; immediate is 2-4 pts/yr ahead in the dead-coin
     basket at low cost, within noise).
-  - **Allocation:** `slots` (default 5 × 20%, `crypto_first`, crypto cap 0.60) or `fixed`.
+  - **Allocation:** `slots` (example 10 × 10%, `crypto_first`, crypto cap 0.60; `favorites` breaks same-day ties
+    after class and flip date, never eligibility or caps) or `fixed`.
   - **Entry policy:** `join_recent` (default; join only within 20 bars of the green flip and at most 50% above the
     flip close; risk controls, FINDINGS 2026-10-19), `join`, or `fresh_only`.
   - **Windows + Git Bash** setup with `AGENTIC_PYTHON` in `.claude/settings.local.json`, a time-zone fallback,
@@ -731,9 +732,23 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
     - **Direct coins are a judgment, not evidence:** at 0.95% per side the edge over holding is −12.2 (BTC),
       −12.7 (BNB) and −18.9 (ZEC), and since 2022 only SOL clearly survives (5.9). After tax, BTC beat the
       baskets over 2022-25 (5.11). `direct_crypto: false` trades only coins with a confirmed spot ETF.
-    - Held coins are never dropped. `init --update` adds the block to an older config.
-  - **Status:** shadow mode (`live: false`) by default. Not yet run against the real Robinhood MCP; the connector
-    failed to connect in the cloud session. Mode backtests are in `analysis_2026/results_agentic_modes/`.
+    - Held coins are never dropped. `init --update` adds the block (and missing nested settings) to an older config.
+  - **Stock universe (2026-10-19, `agentic/stocks.py`, README section 13):** the user's own ticker list
+    (`universe.equity`, off in the example; tickers only in the private config). Tradability per ticker
+    (`get_equity_tradability`; fractional or whole shares), ≥ 150 bars (younger: watch-only), median volume ≥ $1M/day,
+    the 60 most liquid; held tickers never dropped. Not evidence-based: no stock timing rule beat holding after tax
+    (5.10, 5.15).
+    - Bars: `yfinance` (default; Python downloads in one batch, cached; buys need the last close to match Robinhood's
+      `previous_close` within 0.5%, exits never blocked) or `robinhood` (cached; fetch-list asks only for missing
+      bars: incremental calls ≤ 200 bars, backfill windows ≤ 120 sessions, one symbol per call). A first live run
+      showed one 2-year SPY result (~85k chars) exceeds Claude Code's 50,000-character limit for MCP text results
+      (saved to a file; `MAX_MCP_OUTPUT_TOKENS` does not change it); the PostToolUse hook records such a notice as
+      `capture_error: response_too_large`, and the next fetch-list asks for that data in smaller calls.
+    - The scheduled job runs `signals --skip-feed robinhood`; `install` picks 00:15 UTC under the PC's DST offset.
+    - The digest's ACTION column is now SIGNAL (`1.00->0.50`, `new 0.50`, `-`): the target, not an order.
+  - **Status:** shadow mode (`live: false`) by default. First `/moneyline` runs against the real Robinhood MCP have
+    happened on the user's PC (that is where the too-large SPY result came from); the connector still fails to
+    connect in cloud sessions. Mode backtests are in `analysis_2026/results_agentic_modes/`.
 - **Gate verdicts:**
   - ETH: TRADE via spot ETF.
   - SOL: PROBATION (≤10%).

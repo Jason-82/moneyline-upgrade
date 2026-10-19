@@ -26,6 +26,12 @@ CANCEL = frozenset({"cancel_equity_order", "cancel_crypto_order"})
 ACCOUNT_KEYS = ("account_number", "rhs_account_number")
 PROPOSAL_STATE = "proposal_pending_approval?"
 _LONG_DIGITS = re.compile(r"\d{6,}")
+# Claude Code saves an MCP text result over 50,000 characters (whatever MAX_MCP_OUTPUT_TOKENS says) to a file and
+# passes on a notice instead, which is then all the PostToolUse hook receives: such a capture holds no data.
+_TOO_LARGE = re.compile(r"too large|too long|exceed(s|ed)?\b.{0,40}\b(maximum|limit)|maximum allowed tokens|"
+                        r"saved to (a )?file|output (was )?truncated|MAX_MCP_OUTPUT_TOKENS", re.IGNORECASE)
+TOO_LARGE_HELP = ("Robinhood result too large for Claude Code (it saves a result over 50,000 characters to a file): "
+                  "re-run fetch-list, which asks for that data again in smaller calls")
 
 
 # ------------------------------------------------------------------ tools
@@ -173,8 +179,46 @@ def append_jsonl(path, obj) -> None:
     append_line(path, json.dumps(obj))
 
 
+def capture_problem(response) -> tuple[str, str] | None:
+    """(code, first 300 characters) when a tool_response is not the tool's JSON: "response_too_large" for Claude Code's
+    notice that the result was too large (or saved to a file instead), else "not_json". None for a JSON result or a
+    tool error (isError)."""
+    r = response
+    for _ in range(6):
+        if isinstance(r, str):
+            try:
+                r = json.loads(r)
+                continue
+            except ValueError:
+                text = r.strip()
+                return ("response_too_large" if _TOO_LARGE.search(text) else "not_json"), text[:300]
+        if isinstance(r, dict):
+            if r.get("isError"):
+                return None
+            if isinstance(r.get("structuredContent"), (dict, list)):
+                return None
+            if _is_content(r.get("content")):
+                r = _content_text(r["content"])
+                continue
+            return None
+        if _is_content(r):
+            r = _content_text(r)
+            continue
+        return None
+    return None
+
+
+def capture_message(code: str | None, head: str = "") -> str:
+    """What a reader of the inbox says about a capture that holds no tool JSON."""
+    if code == "response_too_large":
+        return TOO_LARGE_HELP
+    return f"not the tool's JSON result ({str(head)[:120]!r})"
+
+
 def save_capture(inbox, tool: str, tool_input, response, now: datetime) -> Path:
-    """Write inbox/<YYYYMMDDTHHMMSS.ffffffZ>_<short_tool>.json with the response exactly as received (SPEC 8)."""
+    """Write inbox/<YYYYMMDDTHHMMSS.ffffffZ>_<short_tool>.json with the response exactly as received (SPEC 8). A
+    response that is not the tool's JSON (capture_problem) also gets "capture_error" and "response_head" (its first
+    300 characters)."""
     inbox = Path(inbox)
     inbox.mkdir(parents=True, exist_ok=True)
     short = re.sub(r"[^A-Za-z0-9_.-]", "_", short_name(tool)) or "tool"
@@ -182,7 +226,11 @@ def save_capture(inbox, tool: str, tool_input, response, now: datetime) -> Path:
     while (inbox / f"{t:%Y%m%dT%H%M%S.%f}Z_{short}.json").exists():
         t += timedelta(microseconds=1)
     f = inbox / f"{t:%Y%m%dT%H%M%S.%f}Z_{short}.json"
-    write_json_atomic(f, {"captured_at": iso_z(t), "tool": tool, "tool_input": tool_input, "response": response})
+    obj = {"captured_at": iso_z(t), "tool": tool, "tool_input": tool_input, "response": response}
+    prob = capture_problem(response)
+    if prob:
+        obj["capture_error"], obj["response_head"] = prob
+    write_json_atomic(f, obj)
     return f
 
 

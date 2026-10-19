@@ -339,10 +339,12 @@ def fake_cygpath(tmp_path):
 @pytest.mark.skipif(BASH is None or os.name == "nt", reason="needs bash; uses a fake cygpath")
 def test_schedule_install_dry_run_builds_the_schtasks_command(fake_cygpath):
     bindir, root = fake_cygpath
-    env = dict(os.environ, PATH=f"{bindir}{os.pathsep}{os.environ['PATH']}")
+    env = dict(os.environ, PATH=f"{bindir}{os.pathsep}{os.environ['PATH']}", AGENTIC_PYTHON=sys.executable,
+               TZ="EST5EDT,M3.2.0,M11.1.0")                     # no --time: 00:15 UTC on US Eastern daylight time
     r = _run("schedule_crypto_signals.sh", "install", "--dry-run", env=env)
     assert r.returncode == 0, r.stderr
-    argv = shlex.split(r.stdout)
+    assert r.stdout.startswith("# time 20:15 chosen from this PC's time zone")
+    argv = shlex.split(r.stdout, comments=True)
     win = lambda p: "C:\\fake\\" + str(p).lstrip("/").replace("/", "\\")          # noqa: E731
     assert argv[:11] == ["MSYS_NO_PATHCONV=1", "schtasks", "/Create", "/F", "/SC", "DAILY", "/ST", "20:15", "/TN",
                          "moneyline-crypto-signals", "/TR"]
@@ -355,7 +357,7 @@ def test_schedule_without_cygpath_uses_the_configured_bash(tmp_path):
     env = dict(os.environ, CLAUDE_CODE_GIT_BASH_PATH="C:\\Program Files\\Git\\bin\\bash.exe")
     r = _run("schedule_crypto_signals.sh", "install", "--time", "21:05", "--name", "ml-test", "--dry-run", env=env)
     assert r.returncode == 0, r.stderr
-    argv = shlex.split(r.stdout)
+    argv = shlex.split(r.stdout, comments=True)
     assert argv[7] == "21:05" and argv[9] == "ml-test"
     assert argv[11] == f'"C:\\Program Files\\Git\\bin\\bash.exe" -l "{(WIN / "crypto_signals.sh").as_posix()}"'
     r = _run("schedule_crypto_signals.sh", "status", "--dry-run")
@@ -390,8 +392,8 @@ def test_crypto_signals_job_runs_from_the_repo_root_and_logs(tmp_path, state):
     r = _run("crypto_signals.sh", env=dict(env, FAKE_RC="1"), cwd=tmp_path)
     assert r.returncode == 1 and "moneyline signals failed (exit 1)" in r.stderr
     log = (state / "cron.log").read_text().splitlines()
-    assert log[0].startswith("=== ") and log[0].endswith("signals --class crypto")
-    assert log[1] == f"cwd={REPO} args=-m agentic signals --class crypto"
+    assert log[0].startswith("=== ") and log[0].endswith("signals --skip-feed robinhood")
+    assert log[1] == f"cwd={REPO} args=-m agentic signals --skip-feed robinhood"
     assert log[2] == "=== exit 0" and log[-1] == "=== exit 1" and len(log) == 6
 
 

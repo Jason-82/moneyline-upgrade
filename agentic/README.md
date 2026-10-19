@@ -30,8 +30,9 @@ see the last bullet.
   ```
 
   Windows has no time-zone database, so `tzdata` provides one. The code also has a built-in US Eastern fallback,
-  but install `tzdata` anyway. `yfinance` is optional (the `yfinance` feed only). Every command in this README runs
-  the venv's interpreter: `.venv/Scripts/python.exe -m agentic ...`. After `source .venv/Scripts/activate`, plain
+  but install `tzdata` anyway. `yfinance` is needed only for the `yfinance` feed, the stock universe's default
+  (section 13): `.venv/Scripts/python.exe -m pip install yfinance`. Every command in this README runs the venv's
+  interpreter: `.venv/Scripts/python.exe -m agentic ...`. After `source .venv/Scripts/activate`, plain
   `python -m agentic ...` works too.
 - **Tell the hooks which Python to use.** The hook commands in `.claude/settings.json` run
   `"${AGENTIC_PYTHON:-python3}"`, so set `AGENTIC_PYTHON` in `.claude/settings.local.json`. That file is for this PC
@@ -115,9 +116,10 @@ Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json
   `max_asset_frac` (0.30), `max_crypto_frac` (0.60, all crypto-signal assets together, unless
   `allocation.class_max_frac` sets it; above 1 means no cap), `min_order_usd`, `rebalance_band_frac`, the price
   collars and `min_bars`.
-- `allocation` (section 9): `method` `slots` (the example: each position is `slot_frac` 0.20 of capital, new
-  entries by `priority` `crypto_first`, `class_max_frac` crypto 0.60) or `fixed` (per-asset `alloc_frac`; the
-  default when the block is missing). `slot_frac` must be at most `max_asset_frac`.
+- `allocation` (section 9): `method` `slots` (the example: each position is `slot_frac` 0.10 of capital, so 10
+  slots of 10%; new entries by `priority` `crypto_first`, ties broken by `favorites`; `class_max_frac` crypto 0.60)
+  or `fixed` (per-asset `alloc_frac`; the default when the block is missing). `slot_frac` must be at most
+  `max_asset_frac`.
 - `entry` (section 9): `policy` `join_recent` (default), `join` or `fresh_only`; `max_join_bars` (20),
   `max_join_rise_frac` (0.50; null = no cap; section 9), `start_date` (null or `YYYY-MM-DD`). An asset may override any key
   with its own `"entry": {...}`. **Upgrading:** a config without an `entry` block now gets `join_recent`, so an
@@ -126,8 +128,10 @@ Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json
   nothing is bought until `signals` runs again.
 - `universe` (section 10): `"crypto": {"enabled": true, ...}` scans every coin Robinhood offers and trades each
   through its spot ETF where one is mapped and tradable on your account, else directly. The example turns it on.
-  **Upgrading:** a config copied before the universe existed has no `universe` block, so it stays off. Run
-  `winpty .venv/Scripts/python.exe -m agentic init --update` (section 10) to add it.
+  `"equity": {...}` trades your own stock list (section 13); the example has it off, with no tickers.
+  **Upgrading:** a config copied before these existed lacks them, so they stay off. Run
+  `winpty .venv/Scripts/python.exe -m agentic init --update` (section 10): it adds missing blocks and missing
+  settings inside them (e.g. `allocation.favorites`, `universe.equity`) and changes nothing else.
 - `assets`: one entry per thing you trade. With the universe on, explicit crypto entries are optional overrides
   (section 10).
 
@@ -135,7 +139,7 @@ Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json
   |---|---|
   | `class` | `crypto` or `equity`: which bar the signal waits for (00:00 UTC close or the 16:00 ET close) |
   | `signal.source` | `computed` (old MoneyLine from OHLC) or `tv_export` (new TradingView MoneyLine, section 7) |
-  | `signal.feed`, `signal.symbol` | `coinbase` + `ETH-USD` for crypto; `robinhood` + `SPY` for stocks (bars captured through Claude); also `yfinance` or `csv` (+ `signal.path`) |
+  | `signal.feed`, `signal.symbol` | `coinbase` + `ETH-USD` for crypto; `robinhood` + `SPY` for stocks (bars captured through Claude, cached); `yfinance` + `SPY` (Python downloads the bars; buys need the cross-check of section 13); also `csv` (+ `signal.path`) |
   | `vehicle.type`, `vehicle.symbol` | `equity` (a stock or spot ETF, e.g. `ETHA`) or `crypto` (the coin, e.g. `SOL`); `fractional: true` allows fractional market orders in regular hours |
   | `alloc_frac` | share of capital at full target with `allocation.method: fixed` (at most `max_asset_frac`); ignored with slots |
   | `mode` | `immediate`, `split` or `confirm5` (section 8) |
@@ -161,28 +165,31 @@ Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json
 
 ## 3. Daily runbook
 
-### Phase 1: crypto signals on a schedule (no Robinhood access)
+### Phase 1: signals on a schedule (no Robinhood access)
 
-The Coinbase daily bar closes at 00:00 UTC. A scheduled job computes the crypto signals soon after, so the digest is
-ready before you run `/moneyline`. It is optional: `run` in phase 2 computes the signals anyway.
+The Coinbase daily bar closes at 00:00 UTC. A scheduled job computes the signals soon after, so the digest is ready
+before you run `/moneyline`: every asset whose bars Python can fetch on its own (Coinbase coins, yfinance stocks,
+CSV files). Assets on the `robinhood` feed need Claude's captures, so the job skips them (not an error). It is
+optional: `run` in phase 2 computes every signal anyway.
 
 **Windows: Task Scheduler, set up from Git Bash.** In the repo folder:
 
 ```bash
 bash agentic/windows/crypto_signals.sh                     # run the job once by hand; output goes to cron.log
-bash agentic/windows/schedule_crypto_signals.sh install    # a daily task at 20:15 local time
+bash agentic/windows/schedule_crypto_signals.sh install    # a daily task; the time comes from the PC's time zone
 bash agentic/windows/schedule_crypto_signals.sh status     # the task, its last result and the end of cron.log
 bash agentic/windows/schedule_crypto_signals.sh remove     # delete the task
 ```
 
 - `install` registers a task named `moneyline-crypto-signals`. It runs Git Bash's `bash.exe` on
   `agentic/windows/crypto_signals.sh`, which goes to the repo folder, runs `.venv/Scripts/python.exe -m agentic
-  signals --class crypto` and appends everything to `private/agentic/cron.log`. Running `install` again replaces
-  the task, and `--dry-run` prints the `schtasks` command instead of running it.
-- **20:15 assumes the PC is on US Eastern time.** That is 00:15 UTC in summer (EDT) and 01:15 UTC in winter (EST),
-  after the close in both. On another time zone, choose a local time that is at least 00:10 UTC all year and pass
-  it as `install --time HH:MM`: for example `--time 19:15` on US Central, `--time 17:15` on US Pacific or
-  `--time 01:15` in the UK.
+  signals --skip-feed robinhood` and appends everything to `private/agentic/cron.log`. Running `install` again
+  replaces the task, and `--dry-run` prints the `schtasks` command instead of running it.
+- **The time is chosen for you.** Without `--time`, `install` asks the venv's Python for the PC's time zone and
+  takes the local clock time of 00:15 UTC under daylight-saving time: 19:15 on US Central, 20:15 on US Eastern,
+  17:15 on US Pacific, 00:15 on UTC. On standard time that is 01:15 UTC, so the job runs after the 00:00 UTC close
+  all year. It prints the time and why. `--time HH:MM` (local) overrides it. Run `install` again after you move
+  the PC to another time zone.
 - Git Bash turns `schtasks` flags such as `/Create` into paths, so the script runs it with `MSYS_NO_PATHCONV=1`. Do
   the same if you call `schtasks` yourself.
 - The task runs only while you are logged on and the PC is awake, and a console window flashes while it runs. A
@@ -194,13 +201,13 @@ bash agentic/windows/schedule_crypto_signals.sh remove     # delete the task
 
 ```cron
 CRON_TZ=UTC
-10 0 * * * cd /path/to/moneyline-upgrade && .venv/bin/python -m agentic signals --class crypto >> private/agentic/cron.log 2>&1 || echo "moneyline signals failed: see private/agentic/cron.log"
+10 0 * * * cd /path/to/moneyline-upgrade && .venv/bin/python -m agentic signals --skip-feed robinhood >> private/agentic/cron.log 2>&1 || echo "moneyline signals failed: see private/agentic/cron.log"
 ```
 
-The job writes `signals/signals_<UTC date>.json` and `digests/digest_<date>_crypto.txt` under `private/agentic/`,
-and prints the digest into `cron.log`. It exits 1 if any enabled asset has a signal error. Task Scheduler then shows
-Last Run Result 0x1 (see `status`), and the cron line's `|| echo` reaches cron mail. Stock signals on the
-`robinhood` feed need fresh Claude captures, so they are computed in phase 2.
+The job writes `signals/signals_<UTC date>.json` and `digests/digest_<date>_no-robinhood.txt` under
+`private/agentic/`, and prints the digest into `cron.log` (a `SKIPPED feed robinhood` line names the assets left for
+phase 2). It exits 1 if any enabled asset it computed has a signal error. Task Scheduler then shows Last Run Result
+0x1 (see `status`), and the cron line's `|| echo` reaches cron mail.
 
 ### Phase 2: `/moneyline` in Claude Code
 
@@ -221,6 +228,10 @@ Last Run Result 0x1 (see `status`), and the cron line's `|| echo` reaches cron m
 4. read the orders back and report every state
 
 Then **approve or reject each proposal in the Robinhood app**, after checking it against the digest.
+
+**Reading the digest:** its `SIGNAL` column is the indicator's target and how it changed since the previous bar:
+`1.00->0.50` (half the target left), `new 0.50` (from nothing), `-` (unchanged). It is not an order, whether or not
+the sleeve holds the asset; the plan lists the orders.
 
 Rules of thumb:
 
@@ -449,11 +460,18 @@ cost, with a 95% interval clustered by run:
 | method | sizing |
 |---|---|
 | `fixed` (when the block is missing) | each asset's `alloc_frac` of capital (enabled ones sum to at most 1); a class over its cap is scaled down proportionally (a green run the entry policy will not buy counts only as far as it is held, so it never trims the others) |
-| `slots` (the example config) | every position is `slot_frac` × capital, whatever the asset. Holdings keep their whole slot, earliest into their run first (a split position can add its second half later), and are never trimmed to make room. The rest of capital goes to new entries in `priority` order: a full slot, or a partial one if at least half a slot is left; otherwise the entry waits ("no free slot"). A new entry buys only its eligible share of the slot now |
+| `slots` (the example config: 10 slots of 10%) | every position is `slot_frac` × capital, whatever the asset. Holdings keep their whole slot, earliest into their run first (a split position can add its second half later), and are never trimmed to make room. The rest of capital goes to new entries in `priority` order: a full slot, or a partial one if at least half a slot is left; otherwise the entry waits ("no free slot"). A new entry buys only its eligible share of the slot now |
 
 - `priority`: `crypto_first` (default: crypto-class assets, then stocks; within a class the newest green flip
-  first, ties in config order, in which universe coins follow your own assets, the more liquid on Coinbase first),
-  `equity_first`, `newest_flip` (the same ties), `config_order`.
+  first, then the ties below), `equity_first`, `newest_flip` (the same ties), `config_order` (config order only).
+- **Ties (`favorites`):** among new entries with the same class rank and flip day, the assets in
+  `allocation.favorites` come first, earlier in the list first; then the rest in config order (universe assets after
+  your own), then the more liquid (median close × volume over 30 bars, any feed), then by name. Several assets often
+  flip green on the same day (a market-wide turn), and with 10 slots this decides which get one. A favorite is
+  only an order: it never makes an asset eligible (entry policy, hold only, cross-check), never overrides a class
+  cap, the slot count or a wash-sale block, and never trims a holding. Names are asset names: coin codes and
+  tickers, e.g. `"favorites": ["ETH", "AAA"]` (placeholders; your list stays in the private config). The plan's
+  reason says so: `new slot $1000.00 (#3 by crypto_first; favorite #2)`.
 - `class_max_frac`: each class's cap as a share of capital (default crypto = `limits.max_crypto_frac`, equity 1.0;
   1.0 = no cap). With slots it limits the room handed out; a holding above it is not sold.
 - With slots, a position counts at its value until it is sold: an exit or a trim frees its room only once the
@@ -558,19 +576,18 @@ trimmed or sold, but not bought, so a position always keeps the asset that sells
 `alloc_frac` 0: they are never bought, and a coin the sleeve already holds is kept (no trims) until its signal turns
 red or FLATTEN is set, then sold in full.
 
-- **Slot size:** every position is one slot. `slot_frac` 0.20 holds at most 5 positions; `slot_frac` 0.10 (with
-  `max_asset_frac` ≥ 0.10) holds up to 10.
-- **The crypto cap** (`class_max_frac.crypto`, 0.60) limits how many coins are held at once: 3 coins at 0.20, 6 at
-  0.10.
-- **Order of new entries:** the newest eligible green flip first (`crypto_first`). Ties go to the more liquid coin on
-  Coinbase, then by name.
+- **Slot size:** every position is one slot. `slot_frac` 0.10 (the example) holds up to 10 positions; 0.20 holds 5.
+- **The crypto cap** (`class_max_frac.crypto`, 0.60) limits how many coins are held at once: 6 coins at 0.10, 3 at
+  0.20.
+- **Order of new entries:** the newest eligible green flip first (`crypto_first`). Ties go to `favorites`, then the
+  more liquid coin, then by name (section 9).
 - **When the slots are full**, the rest wait ("no free slot") and usually miss that run: the price of not trimming
   (section 9).
 - **Costs:** more, smaller positions mean more orders. On direct coins each one costs about 0.95%.
 
 **What changes in the daily run.**
 
-- The phase 1 job (`signals --class crypto`) scans the universe too, from the newest captures in the inbox.
+- The phase 1 job (`signals --skip-feed robinhood`) scans the universe too, from the newest captures in the inbox.
 
 - `fetch-list` adds `get_currency_pairs` (limit 700; follow `next`) and `get_equity_tradability`.
 - It asks for quotes only for what a plan can need: every held vehicle, plus every scanned coin that is green and
@@ -601,7 +618,14 @@ winpty .venv/Scripts/python.exe -m agentic init --update    # winpty: Git Bash's
 ```
 
 - **What `init --update` adds:** every top-level block of `config.example.json` that your config lacks, such as
-  `universe`, `allocation` and `entry`, exactly as in the example. It never changes an existing value or asset.
+  `universe`, `allocation` and `entry`, exactly as in the example, and every missing setting inside the settings
+  blocks (`allocation`, `entry`, `limits`, `capital`, `universe`, `universe.crypto`, `universe.equity`), such as
+  `allocation.favorites` or `universe.equity`. It never changes an existing value, list or asset, and never adds
+  entries to a mapping such as `etf_map` or `class_max_frac`. A missing setting inside a block whose example value
+  would change what applies now is left out and listed as `not added` (e.g. a missing `slot_frac` means the code
+  default 0.20, the example's is 0.10; a missing `universe.crypto.enabled` means off): set those yourself. A whole
+  missing block is added as in the example, with a `note:` line for each value that changes (e.g. `allocation`
+  turns `fixed` into `slots`).
 - **Before it writes:** it prints what it would add and asks you to type `update`; only then does it write a
   timestamped backup (`config.json.bak-<time>`) and the new config. It refuses without a terminal, so only you can
   change the config. The slash command forbids Claude to run it, and the project `.claude/settings.json` denies it
@@ -657,17 +681,113 @@ winpty .venv/Scripts/python.exe -m agentic init --update    # winpty: Git Bash's
 - Always run as `.venv/Scripts/python.exe -m agentic` from the repo root (`agentic/calendar.py` would hide the
   standard `calendar` module if `agentic/` itself were on `sys.path`). The CLI's own hints name the interpreter that
   is running it, e.g. `.venv/Scripts/python.exe -m agentic plan`.
+- The stock universe's `yfinance` feed uses Yahoo's unofficial API: it can change or fail without notice. The
+  cross-check against Robinhood's previous close (section 13) blocks buys on a mismatch, and an outage leaves the
+  cached bars, which then fail the last-bar check. A stock that split after its last bar is not bought until the
+  cache shows the split.
 - Windows support (Git Bash hooks, `doctor`, Task Scheduler scripts, the time-zone fallback) is tested on Linux, with
   Windows simulated where it matters. Run `doctor` after every install or Python update, and check the first
   scheduled run in `cron.log`.
 - Without a time-zone database (no `tzdata`), US Eastern time comes from the built-in 2007+ rule. It matches the
   database from 2007 on, but not earlier dates.
 
-## 13. Files
+## 13. Stock universe
+
+`universe.equity` in the config trades your own list of stocks, each one on its own MoneyLine signal, in the same
+slots as everything else. Code: `agentic/stocks.py`; contract: SPEC section 14. It is off in the example.
+
+**The evidence first.** In this repo's tests no timing rule beat holding stocks after tax, and baskets picked by
+past fit did worse out of sample (HANDOFF 5.10, 5.15). The MoneyLine's gain on stocks was shallower drawdowns.
+Trading a stock list is your choice, not an evidenced default.
+
+**Your list stays private.** The repo is public. Put tickers only in your private config, never in
+`config.example.json`, a commit, an issue or a pull request. Open it with `code private/agentic/config.json` and
+paste your watchlist into `symbols` as a JSON list of strings (`.` stays a dot, e.g. `BRK.B`):
+
+```json
+"universe": {"equity": {"enabled": true, "symbols": ["AAA", "BBB", "CCC"], "exclude": [], "mode": "split",
+                        "feed": "yfinance", "min_history_bars": 150, "min_dollar_volume_usd": 1000000,
+                        "max_assets": 60}}
+```
+
+`AAA`, `BBB`, `CCC` are placeholders. A config from before this has no `universe.equity`:
+`winpty .venv/Scripts/python.exe -m agentic init --update` adds it (off), then edit it. Check with
+`.venv/Scripts/python.exe -m agentic doctor` and `.venv/Scripts/python.exe -m agentic signals --all`, which prints
+every ticker's outcome and reason.
+
+**How tickers are chosen**, every run:
+
+1. **Candidates:** `symbols`, plus the tickers of the last scan that the sleeve still holds.
+2. **Your own entries win:** an explicit asset with the ticker's name (enabled or not) or an enabled one trading the
+   ticker takes precedence; a disabled one keeps the ticker out. A ticker that the crypto universe trades as a
+   coin's ETF is left to the coin. `exclude` drops tickers.
+3. **Tradable on your account:** `fetch-list` checks every ticker with `get_equity_tradability` (10 per call). On the
+   first run, or after you add tickers, those checks come first, then `fetch-list` again (once: a check that fails is
+   asked again by the normal list, not first). A ticker that is not found (a typo, a delisting), inactive or not
+   tradeable is excluded with that reason; an unknown ticker never breaks the run. Without a check from the last 7
+   days a ticker is watch-only.
+4. **History:** at least `min_history_bars` (150) closed sessions, ending on the last closed session. The old
+   MoneyLine's ATR10 and its state settle within about 100 bars; a younger listing is watch-only until it has 150
+   (the digest shows its signal, computed on the bars it has).
+5. **Liquidity:** the median daily dollar volume (close × volume) over the last 30 sessions must be at least
+   `min_dollar_volume_usd` ($1,000,000).
+6. **`max_assets`** (60): the most liquid.
+
+A ticker the sleeve holds is never dropped by a filter: it stays as hold only (sells, no buys), also after you
+remove it from `symbols` or turn the universe off. A held ticker with fewer than 150 bars gets its exit signal from
+the bars it has (at least 30). A ticker that equals a coin code of the crypto universe is named
+`TICKER-STOCK` (the vehicle is still the ticker).
+
+**Whole or fractional shares:** fractional when the tradability check says `fractional_tradability: tradable`, else
+whole shares only. A whole-shares-only stock is bought in whole shares with a limit order, rounded down (a $600 share
+in a $1,000 slot: 1 share; a $1,100 share: skipped). For a fractional stock the planner buys whole shares with a limit
+order when the remainder is within 10% of the target, else one fractional market order, only in regular hours
+(section 12).
+
+**Bars: `yfinance` (default) or `robinhood`.**
+
+- **`yfinance`:** Python downloads daily bars itself, split-adjusted OHLC (`auto_adjust=False`; `Adj Close` is never
+  used), all tickers in one batched download, into `private/agentic/cache/yfinance/`. Later runs download only the
+  new sessions, with 5 sessions of overlap: a moved close there means a split, and that ticker's history is
+  downloaded again. Cached tickers are downloaded first, new ones last. A failed batch is retried; if it still fails,
+  no more downloads that run and the cached bars are used. A new ticker Yahoo has no rows for (renamed, not trading
+  yet, another spelling) is a data error for that ticker only. The forming session is never cached. Install it with
+  `.venv/Scripts/python.exe -m pip install yfinance`; without it each ticker shows that command as its error and
+  `doctor` FAILs.
+- **The cross-check:** before the plan buys a yfinance stock, the cached close on the quote's `previous_close_date`
+  must match `get_equity_quotes` `previous_close` (Robinhood's raw prior close) within 0.5%. Split-adjusted bars
+  equal raw prices on the latest bar unless a split came after it. A mismatch or a missing date blocks buys of that
+  stock (`ALERT ... cross-check failed` in the plan, a warning in the digest); its exits still go through. The
+  digest compares only a quote as new as the bars (the evening job says "not checked"; the plan checks the fresh
+  quote).
+- **`robinhood`:** bars from Claude's `get_equity_historicals` captures, merged into
+  `private/agentic/cache/robinhood/`. `fetch-list` asks only for what the cache lacks: from 5 sessions before the
+  last cached bar, up to 10 tickers per call while a call stays under about 200 bars (about 40,000 characters); a
+  ticker without history gets a backfill in windows of at most 120 sessions, one ticker per call (about 4 calls per
+  ticker the first time), the first window again from 5 sessions before the cached bars it joins. A split (an
+  overlap that moved more than 0.5%) drops the older bars and the history is asked for again: `run` prints
+  `ACTION: split detected for ...`, and `/moneyline` then runs `fetch-list` once more, makes its calls and runs
+  again; until the history is back that stock has no signal (no trade, no exit).
+- **Too large for Claude Code:** Claude Code saves an MCP text result over 50,000 characters to a file and passes on
+  a notice instead (one 2-year SPY result was about 85,000 characters). `MAX_MCP_OUTPUT_TOKENS` does not change that
+  limit, so the fix is smaller calls. The PostToolUse hook records such a capture with `capture_error:
+  response_too_large`, the loaders skip it with "Robinhood result too large for Claude Code (it saves a result over
+  50,000 characters to a file): re-run fetch-list, which asks for that data again in smaller calls", and the next
+  `fetch-list` asks for it again in smaller calls (one ticker per call, then halves of the window), never the same
+  call.
+
+**Sizing:** slots, like everything else (section 9). With `crypto_first` coins take their slots first; stocks share
+the rest; `favorites` breaks ties.
+
+**Wash sales:** if you sell one of these tickers at a loss in another account (or this one, outside the sleeve)
+within 30 days before or after the sleeve buys it, the loss may be disallowed, and Robinhood does not check across
+accounts. List such tickers in `wash_sale_block_symbols` (section 11) for those 30 days.
+
+## 14. Files
 
 | path | contents |
 |---|---|
-| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, universe, planner, ledger, signals, cli, doctor |
+| `agentic/*.py` | config, indicator, backtest, calendar, data, snapshot, entry, universe, stocks, planner, ledger, signals, cli, doctor |
 | `agentic/hooks/` | PreToolUse guard and PostToolUse capture/journal hooks (standard library only) |
 | `agentic/windows/` | Git Bash scripts: `crypto_signals.sh` (the phase 1 job) and `schedule_crypto_signals.sh` (Task Scheduler) |
 | `.claude/settings.json` | hooks and deny rules (committed) |
@@ -680,6 +800,8 @@ winpty .venv/Scripts/python.exe -m agentic init --update    # winpty: Git Bash's
 | `private/agentic/STOP`, `FLATTEN`, `BLOCK_BUYS` | flags |
 | `private/agentic/strategy_start.json` | the first live plan's date (entry policy `fresh_only`) |
 | `private/agentic/cache/coinbase/` | Coinbase daily candles per product, the product list and `meta.json` (public market data) |
+| `private/agentic/cache/yfinance/` | daily stock bars downloaded by Python (yfinance feed) and `meta.json` |
+| `private/agentic/cache/robinhood/` | daily stock bars merged from `get_equity_historicals` captures, and `meta.json` (the date ranges they cover) |
 | `private/agentic/config.json.bak-<time>` | the backup `init --update` writes before it changes the config |
 
 Set `AGENTIC_STATE_DIR` to keep state elsewhere (tests use a temporary directory).

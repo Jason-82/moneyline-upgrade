@@ -53,8 +53,9 @@ PRIORITIES = ("crypto_first", "equity_first", "newest_flip", "config_order")
 # max_join_rise_frac 0.50: no new buy once the close is more than 50% above the flip close (README section 9,
 # analysis_2026/results_late_entry); null turns the cap off.
 DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
-# "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing.
-DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first"}
+# "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing. favorites: asset names
+# that win ties among new entries (after class priority and the newest flip), earlier in the list first.
+DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first", "favorites": []}
 
 # Crypto universe (README section 10): every coin Robinhood offers, filtered, each traded through its US spot ETF
 # where one is mapped and confirmed tradable on the account, else directly. Off when the block is absent.
@@ -71,6 +72,13 @@ DEFAULT_UNIVERSE_CRYPTO = {"enabled": False, "source": "robinhood", "symbols": [
                            "mode": "split", "entry": None, "min_history_bars": None,
                            "min_dollar_volume_usd": 5_000_000, "max_assets": 30, "etf_map": dict(DEFAULT_ETF_MAP),
                            "prefer_etf": True, "direct_crypto": True}
+# Stock universe (README section 13): the user's own ticker list, each traded as a stock. min_history_bars 150: the old
+# MoneyLine's ATR10 and state settle within ~100 bars; younger listings are watch-only until they have enough.
+# min_dollar_volume_usd: median close x volume over the last 30 closed bars.
+DEFAULT_UNIVERSE_EQUITY = {"enabled": False, "symbols": [], "exclude": [], "mode": "split", "feed": "yfinance",
+                           "entry": None, "min_history_bars": 150, "min_dollar_volume_usd": 1_000_000,
+                           "max_assets": 60}
+EQUITY_UNIVERSE_FEEDS = ("yfinance", "robinhood")
 COIN_CODE = re.compile(r"^[A-Z0-9]{1,15}$")
 TICKER = re.compile(r"^[A-Z][A-Z0-9.]{0,9}$")
 
@@ -212,12 +220,18 @@ def _allocation(a, limits: dict) -> dict:
     bad = sorted(set(a) - {*DEFAULT_ALLOCATION, "class_max_frac"})
     if bad:
         raise ConfigError(f"allocation: unknown keys {bad}")
-    out = {**DEFAULT_ALLOCATION, **a}
+    out = {**copy.deepcopy(DEFAULT_ALLOCATION), **a}
     if out["method"] not in ALLOC_METHODS:
         raise ConfigError(f"allocation.method must be one of {ALLOC_METHODS}, not {out['method']!r}")
     if out["priority"] not in PRIORITIES:
         raise ConfigError(f"allocation.priority must be one of {PRIORITIES}, not {out['priority']!r}")
     out["slot_frac"] = _frac(out["slot_frac"], "allocation.slot_frac")
+    fav = out["favorites"]
+    if fav is None:
+        fav = []
+    if not isinstance(fav, list) or not all(isinstance(x, str) and x.strip() for x in fav):
+        raise ConfigError('allocation.favorites must be a list of asset names, e.g. ["ETH", "AAA"]')
+    out["favorites"] = list(dict.fromkeys(x.strip().upper() for x in fav))    # tie-break only, earlier first
     if out["method"] == "slots" and out["slot_frac"] > float(limits["max_asset_frac"]) + 1e-12:
         raise ConfigError(f"allocation.slot_frac {out['slot_frac']:g} exceeds limits.max_asset_frac "
                           f"{limits['max_asset_frac']}")
@@ -242,28 +256,71 @@ def _allocation(a, limits: dict) -> dict:
     return out
 
 
-def _codes(v, where: str, pattern=COIN_CODE) -> list[str]:
+def _codes(v, where: str, pattern=COIN_CODE, what: str = "coin code") -> list[str]:
     if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
-        raise ConfigError(f"{where} must be a list of codes like [\"DOGE\", \"LINK\"]")
+        eg = '["AAA", "BBB"]' if what == "ticker" else '["DOGE", "LINK"]'
+        raise ConfigError(f"{where} must be a list of {what}s like {eg}")
     out = []
     for x in v:
         k = x.strip().upper()
         if not pattern.match(k):
-            raise ConfigError(f"{where}: {x!r} is not a coin code")
+            raise ConfigError(f"{where}: {x!r} is not a {what}")
         if k not in out:
             out.append(k)
     return out
 
 
+def _count(v, where: str, lo: int, hi: int | None = None) -> int:
+    if isinstance(v, bool) or not isinstance(v, int) or v < lo or (hi is not None and v > hi):
+        raise ConfigError(f"{where} must be a whole number {'>= ' + str(lo) if hi is None else f'from {lo} to {hi}'}"
+                          f", not {v!r}")
+    return v
+
+
+def _usd(v, where: str) -> float:
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+        raise ConfigError(f"{where} must be a number >= 0, not {v!r}")
+    return float(v)
+
+
+def _universe_equity(raw, c: dict) -> dict:
+    """Validate universe.equity; every default filled (enabled false when absent)."""
+    raw = raw or {}
+    if not isinstance(raw, dict):
+        raise ConfigError("universe.equity must be an object")
+    raw = {k: v for k, v in raw.items() if not str(k).startswith("_")}
+    bad = sorted(set(raw) - set(DEFAULT_UNIVERSE_EQUITY))
+    if bad:
+        raise ConfigError(f"universe.equity: unknown keys {bad}; allowed: {sorted(DEFAULT_UNIVERSE_EQUITY)}")
+    w = "universe.equity."
+    out = {**copy.deepcopy(DEFAULT_UNIVERSE_EQUITY), **raw}
+    _bool(out, "enabled", False, w)
+    out["symbols"] = _codes(out["symbols"], w + "symbols", TICKER, "ticker")
+    out["exclude"] = _codes(out["exclude"], w + "exclude", TICKER, "ticker")
+    if out["feed"] not in EQUITY_UNIVERSE_FEEDS:
+        raise ConfigError(f"{w}feed must be one of {EQUITY_UNIVERSE_FEEDS}, not {out['feed']!r}")
+    if out["mode"] not in c["modes"]:
+        raise ConfigError(f"{w}mode: unknown mode {out['mode']!r}; defined: {sorted(c['modes'])}")
+    if out["entry"] is not None:
+        out["entry"] = _entry(out["entry"], w + "entry", full=False)
+    out["min_history_bars"] = _count(out["min_history_bars"], w + "min_history_bars", 30)
+    out["min_dollar_volume_usd"] = _usd(out["min_dollar_volume_usd"], w + "min_dollar_volume_usd")
+    out["max_assets"] = _count(out["max_assets"], w + "max_assets", 1, 200)
+    return out
+
+
 def _universe(u, c: dict) -> dict:
-    """Validate the `universe` block; {"crypto": {...}} with every default filled (enabled false when absent)."""
+    """Validate the `universe` block; {"crypto": {...}, "equity": {...}} with every default filled (each enabled false
+    when absent)."""
     if u is None:
         u = {}
     if not isinstance(u, dict):
         raise ConfigError('universe must be an object like {"crypto": {"enabled": true}}')
     u = {k: v for k, v in u.items() if not str(k).startswith("_")}
-    if set(u) - {"crypto"}:
-        raise ConfigError(f"universe: unknown keys {sorted(set(u) - {'crypto'})}; only \"crypto\" exists")
+    if set(u) - {"crypto", "equity"}:
+        raise ConfigError(f"universe: unknown keys {sorted(set(u) - {'crypto', 'equity'})}; only \"crypto\" and "
+                          "\"equity\" exist")
+    equity = _universe_equity(u.get("equity"), c)
     raw = u.get("crypto") or {}
     if not isinstance(raw, dict):
         raise ConfigError("universe.crypto must be an object")
@@ -311,7 +368,7 @@ def _universe(u, c: dict) -> dict:
             raise ConfigError(f"{w}etf_map: {t} is mapped to more than one coin")
         etfs[k] = t
     out["etf_map"] = etfs
-    return {"crypto": out}
+    return {"crypto": out, "equity": equity}
 
 
 def validate(cfg: dict) -> dict:
@@ -402,6 +459,20 @@ def crypto_universe(cfg: dict) -> dict:
     u = (cfg.get("universe") or {}).get("crypto")
     return u if isinstance(u, dict) and "etf_map" in u else _universe(None, {"limits": DEFAULT_LIMITS,
                                                                                   "modes": DEFAULT_MODES})["crypto"]
+
+
+def equity_universe(cfg: dict) -> dict:
+    """The validated universe.equity block (all defaults, enabled false, for a config that has none)."""
+    u = (cfg.get("universe") or {}).get("equity")
+    return u if isinstance(u, dict) and "max_assets" in u else _universe_equity(None, {"modes": DEFAULT_MODES})
+
+
+def crosscheck_applies(asset: dict) -> bool:
+    """A stock whose signal comes from yfinance bars of the traded ticker itself: before the planner buys it, the cached
+    close must match Robinhood's previous_close (stocks.cross_check)."""
+    s, v = asset.get("signal") or {}, asset.get("vehicle") or {}
+    return (s.get("source", "computed") == "computed" and s.get("feed") == "yfinance" and v.get("type") == "equity"
+            and str(s.get("symbol") or "").upper() == str(v.get("symbol") or "").upper())
 
 
 def direct_crypto_possible(cfg: dict) -> bool:

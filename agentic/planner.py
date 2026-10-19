@@ -15,7 +15,7 @@ from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 
 from agentic import calendar as cal
 from agentic import entry, ledger
-from agentic.config import VALID_CLASSES, cli_command, paths
+from agentic.config import VALID_CLASSES, cli_command, crosscheck_applies, paths
 from agentic.snapshot import code_for, mid, pair_for, quote_problem
 
 EQUITY_PARAMS = ("account_number", "symbol", "side", "type", "quantity", "dollar_amount", "limit_price", "stop_price",
@@ -431,24 +431,31 @@ def _class_caps(cfg: dict) -> dict[str, float]:
 
 
 def _liquidity(it: dict) -> float:
-    """The signal's median Coinbase dollar volume (0 without one, e.g. a stock)."""
+    """The signal's median daily dollar volume (close x volume over 30 bars; 0 without one)."""
     return ledger.num((it.get("sig") or {}).get("dollar_volume_usd")) or 0.0
 
 
-def _tie(it: dict, order: dict) -> tuple:
-    """Config order, in which the universe's coins follow the explicit assets, the more liquid on Coinbase first,
-    then by name (explicit assets keep their own order, whatever their class or liquidity)."""
+def _favorites(cfg: dict) -> dict[str, int]:
+    """allocation.favorites as {NAME: rank from 1}."""
+    return {str(n).upper(): k for k, n in enumerate((cfg.get("allocation") or {}).get("favorites") or [], 1)}
+
+
+def _tie(it: dict, order: dict, fav: dict | None = None) -> tuple:
+    """Favorites first (earlier in allocation.favorites first), then config order, in which the universe's assets
+    follow the explicit ones, the more liquid first, then by name (explicit assets keep their own order, whatever their
+    class or liquidity)."""
+    k = (fav or {}).get(str(it["name"]).upper(), 10**6)
     if isinstance(it["asset"].get("universe"), dict):
-        return 1, -_liquidity(it), it["name"]
-    return 0, float(order[it["name"]]), ""
+        return k, 1, 0.0, -_liquidity(it), it["name"]
+    return k, 0, float(order[it["name"]]), 0.0, ""
 
 
-def _ranked(its: list[dict], priority: str, order: dict) -> list[dict]:
-    """Slot priority: crypto_first / equity_first (that class first, then the newest green flip, then config order as
-    in _tie), newest_flip (newest flip, then _tie), or config_order."""
+def _ranked(its: list[dict], priority: str, order: dict, fav: dict | None = None) -> list[dict]:
+    """Slot priority: crypto_first / equity_first (that class first, then the newest green flip, then _tie: favorites,
+    config order, liquidity, name), newest_flip (newest flip, then _tie), or config_order (config order only)."""
     if priority == "config_order":
         return sorted(its, key=lambda it: order[it["name"]])
-    out = sorted(its, key=lambda it: _tie(it, order))
+    out = sorted(its, key=lambda it: _tie(it, order, fav))
     out.sort(key=lambda it: it.get("flip") or "", reverse=True)          # stable: ties keep _tie order
     if priority in ("crypto_first", "equity_first"):
         first = priority.split("_")[0]
@@ -500,7 +507,8 @@ def _slot_alloc(its: list[dict], reserved: list[tuple], capital: float, cfg: dic
     for a, value in reserved:                            # skipped assets whose sleeve still holds shares
         take(a["class"], max(slot, value or 0.0))
         info["held"].append(a["name"])
-    ranked = _ranked(its, prio, order)
+    fav = _favorites(cfg)
+    ranked = _ranked(its, prio, order, fav)
     held = sorted((it for it in ranked if it["qty"] > 0 and it["current_usd"] >= float(lim["min_order_usd"])),
                   key=lambda it: (it.get("opened") or "", order[it["name"]]))
     for it in ranked:
@@ -530,6 +538,9 @@ def _slot_alloc(its: list[dict], reserved: list[tuple], capital: float, cfg: dic
         if it.get("hold_only"):
             skip(it, f"hold only ({it['hold_only']}): no new buys")
             continue
+        if it.get("no_buy"):
+            skip(it, f"{it['no_buy']}: no buys")
+            continue
         if it["vsym"] in wash:
             skip(it, f"{it['vsym']} is in wash_sale_block_symbols: no buys")
             continue
@@ -547,19 +558,23 @@ def _slot_alloc(its: list[dict], reserved: list[tuple], capital: float, cfg: dic
         take(cls, size)
         it["slot_usd"] = size
         n = len(info["new"]) + 1
-        it["slot_note"] = (f"new slot ${size:.2f} (#{n} by {prio})" if size >= slot - 0.005 else
-                           f"partial slot ${size:.2f} of ${slot:.2f} (#{n} by {prio}; the room left)")
+        fk = fav.get(str(it["name"]).upper()) if prio != "config_order" else None
+        why = f"#{n} by {prio}" + (f"; favorite #{fk}" if fk else "")
+        it["slot_note"] = (f"new slot ${size:.2f} ({why})" if size >= slot - 0.005 else
+                           f"partial slot ${size:.2f} of ${slot:.2f} ({why}; the room left)")
         info["new"].append({"asset": it["name"], "usd": round(size, 2), "partial": size < slot - 0.005})
     return info
 
 
 def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1, flags=None, *,
               placed_today_usd: float | None = None, journal: list | None = None, sleeve: dict | None = None,
-              strategy_start: str | None = None) -> dict:
+              strategy_start: str | None = None, crosscheck: dict | None = None) -> dict:
     """The plan for this run (SPEC section 7). `flags` None reads STOP / FLATTEN / BLOCK_BUYS from the state dir;
     `placed_today_usd` None reads the ledger; `journal` None reads journal.jsonl; `sleeve` None runs
     ledger.sleeve_status (the sleeve's own quantities and any position the orders do not explain); `strategy_start`
-    None reads strategy_start.json (entry policy fresh_only).
+    None reads strategy_start.json (entry policy fresh_only); `crosscheck` {asset name: problem or None} from
+    stocks.cross_check: a yfinance stock (config.crosscheck_applies) with a problem, or without an entry, is not bought
+    (its exits still go through).
 
     Only the sleeve's own quantity of a vehicle is ever sold, and only this system's open orders are cancelled.
     Buys raise a position only up to the entry policy's share of the target; sells cut it only down to the target."""
@@ -697,6 +712,13 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         it["quote"] = (snapshot.get("quotes") or {}).get(it["qkey"])
         uinfo = a.get("universe") if isinstance(a.get("universe"), dict) else {}
         it["hold_only"], it["uni"] = uinfo.get("hold_only"), bool(uinfo)
+        if crosscheck_applies(a) and not flatten:
+            cc = (crosscheck or {}).get(name, "not cross-checked against Robinhood's previous_close (plan through the "
+                                              "CLI, which checks it)")
+            if cc:
+                it["no_buy"] = f"cross-check failed: {cc}"
+                if it["qty"] > 0 or it["etf"] > 0:
+                    warnings.append(f"ALERT {name}: {it['no_buy']}; buys blocked, exits allowed")
         it["candidate"] = bool(uinfo) and slots and it["qty"] <= 0       # a universe coin's possible new entry
         intents.append(it)
 
@@ -781,6 +803,9 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         if side == "buy" and it.get("hold_only"):
             skip(it, f"hold only ({it['hold_only']}): no new buys")
             continue
+        if side == "buy" and it.get("no_buy"):
+            skip(it, f"{it['no_buy']}: no buys")
+            continue
         it["delta"] = -cur if it["full"] else (full_usd if side == "sell" else entry_usd) - cur
         reason = ("FLATTEN: " if flatten else "") + (f"target {cur / slot:.2f} -> " if slot > 0 else
                                                      "no allocation of its own (alloc_frac 0): target -> ") + \
@@ -796,7 +821,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
         (sells if side == "sell" else buys).append(it)
 
     if slots:                                # buys never lift the sleeve above capital or a class above its cap
-        prio = _ranked(buys, plan["allocation"]["priority"], order)
+        prio = _ranked(buys, plan["allocation"]["priority"], order, _favorites(cfg))
         buys = [it for it in prio if it["qty"] > 0] + [it for it in prio if it["qty"] <= 0]
         slot = float(cfg["allocation"]["slot_frac"]) * capital
         used = {c: sum(slot if v is None else v for a, v in reserved if a["class"] == c) for c in VALID_CLASSES}

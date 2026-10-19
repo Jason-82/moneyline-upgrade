@@ -7,8 +7,8 @@ Read the plan's sections 2, 3, 6 and 7 before changing anything here.
 never be committed: config with account numbers, raw tool captures, signals, plans, journal, digests. Tests must use
 `AGENTIC_STATE_DIR=<tmp>`.
 
-**Dependencies:** pandas and numpy only, plus `urllib` for HTTP. `yfinance` is an optional import. Hooks use the
-standard library only.
+**Dependencies:** pandas and numpy only, plus `urllib` for HTTP. `yfinance` is an optional import (the `yfinance`
+feed; tests mock it). Hooks use the standard library only.
 
 ## 0. Vocabulary
 
@@ -44,6 +44,7 @@ standard library only.
 | `config.py` | done | load/validate config, state paths, `tranches_for` |
 | `entry.py` | done | entry policy (join / join_recent / fresh_only), shared by `signals.py` and `planner.py` |
 | `universe.py` | done | crypto universe: every Robinhood coin, filtered, mapped to a spot ETF or direct (section 13) |
+| `stocks.py` | done | stock universe from the user's ticker list; Robinhood history requests; yfinance cross-check (section 14) |
 | `indicator.py` | A | N-confirmed MoneyLine with separate entry/exit N, tranche targets, tv_export reader |
 | `backtest.py` | A | modes vs buy & hold on any OHLC (fractional weights) |
 | `calendar.py` | B | NYSE trading days and holidays, closed-bar dates, execution session, `valid_until` |
@@ -195,16 +196,48 @@ optional), ascending, one row per bar, closed bars only.
     It returns at most 300 rows of `[time, low, high, open, close, volume]`, newest first; paginate backwards.
   - Send a User-Agent header. Retry 3 times with backoff on HTTP 429/5xx.
   - Drop the forming bar (date ≥ today UTC).
-- `load_robinhood_bars(inbox_dir, symbols) -> dict[sym, df]`:
+- `load_robinhood_bars(inbox_dir, symbols, now_utc, issues, *, cache_dir=None) -> dict[sym, df]` (OHLC and volume):
   - Reads the captures saved by the PostToolUse hook (format in section 8) whose `tool` ends with
     `get_equity_historicals`.
   - Parses with `screener.data.from_robinhood_json` logic, applied to the capture's `response` object rather than a
-    file. Merges multiple captures, the newest bar wins.
-  - Requires interval 'day'.
-  - Drops interpolated bars and bars after `last_closed_equity_session`.
-- `fetch_yfinance(symbol, start)`: optional import; `auto_adjust=False`, split-adjusted OHLC, never 'Adj Close'.
+    file. Merges captures in `captured_at` order, the newer bar wins; a newer capture whose overlapping closes
+    differ by more than 0.5% (a split) drops the older bars.
+  - Requires interval 'day', regular bounds and `adjustment_type` split.
+  - Drops interpolated bars and bars after `last_closed_equity_session` (at now and at the capture time).
+  - A capture that holds no data (unreadable, or Claude Code's "too large" notice, section 8) is skipped with a
+    message in `issues`, and in the frame's `attrs["notes"]` (a signal warning) while it is newer than the cache or its
+    window is still missing; the other captures still count.
+  - A split found on merging (`SPLIT_NOTE` "split detected for SYM ...: ... run fetch-list again now") goes to
+    `issues` and, until a later capture with bars is merged, to `attrs["notes"]` (kept in meta.json as `split`):
+    `asset_signal` shows it as a warning and `signals` prints `ACTION: split detected for ...`.
+  - A capture whose file-name time is no newer than every requested symbol's `merged` one is not parsed again,
+    unless the file holds `capture_error`. `robinhood_too_large(inbox)` lists the requests whose capture is
+    `response_too_large` (for `stocks.history_calls`).
+  - **Robinhood cache** (`cache_dir` = `robinhood_cache_dir()` = `<state>/cache/robinhood/`; `get_bars` uses it):
+    `<SYM>.csv` plus `meta.json` per symbol: `covered` (the date ranges the merged captures answered: start_time to
+    the day before end_time, at most the session closed at capture time) and `merged` (the newest capture merged;
+    older ones are not read again). A split empties `covered`, so fetch-list asks for the history again.
+- `fetch_yfinance(symbol, start)`: optional import; `auto_adjust=False`, split-adjusted OHLC, never 'Adj Close'
+  (the crypto-class yfinance feed, uncached).
+- **yfinance cache** (`yfinance_daily_cached(symbols, start, now_utc, *, base, issues, offline, sleep, retries)` ->
+  `{bars: {SYM: df}, errors: {SYM: why}, down}`, used by `get_bars` for equity-class yfinance assets and by the stock
+  universe):
+  - Stored in `<state>/cache/yfinance/<SYM>.csv` (date, OHLC, volume) plus `meta.json` (`history_from`,
+    `full_fetch`, the last `error`).
+  - Batched `yf.download`s (`auto_adjust=False`, `actions=False`), in this order: the cached symbols whose last bar
+    is not the last closed NYSE session (from `OVERLAP_SESSIONS` = 5 sessions before their last bar); a cached symbol
+    whose overlapping closes moved more than `SPLIT_TOL` (0.5%), again in full (a split); then the symbols without a
+    usable cache (from `start`). A ticker missing from a batch is tried once more alone.
+  - Each batch is retried (`YF_RETRIES` 2, backoff); a batch that still fails sets `down` (an exception, or no rows
+    at all for a batch with a cached symbol): no further download this run, cached bars as they are. No rows for a
+    batch of new symbols only is an error per symbol (a ticker Yahoo does not know), never `down`. Bars after the last closed session are dropped and never cached. `offline`: no
+    download. A missing package is an error per symbol naming `<python> -m pip install yfinance`. Yahoo tickers use
+    `-` for `.` (BRK.B -> BRK-B).
+  - `compute_signals` downloads every yfinance stock in one batch first, then reads the cache per asset
+    (`offline={"yfinance"}`).
 - `load_csv(path)`: via `screener.data.normalise`.
-- `get_bars(asset, cfg, now_utc, inbox_dir, offline=False) -> df`: dispatches on `asset["signal"]["feed"]`. It fetches at least
+- `get_bars(asset, cfg, now_utc, inbox_dir, offline=False) -> df`: dispatches on `asset["signal"]["feed"]`; `offline`
+  is True or a set of feed names (`{"coinbase"}`, `{"yfinance"}`): those from their caches only. It fetches at least
   `limits.min_bars + 150` bars (about 2 years of crypto; for stocks request ≥ 700 calendar days), or the asset's own
   `min_bars + 150` if larger (universe coins).
 - **Coinbase cache** (`coinbase_daily_cached(product, start, now_utc, opener=None, *, base, pace, sleep, issues,
@@ -224,7 +257,8 @@ optional), ascending, one row per bar, closed bars only.
 - `coinbase_products(now_utc, opener=None, *, base, pace, sleep, retries, timeout)`: `GET https://api.exchange.coinbase.com/products`,
   cached for the UTC day in `cache/coinbase/products.json`, returning `{products: {ID: {base, quote, online}},
   fetched_at, error}`. A failed fetch falls back to an older cache; `products` is None without one.
-- `median_dollar_volume(df, n=30)`: the median close × volume of the last `n` bars.
+- `median_dollar_volume(df, n=30)`: the median close × volume of the last `n` bars (coin units for Coinbase, shares
+  for stocks: dollars either way). `signals.py` records it for every feed with volume (`dollar_volume_usd`).
 
 ```python
 def check_bars(df, expected_last: date, min_bars: int) -> dict(errors=[...], warnings=[...])
@@ -250,7 +284,8 @@ Field names follow the official schemas, from a capture of Robinhood's `tools/li
 - `get_portfolio` → `data.total_value`, `data.cash`, `data.buying_power.buying_power`, `data.crypto_buying_power…`
 - `get_equity_positions` → `data.positions[]`: symbol, quantity, `shares_available_for_sells`
 - `get_crypto_positions` → `data.results[]`: `currency.code`, quantity, `quantity_transferable`
-- `get_equity_quotes` → per symbol: `bid_price`, `ask_price`, `last_trade_price`, timestamps.
+- `get_equity_quotes` → per symbol: `bid_price`, `ask_price`, `last_trade_price`, timestamps, and `previous_close`
+  (raw) with `previous_close_date` (the cross-check, section 14).
   - Accept `data.results[]` or `data.quotes[]`. Be tolerant and test both.
 - `get_crypto_quotes` → bid/ask/mark per pair symbol, e.g. 'ETH-USD'
 - `get_equity_orders` / `get_crypto_orders` → open orders: id, `ref_id`, symbol or `currency_code`, side, state,
@@ -259,7 +294,10 @@ Field names follow the official schemas, from a capture of Robinhood's `tools/li
   6-decimal quantities and 2-decimal prices)
 
 MCP wrappers to accept: a response may be the structured object, or `{"content":[{"type":"text","text":"<json>"}]}`,
-or `{"structuredContent": {...}}`. Unwrap all three.
+or `{"structuredContent": {...}}`. Unwrap all three. A capture with `capture_error` (or a response that is not JSON)
+gets `error`: for `response_too_large` the message `hooks.TOO_LARGE_HELP` ("Robinhood result too large for Claude
+Code (it saves a result over 50,000 characters to a file): re-run fetch-list, which asks for that data again in
+smaller calls"), never a JSON parse error. `MAX_MCP_OUTPUT_TOKENS` does not move that 50,000-character limit.
 
 ```python
 def build_snapshot(inbox_dir, cfg, now_utc) -> dict
@@ -328,11 +366,13 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
      closed; none = first; ties in config order), keep up to a whole slot (`cap_usd`): the last one in gets the room
      left, so a partial slot grows only when capital frees up. Holdings are never trimmed to make room.
   3. New entries (not held, entry_tf > 0) in `priority` order (`crypto_first`: crypto class first, then equity;
-     within a class the newest eligible green flip first, ties in config order, in which universe coins follow
-     the explicit assets, the higher `dollar_volume_usd` of the signal first, then by name; `equity_first`,
-     `newest_flip` (the same ties), `config_order`) take min(room, class room): a full slot, or a partial one if ≥ half a slot,
-     else they wait (`skipped`: "no free slot"). `wash_sale_block_symbols` and hold-only universe coins take no
-     slot; BLOCK_BUYS and FLATTEN hand out none.
+     within a class the newest eligible green flip first, then the ties: `allocation.favorites` (earlier in the list
+     first, the rest after), then config order, in which universe assets follow the explicit ones, the higher
+     `dollar_volume_usd` of the signal first, then by name; `equity_first`, `newest_flip` (the same ties),
+     `config_order` (config order only, no favorites)) take min(room, class room): a full slot, or a partial one if
+     ≥ half a slot, else they wait (`skipped`: "no free slot"). `wash_sale_block_symbols`, hold-only universe assets
+     and yfinance stocks that fail the cross-check take no slot; BLOCK_BUYS and FLATTEN hand out none. A favorite's
+     slot note says `favorite #k`; favorites only order candidates (never eligibility, caps, slots or trims).
   4. Buys (holdings first, then new entries, in priority order) are capped so the sleeve's positions, counted at
      their current value, plus this plan's buys stay within capital and each class cap ("no free capital" below
      `min_order_usd`).
@@ -376,7 +416,13 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   that gets a slot holds it while its quote is fetched, and one that does not needs no quote and is not reported.
   `cli.format_calls` prints the calls first as `RE-FETCH QUOTES`; `plan` without `--attempt` keeps the attempt
   while the current plan lists them.
-- **Hold-only universe coins** (`asset.universe.hold_only`): no buys; sells and exits as usual.
+- **Hold-only universe coins and stocks** (`asset.universe.hold_only`): no buys; sells and exits as usual.
+- **Cross-check** (`make_plan(..., crosscheck={name: problem or None})`, from `stocks.cross_check`, which `cli plan`
+  passes): an enabled asset with `config.crosscheck_applies` (a computed yfinance signal on the traded ticker
+  itself) whose entry is a problem, or that has no entry (None: never checked), is not bought: no slot, `skipped`
+  "cross-check failed: ...: no buys", and a warning `ALERT <name>: cross-check failed: ...; buys blocked, exits
+  allowed` when it is held or entry-eligible. Exits and trims go through. Not a plan error (that would stop every
+  order of the run).
 - **notional_usd** is q × price rounded up to the cent; max_order_usd, max_day_usd and buying power hold on those
   rounded values.
 - **Buys:**
@@ -430,6 +476,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 ```
 
 - Never edit or reformat `response` beyond JSON serialisation.
+- A `tool_response` that is not the tool's JSON (`hooks.capture_problem`: a string, or text blocks, that do not parse)
+  adds `"capture_error"`: `"response_too_large"` when the text says the output was too large, exceeded the maximum
+  allowed tokens or was saved to a file (Claude Code's notice for a text result over 50,000 characters), else
+  `"not_json"`, and
+  `"response_head"`: its first 300 characters. A tool error (`isError`) is not a capture problem.
 - Captured tools: every `get_*` tool, `search`, `review_equity_order`, `preview_crypto_order`, and every
   place/cancel result.
 - Files are private; the hook never prints their content.
@@ -489,6 +540,8 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 - `PostToolUseFailure` events (the same script is registered for them): a failed place is journaled as
   `failed_or_unknown` (the order may exist) and its plan notional is counted in the ledger.
 - Files are written ASCII-escaped, so odd characters in a response never drop a capture or journal line.
+- A capture recorded with `capture_error: response_too_large` also returns a warning (systemMessage and stderr) with
+  `TOO_LARGE_HELP`; nothing else changes.
 - Never block (always exit 0); log errors to `hook.log`.
 
 ## 11. .claude/settings.json (D)
@@ -554,14 +607,23 @@ Signals JSON per asset:
 
 - With the crypto universe on (and the crypto class requested), the file also has `universe: {assets, report}`:
   the generated assets (section 13) after the explicit ones, and the report. Watch-only coins are included, with
-  `enabled: false`.
+  `enabled: false`. With the stock universe on (and the equity class requested), `universe_equity: {assets,
+  report}` likewise (section 14), after the coins.
+- `compute_signals(..., skip_feeds=None)` / `signals --skip-feed FEED` (repeatable): assets on those feeds are left
+  out, not counted as errors; the file records `skipped_feeds` and `skipped_assets`, the digest prints a `SKIPPED
+  feed ...` line and is written as `digest_<date>_no-<feed>.txt`. The scheduled job runs `signals --skip-feed
+  robinhood` (Coinbase, yfinance and CSV need no Claude).
+- Per yfinance stock (`crosscheck_applies`), `crosscheck`: "ok", the problem (also a warning: "the plan blocks buys"),
+  or "not checked yet" without a captured quote; the plan checks again with fresh quotes.
 - **The digest:**
   - a `SCAN` line: assets scanned, green, partial, eligible to buy today (enabled, no errors, `entry_frac` > 0),
     held, changed today, with errors
-  - `universe.summary_lines`
-  - a table of the explicit assets and of every universe coin that is held (`*`), changed today, eligible or in
-    error
-  - an `OTHERS` line with the rest by state
+  - `universe.summary_lines`, `stocks.summary_lines`
+  - a table of the explicit assets and of every universe coin or stock that is held (`*`), changed today, eligible
+    or in error. Its `SIGNAL` column is the target's change since the previous bar, stated neutrally (`1.00->0.50`,
+    `new 0.50`, `-` unchanged, `(entry-eligible x)` when the entry policy allows less), never an order word
+  - an `OTHERS` line with the rest by state, then the note `SIGNAL is the indicator target, not an order; the plan
+    lists orders`
   - `format_digest(sig, full=True)` (`signals --all`) prints every asset and every coin's outcome.
 
 - Per tranche: the last confirmed red → green flip (`flip == +1`; tv_export: a False → True step of the immediate or
@@ -581,15 +643,15 @@ own hints name the interpreter running it (`config.cli_command()`):
 | command | does |
 |---|---|
 | `init` | create the state dirs; copy the example config if missing (never overwrite) |
-| `init --update` | add every top-level block of `config.example.json` the private config lacks (e.g. `universe`, `allocation`, `entry`), changing no existing value or asset; validates the result and prints what it adds; needs a terminal and a typed `update` (like `resume`), then writes `config.json.bak-<UTC time>` and the config. `.claude/settings.json` denies it like `resume` (`Bash(*agentic*init*--update*)`) |
-| `signals [--all]` | compute signals (`--all`: disabled assets too, and the full digest) |
-| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (interval day, adjustment_type split, start = 700 days ago) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill. With the crypto universe on (section 13): `get_currency_pairs {limit: 700}` (follow `next`), then `get_equity_tradability` (10 symbols per call) for the mapped ETFs of the scanned coins, and quotes (20 symbols per call) for every held vehicle plus every universe coin that is green and entry-eligible on crypto signals computed from the Coinbase cache: the ETF for a mapped coin, else the pair. Without any `get_currency_pairs` capture it prints stage 1 only (the pair list and every mapped ETF's tradability) and "Then run fetch-list again". The crypto reads are listed whenever `cli.crypto_needed` holds: a crypto vehicle, the universe trading coins directly or holding one for exits, or a coin in the reconciled positions or this system's orders since then (so reconcile never compares against a missing capture); `rhs_account_number` must then be filled in (checked with the same universe needs) |
+| `init --update` | add every top-level block of `config.example.json` the private config lacks (e.g. `universe`, `allocation`, `entry`) and every missing key inside the settings blocks `allocation`, `entry`, `limits`, `capital`, `universe`, `universe.crypto`, `universe.equity` (e.g. `allocation.favorites`, `universe.equity`), changing no existing value, list, mapping (`etf_map`, `class_max_frac`) or asset; a missing nested key whose example value would change the effective value (e.g. `allocation.slot_frac`, `universe.crypto.enabled`) is not added but printed as `not added`; validates the result and prints what it adds, with a `note:` for each effective value a whole added block changes; needs a terminal and a typed `update` (like `resume`), then writes `config.json.bak-<UTC time>` and the config. `.claude/settings.json` denies it like `resume` (`Bash(*agentic*init*--update*)`) |
+| `signals [--all] [--class C] [--skip-feed FEED]` | compute signals (`--all`: disabled assets too, and the full digest; `--skip-feed`: leave out assets on that feed, not counted as errors); prints `ACTION: split detected for ...` (stderr) when a Robinhood capture found a split and the history is not back yet: fetch-list again, its calls, then run again |
+| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (only what the Robinhood cache lacks: `stocks.history_calls`, below) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill. With the crypto universe on (section 13): `get_currency_pairs {limit: 700}` (follow `next`), then `get_equity_tradability` (10 symbols per call) for the mapped ETFs of the scanned coins, and quotes (20 symbols per call) for every held vehicle plus every universe coin that is green and entry-eligible on crypto signals computed from the Coinbase cache: the ETF for a mapped coin, else the pair. Without any `get_currency_pairs` capture it prints stage 1 only (the pair list and every mapped ETF's tradability) and "Then run fetch-list again"; so it does while a stock universe ticker has no `get_equity_tradability` capture of the last 7 days and none tried in the last `universe.STAGE1_RETRY_HOURS` (12; a tool error, or a failure in hook.log, counts as tried: the normal list asks again), those tickers' tradability; the crypto stage 1 likewise counts a tried `get_currency_pairs`. Robinhood bars (`stocks.history_calls`, explicit robinhood-feed assets and the stock universe on that feed): only what the Robinhood cache lacks, after merging the inbox into it: an incremental call from 5 sessions before the last cached bar, up to 10 symbols while symbols × expected bars ≤ `RH_MAX_BARS_PER_CALL` 200 (`RH_MAX_RESULT_CHARS` 40,000 at `RH_CHARS_PER_BAR` 200: under Claude Code's 50,000-character limit); a symbol without history (or after a split, or with a hole) a backfill in windows of ≤ 120 sessions (`end_time` = the next window's start), one symbol per call, the first window from 5 sessions before the cached bars it joins (a split since is caught); a request at least as large as one captured `response_too_large` (its symbols, its whole window) is asked smaller: one symbol per call, then halves of the window (down to about 10 sessions), never the same call. With the stock universe: `get_equity_tradability` for every candidate ticker, and quotes for every held universe stock and every one that is green and entry-eligible (yfinance: computed from the batched download; robinhood feed: every tradable or held ticker). The crypto reads are listed whenever `cli.crypto_needed` holds: a crypto vehicle, the universe trading coins directly or holding one for exits, or a coin in the reconciled positions or this system's orders since then (so reconcile never compares against a missing capture); `rhs_account_number` must then be filled in (checked with the same universe needs) |
 | `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call) |
 | `run` | `signals` then `plan` |
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
 | `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
 | `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
-| `doctor` | install check (`doctor.py`): Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
+| `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps
@@ -675,3 +737,56 @@ def build_universe(cfg, now_utc, inbox_dir, fetch=None, *, products=None, held=N
   crypto_quotes, candidates, crypto_vehicles, report}`; `crypto_vehicles`: an enabled generated asset trades a coin,
   so crypto positions and orders are fetched (`cli.crypto_needed`).
 - **Tests:** `tests/test_agentic_universe.py`, with no network.
+
+## 14. stocks.py
+
+```python
+def build_equity_universe(cfg, now_utc, inbox_dir, *, fetch=None, held=None, base=None, crypto_assets=())
+    -> tuple[list[dict], dict]
+```
+
+- **Config** `universe.equity` (validated in `config.py`; `enabled` false when absent): `enabled`, `symbols`,
+  `exclude` (tickers, `^[A-Z][A-Z0-9.]{0,9}$`), `mode`, `feed` (`yfinance` default, or `robinhood`), `entry`
+  (optional override keys), `min_history_bars` (150; ≥ 30), `min_dollar_volume_usd` (1,000,000), `max_assets` (60).
+  The example config has the block with `enabled: false` and `symbols: []`; the user's tickers live only in the
+  private config.
+- **Candidates:** `symbols` (universe on), plus the tickers of the last scan (`last_scan_tickers`: the newest signals
+  file with a `universe_equity` section) that the sleeve holds (`universe.sleeve_vehicles`).
+- **Outcomes in order:**
+  - `explicit`: an explicit asset named like the ticker (enabled or not), or an enabled one trading it
+  - excluded "covered by the crypto universe": a crypto universe asset of this run trades the ticker (its ETF), so
+    two enabled assets never share a vehicle (the planner's duplicate-vehicle error still applies)
+  - excluded by `exclude`; "not found on Robinhood" (`not_found` of the newest `get_equity_tradability` capture of the
+    configured account, ≤ 7 days old); "not tradable on Robinhood" (`tradeable` not true, `state` not active, no
+    tradable account type, halted in regular hours)
+  - after the bars (one batched fetch: `yfinance_daily_cached`, or the Robinhood cache): "data error", "stale data"
+    (last bar ≠ last closed session), "illiquid" (median close × volume over 30 bars), "beyond max_assets" (by that
+    volume)
+  - a held ticker that fails a filter is kept with `hold_only` (also "no longer in universe.equity.symbols" and
+    "universe.equity is off")
+  - survivors: `stock` (tradable; vehicle the ticker, `fractional` from `fractional_tradability`), or `watch`
+    (no tradability capture in 7 days, or fewer than `min_history_bars` bars). A held ticker without a confirming
+    capture, or with fewer than `min_history_bars` bars, is `stock` with `hold_only`.
+  - names: the ticker; `TICKER-STOCK` when a crypto universe asset has that name; "name collision" when both are
+    taken.
+- **Assets:** `{name, class: equity, enabled: outcome == stock, alloc_frac: 0, mode, signal: {computed, feed,
+  TICKER}, vehicle: {equity, TICKER, fractional}, min_bars: min_history_bars (a young listing, watch-only or held
+  and hold-only: the bars it has, at least 30, so its signal is shown and a held one can exit; it is never bought;
+  a held crypto universe coin with too little history likewise), universe: {kind: equity, outcome,
+  reason, dollar_volume_usd, rank, held, hold_only}, entry?}`.
+- **Report:** `{enabled, feed, generated_at, tradability{captured_at, confirmed, fractional}, data_down, warnings[],
+  tickers[{ticker, name, outcome, reason, category, vehicle, dollar_volume_usd, bars, rank, held, hold_only}],
+  counts}`; `summary_lines(report, full)` for the digest.
+- `with_equity_universe(cfg, signals) -> (cfg, warnings)`: the signals file's stock assets for `plan`, the snapshot
+  and reconcile, re-checked (vehicle = the ticker, name the ticker or `TICKER-STOCK` and unique, no explicit claim,
+  signal = `universe.equity.feed` on the ticker; either feed for a never-bought one); with the universe off only
+  hold-only ones. `cli.effective_config` applies it after `universe.with_universe`.
+- `tradability_stage1(cfg, now_utc)`, `fetch_needs(cfg, now_utc, ...) -> {tradability, historicals{SYM: start},
+  equity_quotes, candidates, report, scanned}`, `history_calls(starts, now_utc)`: fetch-list (section 12).
+- **Cross-check:** `crosscheck_problem(sym, quote, bars)`: the cached yfinance close on the quote's
+  `previous_close_date` vs `previous_close` (raw), within `CROSSCHECK_TOL` 0.5%; a missing quote, date, bar or cache
+  is a problem too. `cross_check(cfg, snap)` -> `{name: problem or None}` for every enabled asset
+  `config.crosscheck_applies` to; the planner blocks buys, never exits (section 7). `signal_crosscheck` records the
+  digest's view from the newest captured quote, "not checked" when its `previous_close_date` is before the last
+  cached bar (a split since would re-adjust the bars, not the raw close).
+- **Tests:** `tests/test_agentic_stocks.py`, with no network (yfinance mocked through `sys.modules`).

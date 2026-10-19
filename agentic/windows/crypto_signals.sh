@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Phase 1 job (agentic/README.md section 3): compute the crypto signals after the 00:00 UTC daily close and append
-# everything it prints to private/agentic/cron.log (or $AGENTIC_STATE_DIR/cron.log).
+# Phase 1 job (agentic/README.md section 3): after the 00:00 UTC daily close, compute the signals of every asset whose
+# bars Python can fetch on its own (Coinbase, yfinance, local CSV files; robinhood-feed assets need Claude's captures,
+# so they are skipped, not counted as errors) and append everything it prints to private/agentic/cron.log (or
+# $AGENTIC_STATE_DIR/cron.log).
 #
 # Windows: Task Scheduler runs this with Git Bash's bash.exe (set up by schedule_crypto_signals.sh install). To try it
 # by hand, from Git Bash in the repo:  bash agentic/windows/crypto_signals.sh
@@ -30,8 +32,8 @@ state="${AGENTIC_STATE_DIR:-private/agentic}"
 mkdir -p "$state" || exit 2
 log="$state/cron.log"
 {
-  printf '=== %(%Y-%m-%d %H:%M:%S %z)T signals --class crypto\n' -1
-  "$py" -m agentic signals --class crypto
+  printf '=== %(%Y-%m-%d %H:%M:%S %z)T signals --skip-feed robinhood\n' -1
+  "$py" -m agentic signals --skip-feed robinhood
   rc=$?
   printf '=== exit %s\n' "$rc"
 } >>"$log" 2>&1

@@ -63,12 +63,21 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    - If it ends with "Then run fetch-list again" (the crypto universe's first run: the coin list comes first),
      make those calls, run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` again, and make every call it
      lists.
-   - Give every `fetch-list` and `run` command a Bash timeout of 600000 ms (10 minutes): with the crypto universe
-     on they read public Coinbase candles first, and the first scan takes a few minutes.
+   - If it ends with "Then run fetch-list again" because of the stock universe (tradability checks first), do the
+     same.
+   - If a hook message says a result holds no data ("Robinhood result too large for Claude Code"), finish the list,
+     then run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` once more and make every call it lists (it asks
+     again only for the bars still missing). Do this once per run.
+   - Give every `fetch-list` and `run` command a Bash timeout of 600000 ms (10 minutes): with a universe on they
+     download public Coinbase candles or yfinance bars first, and the first scan takes a few minutes.
 3. Run `"${AGENTIC_PYTHON:-python3}" -m agentic run`. Add `--attempt 2` or `--attempt 3` only if the user passed exactly
    that as arguments ($ARGUMENTS); ignore any other arguments. Read the digest, the reconcile result and the plan.
    - If it prints NOT RE-PLANNING, orders from the current plan are still waiting for approval or fills: do the
      read-back (step 6) and report. Never pass `--replan`.
+   - If it prints `ACTION: split detected for ...` (Robinhood bars dropped after a split), before any other call:
+     run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` once more, make every call it lists, then run step 3's
+     command once more with the same arguments and continue with that output. Do this once per run; if it says so
+     again, carry on (that asset stays skipped and is reported).
    - If the output has a `RE-FETCH QUOTES` block, the plan is missing quotes it needs. Before any other call, make
      each `[R1]`, `[R2]`, ... read call once, verbatim, then run
      `"${AGENTIC_PYTHON:-python3}" -m agentic plan --attempt N` with the same N as this plan (the block names the
@@ -94,7 +103,8 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    waiting for the user's approval. The PostToolUse hook checks these listings too: an order that carries the plan's own
    `ref_id`, or reads `placed_agent: agentic`, skipped the approval and makes it write STOP (rule 7).
 7. **Report** to the user:
-   - the digest: its SCAN and UNIVERSE lines, the table, plus any data warnings and errors
+   - the digest: its SCAN and UNIVERSE lines, the table, plus any data warnings and errors (its SIGNAL column is the
+     indicator target, not an order: report the plan's orders as the orders)
    - the reconcile result
    - every call you made, with its outcome:
      - previews: ok or the error text
