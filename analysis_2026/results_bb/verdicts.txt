@@ -15,7 +15,7 @@ Answer map:
   - 'Their full strategy beats holding' (crypto, R0 (L = 3) vs 1x equal-weight buy-and-hold): may not be said; full -0.07116 [-0.5244, +0.3856] log/yr
   - 'Their full strategy beats holding' (stocks, 1x portfolio vs equal-weight benchmark): may not be said; full -0.09032 [-0.1475, -0.03554] log/yr
   - 'Their full strategy beats holding' (ETFs, 1x portfolio vs equal-weight benchmark): may not be said; full -0.05034 [-0.09929, -0.00394] log/yr
-  - 'You can trade it': routes not run (run desc first); undecided
+  - 'You can trade it': no TRADE gate verdict found
 
 All 12 tests:
   test  verdict                              p    Holm p   estimate unadjusted                   95% CI ruled out@95              UB noedge              E       MDE  conditions

@@ -120,7 +120,7 @@
  },
  "you_can_trade_it": {
   "rows": [],
-  "applies": null,
-  "note": "routes not run (run desc first): 'You can trade it' is undecided until results_bb/routes/ holds the gate verdicts of 'What the user could run'"
+  "applies": false,
+  "note": "only TRADE gate verdicts in 'What the user could run' (results_bb/routes/), each beside its expected false-pass count"
  }
 }

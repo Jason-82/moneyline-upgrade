@@ -1,0 +1,45 @@
+{
+ "n_variant_windows": 78,
+ "n_consistent_tranche_rule": 0,
+ "n_consistent_position_rule": 0,
+ "consistent": [],
+ "different_trading_frequency": 78,
+ "expected_by_chance": {
+  "share_decoys_consistent": 0.0,
+  "n_decoys": 2740,
+  "expected_consistent": 0.0,
+  "by_window": {
+   "W16": {
+    "share": 0.0,
+    "expected": 0.0
+   },
+   "W16b": {
+    "share": 0.0,
+    "expected": 0.0
+   }
+  }
+ },
+ "F": {
+  "bars": "1h",
+  "row": "S16",
+  "universe": "S12 top 10",
+  "universe_key": "S12_top10",
+  "n_tranches": 435,
+  "n_positions": 314
+ },
+ "luck_beside": "R0 at L = 3, same window (luck/distribution.csv)",
+ "consistent_rows_note": "consistent rows are a fitted subset whose out-of-window results are the only evidence about them; a match is never cited as evidence that a variant works",
+ "exZEC": {
+  "note": "results without ZEC beside the results with it (Reporting rules; choice 21): the same account without ZEC's positions, K unchanged (ZEC's slot holds cash); the pre-registered rows, the F choice, the identified set and the reading are the ones with ZEC; h11.csv / oow.csv rows with group 'exZEC' sit beside the row-windows whose universe holds ZEC (zec_in_universe); the counts above are on the rows with ZEC",
+  "row_windows_with_zec": [
+   "S12_top6 W16",
+   "S12_top10 W16",
+   "S12_top10_tradfi W16",
+   "S17 W16",
+   "S17 W16b",
+   "F W16"
+  ],
+  "n_consistent_tranche_rule_exZEC": 0,
+  "consistent_exZEC": []
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "part": "h11",
+ "rows": [
+  "R0",
+  "S1",
+  "S1W",
+  "S2",
+  "S3_L5",
+  "S3_cross",
+  "S4",
+  "S5",
+  "S6_bb20_2.5",
+  "S6_bb50_2",
+  "S6_bb10_1.9",
+  "S6_bb50_2.1",
+  "S6_bb10_1.5",
+  "S6_bb50_2.5",
+  "S7_off",
+  "S7_20d2",
+  "S7_365d10",
+  "S7_ath10",
+  "S8",
+  "S9_lower_band",
+  "S9_sma_2p5atr",
+  "S10_tp_all",
+  "S10_no_tp",
+  "S11",
+  "S12_top3",
+  "S12_top6",
+  "S12_top10",
+  "S12_top10_tradfi",
+  "S13",
+  "S14",
+  "S15",
+  "S16",
+  "S17",
+  "S18",
+  "S19",
+  "S20",
+  "F",
+  "R0+G-A",
+  "R0+G-B"
+ ],
+ "windows": {
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "W16b": [
+   "2024-06-30",
+   "2025-10-31"
+  ]
+ },
+ "oow": {
+  "W16": [
+   [
+    "2020-01-01",
+    "2025-06-16"
+   ]
+  ],
+  "W16b": [
+   [
+    "2020-01-01",
+    "2024-06-29"
+   ],
+   [
+    "2025-11-01",
+    "2026-10-16"
+   ]
+  ]
+ },
+ "post": {
+  "positions": 490,
+  "tranches": 1462,
+  "hit": 0.487,
+  "hit_grid": 0.517,
+  "uplift": 0.03,
+  "winloss": 1.4,
+  "multiple": 4.3,
+  "gt7_won": 0.75,
+  "ge3_profit": 0.8,
+  "turnover_lo": 950.0,
+  "turnover_hi": 19000.0,
+  "months": 16
+ },
+ "count_band": [
+  731.0,
+  2924.0
+ ],
+ "deciding_unit": "tranche (choice 4)",
+ "B_trade": 9999,
+ "B_port": 10000,
+ "quick": false,
+ "synthetic": {
+  "coins": 160,
+  "years": 50,
+  "sigma_h": 0.01,
+  "grid_coins": 240,
+  "grid_days": 730
+ },
+ "zec": "results without ZEC beside the results with it (Reporting rules; choice 21): the same account without ZEC's positions, K unchanged (ZEC's slot holds cash); the pre-registered rows, the F choice, the identified set and the reading are the ones with ZEC",
+ "units": "positions and tranches the account held (choice 22)",
+ "descriptive": "descriptive; a match is never evidence that a variant works, and no row is their strategy, their exact rules or the replication"
+}
