@@ -1,0 +1,10 @@
+cell,bars,row,universe,universe_key,K,n_coins,n_positions,n_tranches,abs_diff_1462,zec_in_universe,n_positions_exZEC,n_tranches_exZEC,is_F
+0,1d,R0,BTC/ETH/SOL,R0,3,3,18,39,1423,False,18,39,False
+1,1d,R0,S12 top 6,S12_top6,6,8,26,58,1404,True,23,49,False
+2,1d,R0,S12 top 10,S12_top10,10,24,38,85,1377,True,35,76,False
+3,4h,S8,BTC/ETH/SOL,R0,3,3,51,79,1383,False,51,79,False
+4,4h,S8,S12 top 6,S12_top6,6,8,69,120,1342,True,62,104,False
+5,4h,S8,S12 top 10,S12_top10,10,24,97,169,1293,True,90,153,False
+6,1h,S16,BTC/ETH/SOL,R0,3,3,179,222,1240,False,179,222,False
+7,1h,S16,S12 top 6,S12_top6,6,8,240,321,1141,True,218,286,False
+8,1h,S16,S12 top 10,S12_top10,10,24,314,435,1027,True,292,400,True

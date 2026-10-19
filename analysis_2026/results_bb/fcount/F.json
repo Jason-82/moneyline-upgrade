@@ -1,0 +1,26 @@
+{
+ "F": {
+  "bars": "1h",
+  "row": "S16",
+  "universe": "S12 top 10",
+  "universe_key": "S12_top10",
+  "n_tranches": 435,
+  "n_positions": 314
+ },
+ "F_without_ZEC": {
+  "zec_in_universe": true,
+  "n_tranches": 400,
+  "n_positions": 292,
+  "note": "beside F only: results without ZEC beside the results with it (Reporting rules; choice 21): the same account without ZEC's positions, K unchanged (ZEC's slot holds cash); the pre-registered rows, the F choice, the identified set and the reading are the ones with ZEC"
+ },
+ "target_tranches": 1462,
+ "window": [
+  "2025-06-17",
+  "2026-10-16"
+ ],
+ "rule": "closest W16 tranche count to 1,462; ties to the first cell in the order R0, S8, S16 x BTC/ETH/SOL, S12 top 6, S12 top 10",
+ "written_before_returns": true,
+ "written_at": "2026-10-19T12:56:23.400490+00:00",
+ "source": "bb_engine tranche tables (kinds entry, add) of each cell's W16 runs; no return was read",
+ "quick": false
+}
