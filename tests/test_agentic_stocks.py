@@ -417,6 +417,89 @@ def test_held_young_stock_is_hold_only_with_a_usable_exit_signal(state, monkeypa
     assert p["orders"] == [] and "hold only" in {x["asset"]: x["reason"] for x in p["skipped"]}["JJJ"]
 
 
+def test_stock_favorites_past_the_liquidity_and_max_assets_cuts(state):
+    """allocation.favorites (any case) are scanned past min_dollar_volume_usd and max_assets; max_assets keeps the
+    most liquid non-favorites, so no other ticker is displaced."""
+    write_tradability(paths()["inbox"])
+    base = [a["name"] for a in build(stock_cfg(equity={"max_assets": 9}))[0]]
+    assets, rep = build(stock_cfg(equity={"max_assets": 9}, favorites=["iii", "OOO"]))
+    t = by_ticker(rep)
+    assert t["III"]["outcome"] == "stock" and t["III"]["favorite"] and t["III"]["hold_only"] is None
+    assert "included (favorite; below the liquidity cut $500,000/day, need $1,000,000" in t["III"]["reason"]
+    assert t["OOO"]["outcome"] == "stock" and "included (favorite; beyond max_assets 9 (rank" in t["OOO"]["reason"]
+    assert "favorites do not count against it)" in t["OOO"]["reason"]
+    for k in ("KKK", "NNN"):
+        assert t[k]["category"] == "beyond max_assets" and "not counting 2 favorites" in t[k]["reason"], k
+    assert [a["name"] for a in assets if a["name"] not in ("III", "OOO")] == base
+    assert sorted(a["name"] for a in assets) == sorted(base + ["III", "OOO"])
+    iii = next(a for a in assets if a["name"] == "III")
+    assert iii["enabled"] and iii["vehicle"] == {"type": "equity", "symbol": "III", "fractional": True}
+    eff, warns = stocks.with_equity_universe(validate(stock_cfg()), {"universe_equity": {"assets": assets}})
+    assert warns == [] and {"III", "OOO"} <= {a["name"] for a in eff["assets"]}
+    lines = stocks.summary_lines(rep)
+    assert "incl. 2 favorites kept past the liquidity or max_assets cut" in lines[0]
+    assert any(x.startswith("    III: tradable on the account") and "included (favorite;" in x for x in lines)
+    assert any(x.startswith("    OOO: ") for x in lines)
+    _, rep = build(stock_cfg(equity={"max_assets": 9}))                          # without favorites, as before
+    assert by_ticker(rep)["III"]["category"] == "illiquid" and by_ticker(rep)["OOO"]["category"] == "beyond max_assets"
+    assert not any(e["favorite"] for e in rep["tickers"])
+
+
+def test_stock_favorites_still_need_every_other_filter(state):
+    """A favorite ticker skips only the liquidity and max_assets cuts: explicit precedence, a disabled entry, the
+    crypto universe's ETFs, exclude, Robinhood tradability, data, current bars and the history rule (watch-only)
+    still apply."""
+    write_tradability(paths()["inbox"])
+    fr = {t: stock_frame(t, forming=False) for t in STOCKS}
+    fr["HHH"] = stock_frame("HHH", last=cal.previous_trading_day(cal.previous_trading_day(EQ_END)), forming=False)
+    disabled = {"name": "EEE", "class": "equity", "enabled": False, "alloc_frac": 0.1, "mode": "split",
+                "signal": {"source": "computed", "feed": "robinhood", "symbol": "EEE"},
+                "vehicle": {"type": "equity", "symbol": "EEE"}}
+    etf_coin = {"name": "XYZ", "class": "crypto", "enabled": False, "vehicle": {"type": "equity", "symbol": "DDD"},
+                "signal": {"feed": "coinbase", "symbol": "XYZ-USD"}, "universe": {"outcome": "watch"}}
+    favs = ["LLL", "mmm", "KKK", "JJJ", "ZZZ", "EEE", "DDD", "HHH"]
+    raw = stock_cfg(equity={"symbols": TICKERS + ["ZZZ"], "exclude": ["KKK"]}, favorites=favs, assets=[disabled])
+    assets, rep = build(raw, crypto_assets=[etf_coin], fetch=frames_fetch(frames=fr))
+    t = by_ticker(rep)
+    for k, cat, why in (("LLL", "not found on Robinhood", "check the ticker"),
+                        ("MMM", "not tradable on Robinhood", "'inactive'"),
+                        ("KKK", "excluded by config", "in universe.equity.exclude"),
+                        ("ZZZ", "data error", "no rows for ZZZ"),
+                        ("DDD", "covered by the crypto universe", "for XYZ"),
+                        ("HHH", "stale data", "stale data")):
+        assert t[k]["outcome"] == "excluded" and t[k]["category"] == cat and why in t[k]["reason"], k
+        assert t[k]["favorite"] and t[k]["favorite_kept"] is None, k
+    assert t["EEE"]["outcome"] == "explicit" and "(disabled)" in t["EEE"]["reason"]
+    assert t["JJJ"]["outcome"] == "watch" and "too little history (100 bars, need 150)" in t["JJJ"]["reason"]
+    assert "favorite" not in t["JJJ"]["reason"]
+    by = {a["name"]: a for a in assets}
+    assert not set(by) & {"LLL", "MMM", "KKK", "ZZZ", "EEE", "DDD", "HHH"} and by["JJJ"]["enabled"] is False
+    # no tradability capture: a favorite is watch-only like any ticker
+    for f in paths()["inbox"].glob("*.json"):
+        f.unlink()
+    t = by_ticker(build(stock_cfg(favorites=["III"]))[1])
+    assert t["III"]["outcome"] == "watch" and "no get_equity_tradability capture" in t["III"]["reason"]
+    assert "included (favorite; below the liquidity cut" in t["III"]["reason"]
+
+
+def test_stock_favorite_named_like_a_coin_accepts_either_name(state):
+    """A ticker that equals a crypto universe coin's code is named TICKER-STOCK; as a favorite either name counts in the
+    scan. The planner's tie-break matches TICKER-STOCK under either name, a bare name only as the asset's name
+    (test_ticker_stock_favorite_wins_ties_under_either_name)."""
+    write_tradability(paths()["inbox"])
+    coin = {"name": "III", "class": "crypto", "enabled": True, "vehicle": {"type": "crypto", "symbol": "III"},
+            "signal": {"feed": "coinbase", "symbol": "III-USD"}, "universe": {"outcome": "direct"}}
+    for favs in (["III-STOCK"], ["iii-stock"], ["III"]):
+        assets, rep = build(stock_cfg(favorites=favs), crypto_assets=[coin])
+        t = by_ticker(rep)["III"]
+        assert t["name"] == "III-STOCK" and t["outcome"] == "stock" and t["favorite"], favs
+        assert "included (favorite; below the liquidity cut" in t["reason"] and "named III-STOCK" in t["reason"]
+        assert next(a for a in assets if a["name"] == "III-STOCK")["vehicle"]["symbol"] == "III"
+    assert by_ticker(build(stock_cfg(favorites=["III-COIN"]), crypto_assets=[coin])[1])["III"]["category"] == \
+        "illiquid"
+    assert planner._favorites(validate(stock_cfg(favorites=["iii", "AAA-STOCK"]))) == {"III": 1, "AAA-STOCK": 2}
+
+
 def test_with_equity_universe_rechecks_stored_assets(state):
     write_tradability(paths()["inbox"])
     raw = stock_cfg()
@@ -1046,6 +1129,37 @@ def test_favorites_order_ties_without_overriding_eligibility_or_caps(state):
     its = [{"name": n, "asset": a, "flip": "2026-10-14", "sig": {"dollar_volume_usd": dvs[n]}}
            for n, a in zip([a["name"] for a in assets], assets)]
     assert [x["name"] for x in planner._ranked(its, "config_order", order, {"EEE": 1})][:2] == ["AAA", "BBB"]
+
+
+def test_ticker_stock_favorite_wins_ties_under_either_name(state):
+    """Regression (review): a stock universe stock is named TICKER on runs where the crypto universe has no coin TICKER,
+    and the tie-break matched the asset name only, so the documented `TICKER-STOCK` spelling won no tie on those runs
+    (while the scan already counted it). It now matches the stock under either name; a bare name still matches only
+    the asset of that name, and an explicit asset or a coin only by its name."""
+    def ustock(name, t):
+        a = uasset(name, vsym=t)
+        a["universe"]["kind"] = "equity"
+        return a
+
+    def first(name, favorites):
+        assets = [ustock(name, "AAA"), ustock("BBB", "BBB")]
+        sigs = [sigrec(name, "equity", 1.0, dv=1e8), sigrec("BBB", "equity", 1.0, dv=5e8)]       # BBB more liquid
+        cfg, sig, snap, sleeve = mini(assets, sigs, {"AAA": quote(20.0), "BBB": quote(20.0)}, cash=5000.0,
+                                      favorites=favorites, cap={"crypto": 0.60, "equity": 0.20}, slot_frac=0.20)
+        p = planner.make_plan(sig, snap, cfg, NOW, 1, {}, placed_today_usd=0.0, journal=[], sleeve=sleeve,
+                              crosscheck={name: None, "BBB": None})
+        assert [x["asset"] for x in p["allocation"]["waiting"]] != [], favorites             # one slot for two
+        return p["allocation"]["new"][0]["asset"], {o["asset"]: o["reason"] for o in p["orders"]}
+    assert first("AAA", [])[0] == "BBB"
+    got, reasons = first("AAA", ["AAA-STOCK"])                      # named AAA (no coin AAA this run)
+    assert got == "AAA" and "(#1 by crypto_first; favorite #1)" in reasons["AAA"]
+    assert first("AAA", ["AAA"])[0] == "AAA"                        # by name, as before
+    assert first("AAA-STOCK", ["AAA-STOCK"])[0] == "AAA-STOCK"      # renamed: by name, as before
+    assert first("AAA-STOCK", ["AAA"])[0] == "BBB"                  # the bare name is the coin's, not the stock's
+    explicit = {"name": "AAA", "asset": {"name": "AAA", "vehicle": {"type": "equity", "symbol": "AAA"}}}
+    coin = {"name": "AAA", "asset": dict(uasset("AAA", "crypto", "coinbase"))}
+    assert planner._fav_rank(explicit, {"AAA-STOCK": 1}) is None and planner._fav_rank(coin, {"AAA-STOCK": 1}) is None
+    assert planner._fav_rank(dict(explicit, asset=ustock("AAA", "AAA")), {"AAA-STOCK": 2, "AAA": 3}) == 2
 
 
 # ------------------------------------------------------------------ digest

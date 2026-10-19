@@ -438,6 +438,227 @@ def test_build_universe_data_errors_and_stale_bars(state):
     assert any("availability not checked" in w for w in rep["warnings"])
 
 
+def fav_cfg(favorites, **over):
+    raw = uni_cfg(**over)
+    raw["allocation"]["favorites"] = list(favorites)
+    return raw
+
+
+def test_favorite_below_the_liquidity_cut_is_scanned(state):
+    """allocation.favorites (any case) are scanned past min_dollar_volume_usd; other illiquid coins are not."""
+    write_universe_inbox(state / "inbox")
+    base_assets, _ = build()
+    assets, rep = build(fav_cfg(["bonk"]))
+    c = by_coin(rep)
+    assert c["BONK"]["outcome"] == "direct" and c["BONK"]["favorite"] and c["BONK"]["hold_only"] is None
+    assert "included (favorite; below the liquidity cut $1,000,000/day, need $5,000,000" in c["BONK"]["reason"]
+    assert "beyond max_assets 30 (rank 33 by dollar volume): favorites do not count against it" in c["BONK"]["reason"]
+    assert c["BONK"]["favorite_kept"].startswith("below the liquidity cut")
+    assert c["ZRX"]["category"] == "illiquid" and not c["ZRX"]["favorite"]           # not a favorite: dropped
+    bonk = next(a for a in assets if a["name"] == "BONK")
+    assert bonk["enabled"] and bonk["vehicle"] == {"type": "crypto", "symbol": "BONK"} and bonk["min_bars"] == 300
+    assert [a["name"] for a in assets if a["name"] != "BONK"] == [a["name"] for a in base_assets]   # none displaced
+    assert c["ICP"]["category"] == "beyond max_assets" and "not counting 1 favorite)" in c["ICP"]["reason"]
+    validate(uni_cfg(assets=assets))
+    eff, warns = universe.with_universe(validate(fav_cfg(["BONK"])), {"universe": {"assets": assets}})
+    assert warns == [] and "BONK" in {a["name"] for a in eff["assets"]}
+    lines = universe.summary_lines(rep)
+    assert "31 scanned (5 via ETF, 25 direct, 1 watch-only), incl. 1 favorite kept past the liquidity or " \
+           "max_assets cut" in lines[0]
+    assert any(x.startswith("    BONK: direct crypto BONK-USD") and "included (favorite;" in x for x in lines)
+    # a held favorite below the cut is no longer hold only: it can be bought like any scanned coin
+    c = by_coin(build(fav_cfg(["BONK"]), held={"crypto": {"BONK"}, "equity": set()})[1])
+    assert c["BONK"]["outcome"] == "direct" and c["BONK"]["hold_only"] is None and c["BONK"]["favorite_kept"]
+    assert cfgmod.favorite_names({"allocation": {"favorites": [" bonk", "Inj", ""]}}) == {"BONK", "INJ"}
+    assert cfgmod.favorite_names({}) == set()
+
+
+def test_favorite_beyond_max_assets_is_scanned_without_displacing_others(state):
+    write_universe_inbox(state / "inbox")
+    base = [a["name"] for a in build()[0]]
+    assets, rep = build(fav_cfg(["INJ"]))
+    c = by_coin(rep)
+    assert c["INJ"]["outcome"] == "direct" and c["INJ"]["rank"] == 32
+    assert "included (favorite; beyond max_assets 30 (rank 32 by dollar volume): favorites do not count against it)" \
+        in c["INJ"]["reason"]
+    assert c["ICP"]["outcome"] == "excluded" and c["ICP"]["category"] == "beyond max_assets"
+    assert "rank 31 of 31 by dollar volume, not counting 1 favorite" in c["ICP"]["reason"]
+    assert [a["name"] for a in assets] == base + ["INJ"]                # the 30 most liquid non-favorites, plus INJ
+    # max_assets keeps the 30 most liquid non-favorites: a favorite inside the top 30 does not use up a place either
+    assets, rep = build(fav_cfg(["DOGE", "INJ"]))
+    c = by_coin(rep)
+    assert sorted(a["name"] for a in assets) == sorted(base + ["ICP", "INJ"])
+    assert c["DOGE"]["favorite"] and c["DOGE"]["favorite_kept"] is None and "favorite" not in c["DOGE"]["reason"]
+    assert "included (favorite; beyond max_assets" not in c["ICP"]["reason"] and not c["ICP"]["favorite"]
+    assert not any(e["category"] == "beyond max_assets" for e in rep["coins"])
+
+
+def test_favorites_still_need_every_other_filter(state):
+    """A favorite skips only the liquidity and max_assets cuts: explicit precedence, a disabled entry, exclude, the
+    stablecoin list and peg check, Robinhood tradability, a Coinbase pair, current data, history and the ETF rule
+    still apply, each with its own reason."""
+    write_universe_inbox(state / "inbox")
+    base = fake_fetch()
+
+    def fetch(product, start, now):
+        if product == "ADA-USD":
+            raise urllib.error.URLError("reset")
+        if product == "DOT-USD":
+            return base(product, start, now).iloc[:-3]
+        return base(product, start, now)
+    favs = ["NOCB", "WIF", "usdc", "XTZ", "LTC", "ETH", "BTC", "XRP", "DOT", "ADA", "BONK"]
+    raw = fav_cfg(favs, assets=[explicit("ETH", "equity", "ETHA"), explicit("BTC", "equity", "IBIT", enabled=False)],
+                  universe={"exclude": list(cfgmod.DEFAULT_EXCLUDE) + ["LTC"]})
+    assets, rep = build(raw, fetch=fetch)
+    c = by_coin(rep)
+    for code, cat, why in (("NOCB", "no Coinbase pair", "no Coinbase pair NOCB-USD"),
+                           ("WIF", "too little history", "too little history (200 bars, need 300)"),
+                           ("USDC", "stablecoin/wrapped", "stablecoin or wrapped token"),
+                           ("XTZ", "not tradable on Robinhood", "tradability sell_only"),
+                           ("LTC", "excluded by config", "in universe.crypto.exclude"),
+                           ("DOT", "stale Coinbase data", "stale Coinbase data"),
+                           ("ADA", "Coinbase data error", "Coinbase data error")):
+        assert c[code]["outcome"] == "excluded" and c[code]["category"] == cat and why in c[code]["reason"], code
+        assert c[code]["favorite"] and c[code]["favorite_kept"] is None and "favorite" not in c[code]["reason"], code
+    assert c["ETH"]["outcome"] == "explicit" and "ETH (enabled)" in c["ETH"]["reason"]
+    assert c["BTC"]["outcome"] == "explicit" and "(disabled)" in c["BTC"]["reason"]
+    assert c["XRP"]["outcome"] == "watch" and "never switched to direct crypto" in c["XRP"]["reason"]
+    assert c["BONK"]["outcome"] == "direct" and c["BONK"]["favorite_kept"]          # the one cut a favorite skips
+    names = {a["name"] for a in assets}
+    assert not names & {"NOCB", "WIF", "USDC", "XTZ", "LTC", "ETH", "BTC", "DOT", "ADA"}
+    assert next(a for a in assets if a["name"] == "XRP")["enabled"] is False
+    # pegged (no list needed) and illiquid: still dropped as pegged
+    pegged = fake_fetch()
+
+    def fetch_peg(product, start, now):
+        if product != "PEGX-USD":
+            return pegged(product, start, now)
+        f = frame("AVAX", date(2026, 10, 18), forming=False)
+        wobble = pd.Series(range(len(f)), index=f.index).mod(7).astype(float) * 0.004
+        f["open"] = f["low"] = 0.995 + wobble
+        f["close"] = 0.998 + wobble
+        f["high"] = 1.01 + wobble
+        f["volume"] = 1e3
+        return f[f.index >= pd.Timestamp(start)]
+    c = by_coin(build(fav_cfg(["PEGX"], universe={"source": "list", "symbols": ["PEGX"]}), fetch=fetch_peg,
+                      products=lambda now: {"products": None, "fetched_at": None, "error": None})[1])
+    assert c["PEGX"]["outcome"] == "excluded" and c["PEGX"]["category"] == "stablecoin/wrapped"
+
+
+def test_favorites_add_no_candidates_and_off_universe_keeps_hold_only(state):
+    """Favorites are not candidates by themselves: a favorite that is not a Robinhood pair or in symbols is not
+    scanned. With the universe off, a held favorite stays hold only and gets no favorite note."""
+    write_universe_inbox(state / "inbox")
+    _, rep = build(fav_cfg(["NOTAPAIR"]))
+    assert "NOTAPAIR" not in by_coin(rep)
+    _, rep = build(fav_cfg(["BONK"], universe={"source": "list", "symbols": ["DOGE"]}))
+    assert set(by_coin(rep)) == {"DOGE"}
+    sg.write_signals({"signals_file": "signals/signals_2026-10-18.json",
+                      "universe": {"assets": [{"name": "BONK"}]}})
+    assets, rep = build(fav_cfg(["BONK"], universe={"enabled": False}), held={"crypto": {"BONK"}, "equity": set()})
+    c = by_coin(rep)
+    assert [a["name"] for a in assets] == ["BONK"] and "universe.crypto is off" in c["BONK"]["hold_only"]
+    assert c["BONK"]["favorite_kept"] is None and "included (favorite" not in c["BONK"]["reason"]
+
+
+def collide_cfg(favorites, **equity):
+    """fav_cfg plus the stock universe on with tickers that are also coin codes of the synthetic world (BONK below the
+    liquidity cut, INJ beyond max_assets, DOGE inside the top 30) and a placeholder."""
+    raw = fav_cfg(favorites)
+    raw["universe"]["equity"] = {"enabled": True, "symbols": ["BONK", "INJ", "DOGE", "AAA"], "feed": "yfinance",
+                                 **equity}
+    return raw
+
+
+def collide_stocks(raw, crypto_assets):
+    """The stock universe of `raw` after the crypto scan (every ticker on a liquid placeholder stock's bars)."""
+    from tests.test_agentic_stocks import stock_frame
+    f = stock_frame("AAA", forming=False)
+    from agentic import stocks
+    return stocks.build_equity_universe(validate(raw), NOW, paths()["inbox"],
+                                        fetch=lambda syms, s, n: {x: f[f.index >= pd.Timestamp(s)] for x in syms},
+                                        held={"equity": set(), "crypto": set()}, crypto_assets=crypto_assets)
+
+
+def fav_rank(asset, raw):
+    """The planner's tie-break place of an asset under the favorites of `raw` (None: not a favorite)."""
+    return planner._fav_rank({"name": asset["name"], "asset": asset}, planner._favorites(validate(raw)))
+
+
+def test_favorite_that_is_also_a_stock_ticker_means_the_stock(state):
+    """Regression (review): favorites ["BONK"] meant for the stock BONK in universe.equity.symbols kept the illiquid
+    Robinhood coin BONK past the crypto cuts, so the coin became buyable, the stock was renamed BONK-STOCK and the bare
+    name's tie-break moved from the stock to the coin. To the scans such a name now means the stock: the coin competes
+    on liquidity as it did before favorites were scanned, and the stock keeps its name and its tie-break."""
+    write_universe_inbox(state / "inbox")
+    base = [a["name"] for a in build()[0]]
+    raw = collide_cfg(["BONK", "INJ"])
+    assets, rep = build(raw)
+    c = by_coin(rep)
+    for code, cat in (("BONK", "illiquid"), ("INJ", "beyond max_assets")):
+        assert c[code]["outcome"] == "excluded" and c[code]["category"] == cat and not c[code]["favorite"], code
+        assert c[code]["favorite_kept"] is None and "included (favorite" not in c[code]["reason"], code
+        assert f"not kept as a favorite: {code} is also a ticker in universe.equity.symbols, so the favorite means " \
+               f"the stock (list {code}-STOCK to favor the stock in every case)" in c[code]["reason"], code
+    assert [a["name"] for a in assets] == base                          # the coins of a scan without favorites
+    sassets, srep = collide_stocks(raw, assets)
+    s = {e["ticker"]: e for e in srep["tickers"]}
+    for t in ("BONK", "INJ"):                                           # the stocks keep their names and tie-break
+        assert s[t]["name"] == t and s[t]["favorite"], t
+        assert fav_rank(next(a for a in sassets if a["name"] == t), raw) == ["BONK", "INJ"].index(t) + 1, t
+    assert universe.summary_lines(rep)[0].count("favorite") == 0
+    # TICKER-STOCK also favors the stock in the tie-break while it is named TICKER (the coin was dropped)
+    raw2 = collide_cfg(["BONK-STOCK"])
+    assets2, rep2 = build(raw2)
+    assert by_coin(rep2)["BONK"]["category"] == "illiquid" and "not kept as a favorite" not in \
+        by_coin(rep2)["BONK"]["reason"]
+    sassets2, _ = collide_stocks(raw2, assets2)
+    assert fav_rank(next(a for a in sassets2 if a["name"] == "BONK"), raw2) == 1
+    # a coin that makes the cuts on its own keeps the name and the bare name's tie-break, as before; the stock is
+    # DOGE-STOCK, which `DOGE-STOCK` favors (and the coin then is not one)
+    for favs, coin_rank, stock_rank in ((["DOGE"], 1, None), (["DOGE-STOCK"], None, 1)):
+        raw3 = collide_cfg(favs)
+        assets3, rep3 = build(raw3)
+        d = by_coin(rep3)["DOGE"]
+        assert d["outcome"] == "direct" and not d["favorite"] and "favorite" not in d["reason"], favs
+        sassets3, _ = collide_stocks(raw3, assets3)
+        assert "DOGE" not in {a["name"] for a in sassets3}, favs
+        assert fav_rank(next(a for a in assets3 if a["name"] == "DOGE"), raw3) == coin_rank, favs
+        assert fav_rank(next(a for a in sassets3 if a["name"] == "DOGE-STOCK"), raw3) == stock_rank, favs
+    # no stock to collide with: the stock universe off, or the ticker in its exclude
+    for raw4 in (collide_cfg(["BONK"], enabled=False), collide_cfg(["BONK"], exclude=["BONK"])):
+        c = by_coin(build(raw4)[1])
+        assert c["BONK"]["outcome"] == "direct" and c["BONK"]["favorite"] and c["BONK"]["favorite_kept"]
+    assert cfgmod.coin_favorites(validate(collide_cfg(["bonk", "Eth", "AAA-STOCK"]))) == {"ETH", "AAA-STOCK"}
+    # doctor warns about a favorite that names a scanned coin and a stock universe ticker, and only then
+    def warns(r):
+        rp = doctor.Report()
+        doctor.check_universe(rp, validate(r), paths())
+        return [d for s, n, d in rp.rows if s == "WARN" and n == "favorites"]
+    w = warns(collide_cfg(["BONK", "ETH", "AAA", "INJ-STOCK"]))
+    assert len(w) == 1 and w[0].startswith("allocation.favorites BONK is both a coin") and "BONK-STOCK" in w[0]
+    assert warns(collide_cfg(["BONK"], enabled=False)) == [] and warns(fav_cfg(["BONK"])) == []
+
+
+def test_coin_favorite_kept_past_a_cut_takes_precedence_in_the_stock_universe(state):
+    """Review: the docs said a favorite never displaces another asset, but across the universes a coin kept past a cut
+    counts like any scanned coin (README section 9, SPEC 13). Pinned: the favorite NEAR, below a raised liquidity cut,
+    trades its mapped ETF NRR, so the stock universe leaves the ticker NRR to the coin; without the favorite the coin
+    is cut and the stock is scanned. Within each universe nothing is displaced."""
+    write_universe_inbox(state / "inbox")
+    raw = fav_cfg(["NEAR"], universe={"min_dollar_volume_usd": 1e8})
+    raw["universe"]["equity"] = {"enabled": True, "symbols": ["NRR", "AAA"], "feed": "yfinance"}
+    assets, rep = build(raw)
+    assert by_coin(rep)["NEAR"]["outcome"] == "etf" and by_coin(rep)["NEAR"]["favorite_kept"]
+    s = {e["ticker"]: e for e in collide_stocks(raw, assets)[1]["tickers"]}
+    assert s["NRR"]["category"] == "covered by the crypto universe" and "trades NRR for NEAR" in s["NRR"]["reason"]
+    assert s["AAA"]["outcome"] in ("stock", "watch")
+    raw["allocation"]["favorites"] = []
+    assets, rep = build(raw)
+    assert by_coin(rep)["NEAR"]["category"] == "illiquid"
+    assert {e["ticker"]: e for e in collide_stocks(raw, assets)[1]["tickers"]}["NRR"]["outcome"] in ("stock", "watch")
+
+
 def test_with_universe_rechecks_stored_assets(state):
     write_universe_inbox(state / "inbox")
     cfg = validate(uni_cfg())
@@ -656,9 +877,9 @@ def test_fetch_list_with_the_universe(state, monkeypatch, capsys):
 
 # ------------------------------------------------------------------ planner with 30+ assets
 
-def plan_inputs(state, monkeypatch, quotes_missing=(), held=None):
+def plan_inputs(state, monkeypatch, quotes_missing=(), held=None, raw=None):
     held = held if held is not None else {"crypto": {"DOGE", "LINK"}, "equity": set()}
-    cfg, sig = universe_signals(state, monkeypatch, held=held)
+    cfg, sig = universe_signals(state, monkeypatch, raw=raw, held=held)
     eff, warns = universe.with_universe(cfg, sig)
     assert warns == []
     t = (NOW - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -699,6 +920,29 @@ def test_planner_many_assets_slots_ties_by_liquidity(state, monkeypatch):
     assert next(o for o in p["orders"] if o["asset"] == "AVAX")["params"]["symbol"] == "AVAX"
     assert not any(o["asset"] == "XRP" for o in p["orders"])                      # watch only: never traded
     assert len(p["skipped"]) < 12 and len(p["warnings"]) < 5
+
+
+def test_favorite_kept_past_the_cut_gets_the_same_tie_break(state, monkeypatch):
+    """The scan guarantee changes which coins are scanned, not the slot order: among same-day flips a favorite still
+    comes first (favorite #k), the rest by liquidity, and caps and slots hold as before."""
+    raw = uni_cfg(universe={"min_dollar_volume_usd": 26_000_000})          # HBAR (median $20M/day) is below it
+    eff, sig, snap, sleeve = plan_inputs(state, monkeypatch, raw=raw)
+    p = planner.make_plan(sig, snap, eff, NOW, 1, {}, placed_today_usd=0.0, journal=[], sleeve=sleeve)
+    assert "HBAR" not in {a["name"] for a in eff["assets"]}
+    assert [x["asset"] for x in p["allocation"]["new"]] == ["BTC", "ETH", "AVAX", "NEAR"]
+    raw = fav_cfg(["HBAR"], universe={"min_dollar_volume_usd": 26_000_000})
+    eff, sig, snap, sleeve = plan_inputs(state, monkeypatch, raw=raw)
+    hbar = next(a for a in sig["assets"] if a["name"] == "HBAR")
+    assert "included (favorite; below the liquidity cut $20,000,000/day" in hbar["universe"]["reason"]
+    text = sg.format_digest(sig)
+    assert "incl. 1 favorite kept past the liquidity or max_assets cut" in text
+    assert "\n    HBAR: direct crypto HBAR-USD (no spot ETF mapped); included (favorite; below the liquidity cut" in text
+    p = planner.make_plan(sig, snap, eff, NOW, 1, {}, placed_today_usd=0.0, journal=[], sleeve=sleeve)
+    assert p["errors"] == [] and p["allocation"]["held"] == ["DOGE", "LINK"]
+    assert [x["asset"] for x in p["allocation"]["new"]] == ["HBAR", "BTC", "ETH", "AVAX"]      # crypto cap: 4 new
+    assert [x["asset"] for x in p["allocation"]["waiting"]] == ["NEAR", "UNI"]
+    reasons = {o["asset"]: o["reason"] for o in p["orders"]}
+    assert "(#1 by crypto_first; favorite #1)" in reasons["HBAR"] and "favorite" not in reasons["BTC"]
 
 
 def test_planner_missing_quotes_scale(state, monkeypatch):
@@ -815,6 +1059,9 @@ def test_doctor_universe_checks(state):
     assert "PASS currency pairs newest get_currency_pairs capture 0 h old" in text
     assert "WARN universe allocation.method is fixed" in text
     assert ACCT not in text and RHS not in text
+    assert "allocation.favorites" not in text
+    text = "\n".join(f"{s} {n} {d}" for s, n, d in lines(fav_cfg(["DOGE", "AAA"])))
+    assert "median volume >= $5,000,000/day (plus any of the 2 allocation.favorites past those two cuts)" in text
 
 
 def test_doctor_bom_message_names_vs_code(tmp_path):

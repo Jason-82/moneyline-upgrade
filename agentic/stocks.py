@@ -7,6 +7,8 @@ ticker (TICKER-STOCK when the crypto universe has a coin with that code), class 
 on the ticker, vehicle the ticker itself, fractional when the newest get_equity_tradability capture says so, else
 whole shares. The signals file stores them under `universe_equity`; `with_equity_universe(cfg, signals)` re-checks them
 for the planner, the snapshot and reconcile. Tickers the sleeve holds are never dropped (hold only: exits, no buys).
+Tickers in allocation.favorites (as TICKER or TICKER-STOCK) are scanned past the liquidity and max_assets cuts and do
+not count against max_assets; every other filter applies (universe.build_universe likewise).
 """
 from __future__ import annotations
 
@@ -22,10 +24,9 @@ from agentic import calendar as cal
 from agentic import data as feeds
 from agentic import ledger
 from agentic import universe as cu
-from agentic.config import TICKER, crosscheck_applies, equity_universe, paths
+from agentic.config import STOCK_SUFFIX, TICKER, crosscheck_applies, equity_universe, favorite_names, paths
 from agentic.snapshot import load_captures, parse_equity_quotes
 
-STOCK_SUFFIX = "-STOCK"               # a ticker that equals a crypto universe coin's code
 RH_MAX_SYMBOLS = 10                   # get_equity_historicals takes at most 10 symbols
 RH_CHARS_PER_BAR = 200                # one daily bar in a get_equity_historicals result (2y SPY: ~85k chars, ~500 bars)
 RH_MAX_RESULT_CHARS = 40_000          # Claude Code saves a text result over 50,000 characters to a file (no data)
@@ -90,13 +91,15 @@ def _static(cfg: dict, now, inbox: Path, held: dict, base=None, crypto_assets=()
     tr, trw = cu.etf_tradability(inbox, cfg, now)
     report["warnings"] += trw
     claims = _claims(cfg)
+    fav = favorite_names(cfg)
     crypto_veh = {str((a.get("vehicle") or {}).get("symbol") or "").upper(): a["name"] for a in crypto_assets
                   if (a.get("vehicle") or {}).get("type") == "equity"}
     ents: dict[str, dict] = {}
 
     def add(t, src):
         ents.setdefault(t, dict(ticker=t, name=t, source=src, outcome=None, reason=None, category=None, vehicle=None,
-                                dollar_volume_usd=None, bars=None, rank=None, held=t in held_eq, hold_only=None))
+                                dollar_volume_usd=None, bars=None, rank=None, held=t in held_eq, hold_only=None,
+                                favorite=t in fav or t + STOCK_SUFFIX in fav, favorite_kept=None))
     if u["enabled"]:
         for t in u["symbols"]:
             add(t, "symbols")
@@ -185,24 +188,23 @@ def build_equity_universe(cfg: dict, now_utc=None, inbox_dir=None, *, fetch=None
             if _drop(e, f"stale data (last bar {last or 'none'}, expected {exp})", "stale data"):
                 continue
         elif dv is None or dv < min_dv:
-            if _drop(e, f"illiquid (median ${dv or 0:,.0f}/day over the last {cu.DV_BARS} bars, need ${min_dv:,.0f})",
-                     "illiquid"):
+            if e["favorite"] and not e["hold_only"]:     # scanned past the liquidity cut; every other filter applies
+                e["favorite_kept"] = cu.liquidity_cut_note(dv, min_dv)
+            elif _drop(e, f"illiquid (median ${dv or 0:,.0f}/day over the last {cu.DV_BARS} bars, need "
+                          f"${min_dv:,.0f})", "illiquid"):
                 continue
         if last == exp and len(bars) < min_bars:
             e["young"] = f"too little history ({len(bars)} bars, need {min_bars}): watch-only until it has enough"
         survivors.append(e)
     survivors.sort(key=lambda e: (-(e["dollar_volume_usd"] or 0.0), e["ticker"]))
-    for k, e in enumerate(survivors, 1):
-        e["rank"] = k
-        if k > u["max_assets"] and not e["hold_only"]:
-            _drop(e, f"beyond max_assets {u['max_assets']} (rank {k} of {len(survivors)} by dollar volume)",
-                  "beyond max_assets")
+    cu.cut_max_assets(survivors, u["max_assets"], _drop)
     taken = {a["name"] for a in crypto_assets} | {str(a.get("name")) for a in cfg.get("assets", [])}
     kept = []
     for e in survivors:
         if e["outcome"] is not None:
             continue
         _vehicle(e, tr)
+        cu.favorite_note(e)
         if e["ticker"] in taken:
             name = e["ticker"] + STOCK_SUFFIX
             if name in taken:
@@ -216,7 +218,8 @@ def build_equity_universe(cfg: dict, now_utc=None, inbox_dir=None, *, fetch=None
     assets = [_asset(e, u) for e in kept]
     order = {"stock": 0, "watch": 1, "explicit": 2, "excluded": 3}
     report["tickers"] = [{k: e.get(k) for k in ("ticker", "name", "outcome", "reason", "category", "vehicle",
-                                                "dollar_volume_usd", "bars", "rank", "held", "hold_only")}
+                                                "dollar_volume_usd", "bars", "rank", "held", "hold_only", "favorite",
+                                                "favorite_kept")}
                          for e in sorted(ents.values(), key=lambda e: (order.get(e["outcome"], 9), e["rank"] or 10**6,
                                                                        -(e["dollar_volume_usd"] or 0), e["ticker"]))]
     counts: dict[str, int] = {}
@@ -564,8 +567,8 @@ def signal_crosscheck(rec: dict, asset: dict, quotes: dict, base=None) -> None:
 # ------------------------------------------------------------------ digest
 
 def summary_lines(report: dict | None, full: bool = False) -> list[str]:
-    """The digest's stock universe section: one summary line, warnings, watch-only and hold-only tickers; every
-    ticker's outcome with `full`."""
+    """The digest's stock universe section: one summary line, warnings, watch-only and hold-only tickers and favorites
+    kept past a cut; every ticker's outcome with `full`."""
     if not report or not (report.get("enabled") or report.get("tickers")):
         return []
     ts = report.get("tickers") or []
@@ -579,6 +582,7 @@ def summary_lines(report: dict | None, full: bool = False) -> list[str]:
     frac = tr.get("fractional") or 0
     lines = [f"UNIVERSE stocks ({src}): {len(ts)} tickers considered, {stock + watch} scanned ({stock} tradable: "
              f"{frac} fractional, {stock - min(frac, stock)} whole shares only; {watch} watch-only)"
+             + cu.favorites_kept(ts)
              + (f", {c['explicit']} covered by explicit assets" if c.get("explicit") else "")
              + (f"; excluded: {exc}" if exc else "")]
     for w in report.get("warnings") or []:
@@ -590,6 +594,7 @@ def summary_lines(report: dict | None, full: bool = False) -> list[str]:
         return lines
     for e in ts:
         if e["outcome"] == "watch" or e.get("hold_only") or e.get("category") in ("not found on Robinhood",
-                                                                                  "name collision"):
+                                                                                  "name collision") \
+                or (e.get("favorite_kept") and e["outcome"] != "excluded"):
             lines.append(f"    {e['name']}: {e['reason']}")
     return lines

@@ -54,7 +54,8 @@ PRIORITIES = ("crypto_first", "equity_first", "newest_flip", "config_order")
 # analysis_2026/results_late_entry); null turns the cap off.
 DEFAULT_ENTRY = {"policy": "join_recent", "max_join_bars": 20, "max_join_rise_frac": 0.50, "start_date": None}
 # "fixed" (per-asset alloc_frac) when the block is absent, so older configs keep their sizing. favorites: asset names
-# that win ties among new entries (after class priority and the newest flip), earlier in the list first.
+# that win ties among new entries (after class priority and the newest flip), earlier in the list first; the crypto
+# and stock universes also scan them past their liquidity and max_assets cuts (favorite_names), nothing else.
 DEFAULT_ALLOCATION = {"method": "fixed", "slot_frac": 0.20, "priority": "crypto_first", "favorites": []}
 
 # Crypto universe (README section 10): every coin Robinhood offers, filtered, each traded through its US spot ETF
@@ -81,6 +82,7 @@ DEFAULT_UNIVERSE_EQUITY = {"enabled": False, "symbols": [], "exclude": [], "mode
 EQUITY_UNIVERSE_FEEDS = ("yfinance", "robinhood")
 COIN_CODE = re.compile(r"^[A-Z0-9]{1,15}$")
 TICKER = re.compile(r"^[A-Z][A-Z0-9.]{0,9}$")
+STOCK_SUFFIX = "-STOCK"     # a stock universe ticker that equals a crypto universe coin's code is named TICKER-STOCK
 
 
 class ConfigError(ValueError):
@@ -231,7 +233,7 @@ def _allocation(a, limits: dict) -> dict:
         fav = []
     if not isinstance(fav, list) or not all(isinstance(x, str) and x.strip() for x in fav):
         raise ConfigError('allocation.favorites must be a list of asset names, e.g. ["ETH", "AAA"]')
-    out["favorites"] = list(dict.fromkeys(x.strip().upper() for x in fav))    # tie-break only, earlier first
+    out["favorites"] = list(dict.fromkeys(x.strip().upper() for x in fav))    # tie-break, earlier first
     if out["method"] == "slots" and out["slot_frac"] > float(limits["max_asset_frac"]) + 1e-12:
         raise ConfigError(f"allocation.slot_frac {out['slot_frac']:g} exceeds limits.max_asset_frac "
                           f"{limits['max_asset_frac']}")
@@ -465,6 +467,23 @@ def equity_universe(cfg: dict) -> dict:
     """The validated universe.equity block (all defaults, enabled false, for a config that has none)."""
     u = (cfg.get("universe") or {}).get("equity")
     return u if isinstance(u, dict) and "max_assets" in u else _universe_equity(None, {"modes": DEFAULT_MODES})
+
+
+def favorite_names(cfg: dict) -> set[str]:
+    """allocation.favorites in upper case. Besides the planner's tie-break, the crypto and stock universes scan these
+    past their liquidity (min_dollar_volume_usd) and max_assets cuts, and they do not count against max_assets; every
+    other filter still applies (README sections 9, 10, 13). The crypto universe uses coin_favorites."""
+    return {x.strip().upper() for x in (cfg.get("allocation") or {}).get("favorites") or []
+            if isinstance(x, str) and x.strip()}
+
+
+def coin_favorites(cfg: dict) -> set[str]:
+    """The favorite_names the crypto universe scans past its cuts: all but a name that is also a ticker in
+    universe.equity.symbols (the stock universe on, the ticker not in its exclude). To the scans such a bare name means
+    the stock: keeping the coin past a cut would rename the stock TICKER-STOCK and take its tie-break (README section
+    9). A coin that makes the cuts on its own still takes the name, and with it the bare name's tie-break."""
+    eq = equity_universe(cfg)
+    return favorite_names(cfg) - (set(eq["symbols"]) - set(eq["exclude"]) if eq["enabled"] else set())
 
 
 def crosscheck_applies(asset: dict) -> bool:

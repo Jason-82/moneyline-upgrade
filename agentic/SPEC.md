@@ -372,7 +372,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
      `config_order` (config order only, no favorites)) take min(room, class room): a full slot, or a partial one if
      ≥ half a slot, else they wait (`skipped`: "no free slot"). `wash_sale_block_symbols`, hold-only universe assets
      and yfinance stocks that fail the cross-check take no slot; BLOCK_BUYS and FLATTEN hand out none. A favorite's
-     slot note says `favorite #k`; favorites only order candidates (never eligibility, caps, slots or trims).
+     slot note says `favorite #k`; favorites only order candidates (never eligibility, caps, slots or trims). The
+     match is on the asset name (upper case); a stock universe asset (`universe.kind` equity) also matches
+     `TICKER-STOCK` of its vehicle, whatever its name (`_fav_rank`; the earlier place counts). A bare name matches
+     only the asset of that name. Separately, the universes scan favorites past their liquidity and `max_assets`
+     cuts (sections 13, 14).
   4. Buys (holdings first, then new entries, in priority order) are capped so the sleeve's positions, counted at
      their current value, plus this plan's buys stay within capital and each class cap ("no free capital" below
      `min_order_usd`).
@@ -651,7 +655,7 @@ own hints name the interpreter running it (`config.cli_command()`):
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
 | `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
 | `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
-| `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
+| `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, favorites that name both a scan candidate coin and a ticker in `universe.equity.symbols`, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps
@@ -703,6 +707,24 @@ def build_universe(cfg, now_utc, inbox_dir, fetch=None, *, products=None, held=N
     bar older than the last closed bar; fewer than `min_history_bars` bars; pegged (the last 90 closes all within
     3% of their median: stablecoin/wrapped, so an unlisted stablecoin is caught); median dollar volume of the last
     30 bars below `min_dollar_volume_usd`; beyond `max_assets` by that volume
+  - **Favorites:** a coin whose code is in `config.coin_favorites` (`allocation.favorites` upper case, less any
+    name that is also a ticker in `universe.equity.symbols` with the stock universe on and not in its `exclude`:
+    that name means the stock) skips the last two: it is not dropped as illiquid, and `max_assets` counts
+    non-favorites only (`cut_max_assets`: the `max_assets` most liquid non-favorites are kept; a favorite never takes
+    a place or displaces a coin). Every other outcome above applies to it unchanged, and favorites add no
+    candidates. A favorite kept past a cut gets `favorite_kept` (`below the liquidity cut $X/day, need $Y`; `beyond
+    max_assets N (rank k by dollar volume): favorites do not count against it`; both joined by `; `) and `;
+    included (favorite; <favorite_kept>)` appended to its reason. Not for a coin already hold only (held and failing
+    an earlier filter, or the universe off): it stays hold only, without the note. A non-favorite's `beyond
+    max_assets` reason ranks it among non-favorites (`rank n of m by dollar volume, not counting k favorites`).
+  - **Favorites across the universes:** in the stock universe (section 14) a coin kept past a cut weighs like any
+    included coin: a ticker that is its mapped ETF is "covered by the crypto universe", and a stock with its code is
+    named `TICKER-STOCK` (for a favorite only a held stock kept for exits, since a code in `symbols` is no coin
+    favorite). A favorite left out of `coin_favorites` whose coin is dropped as illiquid or beyond `max_assets` gets
+    `; not kept as a favorite: CODE is also a ticker in universe.equity.symbols, so the favorite means the stock
+    (list CODE-STOCK to favor the stock in every case)` appended to the coin's reason; `doctor` warns about each such
+    name that is a scan candidate (a tradable Robinhood pair, or in `symbols`). A coin that makes the cuts on its own
+    keeps its name and the bare name's tie-break (section 7).
   - **Circuit breaker:** scan requests use 1 retry and a 10 s timeout; after 2 network errors in a row
     (`coinbase_down` in the report) no further Coinbase request is made this run: the remaining coins are scanned
     from current cached bars only ("Coinbase unreachable: not scanned" otherwise), and `compute_signals` /
@@ -723,7 +745,8 @@ def build_universe(cfg, now_utc, inbox_dir, fetch=None, *, products=None, held=N
   dollar_volume_usd, rank, held, hold_only}, entry?}`, ordered by dollar volume, then code.
 - **Report:** `{enabled, source, generated_at, pairs{file, captured_at, age_days, pages, complete}, products,
   tradability, coinbase_down, warnings[], coins[{coin, outcome, reason, category, vehicle, dollar_volume_usd, bars,
-  rank, held, hold_only}], counts}`.
+  rank, held, hold_only, favorite, favorite_kept}], counts}`. `summary_lines` adds `incl. N favorites kept past the
+  liquidity or max_assets cut` to the summary line and lists those coins with the watch-only and hold-only ones.
 - **Allocation `fixed`:** generated assets have `alloc_frac` 0: never bought, and the planner sells a held one only
   on a full exit (red or FLATTEN), never as a trim toward its zero target.
 - `with_universe(cfg, signals) -> (cfg, warnings)`:
@@ -762,6 +785,14 @@ def build_equity_universe(cfg, now_utc, inbox_dir, *, fetch=None, held=None, bas
   - after the bars (one batched fetch: `yfinance_daily_cached`, or the Robinhood cache): "data error", "stale data"
     (last bar ≠ last closed session), "illiquid" (median close × volume over 30 bars), "beyond max_assets" (by that
     volume)
+  - favorites: a ticker in `allocation.favorites` as `TICKER` or `TICKER-STOCK` (either one, upper case) skips
+    "illiquid" and "beyond max_assets" exactly as in section 13 (`universe.cut_max_assets`, `favorite_kept`, the
+    `included (favorite; ...)` reason); every other outcome, the `min_history_bars` watch-only rule and the naming
+    apply unchanged, and favorites add no candidates (a favorite must be in `symbols`). Within this universe a
+    favorite displaces no ticker (`max_assets` counts non-favorites). A bare `TICKER` in `symbols` is no coin
+    favorite (`config.coin_favorites`, section 13), so it cannot bring in the coin that would rename the stock; a
+    coin favorite the crypto universe keeps past a cut takes precedence here like any of its assets (its mapped ETF
+    ticker is "covered by the crypto universe")
   - a held ticker that fails a filter is kept with `hold_only` (also "no longer in universe.equity.symbols" and
     "universe.equity is off")
   - survivors: `stock` (tradable; vehicle the ticker, `fractional` from `fractional_tradability`), or `watch`
@@ -775,8 +806,9 @@ def build_equity_universe(cfg, now_utc, inbox_dir, *, fetch=None, held=None, bas
   a held crypto universe coin with too little history likewise), universe: {kind: equity, outcome,
   reason, dollar_volume_usd, rank, held, hold_only}, entry?}`.
 - **Report:** `{enabled, feed, generated_at, tradability{captured_at, confirmed, fractional}, data_down, warnings[],
-  tickers[{ticker, name, outcome, reason, category, vehicle, dollar_volume_usd, bars, rank, held, hold_only}],
-  counts}`; `summary_lines(report, full)` for the digest.
+  tickers[{ticker, name, outcome, reason, category, vehicle, dollar_volume_usd, bars, rank, held, hold_only,
+  favorite, favorite_kept}], counts}`; `summary_lines(report, full)` for the digest (favorites kept past a cut are
+  counted on the summary line and listed, as in section 13).
 - `with_equity_universe(cfg, signals) -> (cfg, warnings)`: the signals file's stock assets for `plan`, the snapshot
   and reconcile, re-checked (vehicle = the ticker, name the ticker or `TICKER-STOCK` and unique, no explicit claim,
   signal = `universe.equity.feed` on the ticker; either feed for a never-bought one); with the universe off only

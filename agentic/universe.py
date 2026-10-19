@@ -9,6 +9,11 @@ signals)` re-checks the stored assets against the config and adds them for the p
 Coins the sleeve holds are never dropped by a filter (they are kept "hold only": exits and trims, no new buys), so a
 position never loses the asset that sells it. With the universe turned off, the coins of its last scan that the sleeve
 still holds stay as hold-only assets until they exit.
+
+Coins in allocation.favorites are scanned past the liquidity cut (min_dollar_volume_usd) and the max_assets cut, and do
+not count against max_assets (it keeps the most liquid non-favorites); every other filter applies to them as to any
+coin. The report says when a favorite was kept past a cut. A favorite that is also a ticker in universe.equity.symbols
+means the stock (config.coin_favorites): that coin is not kept past a cut, so it cannot rename the stock TICKER-STOCK.
 """
 from __future__ import annotations
 
@@ -21,7 +26,8 @@ from pathlib import Path
 from agentic import calendar as cal
 from agentic import data as feeds
 from agentic import ledger
-from agentic.config import COIN_CODE, DEFAULT_EXCLUDE, crypto_universe, paths
+from agentic.config import (COIN_CODE, DEFAULT_EXCLUDE, STOCK_SUFFIX, coin_favorites, crypto_universe,
+                            favorite_names, paths)
 from agentic.snapshot import _pages, _rows, code_for, load_captures, pair_for
 
 PAIRS_STALE_DAYS = 7              # warn when the newest get_currency_pairs capture is older
@@ -39,6 +45,8 @@ COST_NOTE = ("direct crypto costs about 0.95% per side on Robinhood's default ro
 # report categories for the digest's one-line summary
 CATEGORIES = ("stablecoin/wrapped", "excluded by config", "not tradable on Robinhood", "no Coinbase pair",
               "Coinbase data error", "stale Coinbase data", "too little history", "illiquid", "beyond max_assets")
+REPORT_KEYS = ("coin", "outcome", "reason", "category", "vehicle", "dollar_volume_usd", "bars", "rank", "held",
+               "hold_only", "favorite", "favorite_kept")
 
 
 # ------------------------------------------------------------------ captures
@@ -252,6 +260,38 @@ def _asset(e: dict, u: dict) -> dict:
     return a
 
 
+def liquidity_cut_note(dv, min_dv: float) -> str:
+    """Why a favorite was kept past the liquidity cut (the report's `favorite_kept`)."""
+    return f"below the liquidity cut ${dv or 0:,.0f}/day, need ${min_dv:,.0f}"
+
+
+def cut_max_assets(survivors: list[dict], max_assets: int, drop) -> None:
+    """Rank the survivors (sorted by dollar volume, most liquid first) and drop the non-favorites beyond max_assets.
+    Favorites do not count against max_assets: it keeps the most liquid non-favorites. A favorite that would have been
+    beyond it (as a non-favorite at its place) is kept, and `favorite_kept` says so. A hold-only non-favorite is never
+    dropped but still counts, as before."""
+    nfav = sum(1 for e in survivors if e.get("favorite"))
+    n = 0                                            # non-favorites so far
+    for k, e in enumerate(survivors, 1):
+        e["rank"] = k
+        if e.get("favorite"):
+            if n + 1 > max_assets and not e["hold_only"]:
+                note = f"beyond max_assets {max_assets} (rank {k} by dollar volume): favorites do not count against it"
+                e["favorite_kept"] = f"{e['favorite_kept']}; {note}" if e.get("favorite_kept") else note
+            continue
+        n += 1
+        if n > max_assets and not e["hold_only"]:
+            drop(e, f"beyond max_assets {max_assets} (rank {n} of {len(survivors) - nfav} by dollar volume"
+                    + (f", not counting {nfav} favorite{'s' if nfav > 1 else ''}" if nfav else "") + ")",
+                 "beyond max_assets")
+
+
+def favorite_note(e: dict) -> None:
+    """Append the favorite's kept-past-a-cut note to an included entry's reason."""
+    if e.get("favorite_kept"):
+        e["reason"] += f"; included (favorite; {e['favorite_kept']})"
+
+
 def _pegged(bars) -> bool:
     """The last PEG_BARS closes all stay within PEG_BAND of their median (a stablecoin or a pegged token)."""
     c = bars["close"].iloc[-PEG_BARS:]
@@ -272,6 +312,8 @@ def build_universe(cfg: dict, now_utc=None, inbox_dir=None, fetch=None, *, produ
     held = sleeve_vehicles(base) if held is None else held
     etf_coin = {etf: coin for coin, etf in u["etf_map"].items()}
     claims = _claims(cfg, u)
+    fav = coin_favorites(cfg)                        # a name that is also a stock universe ticker means the stock
+    stock_fav = favorite_names(cfg) - fav
     off = not u["enabled"]
     if off:                                          # turned off: its last scan's coins the sleeve still holds
         keep = sorted(c for c in last_scan_coins(base) if c not in claims and
@@ -311,7 +353,8 @@ def build_universe(cfg: dict, now_utc=None, inbox_dir=None, fetch=None, *, produ
 
     def add(code, src):
         coins.setdefault(code, dict(coin=code, source=src, outcome=None, reason=None, category=None, vehicle=None,
-                                    dollar_volume_usd=None, bars=None, rank=None, held=False, hold_only=None))
+                                    dollar_volume_usd=None, bars=None, rank=None, held=False, hold_only=None,
+                                    favorite=code in fav, favorite_kept=None))
     if off:
         for code in keep:
             add(code, "held")
@@ -414,16 +457,19 @@ def build_universe(cfg: dict, now_utc=None, inbox_dir=None, fetch=None, *, produ
                        "median)", "stablecoin/wrapped"):
                 continue
         elif dv is None or dv < min_dv:
-            if drop(e, f"illiquid (median ${dv or 0:,.0f}/day over the last {DV_BARS} bars, need ${min_dv:,.0f})",
-                    "illiquid"):
+            if e["favorite"] and not e["hold_only"]:     # scanned past the liquidity cut; every other filter applies
+                e["favorite_kept"] = liquidity_cut_note(dv, min_dv)
+            elif drop(e, f"illiquid (median ${dv or 0:,.0f}/day over the last {DV_BARS} bars, need ${min_dv:,.0f})",
+                      "illiquid"):
                 continue
         survivors.append(e)
     survivors.sort(key=lambda e: (-(e["dollar_volume_usd"] or 0.0), e["coin"]))
-    for k, e in enumerate(survivors, 1):
-        e["rank"] = k
-        if k > u["max_assets"] and not e["hold_only"]:
-            drop(e, f"beyond max_assets {u['max_assets']} (rank {k} of {len(survivors)} by dollar volume)",
-                 "beyond max_assets")
+    cut_max_assets(survivors, u["max_assets"], drop)
+    for e in coins.values():                         # a favorite meant for the stock of the same name
+        code = e["coin"]
+        if code in stock_fav and e["outcome"] == "excluded" and e["category"] in ("illiquid", "beyond max_assets"):
+            e["reason"] += (f"; not kept as a favorite: {code} is also a ticker in universe.equity.symbols, so the "
+                            f"favorite means the stock (list {code}{STOCK_SUFFIX} to favor the stock in every case)")
     kept = [e for e in survivors if e["outcome"] is None]
 
     tr, trw = etf_tradability(inbox, cfg, now, caps)
@@ -432,10 +478,10 @@ def build_universe(cfg: dict, now_utc=None, inbox_dir=None, fetch=None, *, produ
                              for sym, t in tr.items() if sym in etf_coin}
     for e in kept:
         _vehicle(e, u, held, tr)
+        favorite_note(e)
     assets = [_asset(e, u) for e in kept]
     order = {"etf": 0, "direct": 1, "watch": 2, "explicit": 3, "excluded": 4}
-    report["coins"] = [{k: e[k] for k in ("coin", "outcome", "reason", "category", "vehicle", "dollar_volume_usd",
-                                          "bars", "rank", "held", "hold_only")}
+    report["coins"] = [{k: e[k] for k in REPORT_KEYS}
                        for e in sorted(coins.values(), key=lambda e: (order[e["outcome"]], e["rank"] or 10**6,
                                                                       -(e["dollar_volume_usd"] or 0), e["coin"]))]
     counts: dict[str, int] = {}
@@ -605,9 +651,15 @@ def chunks(xs: list, n: int) -> list[list]:
     return [xs[i:i + n] for i in range(0, len(xs), n)]
 
 
+def favorites_kept(entries) -> str:
+    """The summary line's note on included favorites kept past the liquidity or max_assets cut ("" without any)."""
+    n = sum(1 for e in entries if e.get("favorite_kept") and e.get("outcome") not in ("explicit", "excluded"))
+    return f", incl. {n} favorite{'s' if n > 1 else ''} kept past the liquidity or max_assets cut" if n else ""
+
+
 def summary_lines(report: dict | None, full: bool = False) -> list[str]:
-    """The digest's universe section: one summary line, the cost note, watch-only and hold-only coins; every coin's
-    outcome with `full`."""
+    """The digest's universe section: one summary line, the cost note, watch-only and hold-only coins and favorites
+    kept past a cut; every coin's outcome with `full`."""
     if not report or not (report.get("enabled") or report.get("coins")):
         return []
     coins = report.get("coins") or []
@@ -619,7 +671,7 @@ def summary_lines(report: dict | None, full: bool = False) -> list[str]:
     inc = sum(c.get(k, 0) for k in ("etf", "direct", "watch"))
     exc = ", ".join(f"{c[f'excluded: {k}']} {k}" for k in CATEGORIES if c.get(f"excluded: {k}"))
     lines = [f"UNIVERSE crypto ({src}): {len(coins)} coins considered, {inc} scanned ({c.get('etf', 0)} via ETF, "
-             f"{c.get('direct', 0)} direct, {c.get('watch', 0)} watch-only)"
+             f"{c.get('direct', 0)} direct, {c.get('watch', 0)} watch-only)" + favorites_kept(coins)
              + (f", {c['explicit']} covered by explicit assets" if c.get("explicit") else "")
              + (f"; excluded: {exc}" if exc else "")]
     if c.get("direct"):
@@ -633,6 +685,6 @@ def summary_lines(report: dict | None, full: bool = False) -> list[str]:
             lines.append(f"    {e['coin']:<8}{e['outcome']:<9}{vs:<7}{dv:>10}  {e['reason']}")
         return lines
     for e in coins:
-        if e["outcome"] == "watch" or e.get("hold_only"):
+        if e["outcome"] == "watch" or e.get("hold_only") or (e.get("favorite_kept") and e["outcome"] != "excluded"):
             lines.append(f"    {e['coin']}: {e['reason']}")
     return lines

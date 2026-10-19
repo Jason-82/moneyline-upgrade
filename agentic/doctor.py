@@ -19,8 +19,8 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from agentic.config import (COIN_CODE, DEFAULT_EXCLUDE, EXAMPLE, REPO, ConfigError, cli_command, crypto_universe,
-                            equity_universe, load_config, paths)
+from agentic.config import (COIN_CODE, DEFAULT_EXCLUDE, EXAMPLE, REPO, STOCK_SUFFIX, ConfigError, cli_command,
+                            coin_favorites, crypto_universe, equity_universe, favorite_names, load_config, paths)
 
 UTC = timezone.utc
 PRE_HOOK = REPO / "agentic" / "hooks" / "pre_tool_use.py"
@@ -386,9 +386,16 @@ def run(settings_dir: Path | None = None) -> int:
     return 1 if rep.failed else 0
 
 
+def _fav_note(cfg: dict) -> str:
+    """The universe PASS lines' note: favorites skip the liquidity and max_assets cuts (README section 9)."""
+    n = len((cfg.get("allocation") or {}).get("favorites") or [])
+    return f" (plus any of the {n} allocation.favorites past those two cuts)" if n else ""
+
+
 def check_universe(rep: Report, cfg: dict, p: dict) -> None:
     """The crypto universe (README section 10): on/off and source, the newest get_currency_pairs capture, explicit
-    crypto assets that bypass a mapped ETF or keep a coin out, and the Coinbase cache. WARN lines only."""
+    crypto assets that bypass a mapped ETF or keep a coin out, favorites that name both a coin and a stock universe
+    ticker, and the Coinbase cache. WARN lines only."""
     u = crypto_universe(cfg)
     cmd = cli_command()
     if not u["enabled"]:
@@ -396,7 +403,7 @@ def check_universe(rep: Report, cfg: dict, p: dict) -> None:
                                     f"universe block: `{cmd} init --update` adds it")
     else:
         rep.add("PASS", "universe", f"crypto universe on: source {u['source']}, at most {u['max_assets']} coins with "
-                                    f"median volume >= ${u['min_dollar_volume_usd']:,.0f}/day, "
+                                    f"median volume >= ${u['min_dollar_volume_usd']:,.0f}/day{_fav_note(cfg)}, "
                                     f"{len(u['etf_map'])} coins mapped to spot ETFs "
                                     f"({'preferred' if u['prefer_etf'] else 'not preferred'}), direct crypto "
                                     f"{'on' if u['direct_crypto'] else 'off'}")
@@ -434,6 +441,16 @@ def check_universe(rep: Report, cfg: dict, p: dict) -> None:
                 rep.add("WARN", "universe", f"the {a.get('class')} asset {a['name']} shares the coin code {name}: the "
                                             f"coin {name} is kept out of the universe; rename the asset (e.g. "
                                             f"{name}-STOCK) to let the universe trade the coin")
+    pairs = ((pc or {}).get("pairs") or {}) if u["source"] == "robinhood" else {}
+    cands = set(u["symbols"]) | {k for k, v in pairs.items() if v["tradable"]}          # the scan's candidates
+    for name in sorted((favorite_names(cfg) - coin_favorites(cfg)) & cands) if u["enabled"] else []:
+        rep.add("WARN", "favorites", f"allocation.favorites {name} is both a coin (Robinhood pair list or "
+                                     f"universe.crypto.symbols) and a ticker in universe.equity.symbols. To the scans "
+                                     f"it means the stock: the coin {name} is not kept past the crypto liquidity or "
+                                     f"max_assets cut for it. In the plan it favors whichever asset is named {name}: "
+                                     f"the coin when it makes those cuts on its own (the stock is then "
+                                     f"{name}{STOCK_SUFFIX}), else the stock. List {name}{STOCK_SUFFIX} to favor the "
+                                     "stock in every case (README section 9)")
     if u["enabled"] and u["source"] == "robinhood":
         if err:
             rep.add("WARN", "currency pairs", f"cannot read the inbox ({err})")
@@ -491,8 +508,8 @@ def check_stocks(rep: Report, cfg: dict, p: dict) -> None:
                                           f"block: `{cli_command()} init --update` adds it")
         return
     rep.add("PASS", "stock universe", f"on: {len(u['symbols'])} symbols, feed {u['feed']}, at most {u['max_assets']} "
-                                      f"with median volume >= ${u['min_dollar_volume_usd']:,.0f}/day and >= "
-                                      f"{u['min_history_bars']} bars")
+                                      f"with median volume >= ${u['min_dollar_volume_usd']:,.0f}/day{_fav_note(cfg)} "
+                                      f"and >= {u['min_history_bars']} bars")
     if not u["symbols"]:
         rep.add("WARN", "stock universe", "universe.equity.symbols is empty: paste your tickers into the private "
                                           "config (`code private/agentic/config.json`)")

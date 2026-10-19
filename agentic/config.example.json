@@ -22,7 +22,7 @@
     "method": "slots",
     "slot_frac": 0.10,
     "priority": "crypto_first",
-    "_comment_favorites": "Tie-break for new slots only, earlier first: asset names (coins and tickers), e.g. [\"ETH\", \"AAA\"]. Order: class priority, then the newest green flip, then favorites, then config order, then liquidity, then name. It never makes an asset eligible, never overrides caps, entry rules or slots, and never trims a holding.",
+    "_comment_favorites": "Asset names (coins and tickers, any case), earlier first, e.g. [\"ETH\", \"AAA\"]. (1) Tie-break for new slots: class priority, then the newest green flip, then favorites, then config order, then liquidity, then name; it never makes an asset eligible, never overrides caps, entry rules or slots, and never trims a holding. (2) The crypto and stock universes always scan a favorite: it skips their min_dollar_volume_usd and max_assets cuts and does not count against max_assets (max_assets keeps the most liquid non-favorites). Every other filter still applies: on Robinhood (tradable pair or get_equity_tradability), a Coinbase pair or stock bars, min_history_bars, not pegged, not in exclude, explicit assets first, the ETF tradability check; a stock must be in universe.equity.symbols. A stock universe ticker also answers to TICKER-STOCK, whatever its name (it is named so on runs where the crypto universe has the coin of that code); a bare name that is both a Robinhood coin and a ticker in universe.equity.symbols means the stock to the scans (the coin is not kept past a cut), and in the tie-break the asset of that name. README section 9.",
     "favorites": [],
     "class_max_frac": {"crypto": 0.60, "equity": 1.0}
   },

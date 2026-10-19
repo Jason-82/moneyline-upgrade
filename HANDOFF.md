@@ -717,7 +717,9 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
     stocks (FINDINGS 2026-10-19: never the worst, shallower drawdowns; immediate is 2-4 pts/yr ahead in the dead-coin
     basket at low cost, within noise).
   - **Allocation:** `slots` (example 10 × 10%, `crypto_first`, crypto cap 0.60; `favorites` breaks same-day ties
-    after class and flip date, never eligibility or caps) or `fixed`.
+    after class and flip date, never eligibility or caps, and the universes scan favorites past their liquidity and
+    `max_assets` cuts, every other filter still applying; to the scans a name that is both a coin and a stock universe
+    ticker means the stock, and `TICKER-STOCK` favors a stock under either name) or `fixed`.
   - **Entry policy:** `join_recent` (default; join only within 20 bars of the green flip and at most 50% above the
     flip close; risk controls, FINDINGS 2026-10-19), `join`, or `fresh_only`.
   - **Windows + Git Bash** setup with `AGENTIC_PYTHON` in `.claude/settings.local.json`, a time-zone fallback,

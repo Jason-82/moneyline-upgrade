@@ -467,11 +467,37 @@ cost, with a 95% interval clustered by run:
 - **Ties (`favorites`):** among new entries with the same class rank and flip day, the assets in
   `allocation.favorites` come first, earlier in the list first; then the rest in config order (universe assets after
   your own), then the more liquid (median close × volume over 30 bars, any feed), then by name. Several assets often
-  flip green on the same day (a market-wide turn), and with 10 slots this decides which get one. A favorite is
-  only an order: it never makes an asset eligible (entry policy, hold only, cross-check), never overrides a class
-  cap, the slot count or a wash-sale block, and never trims a holding. Names are asset names: coin codes and
-  tickers, e.g. `"favorites": ["ETH", "AAA"]` (placeholders; your list stays in the private config). The plan's
-  reason says so: `new slot $1000.00 (#3 by crypto_first; favorite #2)`.
+  flip green on the same day (a market-wide turn), and with 10 slots this decides which get one. In the plan a
+  favorite is only an order: it never makes an asset eligible (entry policy, hold only, cross-check), never
+  overrides a class cap, the slot count or a wash-sale block, and never trims a holding. Names are asset names: coin
+  codes and tickers, e.g. `"favorites": ["ETH", "AAA"]` (placeholders; your list stays in the private config); a
+  stock of the stock universe also answers to `TICKER-STOCK`, whatever its name (section 13). The plan's reason says
+  so: `new slot $1000.00 (#3 by crypto_first; favorite #2)`.
+- **Favorites are always scanned:** the crypto and stock universes (sections 10 and 13) keep a favorite past
+  their liquidity cut (`min_dollar_volume_usd`) and their `max_assets` cut, so a smaller coin or stock you follow
+  still gets a signal and can compete for a slot. **Favorites do not count against `max_assets`:** it keeps the
+  most liquid non-favorites, so a scan can hold `max_assets` assets plus your favorites, and within its own
+  universe a favorite never pushes another asset out. Across the two universes a coin kept past a cut counts like
+  any scanned coin: the stock universe leaves a stock that is the coin's mapped ETF to the coin (favorite `NEAR`
+  with `NRR` in `universe.equity.symbols` excludes the stock NRR), and a stock with the coin's code is named
+  `TICKER-STOCK` (for a favorite only a held stock kept for exits: see the next bullet). Nothing else is waived. A
+  favorite must still be on Robinhood (a tradable pair, or a `get_equity_tradability` check), have current
+  Coinbase or stock bars and enough history (`min_history_bars`; a young stock stays watch-only), not be a
+  stablecoin or pegged, and not be in `exclude` or covered by an explicit asset (a disabled one keeps it out); a
+  coin's mapped ETF still needs its tradability check. Favorites add no candidates: a coin must be a Robinhood pair
+  or in `universe.crypto.symbols`, a stock in `universe.equity.symbols`.
+  Matching ignores case. A held favorite below the liquidity cut is no longer hold only. `signals --all` and the
+  digest give the reason, e.g. `included (favorite; below the liquidity cut $800,000/day, need $5,000,000)` or
+  `included (favorite; beyond max_assets 30 (rank 34 by dollar volume): favorites do not count against it)`.
+- **A name that is both a coin and one of your stocks:** a Robinhood coin code can equal a ticker in
+  `universe.equity.symbols` (stock universe on, ticker not in its `exclude`). To the scans the bare name then means
+  the stock: the stock is kept past its cuts and the coin is not (it competes on liquidity like any coin), so a
+  favorite never makes that coin buyable, renames your stock or moves its tie-break. If the coin makes the cuts on
+  its own, it takes the name, the stock becomes `TICKER-STOCK` (section 13) and the bare name's tie-break goes to the
+  coin, as it always has. `TICKER-STOCK` means the stock under either of its names, in the scan and in the
+  tie-break: list that to favor the stock in every case. There is no spelling that keeps such a coin past the cuts.
+  `doctor` warns about each such name, and a coin dropped by a cut says so: `illiquid (...); not kept as a favorite:
+  BBB is also a ticker in universe.equity.symbols, so the favorite means the stock (...)`.
 - `class_max_frac`: each class's cap as a share of capital (default crypto = `limits.max_crypto_frac`, equity 1.0;
   1.0 = no cap). With slots it limits the room handed out; a holding above it is not sold.
 - With slots, a position counts at its value until it is sold: an exit or a trim frees its room only once the
@@ -517,8 +543,11 @@ digest prints a one-line summary.
 4. **History:** at least `min_history_bars` closed bars (default `limits.min_bars`, 300), ending on the last closed
    bar.
 5. **Liquidity:** the median daily dollar volume on Coinbase (close × volume) over the last 30 closed bars must be
-   at least `min_dollar_volume_usd` (default $5,000,000).
-6. **`max_assets`** (default 30): the most liquid 30 by that dollar volume.
+   at least `min_dollar_volume_usd` (default $5,000,000). Coins in `allocation.favorites` skip this cut.
+6. **`max_assets`** (default 30): the most liquid 30 by that dollar volume, not counting favorites. A favorite that
+   passed steps 1 to 4 is scanned on top of the 30 and displaces none of them. In the stock universe it then counts
+   like any scanned coin (its mapped ETF is left to it, section 13 step 2). A favorite that is also a ticker in
+   `universe.equity.symbols` means the stock: that coin skips neither cut (section 9).
 
 Coins the sleeve holds are never dropped by a filter. A coin that fails one stays as **hold only**: it can be
 trimmed or sold, but not bought, so a position always keeps the asset that sells it.
@@ -530,8 +559,8 @@ trimmed or sold, but not bought, so a position always keeps the asset that sells
 - Across Binance volume tiers including delisted coins, the signal beat holding the same coins in every tier. But the
   edge came from the 2022 and 2025 crash years, there was no consistent size gradient, and small coins still lost
   money with the signal over 2022-25 (−7.6% a year after tax).
-- So `max_assets` 30 and the $5M floor keep the scan among the larger coins. Both numbers are judgments, not fitted
-  optima.
+- So `max_assets` 30 and the $5M floor keep the scan among the larger coins (your favorites aside). Both numbers
+  are judgments, not fitted optima.
 - Coinbase volume is a proxy for Robinhood liquidity, not a measure of it.
 - **Against trading coins directly** (`direct_crypto: true`, the default): at Robinhood's 0.95% per side, the
   signal's CAGR edge over holding is −12.2 points for BTC, −12.7 for BNB and −18.9 for ZEC, and since 2022 only
@@ -569,6 +598,10 @@ trimmed or sold, but not bought, so a position always keeps the asset that sells
   disabled explicit entry leaves the position alone, as any disabled asset does, and the plan warns that nothing
   manages it.
 - **Adding coins:** list them in `symbols`.
+- **Always scanning a coin:** put it in `allocation.favorites`. It then skips the liquidity and `max_assets` cuts
+  (and wins ties for slots), but every other filter above still applies (section 9). The report says
+  `included (favorite; ...)` when a favorite was kept past a cut. Not a coin whose code is also a ticker in
+  `universe.equity.symbols`: there the name means the stock (section 9).
 - **Mode and entry:** `mode` (default `split`) and an optional `entry` override (the keys of the `entry` block)
   apply to every generated coin.
 
@@ -730,8 +763,13 @@ every ticker's outcome and reason.
    MoneyLine's ATR10 and its state settle within about 100 bars; a younger listing is watch-only until it has 150
    (the digest shows its signal, computed on the bars it has).
 5. **Liquidity:** the median daily dollar volume (close × volume) over the last 30 sessions must be at least
-   `min_dollar_volume_usd` ($1,000,000).
-6. **`max_assets`** (60): the most liquid.
+   `min_dollar_volume_usd` ($1,000,000). Tickers in `allocation.favorites` skip this cut.
+6. **`max_assets`** (60): the most liquid, not counting favorites. A favorite that passed steps 1 to 4 is scanned on
+   top and displaces no other ticker (section 9). It must still be in `symbols`; a favorite with fewer than 150
+   bars is watch-only like any ticker. A ticker that is also a coin code counts as a favorite as `TICKER` or
+   `TICKER-STOCK`, and the crypto universe does not keep that coin past its cuts for the bare name, so it cannot
+   rename the stock (section 9). A coin favorite the crypto universe keeps past its cuts counts here like any
+   scanned coin: a ticker that is its mapped ETF is left to it (step 2).
 
 A ticker the sleeve holds is never dropped by a filter: it stays as hold only (sells, no buys), also after you
 remove it from `symbols` or turn the universe off. A held ticker with fewer than 150 bars gets its exit signal from
@@ -777,7 +815,8 @@ order when the remainder is within 10% of the target, else one fractional market
   call.
 
 **Sizing:** slots, like everything else (section 9). With `crypto_first` coins take their slots first; stocks share
-the rest; `favorites` breaks ties.
+the rest; `favorites` breaks ties. A stock wins them as `TICKER` while it has that name, and as `TICKER-STOCK`
+under either name: list a ticker that is also a coin code that way (section 9).
 
 **Wash sales:** if you sell one of these tickers at a loss in another account (or this one, outside the sleeve)
 within 30 days before or after the sleeve buys it, the loss may be disallowed, and Robinhood does not check across

@@ -15,7 +15,7 @@ from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 
 from agentic import calendar as cal
 from agentic import entry, ledger
-from agentic.config import VALID_CLASSES, cli_command, crosscheck_applies, paths
+from agentic.config import STOCK_SUFFIX, VALID_CLASSES, cli_command, crosscheck_applies, paths
 from agentic.snapshot import code_for, mid, pair_for, quote_problem
 
 EQUITY_PARAMS = ("account_number", "symbol", "side", "type", "quantity", "dollar_amount", "limit_price", "stop_price",
@@ -440,11 +440,24 @@ def _favorites(cfg: dict) -> dict[str, int]:
     return {str(n).upper(): k for k, n in enumerate((cfg.get("allocation") or {}).get("favorites") or [], 1)}
 
 
+def _fav_rank(it: dict, fav: dict | None) -> int | None:
+    """The item's place in allocation.favorites (None if it is not one): by its asset name, and a stock universe stock
+    also as TICKER-STOCK whatever its name (it is TICKER on a run where the crypto universe has no coin TICKER), so that
+    spelling favors the stock in the scan and here alike. A bare name matches the asset of that name only: the coin,
+    while the crypto universe has a coin of that name (README section 9)."""
+    a = it["asset"]
+    names, u = [str(it["name"]).upper()], a.get("universe")
+    if isinstance(u, dict) and u.get("kind") == "equity":
+        names.append(str((a.get("vehicle") or {}).get("symbol") or "").upper() + STOCK_SUFFIX)
+    ks = [(fav or {})[n] for n in names if n in (fav or {})]
+    return min(ks) if ks else None
+
+
 def _tie(it: dict, order: dict, fav: dict | None = None) -> tuple:
     """Favorites first (earlier in allocation.favorites first), then config order, in which the universe's assets
     follow the explicit ones, the more liquid first, then by name (explicit assets keep their own order, whatever their
     class or liquidity)."""
-    k = (fav or {}).get(str(it["name"]).upper(), 10**6)
+    k = _fav_rank(it, fav) or 10**6
     if isinstance(it["asset"].get("universe"), dict):
         return k, 1, 0.0, -_liquidity(it), it["name"]
     return k, 0, float(order[it["name"]]), 0.0, ""
@@ -558,7 +571,7 @@ def _slot_alloc(its: list[dict], reserved: list[tuple], capital: float, cfg: dic
         take(cls, size)
         it["slot_usd"] = size
         n = len(info["new"]) + 1
-        fk = fav.get(str(it["name"]).upper()) if prio != "config_order" else None
+        fk = _fav_rank(it, fav) if prio != "config_order" else None
         why = f"#{n} by {prio}" + (f"; favorite #{fk}" if fk else "")
         it["slot_note"] = (f"new slot ${size:.2f} ({why})" if size >= slot - 0.005 else
                            f"partial slot ${size:.2f} of ${slot:.2f} ({why}; the room left)")
