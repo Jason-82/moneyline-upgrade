@@ -11,7 +11,7 @@ It describes Bollinger Band breakouts near local and all-time highs, cut when pr
 
 1. **Can their exact strategy be figured out from the summary? No.** A summary of outcomes does not pin down a rule set.
    - Six of the 15 rules (6 and 11-15) are patterns an AI mined from one trader's results, not decision rules.
-   - We coded every ambiguous reading as a separate variant. **None of 78 variant-windows matches the post's statistics jointly (0 of 78), and every one of them trades at a different frequency.** The most active of the 39 pre-registered rows (F: 1-hour bars on the monthly top-10 coins) made 435 tranches (entries plus adds; 400 without ZEC) in the most likely 16 months, against the post's 1,462. Some cells of the 648-cell fit below do trade as often as the post, but none of them matches its hit rate.
+   - We coded every ambiguous reading as a separate variant. **None of 78 variant-windows matches the post's statistics jointly (0 of 78), and every one of them trades at a different frequency.** The most active of the 39 rows checked against the post (section 2; F: 1-hour bars on the monthly top-10 coins) made 435 tranches (entries plus adds; 400 without ZEC) in the most likely 16 months, against the post's 1,462. Some cells of the 648-cell fit below do trade as often as the post, but none of them matches its hit rate.
    - A 648-cell fit to the post's numbers does not identify a rule set: the best-fitting cells disagree on which coins and on whether to short.
    - Random-entry decoys were never consistent either (0 of 2,740). The check is strict: failing it says the described rules do not reproduce the post's numbers, not that a match would have meant anything.
 2. **Replicating it.** Our literal reading of the 15 rules (R0: BTC, ETH and SOL perpetuals at 3x) turned $1 into **$0.86 over the most likely 16 months** (2025-06-17 to 2026-10-16, one 16-month path), against the post's 4.3x.
@@ -19,12 +19,12 @@ It describes Bollinger Band breakouts near local and all-time highs, cut when pr
    - Over 2020-2026, R0 made 20.7x, against 39.7x for buy-and-hold and 72.1x for the indicator. Its Sharpe ratio was 1.07, against 1.08 and 1.44.
    - **Luck benchmark.** R0's 16-month result sits mid-pack among 1,000 versions with random entry days (55th percentile). None of the 4,000 random versions reached 4.3x.
 3. **Testing it on all our assets: the four pre-registered verdicts**, in the order fixed in advance.
-   - **What the verdicts mean.** PASS: a positive effect that survives allowing for the 12 tests run. NO EDGE: even the optimistic end of the plausible range is below a small threshold set in advance; "HARMS" when that end is below zero. INCONCLUSIVE: the data cannot tell.
+   - **What the verdicts mean.** PASS: a positive effect that survives allowing for the 12 tests run. NO EDGE: even a deliberately generous upper limit (wider than the 95% range, to allow for the 12 tests) is below a small threshold set in advance; "HARMS" when that limit is below zero. INCONCLUSIVE: the data cannot tell.
    - **Drift adjustment.** Each trade is compared with what the same exposure would have earned at the asset's long-run average return, so a positive result reflects timing rather than simply owning a rising asset.
-   - **H1, crypto core edge: not shown; the data cannot tell (INCONCLUSIVE).** The core rules on BTC/ETH/SOL earned +3.7% of position size per trade above what the coins' average drift would have paid. Plausible values run from −1.2% to +8.7% per trade, so the test cannot tell an edge from none (after allowing for the 12 tests run, p = 0.80).
+   - **H1, crypto core edge: not shown; the data cannot tell (INCONCLUSIVE).** The core rules on BTC/ETH/SOL earned +3.7% of M per trade (M is a position's maximum size, with all three tranches filled) above what the coins' average drift would have paid. The 95% range runs from −1.2% to +8.7% per trade, so the test cannot tell an edge from none (after allowing for the 12 tests run, p = 0.80).
    - **H2, against buy-and-hold and the user's indicator: the data cannot tell (INCONCLUSIVE).** On Sharpe ratio (return per unit of risk) the core was +0.09 against buy-and-hold and −0.27 against the indicator. Both intervals include zero.
-   - **HS1, stocks: it does not work (NO EDGE (HARMS)).** On 43,811 S&P 500 trades, 2001-2026, the trades made +0.09% of position size each before the drift adjustment, 0.64% less than the same exposure would have earned at the stocks' average drift. Its Sharpe ratio was 0.54 below an equal-weight hold of the same stocks. Both optimistic bounds are below zero.
-   - **HS2, ETFs: it does not work (NO EDGE).** On 14 ETFs the trades made +0.10% per trade before the drift adjustment and −0.19% after it. The optimistic bound, +0.06%, is below the +0.5% threshold.
+   - **HS1, stocks: it does not work (NO EDGE (HARMS)).** On 43,811 S&P 500 trades, 2001-2026, the trades made +0.09% of M each before the drift adjustment, 0.64% less than the same exposure would have earned at the stocks' average drift. Its Sharpe ratio was 0.54 below an equal-weight hold of the same stocks. Both generous upper limits are below zero.
+   - **HS2, ETFs: it does not work (NO EDGE).** On 14 ETFs the trades made +0.10% per trade before the drift adjustment and −0.19% after it. The generous upper limit, +0.06%, is below the +0.5% threshold.
    - "Their full strategy beats holding" cannot be said for any asset group. In mean log growth against 1x holding: crypto (R0 at 3x vs BTC/ETH/SOL) −7.1 log points a year (−52.4 to +38.6); stocks −9.0 (−14.7 to −3.6); ETFs −5.0 (−9.9 to −0.4).
    - **No version the user could actually trade got a TRADE verdict** from the repo's gate.
 
@@ -60,7 +60,7 @@ The post cannot be traced: searches for "1,462 bots", "$10.7B" and its wording f
 |---|---|
 | **R0, the literal reading** | Binance USDT-margined perpetuals; BTC, ETH and SOL, one slot each (sleeve = equity/3). **Signal:** a fresh daily close above the upper Bollinger Band (20, 2), within 5% of the 60-day high or 10% of the all-time high; long only. **Size:** maximum notional M = 3 × sleeve; first tranche M/3; adds of M/3 at +2% and +5%. **Exits:** hard stop at SMA20 − 1 × ATR14; take-profit on half at 3R; exit on a daily close below the midline at the 13:00 New York window. **Timing:** entries at 06:00 New York, no new positions on Friday or Saturday; rules 6, 11 and 15 as written. **Costs and risk:** taker fees plus slippage, actual funding, isolated-margin liquidation on the mark price |
 | **S1, the core** | R0 without the mined timing rules (6 and 12-15); entries and exits at 01:00 UTC. At 1x (S1, L = 1), the base of H1 and H2 |
-| **Sensitivity grid** | 20 rows, each changing one thing: leverage, adds, band settings, near-high filter, 4-hour / 1-hour / weekly bars, stops, exits, long/short (S11), point-in-time universes re-ranked monthly (S12: top 3, 6 or 10 coins), squeeze filter, re-entry, sizing, and BTC/ETH/SOL/ZEC (S17, a hindsight what-if). Every row is in `results_bb/rows/rows.csv`; none is selected. This report quotes the rows that bear on the answer; section 3i lists the other pre-registered outputs |
+| **Sensitivity grid** | 20 rows, each changing one thing: leverage, adds, band settings, near-high filter, 4-hour / 1-hour / weekly bars, stops, exits, long/short (S11), point-in-time universes re-ranked monthly (S12: top 3, 6 or 10 coins), squeeze filter, re-entry, sizing, and BTC/ETH/SOL/ZEC (S17, a hindsight what-if). Every row is in `results_bb/rows/rows.csv`; none is selected. **Row counts.** The 20 variations (S1-S20) expand to 39 rows checked against the post (H11: R0, the variants with their sub-rows, F, and R0 with G-A or G-B) and to 51 rows in `rows.csv` (adding the 1x versions, the fee scenarios, the stress and stop-at-S rows, and S12's all-contract rows). This report quotes the rows that bear on the answer; section 3i lists the other pre-registered outputs |
 | **F, frequency-matched** | The cell whose W16 tranche count (entries plus adds) is closest to 1,462, chosen on the count alone before any return was read: 1-hour bars on the monthly top-10 coins (`fcount/F.json`) |
 | **Grid overlays** | G-A, the "waiting" grid: a neutral grid over the bands while the coin is flat near its high (the H10 test). G-B: each R0 tranche run as a grid. G-0: an always-on grid. All on 1-minute bars, 2024-07..2026-10, filled only when price trades through the level, maker fees, funding and liquidation |
 | **Stocks and ETFs** | The same daily rules on point-in-time S&P 500 members including dead names (HS1, 2001-2026; a 20-slot portfolio), the repo's 14 ETFs (HS2; 14 slots), and the user's 7 tickers. Fills at the next session's open; 3 bp a side (10 bp for COIN, HOOD and CRCL); 1996-2000 reported separately |
@@ -101,21 +101,22 @@ Source: `results_bb/verdicts.txt`, `verdicts.csv`, `primary/tests.json`.
 - H9 is the difference in mean log growth a year, in log points (21.6 log points ≈ 21.6% a year of continuously compounded growth).
 - H10 is the difference in account return, % of equity a year.
 - The 95% CIs are two-sided. The "NO EDGE bound" is the one-sided 99.625% upper bound, which must sit below E for NO EDGE. Compound tests list both components.
+- "Ruled out at 95%" is the largest effect the data rule out, one-sided (pre-registered for every test; `verdicts.txt`): a bootstrap-t bound at the widened 95.5% level for the trade and per-signal tests, and the 95% block-bootstrap bound for the portfolio tests (H2, H9, H10 and the Sharpe parts of HS1 and HS2). It uses a different method from the 95% CI, so it can sit just outside it (H1: +9.18 against a CI top of +8.67).
 
-| test | the claim tested | estimate | 95% CI | Holm p | NO EDGE bound vs E | MDE | verdict |
-|---|---|---|---|---|---|---|---|
-| **H1** core edge | S1 at 1x on BTC/ETH/SOL, 2020-2026, beats the coins' own drift, % of M per trade | +3.73 | −1.20 to +8.67 | 0.80 | +13.69 vs +0.5 | 8.53 | **INCONCLUSIVE** |
-| **H2** vs benchmarks | S1 at 1x beats (a) equal-weight buy-and-hold and (b) the indicator, Sharpe | (a) +0.09; (b) −0.27 | (a) −0.59 to +0.90; (b) −0.85 to +0.32 | 1.00 | (a) +1.34, (b) +0.58 vs +0.10 | (a) 1.26; (b) 0.99 | **INCONCLUSIVE** |
-| **HS1** stocks | S&P 500 members: (a) per trade, % of M; (b) Sharpe vs equal-weight members | (a) −0.643; (b) −0.54 | (a) −0.784 to −0.501; (b) −0.86 to −0.19 | 1.00 | (a) −0.435 vs +0.5; (b) −0.041 vs +0.10 | (a) 0.25; (b) 0.56 | **NO EDGE (HARMS)** |
-| **HS2** ETFs | 14 ETFs: (a) per trade, % of M; (b) Sharpe vs equal-weight ETFs | (a) −0.193; (b) −0.37 | (a) −0.349 to −0.036; (b) −0.78 to +0.08 | 1.00 | (a) +0.061 vs +0.5; (b) +0.30 vs +0.10 | (a) 0.28; (b) 0.74 | **NO EDGE** |
-| H3 pyramiding | starting at a third and adding beats full size at entry, % of M per signal | +0.76 | −0.50 to +2.03 | 1.00 | +3.00 vs +0.25 | 2.19 | INCONCLUSIVE |
-| H4 confirmation | a confirmed daily close beats an intrabar band touch, % of M per episode | −0.97 | −2.46 to +0.52 | 1.00 | +0.82 vs +0.25 | 2.58 | INCONCLUSIVE |
-| H5 near-high filter | breakouts near highs beat the others, % of M per trade | −1.07 | −9.56 to +7.41 | 1.00 | +8.93 vs +0.25 | 14.77 | INCONCLUSIVE |
-| H6 hour windows (rules 13-14) | the 06:00 / 13:00 New York windows beat 01:00 UTC, % of M per signal | +0.33 | −0.77 to +1.43 | 1.00 | +1.89 vs +0.25 | 1.89 | INCONCLUSIVE |
-| H7 weekday (rule 12) | no Friday/Saturday opens helps, % of M per signal | −0.61 | −1.62 to +0.40 | 1.00 | +0.47 vs +0.25 | 1.74 | INCONCLUSIVE |
-| H8 hold and Monday (rules 6, 15) | (a) a 72-hour minimum hold and (b) deferring weekend midline exits help, % of M per signal | (a) −0.026; (b) −0.081 | (a) −0.064 to +0.012; (b) −0.55 to +0.39 | 1.00 | (a) +0.010, (b) +0.36 vs +0.25 | (a) 0.07; (b) 0.81 | NO EDGE, via (a) only |
-| H9 leverage (rule 4) | R0 at 3x grows faster than at 1x, log points a year | +21.6 | −5.3 to +46.3 | 0.80 | +54.9 vs +2 | 48.2 | INCONCLUSIVE |
-| H10 grid overlay | R0 plus the waiting grid beats R0 alone, 2024-07..2026-10, % a year | −3.40 | −7.15 to +1.64 | 1.00 | +3.87 vs +1.0 | 7.96 | INCONCLUSIVE |
+| test | the claim tested | estimate | 95% CI | Holm p | ruled out at 95% | NO EDGE bound vs E | MDE | verdict |
+|---|---|---|---|---|---|---|---|---|
+| **H1** core edge | S1 at 1x on BTC/ETH/SOL, 2020-2026, beats the coins' own drift, % of M per trade | +3.73 | −1.20 to +8.67 | 0.80 | +9.18 | +13.69 vs +0.5 | 8.53 | **INCONCLUSIVE** |
+| **H2** vs benchmarks | S1 at 1x beats (a) equal-weight buy-and-hold and (b) the indicator, Sharpe | (a) +0.09; (b) −0.27 | (a) −0.59 to +0.90; (b) −0.85 to +0.32 | 1.00 | (a) +0.82; (b) +0.25 | (a) +1.34, (b) +0.58 vs +0.10 | (a) 1.26; (b) 0.99 | **INCONCLUSIVE** |
+| **HS1** stocks | S&P 500 members: (a) per trade, % of M; (b) Sharpe vs equal-weight members | (a) −0.643; (b) −0.54 | (a) −0.784 to −0.501; (b) −0.86 to −0.19 | 1.00 | (a) −0.516; (b) −0.24 | (a) −0.435 vs +0.5; (b) −0.041 vs +0.10 | (a) 0.25; (b) 0.56 | **NO EDGE (HARMS)** |
+| **HS2** ETFs | 14 ETFs: (a) per trade, % of M; (b) Sharpe vs equal-weight ETFs | (a) −0.193; (b) −0.37 | (a) −0.349 to −0.036; (b) −0.78 to +0.08 | 1.00 | (a) −0.038; (b) +0.02 | (a) +0.061 vs +0.5; (b) +0.30 vs +0.10 | (a) 0.28; (b) 0.74 | **NO EDGE** |
+| H3 pyramiding | starting at a third and adding beats full size at entry, % of M per signal | +0.76 | −0.50 to +2.03 | 1.00 | +2.09 | +3.00 vs +0.25 | 2.19 | INCONCLUSIVE |
+| H4 confirmation | a confirmed daily close beats an intrabar band touch, % of M per episode | −0.97 | −2.46 to +0.52 | 1.00 | +0.21 | +0.82 vs +0.25 | 2.58 | INCONCLUSIVE |
+| H5 near-high filter | breakouts near highs beat the others, % of M per trade | −1.07 | −9.56 to +7.41 | 1.00 | +5.48 | +8.93 vs +0.25 | 14.77 | INCONCLUSIVE |
+| H6 hour windows (rules 13-14) | the 06:00 / 13:00 New York windows beat 01:00 UTC, % of M per signal | +0.33 | −0.77 to +1.43 | 1.00 | +1.28 | +1.89 vs +0.25 | 1.89 | INCONCLUSIVE |
+| H7 weekday (rule 12) | no Friday/Saturday opens helps, % of M per signal | −0.61 | −1.62 to +0.40 | 1.00 | +0.08 | +0.47 vs +0.25 | 1.74 | INCONCLUSIVE |
+| H8 hold and Monday (rules 6, 15) | (a) a 72-hour minimum hold and (b) deferring weekend midline exits help, % of M per signal | (a) −0.026; (b) −0.081 | (a) −0.064 to +0.012; (b) −0.55 to +0.39 | 1.00 | (a) −0.003 (degenerate bootstrap); (b) +0.23 | (a) +0.010, (b) +0.36 vs +0.25 | (a) 0.07; (b) 0.81 | NO EDGE, via (a) only |
+| H9 leverage (rule 4) | R0 at 3x grows faster than at 1x, log points a year | +21.6 | −5.3 to +46.3 | 0.80 | +43.4 | +54.9 vs +2 | 48.2 | INCONCLUSIVE |
+| H10 grid overlay | R0 plus the waiting grid beats R0 alone, 2024-07..2026-10, % a year | −3.40 | −7.15 to +1.64 | 1.00 | +0.75 | +3.87 vs +1.0 | 7.96 | INCONCLUSIVE |
 
 **Notes on the table.**
 - **H1.** Before the drift adjustment the core made +6.80% per trade (95% CI +1.50 to +12.09). About half of that is what being long rising coins pays anyway.
@@ -126,9 +127,9 @@ Source: `results_bb/verdicts.txt`, `verdicts.csv`, `primary/tests.json`.
 - **H1's gates all held.** These conditions were required for a PASS but are not tests:
   - Over 677 trades on the other 37 coins of the repo's 40, the core made +5.32% per trade (95% CI −0.42 to +11.07). Without ZEC it made +4.74% (−1.08 to +10.56).
   - On the point-in-time top-3 coins it made +1.29% (−2.15 to +4.73).
-- **Not a gate (exploratory).** In the 2017-2019 spot era the core made +0.80% per trade (−8.7 to +10.3), and +0.90% (−8.8 to +10.6) without ZEC (`primary/tests.json` H1 extra).
+- **Not a gate (exploratory).** In the 2017-2019 spot era, pooled over the 25 coins listed then (54 positions), the core made +0.80% per trade (−8.7 to +10.3), and +0.90% (−8.8 to +10.6) without ZEC (`primary/tests.json` H1 extra). On BTC/ETH alone (13 positions) it made +10.9% (+0.01 to +21.8; exploratory, Benjamini-Hochberg adjusted p 0.15; `rows/pre_perpetual.csv`).
 - **H2.** Every Sharpe difference needs both halves positive to pass. Against the indicator, both halves are negative (−0.42 and −0.09).
-  - In the 2017-2019 spot block on BTC/ETH (exploratory, not a pass condition), the core's Sharpe was +1.06 above buy-and-hold (−0.08 to +2.46; p 0.047 before any multiplicity adjustment) and +0.42 above the indicator (−0.63 to +1.67).
+  - In the 2017-2019 spot block on BTC/ETH (exploratory, not a pass condition), the core's Sharpe was +1.06 above buy-and-hold (−0.08 to +2.46; exploratory, not distinguishable from zero) and +0.42 above the indicator (−0.63 to +1.67).
 - **H5.** The total drift-adjusted P&L is 4.42 M with the near-high filter off and 3.44 M with it on.
 - **H6.** R0's hour pair ranked 63rd of 576 entry/exit hour pairs (66th after removing the effect of delay). Passing needed the top 28.
 - **H7.** The Friday+Saturday block ranked 4th of 7 consecutive-day blocks.
@@ -174,11 +175,16 @@ Sources: `results_bb/headline/headline.csv`, `headline/benchmarks.csv`. Crypto, 
 - **R0's trades.** All 87 of R0's positions came from 163 signals. They exited on the midline (58), the stop (18), or the take-profit followed by the midline (11). The median hold was 415 hours. No position was liquidated (`rows/trades.csv`, gitignored; `headline.csv` logs).
 - **The rest of the grid** (`rows/rows.csv`). Across the 51 rows of the sensitivity table, Full-window multiples run from 1.12x (1-hour bars) to 131.9x (BB(50, 2)).
   - No row's drift-adjusted mean survives the Benjamini-Hochberg adjustment within the table (smallest adjusted p 0.26).
+  - **Two band settings beat the indicator over 2020-2026.** R0 with BB(50, 2) made 131.9x (Sharpe 1.65) and with BB(50, 2.1) 130.8x (Sharpe 1.67), against the indicator's 72.1x (1.44). Their drift-adjusted means are +9.1% (+1.7 to +16.5) and +10.6% (+2.3 to +18.8) of M per trade, but they are the best 2 of 51 rows, neither survives the adjustment (adjusted p 0.26), and in W16 they made 0.93x and 1.02x. Picking the best row after the fact is not evidence that it will repeat.
   - In W16 every row lies between 0.49x (no near-high filter) and 1.74x (4-hour bars), except the ZEC what-if (S17): 8.96x with ZEC, 0.88x without it.
   - With ZEC, the point-in-time S12 top 6 made 1.15x in W16 and the top 10 made 1.10x. Without ZEC they made 0.69x and 0.80x.
 - **All 40 coins, each traded alone** (`rows/per_coin.csv`, S1 at 1x).
   - Over the Full window the pooled drift-adjusted mean is +5.13% per trade (+4.61% without ZEC).
   - In W16 it is +2.11%, but −2.46% without ZEC. ZEC alone made 16.99x in W16 on 4 positions.
+- **R0 itself on each coin as its own account** (`rows/per_coin.csv`, 3x, rule-11 sizing, one slot).
+  - Over 2020-2026, 26 of the 40 coins ended below 1x, and 11 lost 95% or more: TRX, AAVE, ZEC, UNI, XTZ, EOS and EGLD went to about 0, and XLM, ICP, FIL and ETC ended at 0.05x or less. The median coin ended at 0.37x, with 4 liquidations (AAVE, XTZ, EOS, EGLD). In W16, 26 of 40 ended below 1x (median 0.83x).
+  - Yet the pooled average trade was positive: +5.95% of M drift-adjusted (+0.19 to +11.7; exploratory). Profitable average trades with ruined accounts point to the leverage and sizing.
+  - Exposure peaked at 181x equity on TRX and 152x on UNI. After a loss, rule 11 as coded keeps sizing from the month's starting equity, with no check that the margin fits current equity (`bb_engine.py` coding choice 17). A real exchange would refuse margin above equity, so this is partly a limit of the simulation, but it shows what the literal sizing does when one coin is the whole account.
 - **2017-2019, spot only** (`rows/pre_perpetual.csv`). S1 at 1x made 1.66x on BTC/ETH, and 1.07x on the 25 coins listed then (1.07x without ZEC).
 - **TradingView cross-check** (`tv/stats.csv`; close-only exports, the basis of HANDOFF 5.1). Here S1's multiple trails both the exported indicator and buy-and-hold on BTC, ETH, BNB and ZEC:
   - BTC: 36.2x, against 415x for the indicator and 278x for buy-and-hold.
@@ -229,8 +235,8 @@ Sources: `primary/tests.json` H9, `primary/H9_by_L.csv`. Three-slot BTC/ETH/SOL 
 
 **Reading.**
 - **"3x" here is not 3x of the account.** R0 sizes each coin's slot so that a full position is 3x the sleeve, and caps leverage per trade so the stop sits at least 2 points above liquidation. Average account exposure is therefore only 0.42x.
-- That is why this does not contradict HANDOFF 5.14, where 3-5x on whole sub-accounts blew up 85-100% of coins.
-- **Liquidations are 0 by construction**, because of the cap.
+- That is why the three-slot account does not contradict HANDOFF 5.14, where 3-5x on whole sub-accounts blew up 85-100% of coins. Run on one coin as the whole account, the same rules lost 95% or more on 11 of 40 coins (section 3b).
+- **The three-slot account had no liquidations at any L.** The cap makes liquidations rare (the pre-registration says "near zero by construction"), not impossible: the same rules had 4 liquidations on single-coin accounts (section 3b), and the long/short row S11 had 1 (section 5).
 - **The 2025-10-10 stress row is vacuous.** The pre-registered row makes every stop fail during that crash. R0 had no BTC/ETH/SOL position open between 20:00 and 23:00 UTC, so the stress row equals R0 (20.68x), and R0's stop list for that day is empty (`rows/stops_2025-10-10.csv`).
 - The crash did hit other rows (`rows/trades.csv`):
   - S1's BTC position was stopped for −5.4% of M.
@@ -247,20 +253,20 @@ Sources: `primary/tests.json` H10, `explore/grid_summary.csv`, `explore/grids.cs
 - Both halves were negative: −1.5% (2024-07..2025-08) and −5.4% a year (2025-09..2026-10).
 - Fees are not the main cause. At the trader's likely VIP fee tier the difference is −3.2% a year, and with no fees at all −2.8%.
 
-**Grid profit is not profit.** The grid's realized "grid profit" is real cash, but the inventory it carries gives it back. G-A per coin sleeve:
+**Grid profit is not profit.** The grid's realized "grid profit" is real cash, but the inventory it carries gives it back. G-A per coin sleeve (net = grid profit + inventory P&L − fees + funding received):
 
-| coin | deployments | grid profit | inventory P&L | fees | net |
-|---|---|---|---|---|---|
-| BTC | 16 | +0.157 | −0.177 | 0.016 | −0.034 |
-| ETH | 8 | +0.118 | −0.191 | 0.011 | −0.085 |
-| SOL | 7 | +0.088 | −0.132 | 0.009 | −0.054 |
+| coin | deployments | grid profit | inventory P&L | fees | funding received | net |
+|---|---|---|---|---|---|---|
+| BTC | 16 | +0.157 | −0.177 | 0.016 | +0.002 | −0.034 |
+| ETH | 8 | +0.118 | −0.191 | 0.011 | −0.001 | −0.085 |
+| SOL | 7 | +0.088 | −0.132 | 0.009 | +0.000 | −0.054 |
 
 - **The always-on grid (G-0).** It shows the same short-volatility identity at scale. On BTC, grid profit was +1.016 and inventory P&L −1.011 per sleeve; on ETH +1.878 and −2.104.
   - Net of base fees it lost 12.5% a year relative to T-bills (95% CI −29.1 to +4.5); with zero fees, 4.7%.
 - **The other overlays** (exploratory):
   - The six-coin waiting grid lost 1.9% a year (−3.4 to −0.2).
-  - G-B (each tranche as a grid) cannot be told from zero (−0.5% a year, −18.4 to +21.0).
-- **Hit rate.** The post's "+3 points of hit rate with the grid" is how a grid's ledger looks, not evidence of profit. Adding G-A changed R0's tranche hit rate by +1.4 points in W16 and −0.4 in W16b; G-B changed it by +7.7 and +8.5 (single paths; `h11/h11.csv`).
+  - G-B (each tranche as a grid) ended at 1.08x against R0's 0.92x over 2024-07..2026-10, with a smaller worst drawdown (−30.5% against −47.8%) and a higher Sharpe (0.10 against 0.07). It also ended higher in W16 (0.96x against 0.86x) and W16b (1.03x against 0.93x), and its net grid P&L was positive on ETH (+0.062 of a sleeve) and SOL (+0.027), negative on BTC (−0.018). But its mean daily difference from R0 is −0.5% a year (−18.4 to +21.0), so it cannot be told from zero.
+- **Hit rate.** The post's "+3 points of hit rate with the grid" is how a grid's ledger looks, and is not by itself evidence of profit. Adding G-A changed R0's tranche hit rate by +1.4 points in W16 and −0.4 in W16b, and the account lost money. G-B changed it by +7.7 and +8.5 and ended higher, but its difference from R0 cannot be told from zero (single paths; `h11/h11.csv`).
 
 ### 3f. Stocks and ETFs (HS1, HS2)
 
@@ -308,10 +314,10 @@ Sources: `primary/tests.json` HS1/HS2, `headline/headline.csv`, `explore/stocks.
 
 Sources: `explore/stock_tickers.csv`, `routes/gate.csv` (Stocks route).
 - The book is a single-ticker 1x book with idle cash at the T-bill. Buy-and-hold is total return.
-- After-tax CAGRs use the full trading mechanics, at 35%/20%, over each ticker's own history. SPY's is over the same dates.
+- **The after-tax CAGRs are on a different basis from the book.** They come from the gate's route account (`routes/gate.csv`), where idle cash earns 0%, with the full trading mechanics at 35%/20% over each ticker's own history; SPY's is over the same dates. SPY's route account made 1.03x before tax (0.11% a year) against the book's 1.52x, and TSLA's 18.5x against 23.1x. So most of the gap between SPY's book and its 0.07% after-tax CAGR is the missing T-bill interest, not tax.
 - **Tickers with fewer than 20 trades are reported but not interpreted** (pre-registration).
 
-| ticker | trades | drift-adjusted mean per trade [95% CI] | book vs buy-and-hold | gate | after-tax CAGR: strategy / hold / SPY |
+| ticker | trades | drift-adjusted mean per trade [95% CI] | book vs buy-and-hold (idle cash at the T-bill) | gate | after-tax CAGR, route account with idle cash at 0%: strategy / hold / SPY |
 |---|---|---|---|---|---|
 | TSLA | 40 | +5.89% [−0.13, +11.91] | 23.1x vs 285.4x | NO-SIGNAL | 14.0% / 40.3% / 13.6% |
 | COIN | 11 (< 20: not interpreted) | +9.09% [−2.92, +21.11] | 3.05x vs 0.74x | PROBATION (fails only the history test) | 13.3% / −5.6% / 11.9% |
@@ -355,15 +361,15 @@ Per tranche (each entry and each add):
 
 **H11b, the closest match (a labelled fit, exploratory).** Every combination of bar size, band setting, near-high filter, adds, exits, universe and direction was run at 3x: 648 cells.
 - **W16.** The identified set holds 16 cells (2.5%) and 0 of 1,320 decoys. The best cell, at a distance of 37.6 (set threshold 50.1), uses 4-hour bars, BB(20, 2.5), adds measured on margin, no take-profit, and long and short on the monthly top 10.
-- **W16b.** The set holds 21 cells (3.2%) and 0 of 1,420 decoys.
+- **W16b.** The set holds 21 cells (3.2%) and 0 of 1,420 decoys. The best cell, at a distance of 18.2 (set threshold 30.8), uses 4-hour bars, BB(20, 2.5), no near-high filter, adds measured on margin, a take-profit on half, and long only on the monthly top 6. It differs from W16's best on universe and direction.
 - **The set is not one rule set.** In both windows every cell in it uses 4-hour bars, but the cells **disagree on the coins** (BTC/ETH/SOL, top 6, top 10), **on direction** (long only vs long/short), and **on the grid** (G-A is best in most cells, none or G-B in the others). By the rule fixed in advance, **the post's statistics do not identify a strategy.**
 - **Without ZEC** the W16 set shrinks to 8 cells (1.2%). ZEC was not traded in W16b, so that set is unchanged.
 - **Unscorable cells.** The 216 one-hour cells per window hold no position over 7 days, so the 7-day statistic is undefined and their distance is infinite. Other cells have an infinite distance because the closed trades' total P&L is ≤ 0, which the rule counts as a failure. In all, only 262 (W16) and 243 (W16b) cells have a finite distance. Leaving out only the cells excluded by the 7-day statistic alone (146 and 117), the set's share is 3.2% and 4.0%, still under 5%.
-- **Count and volume.** Some cells of the fit trade as often as the post or more (up to 7,518 tranches in W16): 116 (W16) and 115 (W16b) cells are inside the 0.5-2x tranche band, mostly 1-hour and the rest 4-hour. Only 1-hour cells reach the post's volume: 44 and 49 cells are inside 950-19,000x, up to 2,481x (W16) and 2,588x (W16b). None of the cells inside the count band matches the post's hit rate, and their multiples were at most 1.97x (W16) and 3.53x (W16b).
-- **Returns of the best matches** (fitted, in-window). The set's cells made 1.14-2.66x in W16 and 1.19-3.54x in W16b. Of all 1,296 cell-windows at 3x, one reached 4.3x: a W16b cell (4-hour BB(10, 1.9), no adds, monthly top 6, long only, no ZEC traded) at 5.05x. It is not in the set, and its hit rate, win/loss ratio and tranche count do not match the post's.
-- **The set at 5x and with grids** (`h11b/set_extras.csv`, fitted, one path each). Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x; 4-hour bars on the monthly top 6 or 10, long only or long/short, no ZEC traded), and one W16 cell, which traded ZEC, reached 4.33x. With G-A or G-B added at 3x, the set's cells made at most 2.66x in W16 and 3.60x in W16b.
-- **Outside the 16 months** (`h11b/summary.json`, exploratory). The W16 set's median log growth was 41.7 points a year, against 26.4 for the median cell. The W16b set's was 5.9 against 28.0. A good match to the post did not reliably mean better results elsewhere.
-  - Across cells, the rank correlation between distance and out-of-window growth was −0.35 in W16 (−0.15 over finite-distance cells; −0.03 over finite-distance cells without ZEC) and −0.06 in W16b (+0.12 over finite-distance cells). None of this is evidence that a fitted cell works.
+- **Count and volume.** Some cells of the fit trade as often as the post or more (up to 7,518 tranches in W16): 116 (W16) and 115 (W16b) cells are inside the 0.5-2x tranche band, mostly 1-hour and the rest 4-hour. Only 1-hour cells reach the post's volume: 44 and 49 cells are inside 950-19,000x, up to 2,481x (W16) and 2,588x (W16b). None of the cells inside the count band matches the post's hit rate, and their multiples were at most 1.97x (W16; 1.56x without ZEC) and 3.53x (W16b; no ZEC traded).
+- **Returns of the best matches** (fitted, in-window). The set's cells made 1.14-2.66x in W16 (1.13-1.93x without ZEC) and 1.19-3.54x in W16b (no ZEC traded). Of all 1,296 cell-windows at 3x, one reached 4.3x: a W16b cell (4-hour BB(10, 1.9), no adds, monthly top 6, long only, no ZEC traded) at 5.05x. It is not in the set, and its hit rate, win/loss ratio and tranche count do not match the post's.
+- **The set at 5x and with grids** (`h11b/set_extras.csv`, fitted, one path each). Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x; 4-hour bars on the monthly top 6 or 10, long only or long/short, no ZEC traded), and one W16 cell, which traded ZEC, reached 4.33x (2.62x without ZEC). With G-A or G-B added at 3x, the set's cells made at most 2.66x in W16 (1.93x without ZEC) and 3.60x in W16b.
+- **Outside the 16 months** (`h11b/summary.json`, exploratory). The W16 set's median log growth was 41.7 points a year, against 26.4 for the median cell (the same without ZEC: no cell traded it in W16's out-of-window span, 2020-01..2025-06). The W16b set's was 5.9 against 28.0, and 3.2 against 22.9 without ZEC, which traded in W16b's out-of-window span 2025-11..2026-10. A good match to the post did not reliably mean better results elsewhere.
+  - Across cells, the rank correlation between distance and out-of-window growth was −0.35 in W16 (−0.40 without ZEC; −0.15 over finite-distance cells, −0.03 without ZEC) and −0.06 in W16b (−0.06 without ZEC; +0.12 over finite-distance cells, +0.07 without ZEC). None of this is evidence that a fitted cell works.
 
 ### 3i. Other pre-registered outputs
 
@@ -383,7 +389,7 @@ US residents generally cannot use Binance perpetuals or grid bots, so these rout
 - **PROBATION:** fails only T1, the history test (at least 7 years and 40 trades).
 - **NO-SIGNAL:** fails anything else.
 
-The spot routes use Binance spot history from 2017-08 (Addendum 2). The Coinbase-style route's data start in 2019-09, **so T1 caps it at PROBATION.** After-tax CAGRs are the full trading mechanics.
+The spot routes use Binance spot history from 2017-08 (Addendum 2). The Coinbase-style route's data start in 2019-09, **so T1 caps it at PROBATION.** After-tax CAGRs are the full trading mechanics, with idle cash earning 0%.
 
 | route | version | assets | TRADE / PROBATION / NO-SIGNAL | expected false PROBATION | after-tax CAGR | buy-and-hold after tax | SPY after tax | max DD |
 |---|---|---|---|---|---|---|---|---|
@@ -402,7 +408,9 @@ The spot routes use Binance spot history from 2017-08 (Addendum 2). The Coinbase
 - **The PROBATION rows:**
   - Robinhood route: AVAX, DOT and UNI (S1), plus ADA (R0 at 1x). Each has only 11-20 trades.
   - Stocks route: COIN, with 11 trades.
-- They pass every test but the history test; the placebo expects 0.20-0.26 false PROBATIONs per group. Each fails that test on its trade count (11-20 trades, below the 40 the gate requires), and AVAX, DOT, UNI and COIN also on years of history. They are not read as signals: COIN, one of the user's tickers, falls under the pre-registered rule that results on fewer than 20 trades are reported but not interpreted, and the coins' 11-20 trades are no better.
+- They pass every test but the history test. Each fails that test on its trade count (11-20 trades, below the 40 the gate requires), and AVAX, DOT, UNI and COIN also on years of history.
+- **More PROBATIONs than chance would give.** The placebo expects 0.20 false PROBATIONs in the 24-coin Robinhood group for S1 and 0.24 for R0 at 1x on the table's basis (0.24 and 0.26 over 2020-2026), and 0.05 among the user's tickers. The Robinhood group has 3 and 4, about 15 times as many; if the coins were independent, a count that high would come by chance about 0.1% of the time or less. Under the gate's convention (AGENTIC_TRADING_PLAN section 5), PROBATION permits at most a small fixed size.
+- **Why we still do not act on them.** Each rests on 11-20 trades. The same coins (AVAX, DOT, UNI) recur in every variant, so the variants are not separate evidence. The 24 coins are the ones Robinhood lists today, a choice made with hindsight. And the pre-registered answer allows "you can trade it" only for TRADE. COIN, one of the user's tickers, also falls under the pre-registered rule that results on fewer than 20 trades are reported but not interpreted.
 - **Every route trails buy-and-hold of the same assets after tax.** On the basis in the table (spot routes from 2017-08) the gap is 14-42 points a year on crypto; over 2020-2026, where `routes/summary.csv` also reports every spot route, it is 30-53 points (e.g. Robinhood S1 on BTC/ETH/SOL 19.3% vs 66.3%). On stocks it is 6-13 points.
 - **Not in the table** (`routes/summary.csv`): the no-adds versions of the 24-coin Robinhood route (0 / 3 / 21 for S1, 0 / 4 / 20 for R0 at 1x; 13.1% and 12.4% a year after tax) and of the ETF route (14.3% and 16.4%), all with 0 TRADE.
 - **The user's indicator passes the same gate for ETH via the spot ETF** (AGENTIC_TRADING_PLAN section 4). On that route, both breakout versions get NO-SIGNAL for BTC and for ETH.
@@ -411,7 +419,7 @@ The spot routes use Binance spot history from 2017-08 (Addendum 2). The Coinbase
 
 **The record itself is unverifiable.** The post cannot be traced, and its numbers passed through two filters: the AI summariser picked what looked distinctive in a trade log, and someone chose to post the result. Leveraged accounts that blew up on 2025-10-10 do not post 16-month breakdowns.
 
-**The trade log was most likely not a daily breakout on three coins.** No daily-bar variant trades often enough: turnover at most about 110x, and at most 183x among the 39 pre-registered rows. The post's volume, 950-19,000x average equity, needs grid churn or very frequent leveraged round trips. Only cells of the H11b fit reach the post's count (1-hour and some 4-hour cells, up to about 7,500 tranches), and only 1-hour cells its volume (up to about 2,500x). None of them matches the post's hit rate, and the cells inside its volume range ended far below 4.3x (at most 1.97x). This points to intraday signals, many more coins, grid churn, or bots counted per restart (`rules_and_evidence.md` §2.3).
+**The trade log was most likely not a daily breakout on three coins.** No daily-bar variant trades often enough: turnover at most about 110x, and at most 183x among the 39 rows checked against the post. The post's volume, 950-19,000x average equity, needs grid churn or very frequent leveraged round trips. Only cells of the H11b fit reach the post's count (1-hour and some 4-hour cells, up to 7,518 tranches in W16 and 7,689 in W16b), and only 1-hour cells its volume (up to 2,481x in W16 and 2,588x in W16b). None of them matches the post's hit rate, and the cells inside its volume range ended far below 4.3x (at most 1.97x, 1.56x without ZEC). This points to intraday signals, many more coins, grid churn, or bots counted per restart (`rules_and_evidence.md` §2.3).
 
 **How the 4.3x could have happened** (descriptive):
 - **ZEC.** With ZEC added to BTC/ETH/SOL (S17, a hindsight what-if), R0's rules made 8.96x in W16, against 0.88x without it (`rows/rows.csv`). ZEC's buy-and-hold was 27x over those months (`rules_and_evidence.md` §4.3). ZEC is the only coin whose buy-and-hold reaches 4.3x in W16, and choosing it now uses hindsight.
@@ -478,10 +486,10 @@ Every change after the frozen pre-registration is listed with its reason. The ad
    - **H11 labels.** H11 rows now read "inconsistent (also different trading frequency)". The frozen wording reserves "different trading frequency" for rows that fail on count alone, and no row does.
    - **Scorecard rule 15.** It now notes that H8's NO EDGE comes only from component (a).
    - **Stock and ETF headline rows.** They now state their basis: account statistics from the N-slot book with idle cash at the T-bill, trade statistics over every signal.
-   - **The "ruled out at 95%" column.** It states its levels: 95.5% bootstrap-t for trade tests, the 95% block bootstrap for portfolio tests.
+   - **The "ruled out at 95%" column** (`verdicts.txt`, quoted in section 3a's table). It states its levels: 95.5% bootstrap-t for trade tests, the 95% block bootstrap for portfolio tests.
 4. **Documented by the audit, not changed.**
    - **The stress row.** The 2025-10-10 stress row is vacuous for R0 (section 3d).
-   - **H11b's share.** It divides by all 648 cells, although 1-hour cells cannot be scored on the 7-day statistic. Leaving those out gives 3.2% and 4.0%, so the reading is the same (section 3h).
+   - **H11b's share.** It divides by all 648 cells, although 1-hour cells cannot be scored on the 7-day statistic. Leaving out the 146 (W16) and 117 (W16b) cells excluded by the 7-day statistic alone gives 3.2% and 4.0%, so the reading is the same (section 3h).
    - **H8(a)'s bootstrap** is degenerate, because only 2 signals differ. The analytic bound gives the same verdict.
    - **H10's gap.** Part of it comes from rule 11's monthly sizing reacting to the grid's P&L, not from the grid itself. H10 stays INCONCLUSIVE.
    - **Benchmark costs.** Crypto buy-and-hold pays no rebalancing costs, which favours the benchmark.
@@ -491,19 +499,20 @@ Every change after the frozen pre-registration is listed with its reason. The ad
 - **Don't run it.**
   - On stocks and ETFs it does not work (HS1, HS2).
   - On crypto the data cannot tell (H1). What there is sits in 2020-2022, the same bull market in which your indicator made most of its gains (20.6x in 2020-2022 against 3.5x in 2023-2026).
-  - None of the versions you could actually trade passed the gate.
+  - None of the versions you could actually trade got a TRADE verdict. Four Robinhood coins and COIN reached PROBATION, more often than chance would give, but on 11-20 trades each, the same coins in every variant, and a coin list chosen with hindsight (section 4).
 - **Keep your indicator.** On the same three coins and perpetuals, 2020-2026, it was ahead of this breakout core on return, Sharpe and after-tax growth (descriptive): 72.1x vs 5.7x, Sharpe 1.44 vs 1.17, 67.6% vs 20.5% a year after tax. Its worst drawdown was larger (−51% vs −23%), but the core sat out most of the time (0.18x average exposure). H2 could not separate the two on Sharpe (−0.27; interval −0.85 to +0.32).
+  - Two band settings of R0, BB(50, 2) and BB(50, 2.1), did beat the indicator over 2020-2026 (131.9x and 130.8x), but they are the best 2 of 51 rows picked after the fact, neither survives the adjustment for the others, and in W16 they made 0.93x and 1.02x (section 3b).
   - The repo's existing plan (ETH via the spot ETF; AGENTIC_TRADING_PLAN section 4) is unaffected.
-- **Don't add the pieces either.**
-  - **Pyramiding:** H3 cannot tell.
+- **Don't add the pieces either.** None was shown to help.
+  - **Pyramiding:** H3 cannot tell. Its point estimate favours it (+0.76% of M per signal), and starting at a third raised sleeve Sharpe in an exploratory comparison (+0.22, +0.05 to +0.53; full size at entry had a −74.5% worst drawdown against −50.4%).
   - **Weekday and hour rules:** both failed their placebo ranks (4th of 7; 63rd of 576).
-  - **3-5x leverage:** H9 cannot tell, and it only looked safe because the stops were capped above liquidation.
-  - **Waiting grid:** it lost 3.4% a year in point estimate. Its "grid profit" is given back by the inventory it holds.
+  - **3-5x leverage:** H9 cannot tell. Its point estimate favoured 3x (+21.6 log points a year), but the worst drawdown went from −20% at 1x to −49% at 3x. It stayed free of liquidations only because the three-coin account averaged 0.42x exposure and the stops were capped above liquidation; run on one coin as the whole account, the same rules lost 95% or more on 11 of 40 coins.
+  - **Waiting grid:** the account with it trailed R0 alone by 3.4% a year (point estimate; part of that is rule 11's sizing reacting to the grid). Its "grid profit" was given back by the inventory it held.
 - **About the trader.** The 4.3x could be real, but nothing here reproduces the post's statistics jointly.
   - Among the pre-registered rows, only adding ZEC with hindsight (S17, 8.96x in W16) beat 4.3x. In the 648-cell fit, one cell at 3x and several fitted cells run at 5x passed 4.3x in W16b (4-hour bars on the monthly top 6 or 10). Each is a single in-window path, and none is consistent with the post's statistics jointly.
   - The described rules on BTC/ETH/SOL lost money over the most likely 16 months (R0 0.86x).
   - Random entries with the same rules never reached 4.3x.
-  - The post's volume is 5-100 times the most any of the 39 pre-registered rows traded (183x). Only some 1-hour cells of the fit reach it, and none of them matches the post's hit rate.
+  - The post's volume is 5-100 times the most any of the 39 rows checked against the post traded (183x). Only some 1-hour cells of the fit reach it, and none of them matches the post's hit rate.
   - What would settle it: exchange statements for both accounts over the 16 months, with every position, fee and funding payment, compared against holding the same coins at the same leverage.
 
 ---

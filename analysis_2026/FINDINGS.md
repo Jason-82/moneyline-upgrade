@@ -2540,7 +2540,7 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 | H5 near-high filter | −1.07 [−9.56, +7.41] | 1.00 | +8.93 | INCONCLUSIVE |
 | H6 hour windows (rank 63 of 576) | +0.33 [−0.77, +1.43] | 1.00 | +1.89 | INCONCLUSIVE |
 | H7 no Fri/Sat opens (rank 4 of 7) | −0.61 [−1.62, +0.40] | 1.00 | +0.47 | INCONCLUSIVE |
-| H8 72-h hold / rule 15 | −0.026 / −0.081 [−0.55, +0.39] | 1.00 | +0.010 / +0.36 | NO EDGE (via the 72-h hold only) |
+| H8 72-h hold / rule 15 | −0.026 [−0.064, +0.012] / −0.081 [−0.55, +0.39] | 1.00 | +0.010 / +0.36 | NO EDGE (via the 72-h hold only) |
 | H9 3x vs 1x, log points a year | +21.6 [−5.3, +46.3] | 0.80 | +54.9 vs +2 | INCONCLUSIVE |
 | H10 waiting grid, % of equity a year | −3.40 [−7.15, +1.64] | 1.00 | +3.87 vs +1 | INCONCLUSIVE |
 
@@ -2575,25 +2575,31 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - **Matching the post.**
   - H11: 0 of 78 variant-windows consistent. Every one fails the 0.5-2x count band; the most active (F) has 435
     tranches in W16 (400 without ZEC) vs 1,462; turnover among the 39 H11 rows is at most 183x. Some H11b cells
-    reach the post's count (mostly 1-hour) and some 1-hour cells its volume (up to 2,588x), but none matches its
-    hit rate. Decoys consistent: 0 of 2,740.
+    reach the post's count (mostly 1-hour) and some 1-hour cells its volume (up to 2,481x in W16, 2,588x in W16b),
+    but none matches its hit rate. Decoys consistent: 0 of 2,740.
   - H11b: the identified set is 16 of 648 cells (W16) and 21 (W16b), with 0 decoys. All use 4-hour bars, but they
     disagree on universe, direction and grid, so the post's statistics do not identify a strategy. The set made
-    1.14-2.66x in W16 (fitted, in-window); out of window its median log growth beat the median cell's in W16 (41.7
-    vs 26.4 points a year) but not in W16b (5.9 vs 28.0). Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x,
-    no ZEC traded); single in-window paths.
+    1.14-2.66x in W16 (1.13-1.93x without ZEC; fitted, in-window); out of window its median log growth beat the
+    median cell's in W16 (41.7 vs 26.4 points a year) but not in W16b (5.9 vs 28.0; 3.2 vs 22.9 without ZEC).
+    Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x, no ZEC traded); single in-window paths.
 - **Luck** (`luck/`).
   - R0's W16 multiple is at the 55th percentile of 1,000 random-entry versions (W16b 58th). 0 of 4,000 versions
     reach 4.3x, and 0-1.8% reach 2x.
   - Months for t ≥ 2 at +9.5% a month: 4.5-14.6 (3x swings), 11.8-29.6 (5x).
 - **Leverage (H9).**
   - Growth at L 1-5: 25.4 / 40.6 / 47.0 / 49.3 / 48.5 log points a year. Optimal L 4 (90%: 2 to ≥5, censored).
-  - 0 liquidations by construction (the L cap). Average account exposure at 3x is 0.42.
+  - The three-slot account had 0 liquidations at every L: the L cap makes them rare, not impossible (S11 had 1).
+    Average account exposure at 3x is 0.42.
+  - R0 on one coin as the whole account (`rows/per_coin.csv`): 26 of 40 coins ended below 1x over 2020-2026 and
+    11 lost 95% or more (median 0.37x, 4 liquidations), although the pooled trade mean was positive (+5.95% of M
+    drift-adjusted, exploratory). Rule-11 sizing from month-start equity took exposure to 181x equity (TRX).
   - The 2025-10-10 stress row is vacuous (no R0 position open).
 - **Grid (H10).**
   - G-A grid profit +0.157 / +0.118 / +0.088 of a sleeve on BTC/ETH/SOL, against inventory −0.177 / −0.191 /
     −0.132.
   - Zero fees still −2.8% a year. The always-on grid: BTC +1.016 grid profit vs −1.011 inventory.
+  - G-B (exploratory) ended at 1.08x vs R0's 0.92x (drawdown −30.5% vs −47.8%), but its mean daily difference is
+    −0.5% a year [−18.4, +21.0].
 - **Stocks.**
   - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. The Sharpe part alone carries HARMS (bound
     −0.041).
@@ -2606,7 +2612,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   - COIN (11 trades), HOOD (14) and CRCL (1) are under 20 trades and not interpreted.
 - **Routes** (`routes/summary.csv`). 0 TRADE.
   - PROBATION, failing only T1 on 11-20 trades: AVAX, DOT, UNI and ADA (Robinhood route) and COIN. The placebo
-    expects 0.20-0.26 per group.
+    expects 0.20-0.26 per 24-coin Robinhood group (0.05 for the user's tickers), so 3-4 per group is well above
+    chance. Not acted on: 11-20 trades each, the same coins in every variant, a hindsight coin list, and the
+    pre-registered answer allows "you can trade it" only for TRADE.
   - CB is capped by T1.
   - Every route trails buy-and-hold after tax: crypto by 14-42 points a year on the longest history (spot routes
     from 2017-08) and 30-53 over 2020-2026; stocks by 6-13.
@@ -2627,8 +2635,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - **Labels.** H11 labels follow the literal rule ("inconsistent (also different trading frequency)"). Scorecard
   rule 15 notes that H8's NO EDGE comes only from the 72-h hold. Stock headline rows state their account and trade
   bases.
-- **Documented, not changed.** The H11b share counts unscorable 1-hour cells (3.2% and 4.0% without them); H8(a)'s
-  bootstrap is degenerate; part of H10's gap is rule 11's sizing; crypto buy-and-hold pays no rebalancing costs.
+- **Documented, not changed.** The H11b share counts unscorable 1-hour cells (3.2% and 4.0% without the 146 and
+  117 cells excluded by the 7-day statistic alone); H8(a)'s bootstrap is degenerate; part of H10's gap is rule
+  11's sizing; crypto buy-and-hold pays no rebalancing costs.
 
 **Caveats:**
 - **The post** is unverified and doubly selected (by the summariser and the poster).

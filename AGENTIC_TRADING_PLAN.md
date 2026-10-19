@@ -194,8 +194,9 @@ Do **not** add these (all tested):
   stock version) do not work on S&P 500 stocks or the 14 ETFs, on crypto the data cannot tell, the
   indicator was ahead on the same coins (descriptive; H2 cannot separate them), the grid's profit is
   given back by its inventory, and no US route got a TRADE verdict (four Robinhood coins and COIN got
-  PROBATION on 11-20 trades) (HANDOFF section 5.22). Binance perpetuals and grid bots are generally not
-  available to US residents.
+  PROBATION, more often than chance would give, but not acted on: 11-20 trades each, the same coins in
+  every variant, and a hindsight coin list) (HANDOFF section 5.22). Binance perpetuals and grid bots are
+  generally not available to US residents.
 
 ---
 
