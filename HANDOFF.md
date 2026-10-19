@@ -1251,7 +1251,8 @@ assets?"
     longest history (spot routes from 2017-08) and 30-53 over 2020-2026; stocks by 6-13. Single assets can beat
     their own hold (6-11 of the 24 Robinhood coins, COIN and CRCL), each on 30 trades or fewer.
 - **What the trader may have had** (descriptive).
-  - ZEC: S17 with ZEC made 8.96x in W16, 0.88x without it.
+  - ZEC: S17 (BTC/ETH/SOL plus ZEC, a hindsight what-if: ZEC is the only coin whose buy-and-hold reached 4.3x in
+    W16) made 8.96x in W16, 0.88x without it.
   - Shorts (H12, exploratory): S11 made 1.54x vs 0.86x in W16 (one path; BH p 0.25). Over the Full sample it made
     29.0x vs 20.7x, with a Sharpe 0.06 lower (−0.47 to +0.43), one liquidation and a −71% drawdown. Neither
     difference is distinguishable from zero.

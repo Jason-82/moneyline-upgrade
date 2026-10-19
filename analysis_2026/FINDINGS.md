@@ -2632,7 +2632,8 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - **Rules** (`scorecard/scorecard.csv`).
   - Rule 3 is a no-op as coded. Rule 6 is a no-op in R0 (0 exits suppressed), and NO EDGE only as a 72-h hold
     that binds on 2 of 92 signals. Rule 9 is not testable.
-  - Rules 1, 5, 8, 10 and 11 show no detectable effect.
+  - Rules 5, 8, 10 and 11 show no detectable effect. Rule 1 shows none on the trade mean, but starting at a third
+    raised sleeve Sharpe by +0.22 [+0.05, +0.53] (exploratory).
   - Rules 2, 4, 7 and 12-14 are INCONCLUSIVE (H3, H9, H4, H7, H6). For rule 15 the data cannot tell.
 
 **Corrections after the audit (no verdict changed; commits 39acaad, ae55c59):**
@@ -2661,8 +2662,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 
 **Practical reading:**
 - The exact strategy cannot be recovered from the post. The described rules on BTC/ETH/SOL do not come near 4.3x
-  in the likely 16 months (W16 0.86x, W16b 0.93x; single paths), by design or by luck; among the pre-registered
-  rows only adding ZEC with hindsight (S17) exceeds it.
+  in the likely 16 months (W16 0.86x, W16b 0.93x; single paths), by design or by luck; among the sensitivity
+  rows only adding ZEC with hindsight (S17) exceeds it. Run on one coin as the whole account, R0 also did in W16 on
+  ZEC (92.3x) and NEAR (6.55x, 3 positions), both hindsight picks and single paths.
 - Don't trade these rules, their leverage or their grid. On the same coins the repo's indicator (`moneyline_ref`,
   the pre-October-2026 version; the October 2026 update was not tested) was ahead (Sharpe 1.44 vs 1.17), though
   H2 cannot separate them.
