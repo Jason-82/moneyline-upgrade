@@ -641,3 +641,26 @@ Two conflicts were resolved:
   the windows and rules 6 and 15 off), which the draft left open.
 - The signal row now states the "fresh close" condition (C_{t−1} ≤ UB_{t−1}) that the draft's research note
   coded as rule 3.
+
+---
+
+## Addendum: clarifications made while building the data layer (2026-10-19, before any strategy result)
+
+No strategy return had been computed when these were decided. Each resolves a case the frozen text did not
+anticipate; none changes a test, threshold or window.
+
+- **S12's all-contract pool excludes TradFi perpetuals.** Binance listed 186 stock, ETF, pre-IPO, metal, oil
+  and FX perpetuals from 2025-12. By 2026 several reach the volume top 10 (gold and silver from 2026-03; SNDK is
+  rank 3 in 2026-09 and 2026-10). S12 is a universe of coins (rule 5: "a few liquid coins"), so the primary
+  all-contract ranking is crypto-only; the literal ranking with TradFi contracts is reported as a sensitivity.
+  The H1 S12 gate uses the crypto-only top 3.
+- **Delisted perpetuals.** Spot stands in for the traded series only before a coin's perpetual lists (and for
+  Terra 2.0 spot until LUNA2USDT), as the Windows section says. After a perpetual's last bar the coin is not
+  tradable. A position still open at that bar is force-closed at its close, paying taker fee plus slippage.
+- **S12 entrants with Binance spot** (35 of the 50 contracts fetched for S12) take their signals, warm-up and
+  ATH from spot, as the Signal row says. The Data section had listed only their perpetual files.
+- **Maintenance margin rates** are Binance's tier-1 rates from an October 2026 snapshot of its leverage
+  brackets (via freqtrade's published dump), applied to 2020-2026: BTC and ETH 0.4%. EOS, MATIC and YFII,
+  missing from the snapshot, are assumed at 1.0%.
+- **Code layout.** `bb_replica.py` is the runner. The work is split into `bb_data.py`, `bb_engine.py`,
+  `bb_stats.py`, `bb_stocks.py`, `bb_grid.py` and `bb_bench.py`.

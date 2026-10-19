@@ -60,6 +60,28 @@ Used only for liquidation checks. Coverage was compared with the perpetual's own
   was 0.4-1.8% above the last-price low on BTC, ETH, SOL, XRP and ZEC, 4.9% on BNB and 5.7% on DOGE. The
   choice therefore matters on altcoins in crash hours.
 
+### 1.2 S12 all-contract ranking and entrant files (added 2026-10-19; `bb_data.py`)
+
+- **`d1_um_all/{CONTRACT}.parquet`:** the archive's daily klines for every USDT-margined USD-M perpetual in its
+  listing as of 2026-10-19: 909 contracts, 36,231 zips, all sha256-verified, 0 failures, 318 hole bars filled
+  from daily zips, 49 MB. Mapped to 908 coins (1000x / 1M prefixes divided out; LUNA2USDT → LUNA; concurrent
+  contracts of one coin summed; 1000CAT and 1000000BOB kept as their own assets).
+- **Excluded:** composite-index contracts BTCDOM, DEFI, BLUEBIRD, FOOTBALL and DOTECO; stablecoins USDC and USTC.
+- **TradFi perpetuals:** 186 contracts listed from 2025-12 (stocks, ETFs, pre-IPO shares, metals, oil, USDBRL),
+  classified by name and listing date [U]. They are excluded from the primary ranking (pre-registration
+  addendum) and kept in the literal sensitivity.
+- **Ranks:** monthly top 10 by quote volume over the 90 days to the prior day; a coin must trade on the prior
+  day; ties alphabetical. Pool "all" ranks 2020-02..2026-10 on perpetual volume only (no spot dailies exist for
+  coins outside the 40). Pool "40" ranks 2017-09..2026-10 (perpetual where it trades, spot before).
+- **Entrants:** 50 contracts outside the 40 reach a monthly top 10 in either variant. All got `h1_um`, `d1_um`,
+  `h1_mark` and `funding` files with no failed zips. The 35 with a Binance spot pair also got `h1_spot` and
+  `d1_spot` (SATS from 1000SATSUSDT, rescaled); median |spot/perp − 1| is 0.05-0.10% for each. One unresolved
+  outage day remains (TRUMP 2025-01-29).
+- **Distinct coins ever in the top 3 / 6 / 10:** crypto-only 15 / 40 / 71; with TradFi 16 / 43 / 75; pool 40
+  14 / 25 / 33.
+- **Correction to section 12:** four BTC 1-minute prints in 2024-08 (e.g. 2024-08-06 03:45 high 55674.17) sit
+  off the 0.1 tick in the raw archive itself. `bb_data.minutes()` therefore rounds BTC minutes to 0.01.
+
 ## 2. Symbols and contract mapping
 
 **The 40 coins** are the 13 named (BTC ETH SOL BNB XRP DOGE ADA AVAX LINK LTC TRX DOT BCH) plus the rest of
