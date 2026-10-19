@@ -1,0 +1,115 @@
+{
+ "part": "h11b",
+ "n_cells": 648,
+ "subset": false,
+ "decoy_cells": [
+  1,
+  11,
+  17,
+  18,
+  20,
+  39,
+  44,
+  73,
+  76,
+  86,
+  92,
+  95,
+  97,
+  110,
+  116,
+  154,
+  214,
+  232,
+  254,
+  265,
+  275,
+  284,
+  285,
+  322,
+  326,
+  351,
+  366,
+  370,
+  386,
+  407,
+  415,
+  423,
+  425,
+  439,
+  444,
+  451,
+  469,
+  482,
+  491,
+  504,
+  522,
+  524,
+  530,
+  538,
+  570,
+  572,
+  598,
+  627,
+  632,
+  637
+ ],
+ "n_twins": 20,
+ "D_stats": [
+  "count",
+  "hit",
+  "winloss",
+  "multiple",
+  "gt7_won",
+  "ge3_profit"
+ ],
+ "k": 6,
+ "chi2_95": 12.591587243743977,
+ "windows": {
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "W16b": [
+   "2024-06-30",
+   "2025-10-31"
+  ]
+ },
+ "oow": {
+  "W16": [
+   [
+    "2020-01-01",
+    "2025-06-16"
+   ]
+  ],
+  "W16b": [
+   [
+    "2020-01-01",
+    "2024-06-29"
+   ],
+   [
+    "2025-11-01",
+    "2026-10-16"
+   ]
+  ]
+ },
+ "post": {
+  "positions": 490,
+  "tranches": 1462,
+  "hit": 0.487,
+  "hit_grid": 0.517,
+  "uplift": 0.03,
+  "winloss": 1.4,
+  "multiple": 4.3,
+  "gt7_won": 0.75,
+  "ge3_profit": 0.8,
+  "turnover_lo": 950.0,
+  "turnover_hi": 19000.0,
+  "months": 16
+ },
+ "label": "a rule set consistent with the post (never their strategy)",
+ "p_values": "exploratory (H11b is descriptive): two-sided scipy Spearman p-values, Benjamini-Hochberg adjusted within the H11b Spearman table (h11b/spearman.csv: both windows x {all cells, finite D} x {with ZEC, without ZEC where ZEC traded})",
+ "zec": "results without ZEC beside the results with it (Reporting rules; choice 21): the same account without ZEC's positions, K unchanged (ZEC's slot holds cash); the pre-registered rows, the F choice, the identified set and the reading are the ones with ZEC (cells.csv, decoys.csv and set_extras.csv: zec_in_universe, n_zec_*, *_exZEC, in_set_exZEC; summary.json: exZEC)",
+ "quick": false,
+ "descriptive": "descriptive; a match is never evidence that a variant works, and no row is their strategy, their exact rules or the replication"
+}

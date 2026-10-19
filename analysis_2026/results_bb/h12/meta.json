@@ -1,0 +1,25 @@
+{
+ "part": "h12",
+ "spans": {
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "Full": [
+   "2020-01-01",
+   "2026-10-16"
+  ]
+ },
+ "coins": [
+  "BTC",
+  "ETH",
+  "SOL"
+ ],
+ "rows": [
+  "R0",
+  "S11"
+ ],
+ "p_values": "exploratory, one-sided for S11 - R0 > 0, BH-adjusted within diff.csv",
+ "quick": false,
+ "descriptive": "descriptive; a match is never evidence that a variant works, and no row is their strategy, their exact rules or the replication"
+}

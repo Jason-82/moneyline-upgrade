@@ -1,0 +1,28 @@
+{
+ "part": "luck",
+ "n_versions": 1000,
+ "L": [
+  3.0,
+  5.0
+ ],
+ "windows": {
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "W16b": [
+   "2024-06-30",
+   "2025-10-31"
+  ]
+ },
+ "coins": [
+  "BTC",
+  "ETH",
+  "SOL"
+ ],
+ "rules": "R0's rules with entry_mode='given' (bb_engine.luck_cfg): adds, stops, exits, sizing, costs and funding are R0's; first entries per coin = R0's count in the window; decision days drawn sequentially from days the coin was flat (module doc, choice 9)",
+ "seed": 20261018,
+ "months_needed_formula": "t = mu * sqrt(n) / sigma >= 2  <=>  n >= (2 * sigma / mu)^2, mu = 4.3^(1/16) - 1 per month",
+ "quick": false,
+ "descriptive": "descriptive; a match is never evidence that a variant works, and no row is their strategy, their exact rules or the replication"
+}

@@ -1,0 +1,5 @@
+L,window,n_versions,versions_with_shortfall,entries_short,share_ge_4.3x,share_ge_2x,share_peak_ge_4.3x,share_peak_ge_2x,share_with_liquidation,r0_multiple,r0_multiple_percentile,r0_liquidations
+3.0,W16,1000,0,0,0.0,0.0,0.0,0.0,0.0,0.8621780799504785,0.551,0
+3.0,W16b,1000,0,0,0.0,0.002,0.0,0.015,0.0,0.9310028320805116,0.577,0
+5.0,W16,1000,0,0,0.0,0.002,0.0,0.02,0.0,0.773735541307047,0.581,0
+5.0,W16b,1000,0,0,0.0,0.018,0.0,0.078,0.0,0.9173492911904196,0.616,0
