@@ -10,6 +10,7 @@
 - Windows tools with `/Flag` arguments, such as `schtasks /Create`, get mangled by Git Bash path conversion. Prefix
   them with `MSYS_NO_PATHCONV=1`.
 - Claude Code on this machine runs its Bash tool and its hooks in Git Bash.
+- **Opening files:** use VS Code, `code <file>`. Never `notepad`.
 
 ## Start here
 - `HANDOFF.md` is the authoritative summary. Read it first.
