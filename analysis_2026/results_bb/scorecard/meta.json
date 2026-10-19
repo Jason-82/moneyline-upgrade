@@ -1,0 +1,29 @@
+{
+ "seconds": 17.8,
+ "rules": 15,
+ "comparisons": 23,
+ "exZEC_comparisons": 2,
+ "holm_verdicts_found": [
+  "H1",
+  "H10",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "H7",
+  "H8",
+  "H9",
+  "HS1",
+  "HS2"
+ ],
+ "holm_verdicts_source": "results_bb/verdicts.csv",
+ "holm_verdicts_pending": false,
+ "pending_rules": [],
+ "window": [
+  "2020-01-01",
+  "2026-10-16"
+ ],
+ "p_label": "exploratory (Benjamini-Hochberg within this table)",
+ "fill_audit_violations": 0
+}

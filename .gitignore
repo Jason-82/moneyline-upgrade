@@ -27,3 +27,6 @@ data/scalping/
 # Bollinger-breakout replication data (rebuild: python3 -m analysis_2026.fetch_bb_data)
 data/bbreplica/
 analysis_2026/results_bb/primary/HS1_trades.csv
+analysis_2026/results_bb/headline/equity.csv
+analysis_2026/results_bb/rows/trades.csv
+analysis_2026/results_bb/routes/accounts.csv

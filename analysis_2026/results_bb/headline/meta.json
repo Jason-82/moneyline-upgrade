@@ -1,0 +1,25 @@
+{
+ "seconds": 176.2,
+ "rows": 38,
+ "answer_map_rows": 18,
+ "F": "F from F.json",
+ "F_included": true,
+ "fill_audit_violations": 0,
+ "single_path_windows": [
+  "W16",
+  "W16b"
+ ],
+ "half_slices": {
+  "H2020-2022": [
+   "2020-01-01",
+   "2022-12-31"
+  ],
+  "H2023-2026": [
+   "2023-01-01",
+   "2026-10-16"
+  ]
+ },
+ "answer_map_primary_half_method": "slices of the full run (primary; bb_tests' halves)",
+ "p_label": "exploratory (Benjamini-Hochberg within this table)",
+ "note_benchmarks": "F on an S12 universe is compared with BTC/ETH/SOL's buy-and-hold and indicator (bench_same_coins False in headline.csv): bb_bench has no point-in-time S12 benchmark"
+}

@@ -1,0 +1,96 @@
+{
+ "seconds": 52.5,
+ "rows": 427,
+ "pre_perpetual_rows": 12,
+ "per_coin_rows": 588,
+ "windows": {
+  "Full": [
+   "2020-01-01",
+   "2026-10-16"
+  ],
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "W16b": [
+   "2024-06-30",
+   "2025-10-31"
+  ],
+  "H2020-2022": [
+   "2020-01-01",
+   "2022-12-31"
+  ],
+  "H2023-2026": [
+   "2023-01-01",
+   "2026-10-16"
+  ]
+ },
+ "run_windows": {
+  "Full": [
+   "2020-01-01",
+   "2026-10-16"
+  ],
+  "W16": [
+   "2025-06-17",
+   "2026-10-16"
+  ],
+  "W16b": [
+   "2024-06-30",
+   "2025-10-31"
+  ],
+  "H2020-2022 (separate run)": [
+   "2020-01-01",
+   "2022-12-31"
+  ],
+  "H2023-2026 (separate run)": [
+   "2023-01-01",
+   "2026-10-16"
+  ]
+ },
+ "half_slices": {
+  "H2020-2022": [
+   "2020-01-01",
+   "2022-12-31"
+  ],
+  "H2023-2026": [
+   "2023-01-01",
+   "2026-10-16"
+  ]
+ },
+ "half_methods": {
+  "slice of the Full run (primary)": "the Full run's positions with entry1 in the half and its daily returns between the half's dates (bb_tests' halves)",
+  "separate run starting flat (sensitivity)": "the half run on its own, starting flat (sensitivity)"
+ },
+ "F": "F from F.json",
+ "F_included": true,
+ "fill_audit_violations": 0,
+ "pre_coins": [
+  "ADA",
+  "ALGO",
+  "ATOM",
+  "BCH",
+  "BNB",
+  "BTC",
+  "DASH",
+  "DOGE",
+  "EOS",
+  "ETC",
+  "ETH",
+  "FTT",
+  "HBAR",
+  "LINK",
+  "LTC",
+  "MATIC",
+  "NEO",
+  "SOL",
+  "THETA",
+  "TRX",
+  "VET",
+  "XLM",
+  "XMR",
+  "XRP",
+  "XTZ",
+  "ZEC"
+ ],
+ "p_label": "exploratory (Benjamini-Hochberg within this table)"
+}

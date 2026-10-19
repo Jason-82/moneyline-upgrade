@@ -1,0 +1,18 @@
+{
+ "seconds": 0.1,
+ "syms": [
+  "BTC",
+  "ETH",
+  "BNB",
+  "ZEC",
+  "SOL"
+ ],
+ "positions": {
+  "BTC": 58,
+  "ETH": 44,
+  "BNB": 42,
+  "ZEC": 29,
+  "SOL": 20
+ },
+ "note": "close-only exports: no fills to audit (bb_bench choice 12)"
+}
