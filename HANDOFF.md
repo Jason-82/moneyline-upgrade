@@ -625,6 +625,22 @@ The colour rule is unconfirmed:
   after tax. On the pre-1928 Dow, LARSSON-PRICE roughly tied buy & hold after tax: 6.8 vs
   6.7 realised. Confirm the colour rule with the user before reading the crypto result.
 
+### 5.20 Split mode's second-half wait — `analysis_2026/split_delay.py`
+
+Pre-registered (`analysis_2026/SPLIT_DELAY_PREREG.md`) and audited; FINDINGS 2026-10-19 has the tables.
+
+- **The second half's wait: no change.**
+  - 36 variants of the second tranche's (n_entry, n_exit) were tested on three samples: the S&P point-in-time
+    basket, the high-volatility fifth of it, and the crypto top-20 incl. dead coins.
+  - The in-sample pick lost to split(5,5) out of sample in all three. Reality-check p 0.80 / 0.85 / 0.34.
+  - The stock surface is flat. Selling after 8 closes is about 0.01-0.02 Sharpe better in and out of sample (not
+    significant) and has about 2 points deeper drawdowns.
+- **Stocks: confirm5 beats every split.** 100% at N=5 vs split(5,5):
+  - S&P basket: Sharpe 0.515 vs 0.444, out of sample 0.536 vs 0.491; drawdown −22% vs −28%.
+  - High-volatility stocks: 0.426 vs 0.328.
+  - Consistent with 5.15. These are reference rows, not pre-registered candidates.
+- **Crypto:** immediate 1.071, split 0.976, confirm5 0.812. Keep split or immediate.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -843,6 +859,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/leverage_breakout.py`, `analysis_2026/results_leverage/` | Leverage / tight-stop / Donchian / key-level study (H1-H4 pre-registered; section 5.14). Data `data/crypto_4h/`, `data/crypto_funding/` (gitignored; Binance S3 archive spot 4h klines and USDT-M fundingRate). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |
+| `analysis_2026/split_delay.py`, `analysis_2026/results_split_delay/`, `analysis_2026/SPLIT_DELAY_PREREG.md` | Split-mode second-tranche delay sweep (section 5.20). Takes about 6 min on 4 workers. Daily basket returns (`basket_returns_P*.csv.gz`) are regenerated, not committed. |
 | `agentic/`, `.claude/settings.json`, `.claude/commands/moneyline.md`, `analysis_2026/results_agentic_modes/` | Execution of the MoneyLine on the Robinhood Agentic account (section 8): signals, data feeds, planner, Claude Code safety hooks, `/moneyline` command; `python3 -m agentic --help`; tests `python3 -m pytest tests/test_agentic_*.py -q`. State in `private/agentic/` (gitignored). |
 | `analysis_2026/larsson.py`, `analysis_2026/results_larsson/`, `analysis_2026/LARSSON_PREREG.md` | Larsson Line (EMA32/58) long-history study (section 5.19): S&P 500 1929-2026 and the pre-1928 Dow, 13 ETFs, 21 coins, point-in-time S&P and crypto top-20 baskets (daily-rebalanced and held), old MoneyLine and SMA200 comparators, realisation-based tax via `sso_gold.simulate`. `python3 -m analysis_2026.larsson` (about 30 min). Uses `data/sso_gold/`, `data/etf/`, `data/crypto_4h/`, `data/crypto_binance/` and `data/universe_pit_all/` (all gitignored). |
 | `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |

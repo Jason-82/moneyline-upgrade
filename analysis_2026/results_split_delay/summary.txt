@@ -1,0 +1,551 @@
+SPLIT MODE, SECOND-TRANCHE DELAY SWEEP (pre-registration: analysis_2026/SPLIT_DELAY_PREREG.md)
+Tranche 1: 50% at N=1. Tranche 2: 50% at (n_entry, n_exit), n_entry in [1, 2, 3, 5, 8, 12], n_exit in [2, 3, 5, 8, 12, 20]. Benchmark split(5,5).
+Sharpe = annualised Sharpe of daily returns above T-bills. Costs per side: stocks/ETFs 0.03%, crypto 0.15%.
+CAGR_tax_%: strategies 35% on each calendar year's growth, losses carried (flip_delay.stats); buy & hold 20% once at the end.
+trades_per_yr: orders per member per year (each weight change counts once, a 0.5 split step included).
+Choices the pre-registration leaves open (fixed before the first full run; see the module docstring):
+  P2 candidates need 252 daily returns before 1 January and a close in the 7 days before it; top ceil(n/5) held.
+  Reality check statistic: max over the 36 variants of (Sharpe - Sharpe split(5,5)), recentred, common indices.
+  ETFs pay the stock cost (0.03%); crypto pays 0.15% for every coin incl. BTC/ETH (earlier studies: 0.10%).
+  A member-year needs more than 20 bars up to 2026-09-30. OOS halves = first / second half of OOS days.
+  Seeds: OOS tests 1/2/3, reality checks 11/12/13, secondary 21-25; reported-only: reality-check seed sensitivity 111-115/121-125/131-135, exploratory split(5,8) test 31-33.
+
+AUDIT CORRECTIONS (after the first full run on 2026-10-19; the pre-registered design is unchanged)
+  - Reality-check bug, fixed: the first run selected R[grid + ['split(5,5)']] although split(5,5) is in the grid. pandas expands a
+    duplicated label into every copy, so the column used as the benchmark was split(12,20) (the last grid variant) and split(12,20)
+    fell out of the candidates. First-run rows, all wrong: V_obs 0.0365 / 0.0445 / 0.2172, argmax split(8,12) / split(5,12) / split(1,2),
+    p 0.422 / 0.381 / 0.080 (P1 / P2 / P3); P3's c2 'pass' came from the bug. Now the benchmark is stacked separately, the column layout
+    and the benchmark's own zero gain are asserted, and the check is rerun with the same seeds 11/12/13. Other numbers are unchanged (to 1e-12, float summation order).
+  - Added after the audit, descriptive only: an OOS surface reading per sample, reality-check seed sensitivity, and an exploratory
+    (not pre-registered) OOS test of split(5,8) vs split(5,5). None of these can change a default.
+
+KNOWN LIMITATIONS OF THE INHERITED UNIVERSE (identical for all 36 variants; audit counts)
+  - quality_filter(keep_collapsed=True) judges each whole series, later data included: a series that collapses later is cut 20 bars
+    after its first fall below 10% of its running peak, which can drop earlier member-years. 33 S&P member-years (9 names, e.g. CHK
+    2007-2018, GNW 2009-2015, DYN 2003-2009) are lost this way, and these names cannot enter P2 in those years.
+  - A member-year needs more than 20 bars in the year, which uses data after 1 January: about 20 P1 member-years (about 10 in P2) of
+    early-year acquisitions/delistings are excluded (e.g. MERQ, RBK, SEBL, BRCM, STJ, CXO).
+  - altcoins.tiers_for_year needs a bar in 1-4 January; with data cut at 1 January + 3 days the crypto membership is identical in all 8 years.
+  - Together about 0.2-0.3% of member-years: they move absolute basket levels slightly, not the differences between variants.
+
+VALIDATION (exact, on SPY, QQQ, BTC, SOL, AAPL, GE):
+  moneyline_confirmed(N,N) == flip_delay.moneyline_delay(N) for N = 1, 5; weights_returns(0/1 weights) == flip_delay.strat_returns (max |diff| <= 1e-12);
+  tranche 2 at (1,1) == immediate; split(5,5) weights == agentic DEFAULT_MODES['split'] (tranche_targets).
+  all passed
+
+PIPELINE CHECKS
+  P1: basket with tranche 2 at (1,1) minus immediate: max |diff| daily 0.0e+00, held 0.0e+00
+  P2: basket with tranche 2 at (1,1) minus immediate: max |diff| daily 0.0e+00, held 0.0e+00
+  P3: basket with tranche 2 at (1,1) minus immediate: max |diff| daily 0.0e+00, held 0.0e+00
+  P3_095: basket with tranche 2 at (1,1) minus immediate: max |diff| daily 0.0e+00, held 0.0e+00
+  P3_val: basket with tranche 2 at (1,1) minus immediate: max |diff| daily 0.0e+00, held 0.0e+00
+  P1 immediate vs results_delay/baskets.csv N=1: Sharpe(total) 0.5297 vs 0.5297, CAGR 4.989 vs 4.989, maxDD -33.80 vs -33.80
+  P1 confirm5 vs results_delay/baskets.csv N=5: Sharpe(total) 0.6970 vs 0.6970, CAGR 6.621 vs 6.621, maxDD -22.45 vs -22.45
+  P3 at flip_delay's crypto costs, daily, immediate vs results_agentic_modes/split_crypto.txt: CAGR 48.72 vs 48.72, Sharpe 1.07 vs 1.07
+  P3 at flip_delay's crypto costs, daily, split(5,5) vs results_agentic_modes/split_crypto.txt: CAGR 42.72 vs 42.72, Sharpe 0.98 vs 0.98
+  P3 at flip_delay's crypto costs, daily, confirm5 vs results_agentic_modes/split_crypto.txt: CAGR 34.59 vs 34.59, Sharpe 0.81 vs 0.81
+  P3 at flip_delay's crypto costs, held, immediate vs results_agentic_modes/split_crypto.txt: CAGR 53.67 vs 53.67, Sharpe 1.14 vs 1.14
+  P3 at flip_delay's crypto costs, held, split(5,5) vs results_agentic_modes/split_crypto.txt: CAGR 49.91 vs 49.91, Sharpe 1.08 vs 1.08
+  P3 at flip_delay's crypto costs, held, confirm5 vs results_agentic_modes/split_crypto.txt: CAGR 42.83 vs 42.83, Sharpe 0.93 vs 0.93
+
+====================================================================================================
+P1: S&P 500 point-in-time basket incl. failed companies, 2001-01-02..2026-09-30 (daily-rebalanced equal weight; members per year 476-505)
+
+P1 FULL SAMPLE, Sharpe above T-bills (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.372   0.401   0.417   0.448   0.439   0.433
+                 2    0.387   0.423   0.439   0.457   0.448   0.441
+                 3    0.391   0.423   0.444   0.459   0.447   0.443
+                 5    0.390   0.424   0.444   0.458   0.441   0.443
+                 8    0.396   0.427   0.448   0.460   0.447   0.436
+                12    0.386   0.414   0.429   0.443   0.433   0.423
+  references: immediate 0.352 | confirm5 0.515 | buy & hold 0.515 | benchmark split(5,5) 0.444
+
+P1 FULL SAMPLE, CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     5.36    5.79    6.12    6.62    6.66    6.75
+                 2     5.34    5.82    6.17    6.53    6.57    6.69
+                 3     5.24    5.68    6.07    6.40    6.42    6.59
+                 5     5.03    5.46    5.83    6.15    6.15    6.39
+                 8     4.87    5.24    5.61    5.92    5.98    6.10
+                12     4.60    4.93    5.23    5.54    5.63    5.78
+  references: immediate 4.99 | confirm5 6.62 | buy & hold 10.90 | benchmark split(5,5) 5.83
+
+P1 FULL SAMPLE, after-tax CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     3.51    3.79    4.01    4.34    4.37    4.43
+                 2     3.50    3.81    4.04    4.28    4.31    4.39
+                 3     3.43    3.72    3.97    4.19    4.21    4.32
+                 5     3.29    3.57    3.82    4.03    4.03    4.19
+                 8     3.18    3.43    3.67    3.88    3.92    4.00
+                12     3.01    3.22    3.42    3.63    3.69    3.79
+  references: immediate 3.27 | confirm5 4.33 | buy & hold 10.01 | benchmark split(5,5) 3.82
+
+P1 FULL SAMPLE, max drawdown % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    -34.6   -35.8   -37.1   -37.5   -40.1   -42.4
+                 2    -29.9   -31.1   -32.6   -33.8   -36.7   -40.1
+                 3    -27.5   -28.8   -30.3   -31.8   -35.2   -38.6
+                 5    -25.2   -26.1   -28.0   -29.8   -33.4   -36.9
+                 8    -22.2   -23.4   -25.4   -27.3   -30.8   -34.9
+                12    -22.2   -23.4   -24.9   -27.0   -30.4   -33.9
+  references: immediate -33.8 | confirm5 -22.5 | buy & hold -58.2 | benchmark split(5,5) -28.0
+
+P1 FULL SAMPLE, orders per member per year (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     19.8    19.2    18.5    17.8    17.1    16.4
+                 2     24.5    23.4    21.9    20.4    19.2    17.8
+                 3     23.7    22.7    21.4    20.1    19.0    17.7
+                 5     22.6    21.8    20.7    19.6    18.7    17.5
+                 8     21.3    20.7    19.9    19.0    18.2    17.2
+                12     20.2    19.8    19.1    18.5    17.8    17.0
+  references: immediate 13.8 | confirm5 7.0 | benchmark split(5,5) 20.7
+
+P1 IS 2001-01-02..2013-12-31, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.342   0.365   0.385   0.412   0.398   0.400
+                 2    0.365   0.392   0.409   0.426   0.414   0.413
+                 3    0.366   0.391   0.414   0.433   0.416   0.422
+                 5    0.366   0.395   0.417   0.439   0.417   0.431
+                 8    0.394   0.416   0.444   0.456   0.437   0.429
+                12    0.385   0.406   0.428   0.443   0.425   0.426
+  references: immediate 0.311 | confirm5 0.506 | buy & hold 0.473 | benchmark split(5,5) 0.417
+
+P1 OOS 2014-01-02..2026-09-30, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.421   0.459   0.472   0.508   0.505   0.486
+                 2    0.428   0.475   0.492   0.510   0.503   0.488
+                 3    0.434   0.478   0.496   0.505   0.497   0.481
+                 5    0.431   0.473   0.491   0.495   0.484   0.466
+                 8    0.407   0.450   0.461   0.475   0.468   0.452
+                12    0.397   0.434   0.441   0.454   0.451   0.427
+  references: immediate 0.417 | confirm5 0.536 | buy & hold 0.579 | benchmark split(5,5) 0.491
+
+P1 surface shape (full sample Sharpe): grid range 0.372..0.460; split(5,5) 0.444; variants within 0.03 of it: 28/36
+  mean by n_entry: 1: 0.418, 2: 0.433, 3: 0.435, 5: 0.433, 8: 0.435, 12: 0.421
+  mean by n_exit:  2: 0.387, 3: 0.419, 5: 0.437, 8: 0.454, 12: 0.442, 20: 0.437
+  references (not candidates): confirm5 0.515, immediate 0.352, buy & hold 0.515; best grid variant split(8,8) 0.460
+
+P1 IS / OOS (daily), IS-best variant, benchmark and references:
+            IS_Sharpe  OOS_Sharpe  OOS_dSharpe_vs_bench  IS_CAGR_%  OOS_CAGR_%  IS_CAGR_tax_%  OOS_CAGR_tax_%  IS_maxDD_%  OOS_maxDD_%  IS_trades_per_yr  OOS_trades_per_yr  IS_rank
+variant                                                                                                                                                                             
+split(8,8)       0.46        0.48                 -0.02       6.19        5.65           4.05            3.70      -27.32       -12.71             19.84              18.19     1.00
+split(5,5)       0.42        0.49                  0.00       5.82        5.85           3.81            3.82      -27.96       -12.66             21.67              19.69    14.00
+immediate        0.31        0.42                 -0.07       4.68        5.30           3.07            3.47      -33.80       -13.36             14.64              12.96      NaN
+confirm5         0.51        0.54                  0.05       6.89        6.34           4.51            4.15      -22.45       -12.13              7.16               6.78      NaN
+BH               0.47        0.58                  0.09      10.46       11.34           9.13            9.94      -58.24       -40.05               NaN                NaN      NaN
+  IS top 5 by Sharpe: split(8,8) IS 0.456 / OOS 0.475; split(8,5) IS 0.444 / OOS 0.461; split(12,8) IS 0.443 / OOS 0.454; split(5,8) IS 0.439 / OOS 0.495; split(8,12) IS 0.437 / OOS 0.468
+
+====================================================================================================
+P2: High-volatility fifth of the S&P 500 members (ranked on the prior 252 days), 2001-01-02..2026-09-30 (daily-rebalanced equal weight; members per year 93-101)
+
+P2 FULL SAMPLE, Sharpe above T-bills (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.248   0.276   0.281   0.315   0.313   0.323
+                 2    0.268   0.300   0.305   0.331   0.334   0.329
+                 3    0.274   0.304   0.319   0.337   0.333   0.336
+                 5    0.281   0.306   0.328   0.347   0.336   0.342
+                 8    0.296   0.308   0.325   0.343   0.340   0.314
+                12    0.280   0.299   0.312   0.338   0.329   0.302
+  references: immediate 0.216 | confirm5 0.426 | buy & hold 0.393 | benchmark split(5,5) 0.328
+
+P2 FULL SAMPLE, CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     4.69    5.23    5.39    6.11    6.15    6.47
+                 2     4.93    5.52    5.72    6.28    6.45    6.50
+                 3     4.94    5.48    5.85    6.29    6.32    6.53
+                 5     4.89    5.36    5.83    6.27    6.22    6.50
+                 8     4.94    5.20    5.58    5.99    6.10    5.79
+                12     4.57    4.90    5.20    5.71    5.73    5.44
+  references: immediate 4.07 | confirm5 7.47 | buy & hold 9.75 | benchmark split(5,5) 5.83
+
+P2 FULL SAMPLE, after-tax CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     3.08    3.44    3.55    4.03    4.05    4.26
+                 2     3.24    3.63    3.76    4.14    4.24    4.28
+                 3     3.24    3.60    3.85    4.14    4.16    4.30
+                 5     3.21    3.52    3.83    4.12    4.09    4.27
+                 8     3.24    3.41    3.66    3.94    4.01    3.81
+                12     3.00    3.22    3.42    3.75    3.77    3.58
+  references: immediate 2.67 | confirm5 4.91 | buy & hold 8.90 | benchmark split(5,5) 3.83
+
+P2 FULL SAMPLE, max drawdown % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    -49.5   -52.0   -53.8   -53.3   -54.9   -58.0
+                 2    -44.2   -46.9   -48.4   -48.8   -50.1   -55.0
+                 3    -40.7   -43.6   -45.1   -47.0   -49.3   -53.3
+                 5    -37.5   -39.5   -41.1   -43.1   -46.7   -49.9
+                 8    -35.3   -37.1   -38.5   -41.4   -43.5   -49.2
+                12    -32.7   -35.1   -36.0   -38.4   -41.9   -45.7
+  references: immediate -47.7 | confirm5 -36.7 | buy & hold -75.8 | benchmark split(5,5) -41.1
+
+P2 FULL SAMPLE, orders per member per year (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     20.6    20.0    19.3    18.5    17.8    17.1
+                 2     25.4    24.3    22.8    21.3    20.1    18.8
+                 3     24.5    23.5    22.2    20.9    19.8    18.6
+                 5     23.2    22.5    21.4    20.3    19.4    18.3
+                 8     21.8    21.3    20.5    19.7    18.9    18.0
+                12     20.6    20.2    19.6    19.0    18.4    17.7
+  references: immediate 14.3 | confirm5 7.2 | benchmark split(5,5) 21.4
+
+P2 IS 2001-01-02..2013-12-31, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.181   0.199   0.201   0.250   0.246   0.250
+                 2    0.215   0.239   0.239   0.275   0.276   0.261
+                 3    0.210   0.232   0.248   0.280   0.262   0.263
+                 5    0.228   0.249   0.271   0.303   0.273   0.286
+                 8    0.252   0.259   0.282   0.304   0.285   0.240
+                12    0.252   0.264   0.285   0.308   0.275   0.239
+  references: immediate 0.149 | confirm5 0.383 | buy & hold 0.330 | benchmark split(5,5) 0.271
+
+P2 OOS 2014-01-02..2026-09-30, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.369   0.414   0.423   0.435   0.436   0.457
+                 2    0.368   0.411   0.425   0.437   0.443   0.455
+                 3    0.387   0.432   0.445   0.443   0.460   0.467
+                 5    0.376   0.410   0.433   0.432   0.450   0.446
+                 8    0.376   0.399   0.407   0.419   0.441   0.439
+                12    0.336   0.368   0.368   0.400   0.427   0.408
+  references: immediate 0.334 | confirm5 0.512 | buy & hold 0.512 | benchmark split(5,5) 0.433
+
+P2 surface shape (full sample Sharpe): grid range 0.248..0.347; split(5,5) 0.328; variants within 0.03 of it: 28/36
+  mean by n_entry: 1: 0.293, 2: 0.311, 3: 0.317, 5: 0.323, 8: 0.321, 12: 0.310
+  mean by n_exit:  2: 0.275, 3: 0.299, 5: 0.312, 8: 0.335, 12: 0.331, 20: 0.325
+  references (not candidates): confirm5 0.426, immediate 0.216, buy & hold 0.393; best grid variant split(5,8) 0.347
+
+P2 IS / OOS (daily), IS-best variant, benchmark and references:
+             IS_Sharpe  OOS_Sharpe  OOS_dSharpe_vs_bench  IS_CAGR_%  OOS_CAGR_%  IS_CAGR_tax_%  OOS_CAGR_tax_%  IS_maxDD_%  OOS_maxDD_%  IS_trades_per_yr  OOS_trades_per_yr  IS_rank
+variant                                                                                                                                                                              
+split(12,8)       0.31        0.40                 -0.03       5.52        5.90           3.62            3.89      -38.39       -17.59             20.14              17.87     1.00
+split(5,5)        0.27        0.43                  0.00       5.05        6.63           3.31            4.36      -41.09       -19.11             22.77              20.04    13.00
+immediate         0.15        0.33                 -0.10       2.72        5.46           1.78            3.59      -47.66       -21.48             15.49              13.20      NaN
+confirm5          0.38        0.51                  0.08       7.21        7.73           4.73            5.10      -36.70       -18.95              7.43               6.88      NaN
+BH                0.33        0.51                  0.08       7.28       12.33           6.23           10.86      -75.82       -47.56               NaN                NaN      NaN
+  IS top 5 by Sharpe: split(12,8) IS 0.308 / OOS 0.400; split(8,8) IS 0.304 / OOS 0.419; split(5,8) IS 0.303 / OOS 0.432; split(5,20) IS 0.286 / OOS 0.446; split(12,5) IS 0.285 / OOS 0.368
+
+====================================================================================================
+P3: Crypto top-20 incl. dead coins, 2019-01-01..2026-09-30 (daily-rebalanced equal weight; members per year 15-20)
+
+P3 FULL SAMPLE, Sharpe above T-bills (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    1.074   1.058   0.964   0.977   0.975   0.866
+                 2    1.052   1.036   0.950   0.962   0.981   0.889
+                 3    1.021   1.012   0.956   0.981   0.969   0.881
+                 5    1.030   1.023   0.976   1.002   0.995   0.883
+                 8    1.061   1.052   1.005   1.019   0.993   0.906
+                12    1.020   1.001   0.968   0.985   0.972   0.856
+  references: immediate 1.071 | confirm5 0.812 | buy & hold 0.559 | benchmark split(5,5) 0.976
+
+P3 FULL SAMPLE, CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    50.59   50.57   44.99   46.95   47.52   40.59
+                 2    47.52   47.57   42.86   44.82   46.92   41.63
+                 3    44.44   44.92   42.48   45.28   45.44   40.64
+                 5    43.80   44.46   42.64   45.61   46.13   40.15
+                 8    43.57   44.08   42.54   44.89   44.77   40.84
+                12    39.59   39.56   38.93   41.43   42.27   36.92
+  references: immediate 48.61 | confirm5 34.53 | buy & hold 15.25 | benchmark split(5,5) 42.64
+
+P3 FULL SAMPLE, after-tax CAGR % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    35.09   35.11   31.25   33.03   33.59   28.00
+                 2    33.15   33.20   30.06   31.78   33.20   29.15
+                 3    31.08   31.48   29.71   31.95   32.22   28.56
+                 5    30.24   30.78   29.52   31.81   32.40   27.90
+                 8    30.16   30.42   29.39   31.22   31.31   28.56
+                12    27.24   27.25   26.92   28.84   29.55   26.14
+  references: immediate 33.39 | confirm5 23.85 | buy & hold 13.14 | benchmark split(5,5) 29.52
+
+P3 FULL SAMPLE, max drawdown % (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    -55.1   -54.6   -55.2   -59.2   -57.7   -61.5
+                 2    -53.5   -52.1   -54.2   -59.2   -56.7   -59.3
+                 3    -52.8   -50.8   -51.9   -53.8   -56.0   -58.6
+                 5    -48.9   -47.6   -48.6   -50.5   -53.4   -57.7
+                 8    -47.7   -47.5   -48.8   -50.8   -53.4   -56.6
+                12    -46.5   -45.8   -46.8   -48.2   -50.6   -57.0
+  references: immediate -50.3 | confirm5 -59.6 | buy & hold -90.8 | benchmark split(5,5) -48.6
+
+P3 FULL SAMPLE, orders per member per year (rows n_entry, columns n_exit of tranche 2)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     19.6    19.2    18.9    18.4    17.9    17.2
+                 2     24.6    23.9    23.0    22.0    21.0    19.7
+                 3     23.8    23.1    22.2    21.5    20.7    19.5
+                 5     22.5    22.0    21.3    20.8    20.0    19.1
+                 8     21.4    21.0    20.4    20.0    19.3    18.6
+                12     20.4    20.2    19.7    19.4    18.8    18.3
+  references: immediate 13.5 | confirm5 7.8 | benchmark split(5,5) 21.3
+
+P3 IS 2019-01-01..2022-12-31, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    1.293   1.267   1.160   1.160   1.174   1.053
+                 2    1.237   1.209   1.097   1.082   1.129   1.053
+                 3    1.204   1.188   1.095   1.111   1.110   1.043
+                 5    1.213   1.189   1.108   1.130   1.138   1.048
+                 8    1.236   1.218   1.148   1.155   1.131   1.053
+                12    1.169   1.168   1.125   1.137   1.121   0.996
+  references: immediate 1.263 | confirm5 0.883 | buy & hold 0.624 | benchmark split(5,5) 1.108
+
+P3 OOS 2023-01-01..2026-09-30, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.790   0.787   0.709   0.741   0.717   0.621
+                 2    0.815   0.814   0.763   0.813   0.794   0.676
+                 3    0.786   0.785   0.782   0.820   0.792   0.671
+                 5    0.793   0.810   0.812   0.845   0.817   0.668
+                 8    0.838   0.843   0.827   0.849   0.822   0.718
+                12    0.832   0.789   0.770   0.794   0.781   0.677
+  references: immediate 0.828 | confirm5 0.737 | buy & hold 0.482 | benchmark split(5,5) 0.812
+
+P3 surface shape (full sample Sharpe): grid range 0.856..1.074; split(5,5) 0.976; variants within 0.03 of it: 18/36
+  mean by n_entry: 1: 0.986, 2: 0.978, 3: 0.970, 5: 0.985, 8: 1.006, 12: 0.967
+  mean by n_exit:  2: 1.043, 3: 1.030, 5: 0.970, 8: 0.988, 12: 0.981, 20: 0.880
+  references (not candidates): confirm5 0.812, immediate 1.071, buy & hold 0.559; best grid variant split(1,2) 1.074
+
+P3 IS / OOS (daily), IS-best variant, benchmark and references:
+            IS_Sharpe  OOS_Sharpe  OOS_dSharpe_vs_bench  IS_CAGR_%  OOS_CAGR_%  IS_CAGR_tax_%  OOS_CAGR_tax_%  IS_maxDD_%  OOS_maxDD_%  IS_trades_per_yr  OOS_trades_per_yr  IS_rank
+variant                                                                                                                                                                             
+split(1,2)       1.29        0.79                 -0.02      70.74       31.71          44.98           20.68      -55.05       -50.29             18.40              20.79     1.00
+split(5,5)       1.11        0.81                  0.00      54.11       31.34          33.97           21.05      -48.61       -42.63             20.53              22.07    27.00
+immediate        1.26        0.83                  0.02      65.06       32.85          41.89           21.53      -50.19       -48.03             12.74              14.34      NaN
+confirm5         0.88        0.74                 -0.07      40.38       28.56          24.05           19.04      -59.64       -47.60              7.81               7.76      NaN
+BH               0.62        0.48                 -0.33      15.30       15.20          12.71           12.59      -89.87       -78.53               NaN                NaN      NaN
+  IS top 5 by Sharpe: split(1,2) IS 1.293 / OOS 0.790; split(1,3) IS 1.267 / OOS 0.787; split(2,2) IS 1.237 / OOS 0.815; split(8,2) IS 1.236 / OOS 0.838; split(8,3) IS 1.218 / OOS 0.843
+
+====================================================================================================
+PRIMARY TESTS: IS-best variant vs split(5,5) on OOS (Sharpe gain above T-bills; paired stationary bootstrap, 2000 draws, mean block 250 trading / 180 calendar days, null-centred, one-sided; Holm across P1-P3)
+sample     best_IS  IS_Sharpe_best  IS_Sharpe_bench  OOS_Sharpe_best  OOS_Sharpe_bench  OOS_dSharpe  p_one_sided  p_holm   half1   half2  ci95_lo  ci95_hi  OOS_maxDD_best  OOS_maxDD_bench
+    P1  split(8,8)          0.4561           0.4174           0.4751            0.4908      -0.0157       0.7725  1.0000 -0.0326 -0.0015  -0.0538   0.0225        -12.7066         -12.6587
+    P2 split(12,8)          0.3080           0.2710           0.3996            0.4335      -0.0338       0.8280  1.0000 -0.0817 -0.0033  -0.1053   0.0273        -17.5907         -19.1126
+    P3  split(1,2)          1.2931           1.1084           0.7896            0.8120      -0.0225       0.6240  1.0000  0.1622 -0.1964  -0.1912   0.1463        -50.2907         -42.6318
+
+WHITE REALITY CHECK, full sample, 36-variant grid vs split(5,5) (max Sharpe gain; recentred stationary bootstrap, 2000 draws, same blocks)
+sample  RC_V_obs RC_argmax_full   p_RC  RC_boot_q95
+    P1    0.0156     split(8,8) 0.7985       0.0869
+    P2    0.0182     split(5,8) 0.8475       0.0808
+    P3    0.0972     split(1,2) 0.3385       0.2043
+  seed sensitivity (reported only; the decision uses seeds 11/12/13): P1 seeds 111-115: p 0.803..0.823; P2 seeds 121-125: p 0.834..0.848; P3 seeds 131-135: p 0.326..0.351
+
+DECISION CRITERIA (all must hold): c1 OOS gain > 0 with Holm p < 0.05; c2 reality-check p < 0.10; c3 gain > 0 in both OOS halves; c4 OOS maxDD no more than 5 points worse
+sample     best_IS  c1_OOS_gain_sig  c2_RC  c3_both_halves  c4_maxDD  PASS
+    P1  split(8,8)            False  False           False      True False
+    P2 split(12,8)            False  False           False      True False
+    P3  split(1,2)            False  False           False     False False
+
+VERDICTS
+  P1: no change - OOS gain -0.016 with Holm p 1.000 (needs > 0 and < 0.05); reality check p 0.798 (needs < 0.10); OOS halves -0.033 / -0.002 (both must be > 0).
+  P2: no change - OOS gain -0.034 with Holm p 1.000 (needs > 0 and < 0.05); reality check p 0.848 (needs < 0.10); OOS halves -0.082 / -0.003 (both must be > 0).
+  P3: no change - OOS gain -0.022 with Holm p 1.000 (needs > 0 and < 0.05); reality check p 0.339 (needs < 0.10); OOS halves +0.162 / -0.196 (both must be > 0); OOS maxDD -50.3% vs -42.6% (at most 5 pts worse).
+  Stock default: split(5,5) stays.
+  Crypto default: split(5,5) stays.
+
+====================================================================================================
+OOS SURFACE READING (descriptive, added after the audit; selection is IS-only, so picking a variant from these OOS numbers would
+be OOS selection, not a test)
+  P1: 9/35 other variants beat split(5,5) OOS (0.491), so its OOS rank is 10/36; best OOS: split(2,8) 0.510, split(1,8) 0.508, split(3,8) 0.505. IS-best split(8,8) OOS 0.475, OOS rank 16/36.
+      OOS mean by n_entry: 1: 0.475, 2: 0.483, 3: 0.482, 5: 0.473, 8: 0.452, 12: 0.434
+      OOS mean by n_exit:  2: 0.420, 3: 0.462, 5: 0.475, 8: 0.491, 12: 0.485, 20: 0.467
+       IS exit 8 minus exit 5 by n_entry: +0.027 +0.018 +0.019 +0.021 +0.012 +0.015 (6/6 > 0); exit 12 minus exit 5: +0.013 +0.006 +0.002 -0.001 -0.007 -0.003 (3/6 > 0)
+      OOS exit 8 minus exit 5 by n_entry: +0.037 +0.018 +0.009 +0.004 +0.014 +0.013 (6/6 > 0); exit 12 minus exit 5: +0.034 +0.010 +0.001 -0.007 +0.006 +0.010 (5/6 > 0)
+  P2: 14/35 other variants beat split(5,5) OOS (0.433), so its OOS rank is 15/36; best OOS: split(3,20) 0.467, split(3,12) 0.460, split(1,20) 0.457. IS-best split(12,8) OOS 0.400, OOS rank 27/36.
+      OOS mean by n_entry: 1: 0.422, 2: 0.423, 3: 0.439, 5: 0.424, 8: 0.414, 12: 0.384
+      OOS mean by n_exit:  2: 0.369, 3: 0.406, 5: 0.417, 8: 0.428, 12: 0.443, 20: 0.445
+       IS exit 8 minus exit 5 by n_entry: +0.048 +0.035 +0.032 +0.032 +0.023 +0.023 (6/6 > 0); exit 12 minus exit 5: +0.044 +0.037 +0.014 +0.002 +0.003 -0.010 (5/6 > 0)
+      OOS exit 8 minus exit 5 by n_entry: +0.013 +0.012 -0.001 -0.002 +0.012 +0.032 (4/6 > 0); exit 12 minus exit 5: +0.013 +0.017 +0.015 +0.017 +0.034 +0.059 (6/6 > 0)
+  P3: 12/35 other variants beat split(5,5) OOS (0.812), so its OOS rank is 13/36; best OOS: split(8,8) 0.849, split(5,8) 0.845, split(8,3) 0.843. IS-best split(1,2) OOS 0.790, OOS rank 19/36.
+      OOS mean by n_entry: 1: 0.727, 2: 0.779, 3: 0.773, 5: 0.791, 8: 0.816, 12: 0.774
+      OOS mean by n_exit:  2: 0.809, 3: 0.805, 5: 0.777, 8: 0.810, 12: 0.787, 20: 0.672
+       IS exit 8 minus exit 5 by n_entry: -0.001 -0.014 +0.016 +0.022 +0.007 +0.012 (4/6 > 0); exit 12 minus exit 5: +0.013 +0.032 +0.015 +0.029 -0.017 -0.003 (4/6 > 0)
+      OOS exit 8 minus exit 5 by n_entry: +0.031 +0.050 +0.038 +0.033 +0.022 +0.024 (6/6 > 0); exit 12 minus exit 5: +0.007 +0.031 +0.010 +0.005 -0.005 +0.011 (5/6 > 0)
+
+EXPLORATORY (not pre-registered, chosen after seeing the surfaces): split(5,8) vs split(5,5) on OOS, same paired stationary bootstrap, 2000 draws, seeds 31-33, one-sided, unadjusted
+  P1: OOS dSharpe +0.0040, p 0.3685, halves -0.000 / +0.008, 95% CI -0.024..+0.031, MDE80 0.034; full-sample maxDD -29.8% vs -28.0%
+  P2: OOS dSharpe -0.0019, p 0.5450, halves -0.005 / +0.002, 95% CI -0.034..+0.032, MDE80 0.043; full-sample maxDD -43.1% vs -41.1%
+  P3: OOS dSharpe +0.0333, p 0.2260, halves +0.024 / +0.044, 95% CI -0.049..+0.117, MDE80 0.109; full-sample maxDD -50.5% vs -48.6%
+
+====================================================================================================
+SECONDARY (reported only, never decides anything)
+
+Held baskets (equal money per member on 1 January, then drifting) and the crypto basket at 0.95%/side: IS-best vs split(5,5) on OOS, unadjusted
+  book construction     best_IS  full_best  full_Sharpe_best_of_grid  full_Sharpe_bench  OOS_dSharpe  p_one_sided   half1   half2  OOS_maxDD_best  OOS_maxDD_bench
+    P1         held  split(8,8) split(8,8)                    0.4364             0.4221      -0.0137       0.7615 -0.0291 -0.0007        -12.4864         -12.3801
+    P2         held split(12,8) split(5,8)                    0.3292             0.3143      -0.0326       0.8080 -0.0703 -0.0101        -17.2477         -18.2458
+    P3         held  split(8,2) split(8,2)                    1.1495             1.0742       0.0146       0.3935  0.0208  0.0089        -38.6668         -43.5695
+P3_095        daily  split(1,2) split(1,2)                    0.8468             0.7794      -0.0620       0.7875  0.1262 -0.2401        -58.8167         -50.4990
+P3_095         held  split(8,2) split(8,2)                    0.9488             0.8937      -0.0076       0.5275 -0.0014 -0.0137        -46.7398         -51.1333
+
+P1 held, full sample, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.346   0.377   0.396   0.425   0.416   0.407
+                 2    0.362   0.397   0.418   0.434   0.423   0.415
+                 3    0.365   0.398   0.421   0.435   0.421   0.417
+                 5    0.367   0.400   0.422   0.435   0.420   0.419
+                 8    0.372   0.401   0.423   0.436   0.423   0.415
+                12    0.362   0.389   0.406   0.421   0.409   0.403
+  references: immediate 0.324 | confirm5 0.493 | buy & hold 0.490 | benchmark split(5,5) 0.422
+
+P2 held, full sample, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.226   0.257   0.269   0.294   0.292   0.294
+                 2    0.250   0.282   0.296   0.314   0.311   0.301
+                 3    0.254   0.283   0.302   0.315   0.309   0.305
+                 5    0.268   0.291   0.314   0.329   0.321   0.317
+                 8    0.276   0.287   0.306   0.324   0.320   0.297
+                12    0.260   0.278   0.294   0.319   0.308   0.285
+  references: immediate 0.185 | confirm5 0.416 | buy & hold 0.354 | benchmark split(5,5) 0.314
+
+P3 held, full sample, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    1.114   1.101   1.015   1.004   0.989   0.898
+                 2    1.118   1.099   1.020   1.012   1.012   0.919
+                 3    1.092   1.080   1.031   1.027   1.005   0.914
+                 5    1.128   1.111   1.074   1.064   1.034   0.922
+                 8    1.150   1.135   1.101   1.080   1.036   0.955
+                12    1.106   1.078   1.043   1.030   1.000   0.889
+  references: immediate 1.133 | confirm5 0.929 | buy & hold 0.611 | benchmark split(5,5) 1.074
+
+P3_095 daily, full sample, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.847   0.843   0.764   0.792   0.803   0.710
+                 2    0.826   0.822   0.749   0.776   0.808   0.733
+                 3    0.796   0.798   0.758   0.796   0.796   0.724
+                 5    0.809   0.814   0.779   0.818   0.822   0.726
+                 8    0.840   0.840   0.806   0.832   0.820   0.748
+                12    0.797   0.788   0.767   0.796   0.797   0.697
+  references: immediate 0.820 | confirm5 0.680 | buy & hold 0.559 | benchmark split(5,5) 0.779
+
+P3_095 held, full sample, Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.905   0.904   0.829   0.831   0.827   0.751
+                 2    0.911   0.903   0.836   0.840   0.850   0.772
+                 3    0.886   0.884   0.847   0.855   0.842   0.766
+                 5    0.926   0.919   0.894   0.893   0.872   0.773
+                 8    0.949   0.942   0.920   0.909   0.875   0.807
+                12    0.903   0.883   0.859   0.856   0.837   0.739
+  references: immediate 0.906 | confirm5 0.809 | buy & hold 0.611 | benchmark split(5,5) 0.894
+
+P3_095 daily, full sample, after-tax CAGR %
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    24.26   24.61   21.52   23.55   24.62   19.94
+                 2    23.00   23.32   20.87   22.89   24.70   21.24
+                 3    21.42   22.05   21.06   23.48   24.05   20.76
+                 5    21.21   21.91   21.39   23.76   24.49   20.30
+                 8    21.73   22.35   21.85   23.57   23.78   21.15
+                12    19.60   19.74   19.80   21.53   22.37   18.95
+  references: immediate 22.21 | confirm5 18.53 | buy & hold 13.14 | benchmark split(5,5) 21.39
+
+Per asset, crypto21 at 0.15%/side (21 assets, 120-bar warm-up, to 2026-09): median Sharpe surface; best median split(8,12) 0.842, split(5,5) 0.767
+  median Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.786   0.793   0.780   0.776   0.725   0.671
+                 2    0.825   0.835   0.833   0.757   0.774   0.747
+                 3    0.803   0.827   0.788   0.728   0.747   0.683
+                 5    0.790   0.790   0.767   0.817   0.828   0.696
+                 8    0.797   0.788   0.801   0.786   0.842   0.759
+                12    0.771   0.758   0.796   0.798   0.786   0.713
+  references: immediate 0.740 | confirm5 0.669 | buy & hold 0.578 | benchmark split(5,5) 0.767
+  median per-asset Sharpe change vs split(5,5)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1   -0.002   0.008  -0.038   0.014   0.045  -0.009
+                 2    0.022   0.039  -0.005   0.017   0.008   0.021
+                 3    0.016   0.031   0.007   0.004   0.003  -0.002
+                 5    0.002   0.023   0.000   0.014   0.024  -0.018
+                 8   -0.006  -0.002   0.011   0.029   0.019   0.019
+                12   -0.034   0.017   0.001   0.014   0.006  -0.045
+  references (vs split(5,5)): immediate -0.028 | confirm5 -0.085 | buy & hold -0.095 | benchmark split(5,5) 0.000
+  assets better than split(5,5):
+n_exit   2   3   5   8   12  20
+n_entry                        
+1         9  12   8  11  11   8
+2        12  13   8  13  13  11
+3        12  12  12  11  11  10
+5        11  14   0  13  13  10
+8        10  10  11  15  14  11
+12        6  11  11  12  12   8
+  median after-tax CAGR %
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    23.85   24.37   24.86   27.87   23.22   21.20
+                 2    24.97   25.02   24.85   21.45   25.56   21.03
+                 3    24.95   25.22   24.14   22.49   24.40   19.09
+                 5    23.40   24.17   25.71   28.51   26.14   19.67
+                 8    27.40   26.92   29.14   34.90   29.70   22.00
+                12    23.63   22.77   25.68   25.32   26.16   23.00
+  references: immediate 22.74 | confirm5 21.13 | buy & hold 10.84 | benchmark split(5,5) 25.71
+
+Per asset, crypto21 at 0.95%/side (21 assets, 120-bar warm-up, to 2026-09): median Sharpe surface; best median split(8,12) 0.720, split(5,5) 0.627
+  median Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.579   0.600   0.618   0.648   0.600   0.559
+                 2    0.616   0.628   0.631   0.552   0.647   0.561
+                 3    0.630   0.648   0.623   0.605   0.620   0.530
+                 5    0.619   0.650   0.627   0.712   0.699   0.580
+                 8    0.595   0.590   0.671   0.716   0.720   0.617
+                12    0.642   0.635   0.678   0.680   0.647   0.650
+  references: immediate 0.544 | confirm5 0.584 | buy & hold 0.578 | benchmark split(5,5) 0.627
+  median per-asset Sharpe change vs split(5,5)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1   -0.026  -0.004  -0.046   0.017   0.073   0.006
+                 2    0.001   0.035  -0.007   0.019   0.023   0.053
+                 3    0.004   0.027   0.009   0.005   0.018   0.025
+                 5   -0.012   0.020   0.000   0.016   0.039   0.008
+                 8   -0.024  -0.000   0.013   0.038   0.036   0.043
+                12   -0.054   0.014   0.004   0.018   0.021  -0.027
+  references (vs split(5,5)): immediate -0.063 | confirm5 -0.028 | buy & hold 0.041 | benchmark split(5,5) 0.000
+  assets better than split(5,5):
+n_exit   2   3   5   8   12  20
+n_entry                        
+1         8  10   8  11  11  12
+2        12  12   8  13  14  12
+3        11  12  12  11  11  12
+5         9  14   0  14  13  11
+8         8  10  11  15  14  15
+12        6  11  11  12  13   9
+  median after-tax CAGR %
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    13.49   14.31   15.66   18.79   15.84   13.36
+                 2    14.91   15.23   16.21   13.43   16.66   13.23
+                 3    15.30   16.10   15.55   14.83   15.57   11.51
+                 5    14.52   15.37   18.36   20.49   17.95   12.15
+                 8    18.48   17.97   21.09   26.52   21.94   15.16
+                12    16.02   15.17   18.24   17.86   18.93   16.41
+  references: immediate 12.05 | confirm5 15.66 | buy & hold 10.84 | benchmark split(5,5) 18.36
+
+Per asset, etf13 at 0.03%/side (13 assets, 120-bar warm-up, to 2026-09): median Sharpe surface; best median split(5,12) 0.295, split(5,5) 0.263
+  median Sharpe above T-bills
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1    0.273   0.268   0.239   0.259   0.287   0.256
+                 2    0.256   0.251   0.277   0.278   0.274   0.243
+                 3    0.247   0.251   0.274   0.268   0.290   0.250
+                 5    0.251   0.246   0.263   0.281   0.295   0.240
+                 8    0.174   0.206   0.252   0.279   0.256   0.251
+                12    0.190   0.187   0.259   0.286   0.275   0.262
+  references: immediate 0.281 | confirm5 0.309 | buy & hold 0.326 | benchmark split(5,5) 0.263
+  median per-asset Sharpe change vs split(5,5)
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1   -0.079  -0.063  -0.071  -0.005  -0.037  -0.009
+                 2   -0.040  -0.029  -0.037   0.010  -0.007  -0.004
+                 3   -0.019  -0.017   0.001   0.014  -0.007   0.017
+                 5   -0.017  -0.001   0.000   0.015   0.013  -0.001
+                 8   -0.084  -0.044  -0.030  -0.001  -0.001   0.027
+                12   -0.065  -0.028  -0.021   0.001   0.012  -0.018
+  references (vs split(5,5)): immediate -0.086 | confirm5 0.036 | buy & hold 0.054 | benchmark split(5,5) 0.000
+  assets better than split(5,5):
+n_exit   2   3   5   8   12  20
+n_entry                        
+1         2   2   2   3   3   5
+2         3   4   4  10   5   5
+3         4   5   7   9   6   7
+5         3   6   0   8   7   6
+8         2   3   2   6   5   7
+12        2   4   5   7   8   5
+  median after-tax CAGR %
+  n_entry \ n_exit        2       3       5       8      12      20
+                 1     2.30    2.20    2.33    2.43    2.29    2.26
+                 2     2.10    2.05    2.26    2.61    2.54    2.32
+                 3     2.23    2.25    2.43    2.77    2.44    2.37
+                 5     2.21    2.19    2.32    2.66    2.87    2.61
+                 8     1.86    2.17    2.11    2.38    2.68    2.60
+                12     1.79    2.02    2.13    2.25    2.61    2.35
+  references: immediate 2.35 | confirm5 2.52 | buy & hold 6.15 | benchmark split(5,5) 2.32
+
+Runtime 337 s with 4 workers.

@@ -1627,3 +1627,60 @@ Script: `analysis_2026/results_late_entry/late_rise.py`.
 measured edge.
 - The cap blocks 3% of crypto entries and 0.2% of stock entries.
 - A tighter cap (0.10-0.20) would have blocked 14-26% of crypto entries, which averaged 6-8%.
+
+---
+
+# 2026-10-19 — split mode: how long should the second half wait? (pre-registered)
+
+Pre-registered in `analysis_2026/SPLIT_DELAY_PREREG.md` (42505ff) before any run. Code:
+`analysis_2026/split_delay.py`; results in `analysis_2026/results_split_delay/`. The daily basket-return files are
+not committed; the script regenerates them.
+
+**Design.**
+- **Tranche 1:** 50% at N=1.
+- **Tranche 2:** 50% at (n_entry, n_exit), with n_entry ∈ {1, 2, 3, 5, 8, 12} and n_exit ∈ {2, 3, 5, 8, 12, 20}:
+  36 variants.
+- **Samples:**
+  - P1: S&P 500 point-in-time basket incl. failed companies, 2001-2026.
+  - P2: the high-volatility fifth of that universe each year.
+  - P3: crypto top-20 incl. dead coins, 2019-2026.
+- **Procedure:** pick the best variant in-sample (2001-13; for crypto 2019-22), then test it out of sample against
+  `split(5,5)`. Paired bootstrap; Holm across the three samples; a reality check over the grid.
+
+**Audit.** Two lenses: an independent rebuild and statistics/look-ahead.
+- The rebuild reproduced every number.
+- It found one real bug. The reality check used split(12,20) as its benchmark, because a duplicated pandas column
+  was expanded. Fixed and rerun.
+- The corrected p-values are 0.80 / 0.85 / 0.34. The first run showed P3 at 0.08 because of the bug.
+
+**Verdicts: all three samples fail. `split(5,5)` stays.**
+
+| | in-sample best | IS Sharpe best / (5,5) | OOS Sharpe best / (5,5) | OOS p (Holm) | reality-check p |
+|---|---|---|---|---|---|
+| P1 | split(8,8) | 0.456 / 0.417 | 0.475 / 0.491 | 0.77 (1.0) | 0.80 |
+| P2 | split(12,8) | 0.308 / 0.271 | 0.400 / 0.433 | 0.83 (1.0) | 0.85 |
+| P3 | split(1,2) | 1.293 / 1.108 | 0.790 / 0.812 | 0.62 (1.0) | 0.34 |
+
+- **The stock surface is flat around (5,5).** 28 of 36 variants are within 0.03 Sharpe of it.
+  - Selling after about 8 closes instead of 5 was slightly better both in-sample and out of sample, by about
+    0.01-0.02 Sharpe.
+  - That is far below what the data can confirm: split(5,8) vs split(5,5) out of sample gives p 0.37 / 0.55 / 0.23.
+  - Drawdowns were about 2 points deeper.
+  - The in-sample picks failed because of their 8-12-close entries, not their exits.
+- **Crypto favours short exits.** split(1,2) was best in-sample but lost out of sample.
+
+**Reference finding, not part of the decision rule:** on stocks the first tranche at N=1 holds split back.
+100% at N=5 (`confirm5`) beat every split variant:
+
+| | Sharpe: confirm5 / split(5,5) / immediate / buy & hold | after tax: confirm5 / split / B&H | max drawdown: confirm5 / split / B&H |
+|---|---|---|---|
+| P1 full | 0.515 / 0.444 / 0.352 / 0.515 | 4.3 / 3.8 / 10.0 | −22% / −28% / −58% |
+| P1 OOS 2014-26 | 0.536 / 0.491 / 0.417 / 0.579 | | |
+| P2 full | 0.426 / 0.328 / 0.216 / 0.393 | 4.9 / 3.8 / 8.9 | −37% / −41% / −76% |
+| P2 OOS | 0.512 / 0.433 / 0.334 / 0.512 | | |
+
+- This matches the pre-registered flip-delay result (HANDOFF 5.15: N=5 beats N=1 on stocks).
+- On crypto the order is reversed: `immediate` 1.071, split 0.976, confirm5 0.812 (full sample). Out of sample
+  immediate and split are about tied, 0.828 vs 0.812.
+- **Reading:** for stocks, `confirm5` is the better-supported mode. For crypto, keep `split`; immediate is about
+  tied.
