@@ -1873,7 +1873,7 @@ def _check_routes_smoke(say) -> None:
                  stock_names={"user": ["TSLA", "SPY"]}, engine_cache=cache, say=lambda *a: None)
     G, S = out["gate"], out["summary"]
     assert out["log"]["fills_audit_violations"] == 0, out["audit"]
-    assert len(G) == 4 * 3 + 3 * 2 + 4 * 2 + 2 and len(S) == 4 * 2 + 3 + 4 + 1, (len(G), len(S))
+    assert len(G) == 4 * 3 + 3 * 2 + 4 * 2 + 2 and len(S) == 4 * 3 + 3 + 4 + 1, (len(G), len(S))   # RH: 3 groups
     assert G["verdict"].isin(["TRADE", "PROBATION", "NO-SIGNAL"]).all()
     assert G["fm_cagr_tax"].notna().all() and S["fm_cagr_tax"].notna().all() and S["spy_cagr_tax"].notna().all()
     assert (G["T1_years_ok"].astype(bool) == (G["years"] >= 7)).all()

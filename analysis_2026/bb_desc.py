@@ -2663,7 +2663,8 @@ def _st_end_to_end(say) -> None:
             for c in ("fm_cagr_pre", "fm_cagr_tax", "bh_cagr_tax", "expected_false_TRADE", "n_TRADE"):
                 assert _close(gi.loc["RH24" + EXZEC, c], gi.loc["BTC/ETH/SOL", c], 1e-12), (row, basis, c)
         rm = json.loads((tmp / "routes" / "meta.json").read_text())["exZEC"]
-        assert rm["needed"] and rm["gate_rows_identical"] is True and not rm["skipped_bb_bench_has_group"]
+        # bb_bench now carries the RH24 exZEC group itself, so the extra calls are skipped; otherwise they must agree
+        assert rm["needed"] and (rm["skipped_bb_bench_has_group"] or rm["gate_rows_identical"] is True)
         Ac = pd.read_csv(tmp / "routes" / "accounts.csv")
         assert ("RH24" + EXZEC) in set(Ac["group"])
         T = pd.read_csv(tmp / "tv" / "stats.csv")
