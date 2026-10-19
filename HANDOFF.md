@@ -1092,7 +1092,8 @@ assets?"
     reconciliation of the post's numbers;
   - `data_inventory.md`.
 - **Pre-registration.** `analysis_2026/BB_REPLICATION_PREREG.md`, frozen 2026-10-18 (commit bc744ff) after a
-  three-lens adversarial review (54 proposals). Addenda 1-3 settled build questions before any strategy result.
+  three-lens adversarial review (54 proposals). Addenda 1-3 settled build questions before any strategy result
+  was read.
   - 12 tests (H1-H10, HS1, HS2) in one Holm family; verdicts PASS / NO EDGE / INCONCLUSIVE.
   - Trade-level effects are drift-adjusted (leave-out drift, as in 5.19).
   - The sentences allowed in the answer were fixed in advance: "does not work" only for an asset group whose H1,
@@ -1215,7 +1216,8 @@ assets?"
     2020-2026 and lost 95% or more on 11 (median 0.37x, 4 liquidations), although its pooled trade mean was
     positive (+5.95% of M drift-adjusted [+0.19, +11.7]; +5.51% [−0.31, +11.3] without ZEC; exploratory).
     Rule-11 sizing from month-start equity, with no check that margin fits current equity (`bb_engine` choice
-    17), took exposure to 181x equity (TRX).
+    17), took exposure to 181x equity (TRX). TRX, UNI and ZEC reached 0 with no liquidation, which needs margin
+    above equity; without them 8 of 40 lost 95% or more, 4 through liquidation.
   - The 2025-10-10 stress row is vacuous: R0 held no position in the window. S1's BTC stop that day was −5.4% of M,
     and the top-6/10 universes' BNB stop −21.5%.
 - **Grid** (`primary/tests.json` H10, `explore/grid_summary.csv`).
@@ -1226,8 +1228,10 @@ assets?"
   - With zero fees H10 is still −2.8% a year.
   - The always-on grid's profit is almost exactly offset by inventory: BTC +1.016 vs −1.011.
 - **Stocks** (`primary/tests.json` HS1/HS2, `explore/`).
-  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. The Sharpe part's bound (−0.041) alone
-    carries the HARMS verdict.
+  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. Both bounds are below zero (−0.435% of M;
+    Sharpe −0.041), so each part alone gives HARMS. The Sharpe part does not use the drift charge, but its bound
+    is close to zero (+0.050 with 12-month blocks), so HARMS without the drift charge is marginal. NO EDGE holds
+    either way (unadjusted trade bound +0.34% < +0.5%).
   - Breakout book vs a random-entry book with the same slots and holding times (exploratory): Sharpe −0.42
     [−0.72, −0.11].
   - 100 seeds: median Sharpe difference −0.57 (5th-95th percentiles across seeds −0.64 to −0.49).
@@ -1240,18 +1244,21 @@ assets?"
 - **Routes** (`routes/summary.csv`). 0 TRADE anywhere.
   - PROBATION, failing only T1 on 11-20 trades: AVAX, DOT and UNI on RH (plus ADA for R0 at 1x), and COIN. The
     placebo expects 0.20-0.26 per 24-coin group (0.05 for the user's tickers), so 3-4 per group is well above
-    chance. Not acted on: 11-20 trades each, the same coins in every variant, a hindsight coin list (today's
-    Robinhood listing), and the pre-registered answer allows "you can trade it" only for TRADE.
+    chance. Not acted on: 11-20 trades each, AVAX, DOT and UNI recurring in every variant, a hindsight coin list
+    (today's Robinhood listing), and the pre-registered answer allows "you can trade it" only for TRADE.
   - CB is capped at PROBATION by T1.
-  - After tax every route trails buy-and-hold of its assets: crypto by 14-42 points a year on the longest history
-    (spot routes from 2017-08) and 30-53 over 2020-2026; stocks by 6-13.
+  - After tax every route's pooled account trails buy-and-hold of its assets: crypto by 14-42 points a year on the
+    longest history (spot routes from 2017-08) and 30-53 over 2020-2026; stocks by 6-13. Single assets can beat
+    their own hold (6-11 of the 24 Robinhood coins, COIN and CRCL), each on 30 trades or fewer.
 - **What the trader may have had** (descriptive).
   - ZEC: S17 with ZEC made 8.96x in W16, 0.88x without it.
   - Shorts (H12, exploratory): S11 made 1.54x vs 0.86x in W16 (one path; BH p 0.25). Over the Full sample it made
     29.0x vs 20.7x, with a Sharpe 0.06 lower (−0.47 to +0.43), one liquidation and a −71% drawdown. Neither
     difference is distinguishable from zero.
   - Fitted 4-hour cells (H11b): run at 5x, seven W16b set cells made 4.40-6.75x (no ZEC traded), and one 3x cell
-    made 5.05x in W16b. Single in-window paths; none is consistent with the post's statistics jointly.
+    made 5.05x in W16b. Single in-window paths; none is consistent with the post's statistics jointly. Three of
+    the seven and the 3x cell trade S12's top 6, ranked within the 40 coins chosen in 2026 ("point-in-time ranks
+    within a 2026 pool"), so they carry hindsight; the other four use the all-contract top 10.
   - Or the W16b window.
 
 **Caveats that matter.**
@@ -1279,8 +1286,9 @@ assets?"
 
 **Use.**
 - Don't run this strategy, its rules or its grid, manually or through the agent.
-- The repo's indicator was ahead on the same coins (Sharpe 1.44 vs 1.17; H2 cannot separate them), and the
-  existing plan (ETH via the spot ETF) is unaffected.
+- The repo's indicator (`moneyline_ref`, the pre-October-2026 version; the October 2026 update was not tested)
+  was ahead on the same coins (Sharpe 1.44 vs 1.17; H2 cannot separate them), and the existing plan (ETH via the
+  spot ETF) is unaffected.
 - To judge the trader: exchange statements for both accounts over the 16 months, with fees and funding, against
   holding the same coins at the same leverage.
 

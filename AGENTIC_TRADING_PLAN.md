@@ -192,11 +192,12 @@ Do **not** add these (all tested):
 - the Bollinger-band breakout rules from a Twitter "AI breakdown" (breakouts near highs, pyramiding,
   3-5x leverage, weekday and hour rules, a grid "while waiting"): the breakout rules (as a 1x daily
   stock version) do not work on S&P 500 stocks or the 14 ETFs, on crypto the data cannot tell, the
-  indicator was ahead on the same coins (descriptive; H2 cannot separate them), the grid's profit is
-  given back by its inventory, and no US route got a TRADE verdict (four Robinhood coins and COIN got
-  PROBATION, more often than chance would give, but not acted on: 11-20 trades each, the same coins in
-  every variant, and a hindsight coin list) (HANDOFF section 5.22). Binance perpetuals and grid bots are
-  generally not available to US residents.
+  indicator (`moneyline_ref`, the pre-October-2026 version; the October 2026 update was not tested)
+  was ahead on the same coins (descriptive; H2 cannot separate them), the grid's profit is given back
+  by its inventory, and no US route got a TRADE verdict (four Robinhood coins and COIN got PROBATION,
+  more often than chance would give, but not acted on: 11-20 trades each, AVAX, DOT and UNI recurring
+  in every variant, and a hindsight coin list) (HANDOFF section 5.22). Binance perpetuals and grid bots
+  are generally not available to US residents.
 
 ---
 

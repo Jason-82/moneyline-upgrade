@@ -2499,7 +2499,7 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   - The post cannot be traced. Six of its 15 rules (6, 11-15) are patterns mined from one trader's results.
   - Its volume is 950-19,000x average equity for a $0.25-5M start.
 - **Pre-registration.** `analysis_2026/BB_REPLICATION_PREREG.md` (frozen 2026-10-18, bc744ff) after a 3-lens
-  adversarial review (54 proposals). Addenda 1-3 came before any strategy result.
+  adversarial review (54 proposals). Addenda 1-3 came before any strategy result was read.
   - 12 tests in one Holm family: verdicts PASS / NO EDGE / INCONCLUSIVE, with drift-adjusted trade units.
   - The answer sentences were fixed in advance.
 - **Data.** `data/bbreplica/` (gitignored), from the Binance archive:
@@ -2582,7 +2582,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
     disagree on universe, direction and grid, so the post's statistics do not identify a strategy. The set made
     1.14-2.66x in W16 (1.13-1.93x without ZEC; fitted, in-window); out of window its median log growth beat the
     median cell's in W16 (41.7 vs 26.4 points a year) but not in W16b (5.9 vs 28.0; 3.2 vs 22.9 without ZEC).
-    Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x, no ZEC traded); single in-window paths.
+    Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x, no ZEC traded); single in-window paths. Three of
+    them trade S12's top 6, ranked within the 40 coins chosen in 2026 ("point-in-time ranks within a 2026 pool"),
+    so they carry hindsight; the other four use the all-contract top 10.
 - **Luck** (`luck/`).
   - R0's W16 multiple is at the 55th percentile of 1,000 random-entry versions (W16b 58th). 0 of 4,000 versions
     reach 4.3x, and 0-1.8% reach 2x.
@@ -2594,7 +2596,8 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   - R0 on one coin as the whole account (`rows/per_coin.csv`): 26 of 40 coins ended below 1x over 2020-2026 and
     11 lost 95% or more (median 0.37x, 4 liquidations), although the pooled trade mean was positive (+5.95% of M
     drift-adjusted [+0.19, +11.7]; +5.51% [−0.31, +11.3] without ZEC; exploratory). Rule-11 sizing from
-    month-start equity took exposure to 181x equity (TRX).
+    month-start equity took exposure to 181x equity (TRX). TRX, UNI and ZEC reached 0 with no liquidation, which
+    needs margin above equity; without them 8 of 40 lost 95% or more, 4 through liquidation.
   - The 2025-10-10 stress row is vacuous (no R0 position open).
 - **Grid (H10).**
   - G-A grid profit +0.157 / +0.118 / +0.088 of a sleeve on BTC/ETH/SOL, against inventory −0.177 / −0.191 /
@@ -2603,8 +2606,10 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   - G-B (exploratory) ended at 1.08x vs R0's 0.92x (drawdown −30.5% vs −47.8%), but its mean daily difference is
     −0.5% a year [−18.4, +21.0].
 - **Stocks.**
-  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. The Sharpe part alone carries HARMS (bound
-    −0.041).
+  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. Both bounds are below zero (−0.435% of M;
+    Sharpe −0.041), so each part alone gives HARMS. The Sharpe part does not use the drift charge, but its bound
+    is close to zero (+0.050 with 12-month blocks), so HARMS without the drift charge is marginal; NO EDGE holds
+    either way (unadjusted trade bound +0.34% < +0.5%).
   - Vs a random-entry book (exploratory): −0.42 Sharpe [−0.72, −0.11].
   - 20-slot book 1.28x (idle cash at the T-bill) vs equal-weight members 13.05x (2001-2026).
   - 1996-2000, separately: −0.43% per trade, Sharpe −0.88.
@@ -2615,11 +2620,12 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - **Routes** (`routes/summary.csv`). 0 TRADE.
   - PROBATION, failing only T1 on 11-20 trades: AVAX, DOT, UNI and ADA (Robinhood route) and COIN. The placebo
     expects 0.20-0.26 per 24-coin Robinhood group (0.05 for the user's tickers), so 3-4 per group is well above
-    chance. Not acted on: 11-20 trades each, the same coins in every variant, a hindsight coin list, and the
-    pre-registered answer allows "you can trade it" only for TRADE.
+    chance. Not acted on: 11-20 trades each, AVAX, DOT and UNI recurring in every variant (ADA only for R0 at
+    1x), a hindsight coin list, and the pre-registered answer allows "you can trade it" only for TRADE.
   - CB is capped by T1.
-  - Every route trails buy-and-hold after tax: crypto by 14-42 points a year on the longest history (spot routes
-    from 2017-08) and 30-53 over 2020-2026; stocks by 6-13.
+  - Every route's pooled account trails buy-and-hold after tax: crypto by 14-42 points a year on the longest
+    history (spot routes from 2017-08) and 30-53 over 2020-2026; stocks by 6-13. Single assets can beat their own
+    hold (6-11 of the 24 Robinhood coins, COIN and CRCL), each on 30 trades or fewer.
 - **H12 shorts (exploratory).** 1.54x vs 0.86x in W16 (one path; BH p 0.25). Over the Full sample 29.0x vs 20.7x,
   Sharpe −0.06 vs R0 (−0.47 to +0.43), one liquidation, −71% drawdown. Neither difference is distinguishable from
   zero.
@@ -2654,9 +2660,11 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   its bound.
 
 **Practical reading:**
-- The exact strategy cannot be recovered from the post. The described rules on BTC/ETH/SOL do not come near 4.3x,
-  by design or by luck; among the pre-registered rows only adding ZEC with hindsight (S17) exceeds it.
-- Don't trade these rules, their leverage or their grid. On the same coins the repo's indicator was ahead (Sharpe
-  1.44 vs 1.17), though H2 cannot separate them.
+- The exact strategy cannot be recovered from the post. The described rules on BTC/ETH/SOL do not come near 4.3x
+  in the likely 16 months (W16 0.86x, W16b 0.93x; single paths), by design or by luck; among the pre-registered
+  rows only adding ZEC with hindsight (S17) exceeds it.
+- Don't trade these rules, their leverage or their grid. On the same coins the repo's indicator (`moneyline_ref`,
+  the pre-October-2026 version; the October 2026 update was not tested) was ahead (Sharpe 1.44 vs 1.17), though
+  H2 cannot separate them.
 - To judge the trader: exchange statements for both accounts, with fees and funding, against holding the same
   coins at the same leverage.
