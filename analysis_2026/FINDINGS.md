@@ -2549,8 +2549,9 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   - Vs buy-and-hold and the indicator: the data cannot tell (H2).
   - Stocks: it does not work (HS1 NO EDGE (HARMS)).
   - ETFs: it does not work (HS2 NO EDGE).
-  - "Their full strategy beats holding" may not be said for any group. In log points a year: crypto −7.1
-    [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs −5.0 [−9.9, −0.4].
+  - "Their full strategy beats holding" may not be said for any group. In log points a year against holding
+    (1 log point ≈ 1% a year of compound growth): crypto −7.1 [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs
+    −5.0 [−9.9, −0.4].
   - No route produced a TRADE verdict.
 - **H1 detail.** Unadjusted +6.80% [+1.50, +12.09]. Halves +8.58% / +0.62%. Other 37 coins +5.32% [−0.42, +11.07]
   (+4.74% without ZEC). MDE 8.5%, against the post's implied edge of about 1%.
@@ -2592,7 +2593,8 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
     Average account exposure at 3x is 0.42.
   - R0 on one coin as the whole account (`rows/per_coin.csv`): 26 of 40 coins ended below 1x over 2020-2026 and
     11 lost 95% or more (median 0.37x, 4 liquidations), although the pooled trade mean was positive (+5.95% of M
-    drift-adjusted, exploratory). Rule-11 sizing from month-start equity took exposure to 181x equity (TRX).
+    drift-adjusted [+0.19, +11.7]; +5.51% [−0.31, +11.3] without ZEC; exploratory). Rule-11 sizing from
+    month-start equity took exposure to 181x equity (TRX).
   - The 2025-10-10 stress row is vacuous (no R0 position open).
 - **Grid (H10).**
   - G-A grid profit +0.157 / +0.118 / +0.088 of a sleeve on BTC/ETH/SOL, against inventory −0.177 / −0.191 /

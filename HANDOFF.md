@@ -1138,7 +1138,7 @@ assets?"
 - Look-ahead: 110 off-boundary cut times, 2,597,008 decisions unchanged.
 - Fill audit: 650,746 fills, 0 violations.
 - Liquidation: 12 hand-built cases.
-- Grid path: the engine is within 0.07% of a 1-second simulation.
+- Grid path: the engine matches a 1-second simulation to within 0.07% of gross grid profit (tolerance 10%).
 - Indicator cross-check: 6.6x against 5.14's 12.4x.
 - Inference: the bootstrap-t 95% bound missed 5.5% of the time (11 of 200 paths), so Addendum 2 widened it to 95.5%
   and the NO EDGE level to 99.625%. H1's test rejected 3 of 200 (1.5%).
@@ -1165,8 +1165,9 @@ assets?"
 - Against buy-and-hold and the indicator: the data cannot tell (H2).
 - Stocks: it does not work (HS1 NO EDGE (HARMS)).
 - ETFs: it does not work (HS2 NO EDGE).
-- "Their full strategy beats holding" may not be said for any group. In log points a year against holding: crypto
-  −7.1 [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs −5.0 [−9.9, −0.4] (`headline/answer_map.csv`).
+- "Their full strategy beats holding" may not be said for any group. In log points a year against holding (1 log
+  point ≈ 1% a year of compound growth): crypto −7.1 [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs −5.0
+  [−9.9, −0.4] (`headline/answer_map.csv`).
 - No route produced a TRADE verdict.
 
 **Key numbers.**
@@ -1184,9 +1185,10 @@ assets?"
 - **Exact strategy: not identifiable.**
   - H11: 0 of 78 variant-windows consistent; every one also at a different trading frequency. The most active (F)
     made 435 tranches in W16 (400 without ZEC) and 474 in W16b, against 1,462. Turnover among the 39 H11 rows was at
-    most 183x, against 950-19,000x. Some H11b cells reach the post's count (116 of 648 in W16, mostly 1-hour; up to
-    7,518 tranches) and some 1-hour cells its volume (up to 2,481x in W16, 2,588x in W16b), but none of them
-    matches its hit rate. Decoys consistent: 0 of 2,740.
+    most 183x, against 950-19,000x. Some H11b cells trade as often as the post or more (116 of 648 W16 cells are
+    inside the 0.5-2x count band, mostly 1-hour; the most active cell made 7,518 tranches) and some 1-hour cells
+    reach its volume (up to 2,481x in W16, 2,588x in W16b), but none of them matches its hit rate. Decoys
+    consistent: 0 of 2,740.
   - H11b: the identified set holds 16 cells (2.5%) in W16 and 21 (3.2%) in W16b, with 0 decoys. All use 4-hour
     bars, but they disagree on universe, direction and grid, so by the frozen rule the statistics do not identify a
     strategy. The set made 1.14-2.66x in W16 (1.13-1.93x without ZEC; fitted, in-window). Out of window, the W16
@@ -1211,8 +1213,9 @@ assets?"
   - Average account exposure at 3x is only 0.42, so 5.14's whole-account blow-ups do not transfer to the three-slot
     account. Run on one coin as the whole account (`rows/per_coin.csv`), R0 ended below 1x on 26 of 40 coins over
     2020-2026 and lost 95% or more on 11 (median 0.37x, 4 liquidations), although its pooled trade mean was
-    positive (+5.95% of M drift-adjusted, exploratory). Rule-11 sizing from month-start equity, with no check that
-    margin fits current equity (`bb_engine` choice 17), took exposure to 181x equity (TRX).
+    positive (+5.95% of M drift-adjusted [+0.19, +11.7]; +5.51% [−0.31, +11.3] without ZEC; exploratory).
+    Rule-11 sizing from month-start equity, with no check that margin fits current equity (`bb_engine` choice
+    17), took exposure to 181x equity (TRX).
   - The 2025-10-10 stress row is vacuous: R0 held no position in the window. S1's BTC stop that day was −5.4% of M,
     and the top-6/10 universes' BNB stop −21.5%.
 - **Grid** (`primary/tests.json` H10, `explore/grid_summary.csv`).
