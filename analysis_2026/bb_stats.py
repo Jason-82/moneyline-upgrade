@@ -167,8 +167,15 @@ E = {"H1": 0.005, "HS_trade": 0.005,                       # +0.5% of M per trad
 
 
 def _q(x, prob):
-    """Order-statistic quantile with the (B + 1) * alpha convention (method 'weibull')."""
-    return np.quantile(x, prob, method="weibull")
+    """Order-statistic quantile with the (B + 1) * alpha convention (method 'weibull'). When infinite t* (draws with
+    a zero clustered SE) make the interpolation inf - inf, the bracketing order statistic is returned instead."""
+    x = np.asarray(x, float)
+    with np.errstate(invalid="ignore"):
+        q = np.quantile(x, prob, method="weibull")
+    if np.isnan(q) and not np.isnan(x).all():
+        s = np.sort(x[~np.isnan(x)])
+        q = s[int(np.clip(np.floor((len(s) + 1) * prob - 1), 0, len(s) - 1))]
+    return float(q)
 
 
 # ============================================================================ cluster labels

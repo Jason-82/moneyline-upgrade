@@ -200,7 +200,8 @@ _ETF_ROWS = {k: replace(be.ROWS[v], cost_side=ETF_COST)
 # prices: "spot" = bb_engine runs on spot_hours() (choice 13); "traded" = on bb_data.coin_hours (the perpetual)
 ROUTES = {
     "RH": dict(vehicle="crypto_direct", series="sig", prices="spot", cost=RH_COST, book="engine",
-               coins=list(bd.RH_TRADABLE), groups={"BTC/ETH/SOL": list(bd.PRIMARY), "RH24": list(bd.RH_TRADABLE)},
+               coins=list(bd.RH_TRADABLE), groups={"BTC/ETH/SOL": list(bd.PRIMARY), "RH24": list(bd.RH_TRADABLE),
+                       "RH24 exZEC": [c for c in bd.RH_TRADABLE if c != "ZEC"]},
                rows={"S1": be.ROWS["RH_S1"], "S1_S4": be.ROWS["RH_S1_S4"], "R0_L1": be.ROWS["RH_R0win"],
                      "R0_L1_S4": be.ROWS["RH_R0win_S4"]}),
     "ETF": dict(vehicle="spot_etf", series="sig", prices="spot", cost=ETF_COST, book="etf", coins=["BTC", "ETH"],
@@ -573,8 +574,11 @@ def ml_coin(sym: str, start=START, end=END, fees: str = "base", vehicle: str = "
     log = {"positions": int(n), "liquidations": int((kind == 1).sum()), "delist_closes": int((kind == 2).sum()),
            "open_at_end": int((kind == 3).sum()), "green_days": int(D["green"].sum()),
            "window": (str(H.index[h0]), str(H.index[h1])), "vehicle": vehicle, "fees": fees}
-    return {"sym": sym, "trades": trades, "daily_mtm": daily, "expo": expo, "green": D, "fills_audit": [],
-            "log": log}
+    res = {"sym": sym, "trades": trades, "daily_mtm": daily, "expo": expo, "green": D, "fills_audit": [],
+           "log": log}
+    from analysis_2026.bb_controls import bench_fill_audit   # lazy: bb_controls imports this module
+    res["fills_audit"] = bench_fill_audit(res, H)
+    return res
 
 
 def moneyline_perp(syms=tuple(bd.PRIMARY), start=START, end=END, k_slots: int | None = None,

@@ -2153,6 +2153,12 @@ def assemble(results_by_coin: dict, cfg: Cfg, start, end, idle_tbill: bool = Fal
                 elif T.entry1_time.iat[i].value > hrs[hb]:
                     M[i] = 0.0
                     pnl_usd[i] = 0.0
+            if cross_pos:              # the positions held at the breach lose keep - (equity before the breach)
+                cp = np.asarray(cross_pos)
+                eng = float(pnl_usd[cp].sum())
+                target = keep - (E_low[hb] - openv[hb])
+                if eng < 0 and target <= 0:
+                    pnl_usd[cp] *= target / eng
     eq = pd.Series(E, index=days, name="equity")
     r = pd.Series(np.where(E[:-1] > 0, E[1:] / np.where(E[:-1] > 0, E[:-1], 1.0) - 1.0, 0.0), index=days[:-1],
                   name="ret")

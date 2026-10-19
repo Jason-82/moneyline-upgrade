@@ -697,3 +697,23 @@ case it did not anticipate.
   pending crypto signal waits through a month in which the coin is not a member.
 - **T2b's S&P 500 series** is extended back to 2001 with SPY from `data/raw_pit/`, because `gate.spy_hurdle`'s own
   series starts in 2010-07.
+
+## Addendum 3: control and reporting rulings (2026-10-19, before the controls were run for the record)
+
+No strategy result had been read when these were decided.
+
+- **Inference control, size of H1's test.** The check passes when the point rejection rate over the 200
+  synthetic paths is at most 5% (at most 10 of 200). This is the reading Addendum 2 gives the identical phrase
+  for the bound. The exact binomial interval is reported alongside.
+- **Look-ahead control, account totals.** Every per-position decision (order, fill, add, exit, suppression,
+  liquidation, rank) is compared exactly. Account totals are also compared exactly on the account rebuilt from
+  the positions entered before t. On the full account they are compared to a relative 1e-12, because a longer
+  vector of later positions with zero weight changes floating-point summation by less than one unit in the last
+  place.
+- **Halves** are halves of the full run's sample, so a trade that straddles the boundary is not truncated. A
+  trade belongs to the half in which entry₁ filled, and a portfolio's daily returns are split by day. Halves run
+  as separate windows that start flat are reported as a sensitivity.
+- **F on an S12 universe.** If F is an S12 cell, its headline benchmarks are BTC/ETH/SOL buy-and-hold and the
+  indicator, labelled as such. No point-in-time buy-and-hold of a monthly re-ranked universe is built.
+- **Run order:** controls → F's nine counts → the 12 primary tests → report → descriptive rows → the fit, luck
+  and H12 → final report. Each stage refuses to run until the one before it is complete.
