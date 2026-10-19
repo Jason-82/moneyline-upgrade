@@ -3,7 +3,8 @@
  "n_consistent_tranche_rule": 0,
  "n_consistent_position_rule": 0,
  "consistent": [],
- "different_trading_frequency": 78,
+ "different_trading_frequency": 0,
+ "inconsistent_and_different_frequency": 78,
  "expected_by_chance": {
   "share_decoys_consistent": 0.0,
   "n_decoys": 2740,

@@ -2846,7 +2846,8 @@ def _st_consistency(say) -> None:
         ("count 730", _base_st(), iv, A, 730, False, "different trading frequency", True),
         ("count 2924 (2x, inside)", _base_st(), iv, A, 2924, True, "consistent", False),
         ("count 2925", _base_st(), iv, A, 2925, False, "different trading frequency", True),
-        ("count 40 and hit off", _base_st(hit=0.2), iv, A, 40, False, "different trading frequency", False),
+        ("count 40 and hit off", _base_st(hit=0.2), iv, A, 40, False, "inconsistent (also different trading frequency)",
+         False),
     ]
     for name, st, ivv, AA, n, cons, status, only in cases:
         c = consistency(st, ivv, AA, n)
