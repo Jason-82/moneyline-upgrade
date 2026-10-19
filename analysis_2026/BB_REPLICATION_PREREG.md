@@ -664,3 +664,36 @@ anticipate; none changes a test, threshold or window.
   missing from the snapshot, are assumed at 1.0%.
 - **Code layout.** `bb_replica.py` is the runner. The work is split into `bb_data.py`, `bb_engine.py`,
   `bb_stats.py`, `bb_stocks.py`, `bb_grid.py` and `bb_bench.py`.
+
+## Addendum 2: rulings made while building the engine (2026-10-19, before any strategy result)
+
+No strategy return had been read when these were decided. Each settles a reading the frozen text left open or a
+case it did not anticipate.
+
+- **S6 changes only the entry band.** The stop and trend exit stay on SMA20 and ATR14, and S9's band stop uses
+  BB(20, 2), because "each row changes R0 as stated and nothing else". H11b's BB factor means the same.
+- **H3-H8 run at R0's L = 3.** S1 and S1W are sensitivity rows that change only what they state; only H1, H2
+  and the headline name "S1 at L = 1". A trade's return per unit of M differs across L only through the leverage
+  cap and liquidation.
+- **Inference control.**
+  - It runs on the engine's S1 at L = 1, with no fees (so the true mean is zero), on 200 synthetic three-coin
+    paths.
+  - If the bootstrap-t 95% bound misses more than 5% of the time, the level is widened to the smallest level at
+    which it misses at most 5%. The NO EDGE level's tail (0.05/12) is then scaled by the same factor; for
+    example 95.5% maps to 99.625%.
+- **Gate window for the spot routes (RH, ETF).** Gate T1 needs 7 years of the underlying's own history, and the
+  Full window spans 6.8 years. These routes therefore use the longest Binance spot history (from 2017-08-17),
+  and the Full-window gate is reported beside it. The CB route cannot be extended, because the perpetual data
+  start in 2019-09, so T1 caps it at PROBATION; this is stated.
+- **H2(a) buy-and-hold** holds 1/K of the account per coin, kept in cash (earning the T-bill in the
+  excess-return test) until the coin joins. This matches S1's three-slot account and the window-edge rule.
+  Equal weights among the joined coins are reported as a sensitivity.
+- **HS2's portfolio has 14 slots** (one per ETF, M = equity/14). Twenty slots of equity/20 could never fill on 14
+  ETFs.
+- **Close-only (CRSP) rows in the member files are flat bars** under the Fills rule: no signal, entry or add.
+  They make up 16% of member-days in 2001-2013 and 33% in 1996-2000, and the equal-weight member benchmark still
+  holds them. This is recorded as a caveat beside HS1's first half and the 1996-2000 block.
+- **Membership.** In the stock version, a signal whose entry session is not a member day is skipped. In S12, a
+  pending crypto signal waits through a month in which the coin is not a member.
+- **T2b's S&P 500 series** is extended back to 2001 with SPY from `data/raw_pit/`, because `gate.spy_hurdle`'s own
+  series starts in 2010-07.
