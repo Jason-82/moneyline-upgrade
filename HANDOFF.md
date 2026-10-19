@@ -10,8 +10,9 @@ anything. It is the authoritative summary.
 **Repo:** https://github.com/Jason-82/moneyline-upgrade. It is **public**: never
 commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
-**Last updated:** 2026-10-18. Most recent additions:
+**Last updated:** 2026-10-19. Most recent additions:
 
+- replicating a Twitter "AI breakdown" of a Bollinger-breakout crypto trader: the rules cannot be recovered from the post; the breakout rules (daily stock version, 1x) do not work on stocks or ETFs (NO EDGE), and on crypto the data cannot tell (section 5.22)
 - scalping and bid-ask capture in low-volume markets: none of 36 pre-registered tests passes (section 5.21)
 - investing by countries' policy direction: economic freedom, taxes, energy/industry (section 5.20)
 - buying bounces at moving averages ("key levels", the user's HOOD 200-day example; section 5.19)
@@ -19,7 +20,7 @@ commit account numbers, balances, positions, order logs or digests.
 - the ten theory-driven strategies (section 5.16)
 - the regime-switch study (section 5.17)
 
-Sections 5.17, 5.19, 5.20 and 5.21 (with `regime_switch.py`, `ma_bounce.py`, `freedom_countries.py`, the `scalp_*.py` modules and their results) were
+Sections 5.17, 5.19, 5.20, 5.21 and 5.22 (with `regime_switch.py`, `ma_bounce.py`, `freedom_countries.py`, the `scalp_*.py` and `bb_*.py` modules and their results) were
 written on `claude/youthful-goldberg-31vs8h`. That branch already contains the working
 branch, so merging it is a fast-forward. Until that merge, the working branch does not have
 them.
@@ -188,6 +189,7 @@ committed). What is known:
 | `data/raw_pit/` (gitignored) | The Johnbrick123 `prices.parquet` and `membership_intervals.parquet` as downloaded; `regime_switch.py` reads split-adjusted OHLC + adj_close for ETFs/TSLA/COIN/HOOD from it | see the `data/universe_pit_all/` row; built by `fetch_regime_data` |
 | `data/freedom/` (gitignored) | Fraser EFW 2025/2024/2019 releases, Heritage index 1995-2026, JKP country market returns (USD, 1926/1986-2025), WDI extract, OWID energy, iShares country ETF monthly bars | Third-party GitHub/S3 mirrors (provenance and cross-checks in `analysis_2026/research_notes/Economic freedom investment thesis/data_sources.md`). `python3 -m analysis_2026.fetch_freedom_data` rebuilds it (needs `pyreadr`). |
 | `data/scalping/` (gitignored) | Scalping study (section 5.21): qlib US daily panel 1999-12..2024-04, effectively a Nov-2020 snapshot (`qlib/panel.parquet`); Nasdaq/NYSE symbol directories with ETF flags (`ref/`); Binance daily klines for all USDT pairs 2025-01..2026-09 (`binance/klines_1d.parquet`); Robinhood read-only market data saved by agents (`rh/`: scanner listing of 4,150 low-volume US securities (3,485 common stocks after dropping funds, SPACs, preferreds and warrants), daily bars 2023-07-03..2026-10-16 split-adjusted and unadjusted for 3,485 names, 5-minute and 1-minute bars for the 120-name Part C panel (118 used) and 15-second bars for 40 of them, event-day 5-minute bars); per-unit simulation results (`A/`, `B/`, `C/`); pilot data (`rh_pilot/`, `binance_pilot/`, `iex_pilot/`) | `python3 -m analysis_2026.fetch_scalping_data qlib\|etf\|klines` rebuilds the downloadable parts. The Robinhood parts can only be re-pulled by an agent session through the Robinhood MCP (read-only `preview_scan` and `get_equity_historicals`; save raw responses under `rh/*_raw/`, then `fetch_scalping_data rh-combine`). Intraday retention is rolling (5-minute ~7.5 months, 1-minute ~6 weeks, 15-second ~4 sessions), so those pulls cannot be repeated for the same window. |
+| `data/bbreplica/` (gitignored, about 0.8 GB) | Bollinger-breakout replication (section 5.22): Binance spot and USD-M perpetual 1-hour klines for 40 coins plus LUNA2 to 2026-10-16 (`h1_spot/`, `h1_um/`), the archive's daily klines (`d1_spot/`, `d1_um/`), funding events (`funding/`), mark-price 1-hour klines trimmed to each contract's traded window (`h1_mark/`), 1-minute perpetual klines for BTC ETH SOL BNB XRP DOGE 2024-07..2026-10 (`m1_um/`), daily klines of all 909 USDT perpetuals for S12's monthly ranking (`d1_um_all/`), plus checks (`stats/`, `validation/`) | `python3 -m analysis_2026.fetch_bb_data all` (about 45 min; parts `h1\|funding\|m1\|mark\|validate`), then `python3 -m analysis_2026.bb_data fetch-all` and `entrants` for S12. Provenance, repairs, gaps and checks: `analysis_2026/research_notes/Bollinger breakout replication/data_inventory.md`. |
 | `data/crypto_binance_regime/` (gitignored) | Binance daily klines for 40 large USDT pairs incl. LUNA, FTT, MATIC→POL | Binance S3 archive (section 10). `python3 -m analysis_2026.fetch_regime_data` rebuilds this folder, `data/macro/`, `data/raw_pit/` and `data/universe_pit_all/` (`--skip-pit` keeps the last two). |
 | `data/universe_pit_all/`, `data/universe_pit_ohlc/` (gitignored, rebuild) | **Best stock research set:** point-in-time S&P 500 members 1995 to 2026-10 including ~400 dead or acquired companies, plus SPY and `members.csv` | Download `https://github.com/Johnbrick123/sp500-data/releases/download/data/prices.parquet` (175 MB) and `.../membership_intervals.parquet`, then `screener.data.from_sp500_pit(prices, members, out, max_close_only=1.0 or 0.05)`. OHLC is scaled to total return (`--prices total`). CRSP close-only failures get approximated bars. STI is a recycled ticker (use `--exclude STI`). Third-party; the tag is overwritten nightly. |
 
@@ -1073,6 +1075,217 @@ strategy, which variants are worth testing, and does large capital help?
   - Coinbase/Kraken order books recorded on the user's machine;
   - paid TAQ-type data.
 
+### 5.22 Bollinger-breakout replication of a Twitter AI breakdown — `analysis_2026/bb_*.py`
+
+**The user's question (2026-10-18).** A Twitter post gave an "AI breakdown" of a crypto trader
+(`analysis_2026/research_notes/Bollinger breakout replication/source_summary.png`):
+- 16 months, 1,462 bots, $10.7B volume and 4.3x on starting capital;
+- a 48.7% hit rate (51.7% with a grid bot), and wins 1.4x losses;
+- Bollinger Band breakouts near local and all-time highs, cut below the midline, a grid "while waiting", and 15 rules.
+
+The user asked: "can you figure out their exact strategy from this summary, replicate it and test it on all of our
+assets?"
+
+**What was done.**
+- **Research.** Notes in `analysis_2026/research_notes/Bollinger breakout replication/`:
+  - `rules_and_evidence.md`: an operational reading of each rule, grid mechanics, the literature, and a
+    reconciliation of the post's numbers;
+  - `data_inventory.md`.
+- **Pre-registration.** `analysis_2026/BB_REPLICATION_PREREG.md`, frozen 2026-10-18 (commit bc744ff) after a
+  three-lens adversarial review (54 proposals). Addenda 1-3 settled build questions before any strategy result.
+  - 12 tests (H1-H10, HS1, HS2) in one Holm family; verdicts PASS / NO EDGE / INCONCLUSIVE.
+  - Trade-level effects are drift-adjusted (leave-out drift, as in 5.19).
+  - The sentences allowed in the answer were fixed in advance: "does not work" only for an asset group whose H1,
+    HS1 or HS2 is NO EDGE.
+- **Build and audit.**
+  - Engines were reviewed adversarially before the full runs.
+  - The controls ran first and all passed. The run order is enforced by the CLI.
+  - Results were audited by independent recomputation from raw data, which reproduced every core number exactly.
+  - Two real defects were fixed (the stock drift sample and the H9 unit label); no verdict changed.
+- **Report:** `analysis_2026/reports/Bollinger breakout replication.md`.
+
+**Design.**
+- **R0, the literal reading.** Binance USDT-M perpetuals; BTC/ETH/SOL, one slot each.
+  - Signal: a fresh daily close above BB(20, 2), within 5% of the 60-day high or 10% of the ATH; long only.
+  - Size: M = 3 × sleeve, first tranche M/3, adds of M/3 at +2% and +5%.
+  - Exits: stop at SMA20 − ATR14; take-profit on half at 3R; exit on a close below the midline at 13:00 New York.
+  - Timing: entries at 06:00 New York, none on Friday or Saturday. Rules 6, 11 and 15 as written.
+  - Costs and risk: actual funding, isolated-margin liquidation on the mark price.
+- **S1, the core.** Rules 6 and 12-15 off; 01:00 UTC timing. At 1x it is the base of H1 and H2.
+- **Sensitivity grid.** 20 rows (S1-S20), each changing one thing, all reported.
+- **F, frequency-matched.** The cell closest to 1,462 W16 tranches, chosen on the count alone before any return
+  was read: 1-hour bars on the monthly top-10 coins (435 tranches).
+- **Grid overlays** on 1-minute bars, 2024-07..2026-10: G-A, the waiting grid (H10); G-B, a per-tranche grid;
+  G-0, an always-on grid.
+- **Stocks and ETFs.** The same daily rules on point-in-time S&P 500 members including dead names (HS1, 2001-2026,
+  20 slots), the 14 `regime_switch.ETFS` (HS2, 14 slots) and the user's 7 tickers.
+- **US routes through `gate.py`.** RH (Robinhood spot), ETF (spot BTC/ETH ETFs), CB (US perpetual-style futures
+  at an assumed 0.10%) and Stocks.
+- **Descriptive, matching the post.** H11 (consistency with all the post's statistics, 78 variant-windows), H11b
+  (a 648-cell labelled fit with random-entry decoys), H12 (shorts).
+- **Luck.** 1,000 random-entry versions per window, and the months of record needed for t ≥ 2.
+- **Windows.** Full 2020-01-01..2026-10-16. W16 2025-06-17..2026-10-16 is the likeliest 16 months; W16b
+  2024-06-30..2025-10-31 ends at the BTC high. Both are single 16-month paths.
+
+**Data.**
+- **Crypto.** `data/bbreplica/` (gitignored): Binance hourly spot and USD-M klines for 40 coins plus LUNA2, funding,
+  mark-price hours, 1-minute klines for six coins from 2024-07, and daily klines of all 909 USDT perpetuals for the
+  monthly re-ranking (S12).
+- **Stocks.** `data/universe_pit_all/` and `data/raw_pit/` (section 3).
+
+**Controls (all passed; `results_bb/controls/summary.txt`).**
+- Martingale and trend known answers, for the engine and the grid.
+- Look-ahead: 110 off-boundary cut times, 2,597,008 decisions unchanged.
+- Fill audit: 650,746 fills, 0 violations.
+- Liquidation: 12 hand-built cases.
+- Grid path: the engine is within 0.07% of a 1-second simulation.
+- Indicator cross-check: 6.6x against 5.14's 12.4x.
+- Inference: the bootstrap-t 95% bound missed 5.5% of the time (11 of 200 paths), so Addendum 2 widened it to 95.5%
+  and the NO EDGE level to 99.625%. H1's test rejected 3 of 200 (1.5%).
+
+**Result: 0 PASS, 3 NO EDGE (HS1 HARMS, HS2, H8), 9 INCONCLUSIVE** (`results_bb/verdicts.txt`).
+
+| test | estimate [95% CI] | NO EDGE bound vs E | verdict |
+|---|---|---|---|
+| **H1** S1 1x core, BTC/ETH/SOL, % of M per trade, drift-adjusted | +3.73 [−1.20, +8.67]; Holm p 0.80 | +13.69 vs +0.5 | **INCONCLUSIVE** |
+| **H2** S1 1x vs equal-weight buy-and-hold / vs the indicator, Sharpe | +0.09 / −0.27 [−0.85, +0.32] | +1.34 / +0.58 vs +0.10 | **INCONCLUSIVE** |
+| **HS1** S&P 500 members: per trade, % of M / Sharpe vs equal-weight members | −0.643 [−0.784, −0.501] / −0.54 [−0.86, −0.19] | −0.435 / −0.041 | **NO EDGE (HARMS)** |
+| **HS2** 14 ETFs: per trade / Sharpe | −0.193 [−0.349, −0.036] / −0.37 [−0.78, +0.08] | +0.061 vs +0.5 / +0.30 | **NO EDGE** |
+| H3 pyramiding vs full size, % of M per signal | +0.76 [−0.50, +2.03] | +3.00 vs +0.25 | INCONCLUSIVE |
+| H4 close-confirmed vs intrabar touch | −0.97 [−2.46, +0.52] | +0.82 | INCONCLUSIVE |
+| H5 near-high filter | −1.07 [−9.56, +7.41] | +8.93 | INCONCLUSIVE |
+| H6 hour windows (rules 13-14); R0's pair ranks 63rd of 576 | +0.33 [−0.77, +1.43] | +1.89 | INCONCLUSIVE |
+| H7 no Friday/Saturday opens (rule 12); ranks 4th of 7 | −0.61 [−1.62, +0.40] | +0.47 | INCONCLUSIVE |
+| H8 (a) 72-h minimum hold / (b) rule 15 | −0.026 / −0.081 [−0.55, +0.39] | +0.010 / +0.36 vs +0.25 | NO EDGE, via (a) only |
+| H9 3x vs 1x, log points a year | +21.6 [−5.3, +46.3]; Holm p 0.80 | +54.9 vs +2 | INCONCLUSIVE |
+| H10 R0 + waiting grid vs R0, % of equity a year | −3.40 [−7.15, +1.64] | +3.87 vs +1 | INCONCLUSIVE |
+
+**The answer, in the pre-registered order.**
+- Crypto: not shown; the data cannot tell (H1).
+- Against buy-and-hold and the indicator: the data cannot tell (H2).
+- Stocks: it does not work (HS1 NO EDGE (HARMS)).
+- ETFs: it does not work (HS2 NO EDGE).
+- "Their full strategy beats holding" may not be said for any group. In log points a year against holding: crypto
+  −7.1 [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs −5.0 [−9.9, −0.4] (`headline/answer_map.csv`).
+- No route produced a TRADE verdict.
+
+**Key numbers.**
+- **R0 against the post** (`headline/headline.csv`).
+  - W16: 0.86x against the post's 4.3x; buy-and-hold of the three coins 0.82x, the indicator (`moneyline_ref`
+    on the same perpetuals) 1.11x.
+  - W16b: 0.93x; buy-and-hold 1.49x.
+  - Full: R0 20.7x (Sharpe 1.07, max DD −50%) and S1 1x 5.7x (1.17, −23%), against buy-and-hold 39.7x (1.08) and
+    the indicator 72.1x (1.44).
+  - After tax, Full: R0 39.0%, S1 20.5%, buy-and-hold 66.5%, the indicator 67.6% a year.
+- **H1 detail.**
+  - Unadjusted +6.80% of M per trade [+1.50, +12.09]. Halves +8.58% (2020-22) and +0.62% (2023-26).
+  - Other 37 coins: +5.32% [−0.42, +11.07]; +4.74% without ZEC.
+  - MDE 8.5% of M, against the post's implied edge of about +1%.
+- **Exact strategy: not identifiable.**
+  - H11: 0 of 78 variant-windows consistent; every one also at a different trading frequency. The most active (F)
+    made 435 tranches in W16 (400 without ZEC) and 474 in W16b, against 1,462. Turnover among the 39 H11 rows was at
+    most 183x, against 950-19,000x. Some H11b cells reach the post's count (116 of 648 in W16, mostly 1-hour; up to
+    7,518 tranches) and some 1-hour cells its volume (up to 2,588x), but none of them matches its hit rate. Decoys
+    consistent: 0 of 2,740.
+  - H11b: the identified set holds 16 cells (2.5%) in W16 and 21 (3.2%) in W16b, with 0 decoys. All use 4-hour
+    bars, but they disagree on universe, direction and grid, so by the frozen rule the statistics do not identify a
+    strategy. The set made 1.14-2.66x in W16 (fitted, in-window). Out of window, the W16 set's median log growth
+    was 41.7 points a year vs 26.4 for the median cell, but the W16b set's was 5.9 vs 28.0, so a close match did not
+    reliably mean better results elsewhere.
+- **Luck** (`luck/summary.csv`). R0's W16 multiple sits at the 55th percentile of 1,000 random-entry versions
+  (W16b: 58th). None of 4,000 random versions at 3x or 5x reached 4.3x.
+- **Months of record** (`luck/months_needed.csv`). For t ≥ 2 at the post's +9.5% a month: 4.5-14.6 months with
+  R0's monthly swings at 3x, 11.8-29.6 at 5x. This is against zero, not against levered holding, and ignores
+  selection.
+- **Rules** (`scorecard/scorecard.csv`).
+  - Rule 3 (never average down) is a no-op as coded. Rule 6 is a no-op as coded in R0: 0 exits suppressed.
+  - H8's NO EDGE comes from the 72-hour minimum hold, which binds on 2 of 92 signals. Rule 15 alone: the data
+    cannot tell (bound +0.36% > E).
+  - Rule 9 is not testable (built into every row). Every other descriptive rule (1, 5, 8, 10, 11) shows no
+    detectable effect. Starting at a third (vs full size) has sleeve Sharpe +0.22 [+0.05, +0.53], exploratory.
+- **Leverage** (`primary/H9_by_L.csv`).
+  - Growth at L = 1-5: 25.4 / 40.6 / 47.0 / 49.3 / 48.5 log points a year.
+  - The growth-optimal L is 4, with a 90% interval of 2 to ≥5 (censored at the largest L tested).
+  - 0 liquidations by construction: the per-trade L cap keeps the stop 2 points above liquidation.
+  - Average account exposure at 3x is only 0.42, so 5.14's whole-account blow-ups do not transfer.
+  - The 2025-10-10 stress row is vacuous: R0 held no position in the window. S1's BTC stop that day was −5.4% of M,
+    and the top-6/10 universes' BNB stop −21.5%.
+- **Grid** (`primary/tests.json` H10, `explore/grid_summary.csv`).
+  - G-A per sleeve: grid profit BTC/ETH/SOL +0.157 / +0.118 / +0.088, against inventory P&L −0.177 / −0.191 /
+    −0.132; net −0.034 / −0.085 / −0.054.
+  - With zero fees H10 is still −2.8% a year.
+  - The always-on grid's profit is almost exactly offset by inventory: BTC +1.016 vs −1.011.
+- **Stocks** (`primary/tests.json` HS1/HS2, `explore/`).
+  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. The Sharpe part's bound (−0.041) alone
+    carries the HARMS verdict.
+  - Breakout book vs a random-entry book with the same slots and holding times (exploratory): Sharpe −0.42
+    [−0.72, −0.11].
+  - 100 seeds: median Sharpe difference −0.57 (5th-95th percentiles across seeds −0.64 to −0.49).
+  - 20-slot book 1.28x vs equal-weight members 13.05x, 2001-2026 (idle cash at the T-bill).
+  - 1996-2000, reported separately: −0.43% per trade, Sharpe −0.88.
+- **User's tickers** (`explore/stock_tickers.csv`).
+  - TSLA, 40 trades: +5.89% [−0.13, +11.91]; book 23.1x vs buy-and-hold 285x.
+  - SPY / QQQ / IWM, 96-106 trades: −0.38 / −0.49 / −0.57% per trade.
+  - COIN 11, HOOD 14 and CRCL 1 trades: under 20, not interpreted.
+- **Routes** (`routes/summary.csv`). 0 TRADE anywhere.
+  - PROBATION, failing only T1 on 11-20 trades: AVAX, DOT and UNI on RH (plus ADA for R0 at 1x), and COIN. The
+    placebo expects 0.20-0.26 per 24-coin group.
+  - CB is capped at PROBATION by T1.
+  - After tax every route trails buy-and-hold of its assets: crypto by 14-42 points a year on the longest history
+    (spot routes from 2017-08) and 30-53 over 2020-2026; stocks by 6-13.
+- **What the trader may have had** (descriptive).
+  - ZEC: S17 with ZEC made 8.96x in W16, 0.88x without it.
+  - Shorts (H12, exploratory): S11 made 1.54x vs 0.86x in W16 (one path; BH p 0.25). Over the Full sample it made
+    29.0x vs 20.7x, with a Sharpe 0.06 lower (−0.47 to +0.43), one liquidation and a −71% drawdown. Neither
+    difference is distinguishable from zero.
+  - Fitted 4-hour cells (H11b): run at 5x, seven W16b set cells made 4.40-6.75x (no ZEC traded), and one 3x cell
+    made 5.05x in W16b. Single in-window paths; none is consistent with the post's statistics jointly.
+  - Or the W16b window.
+
+**Caveats that matter.**
+- **The post.** It is untraceable, unverified and doubly selected. Its volume implies intraday or grid trading
+  that no daily rule set reproduces.
+- **Venue.** Binance perpetuals and grid bots are generally unavailable to US residents. The CB route's cost is an
+  assumption.
+- **Stocks.**
+  - Fills at the next session's open, since the repo has no intraday stock data.
+  - Close-only (CRSP) member rows create no signal: 16% of member-days in 2001-2013 and 33% in 1996-2000.
+  - The drift charge (about 0.73% of M per trade) decides the sign of HS1's trade part. The Sharpe part does not
+    use it.
+- **Inference.** Far-tail coverage after widening is still about 1.5% at the NO EDGE level, against a nominal
+  0.375%. No NO EDGE verdict is near its bound.
+- **Rule 11 inside H10.** Part of H10's gap is rule 11's monthly sizing reacting to the grid's P&L.
+- **Audit fixes** (commits 39acaad and ae55c59):
+  - The stock leave-out drift sample now drops returns across gaps over 30 days and closes below $0.01 (FRC, SIVB
+    and SBNY post-failure prints; CHK and BTUUQ splices). HS1's trade part moved from −0.6712% to −0.6427% of M
+    per trade; the verdict is unchanged.
+  - H9 is labelled in natural-log units (0.216 = 21.6 log points).
+  - H11 labels now follow the literal rule; the scorecard notes rule 15; stock headline rows state their basis.
+- **Other things the audit documented.** The H11b share counts unscorable 1-hour cells (without them 3.2% and
+  4.0%, still under 5%); H8(a)'s bootstrap is degenerate (2 nonzero differences); crypto buy-and-hold pays no
+  rebalancing costs.
+
+**Use.**
+- Don't run this strategy, its rules or its grid, manually or through the agent.
+- The repo's indicator was ahead on the same coins (Sharpe 1.44 vs 1.17; H2 cannot separate them), and the
+  existing plan (ETH via the spot ETF) is unaffected.
+- To judge the trader: exchange statements for both accounts over the 16 months, with fees and funding, against
+  holding the same coins at the same leverage.
+
+**How to rerun** (`python3 -m analysis_2026.bb_replica <stage> --jobs 4`; each stage refuses to run until the
+stage before it is complete; timings from the recorded run).
+1. Data: `python3 -m analysis_2026.fetch_bb_data all` (~45 min). Then `python3 -m analysis_2026.bb_data fetch-all`
+   and `entrants` for S12's all-contract ranking.
+2. `controls` (~21 min). Writes `controls/summary.txt` and `inference.json` (level95, level_noedge).
+3. `fit --only fcount` (~20 s). F's nine counts, written before any return.
+4. `primary` (~8 min). The 12 tests, to `primary/`.
+5. `report` (seconds). Holm, verdicts and the answer map, to `verdicts.csv/.txt`.
+6. `desc` (~18 min; routes ~11 min). Rows, headline, routes, TV, scorecard, exploratory.
+7. `fit` (~75 min; H11b alone ~62 min): luck, H12, H11b and H11.
+8. `report` again (the answer map's routes line).
+
+`all` runs the whole order. `status` lists the stages that have run, and `selftest` checks the gates.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -1248,6 +1461,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/ma_bounce.py`, `analysis_2026/results_bounce/` | Buying touches of 34 moving averages vs placebo lines ±1/±2 ATR (B1-B5 stocks, C1-C5 crypto pre-registered in the docstring; section 5.19). `python3 -m analysis_2026.ma_bounce` (about 7 min; numba, pyarrow) writes `summary.txt` and the CSVs; `--null 16` (about 30 min) writes `null_summary.txt`, the no-edge level of each baseline for the 200-day; `--null 8 --mas D-SMA20,D-SMA50,W-SMA10,W-SMA100,W-SMA200,W-EMA100,M-SMA20,M-SMA24` (about 40 min) writes `null_grid_summary.txt` for those averages; `--null-tests` (seconds, also run by `--null`) writes `null_tests.txt`, each actual statistic against its no-edge level with a p-value. Uses `data/universe_pit_all/`, `data/raw_pit/` (chart lines), `data/crypto_binance_regime/` and the ETF/stock files that `regime_switch.py` reads. Event parquets are gitignored. |
 | `analysis_2026/freedom_countries.py`, `analysis_2026/results_freedom/`, `analysis_2026/FREEDOM_PREREG.md` | Country policy direction vs USD stock returns: S1-S7 pre-registered (Fraser freedom change/level, Heritage tax burden, manufacturing share, electricity build-out, Western-only, composite; section 5.20). `python3 -m analysis_2026.freedom_countries` (about 1.5 min) writes `summary.txt` and CSVs. Data: `python3 -m analysis_2026.fetch_freedom_data` (seconds; writes `data/freedom/`, gitignored). Research notes and the synthesized report are in `analysis_2026/research_notes/Economic freedom investment thesis/` and `analysis_2026/reports/`. |
 | `analysis_2026/scalp_crypto.py`, `scalp_us_daily.py`, `scalp_us_intraday.py`, `scalp_stats.py`, `scalp_report.py`, `fetch_scalping_data.py`, `rh_bars.py`; `analysis_2026/SCALPING_PREREG.md`; `analysis_2026/results_scalping/` | Scalping / bid-ask capture study (section 5.21). Part A crypto passive quoting on the Binance spot trade archive (`python3 -m analysis_2026.scalp_crypto --controls`, `--run --stratum main --workers 2` (~1 h, download-bound; rerun after any out-of-memory failure, since runs are incremental) and `--run --stratum arh --workers 1` (slower; the largest pair-months need 5+ GB, and 2 workers failed 58 of 71 A-RH jobs), `--analyze`); Parts B/E/D daily US stocks (`python3 -m analysis_2026.scalp_us_daily --run --nulls 20`, ~30 min, ~8 GB peak); Part C 5-minute bars and Part E's intraday leg (`python3 -m analysis_2026.scalp_us_intraday --run`, `--events`, `--iex`); `python3 -m analysis_2026.scalp_report` applies the study-wide Holm across the 36 primary cells and writes `results_scalping/verdicts.csv/.txt`. Report: `analysis_2026/reports/Scalping and market making.md`; notes: `analysis_2026/research_notes/Scalping and market making/`. |
+| `analysis_2026/bb_replica.py` (runner), `bb_data.py`, `bb_engine.py`, `bb_stats.py`, `bb_stocks.py`, `bb_grid.py`, `bb_bench.py`, `bb_controls.py`, `bb_tests.py`, `bb_desc.py`, `bb_fit.py`, `fetch_bb_data.py`; `analysis_2026/BB_REPLICATION_PREREG.md`; `analysis_2026/results_bb/` | Bollinger-breakout replication of a Twitter "AI breakdown" (section 5.22): R0 literal reading, 20 sensitivity rows, grid overlays, stock/ETF version, US routes through `gate.py`, H11/H11b fit to the post, luck benchmark. `python3 -m analysis_2026.bb_replica controls`, `fit --only fcount`, `primary`, `report`, `desc`, `fit`, `report` (in that order, `--jobs 4`; about 2 h in all, H11b about 1 h; `all` runs the sequence, `status` shows progress). `results_bb/verdicts.txt` has the 12 tests and the answer map. Four large outputs are gitignored (`rows/trades.csv`, `headline/equity.csv`, `routes/accounts.csv`, `primary/HS1_trades.csv`). Report: `analysis_2026/reports/Bollinger breakout replication.md`; notes: `analysis_2026/research_notes/Bollinger breakout replication/`. |
 | `analysis_2026/fetch_regime_data.py` | Rebuilds `data/macro/`, `data/raw_pit/`, `data/universe_pit_all/` and `data/crypto_binance_regime/` from GitHub and the Binance S3 archive (`--skip-pit`, `--help`). |
 | `analysis_2026/flip_delay.py`, `analysis_2026/results_delay/` | Flip-confirmation delay study (D1-D3 pre-registered; section 5.15); `--supplement` runs the follow-ups. |
 | `analysis_2026/sso_gold.py`, `analysis_2026/results_sso_gold/`, `analysis_2026/SSO_GOLD_PREREG.md` | 2x S&P + gold and leverage + trend study (section 5.18). Synthetic leveraged funds calibrated to actual SSO, lot-level tax engine (FIFO, collectibles, NIIT/state scenarios, step-up), stationary bootstrap, reality check. `python3 -m analysis_2026.sso_gold` (about 1.5 min). Data in `data/sso_gold/` (gitignored; sources in the module docstring: SteelCerberus, LBMA via forex-centuries, Johnbrick123, qlib, Testfolio_checker/ravelab SSO, Treasury composites). |

@@ -2480,3 +2480,172 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
 - If the friend's gains are real, they more plausibly reflect luck in a strong market, attention trades that
   happened to work, or marks his own buying created, than a repeatable edge; his trades were not examined.
 - To judge him: 12+ months of closed-trade statements, net, at liquidation value, against the S&P 500.
+
+---
+
+# 2026-10-19 — Bollinger-breakout replication of a Twitter "AI breakdown"
+
+**The user's question:**
+- A Twitter post gave an "AI breakdown" of a crypto trader: 16 months, 1,462 bots, $10.7B volume, 4.3x on
+  starting capital, a 48.7% hit rate (51.7% with a grid bot), and wins 1.4x losses.
+- It describes Bollinger Band breakouts near local and all-time highs, cut below the midline, with a grid "while
+  waiting", and lists 15 rules.
+- "Can you figure out their exact strategy from this summary, replicate it and test it on all of our assets?"
+
+**What was done:**
+- **Research.** Notes in `analysis_2026/research_notes/Bollinger breakout replication/`.
+  - `rules_and_evidence.md` gives an operational reading of every rule, the grid mechanics, the literature, and
+    arithmetic on the post's numbers.
+  - The post cannot be traced. Six of its 15 rules (6, 11-15) are patterns mined from one trader's results.
+  - Its volume is 950-19,000x average equity for a $0.25-5M start.
+- **Pre-registration.** `analysis_2026/BB_REPLICATION_PREREG.md` (frozen 2026-10-18, bc744ff) after a 3-lens
+  adversarial review (54 proposals). Addenda 1-3 came before any strategy result.
+  - 12 tests in one Holm family: verdicts PASS / NO EDGE / INCONCLUSIVE, with drift-adjusted trade units.
+  - The answer sentences were fixed in advance.
+- **Data.** `data/bbreplica/` (gitignored), from the Binance archive:
+  - hourly spot and perpetual klines for 40 coins, funding, mark-price hours;
+  - 1-minute klines for 6 coins from 2024-07;
+  - daily klines of all 909 USDT perpetuals.
+  - Stocks come from `data/universe_pit_all/` and `data/raw_pit/`.
+- **What was run.**
+  - **R0, the literal reading:** BTC/ETH/SOL perpetuals at 3x; daily BB(20, 2) breakouts near highs; pyramid 1/3 +
+    adds at +2% and +5%; ATR stop, 3R take-profit on half, midline exit; the timing rules as written.
+  - **S1:** the core at 1x without rules 6 and 12-15.
+  - **The rest:** 20 sensitivity rows; F, the frequency-matched cell (1-hour bars on the monthly top 10); grid
+    overlays on 1-minute bars; the stock/ETF version; US routes through `gate.py`; H11/H11b fits to the post; H12
+    shorts; a luck benchmark.
+- **Audit.** Independent recomputation from raw data reproduced every core number. Two real defects were fixed;
+  no verdict changed (below).
+
+**Controls (run first; all passed; `results_bb/controls/summary.txt`):**
+- **Engine known answer.** On martingale paths the mean trade before costs is within 2 SE of zero (S1 27,218
+  trades, t 1.49; R0 t 1.68). On trending paths S1 has t 4.98. The grid is zero before fees and negative after.
+- **Look-ahead.** 110 cut times, 2,597,008 decisions unchanged.
+- **Fill audit.** 650,746 fills, 0 violations.
+- **Liquidation and grid path.** 12 liquidation cases pass; the grid path matches to 0.07% of gross grid profit.
+- **Indicator cross-check.** 6.6x vs 5.14's 12.4x.
+- **Inference.** The bootstrap-t 95% bound missed 5.5% (11 of 200), so it was widened to 95.5% and the NO EDGE
+  level to 99.625% (Addendum 2). The rejection rate was 1.5%.
+
+**Results (study-wide Holm; `results_bb/verdicts.txt`): 0 PASS, 3 NO EDGE, 9 INCONCLUSIVE.**
+
+| test | estimate [95% CI] | Holm p | NO EDGE bound vs E | verdict |
+|---|---|---|---|---|
+| H1 core edge, % of M per trade (drift-adjusted) | +3.73 [−1.20, +8.67] | 0.80 | +13.69 vs +0.5 | INCONCLUSIVE |
+| H2 vs buy-and-hold / vs the indicator, Sharpe | +0.09 [−0.59, +0.90] / −0.27 [−0.85, +0.32] | 1.00 | +1.34 / +0.58 vs +0.10 | INCONCLUSIVE |
+| HS1 stocks, per trade / Sharpe | −0.643 [−0.784, −0.501] / −0.54 [−0.86, −0.19] | 1.00 | −0.435 / −0.041 | NO EDGE (HARMS) |
+| HS2 ETFs, per trade / Sharpe | −0.193 [−0.349, −0.036] / −0.37 [−0.78, +0.08] | 1.00 | +0.061 / +0.30 | NO EDGE |
+| H3 pyramiding, per signal | +0.76 [−0.50, +2.03] | 1.00 | +3.00 vs +0.25 | INCONCLUSIVE |
+| H4 confirmation, per episode | −0.97 [−2.46, +0.52] | 1.00 | +0.82 | INCONCLUSIVE |
+| H5 near-high filter | −1.07 [−9.56, +7.41] | 1.00 | +8.93 | INCONCLUSIVE |
+| H6 hour windows (rank 63 of 576) | +0.33 [−0.77, +1.43] | 1.00 | +1.89 | INCONCLUSIVE |
+| H7 no Fri/Sat opens (rank 4 of 7) | −0.61 [−1.62, +0.40] | 1.00 | +0.47 | INCONCLUSIVE |
+| H8 72-h hold / rule 15 | −0.026 / −0.081 [−0.55, +0.39] | 1.00 | +0.010 / +0.36 | NO EDGE (via the 72-h hold only) |
+| H9 3x vs 1x, log points a year | +21.6 [−5.3, +46.3] | 0.80 | +54.9 vs +2 | INCONCLUSIVE |
+| H10 waiting grid, % of equity a year | −3.40 [−7.15, +1.64] | 1.00 | +3.87 vs +1 | INCONCLUSIVE |
+
+- **The answer, in order.**
+  - Crypto: not shown; the data cannot tell (H1).
+  - Vs buy-and-hold and the indicator: the data cannot tell (H2).
+  - Stocks: it does not work (HS1 NO EDGE (HARMS)).
+  - ETFs: it does not work (HS2 NO EDGE).
+  - "Their full strategy beats holding" may not be said for any group. In log points a year: crypto −7.1
+    [−52.4, +38.6]; stocks −9.0 [−14.7, −3.6]; ETFs −5.0 [−9.9, −0.4].
+  - No route produced a TRADE verdict.
+- **H1 detail.** Unadjusted +6.80% [+1.50, +12.09]. Halves +8.58% / +0.62%. Other 37 coins +5.32% [−0.42, +11.07]
+  (+4.74% without ZEC). MDE 8.5%, against the post's implied edge of about 1%.
+- **H8.** The 72-h hold changes 2 of 92 signals. Rule 15 alone: the data cannot tell.
+
+**Headline (`headline/headline.csv`; W16 = 2025-06-17..2026-10-16 and W16b = 2024-06-30..2025-10-31 are single
+16-month paths):**
+
+| | Full 2020-2026 | 2020-22 | 2023-26 | W16 | W16b |
+|---|---|---|---|---|---|
+| R0 (3x, all rules) | 20.68x | 9.80x | 2.11x | 0.86x | 0.93x |
+| S1 (1x core) | 5.74x | 2.96x | 1.94x | 1.01x | 1.08x |
+| F, with ZEC / without | 2.99x / 2.80x | 1.92x | 1.56x / 1.46x | 1.17x / 1.09x | 1.32x |
+| buy-and-hold, BTC/ETH/SOL equal weight | 39.66x | 7.09x | 5.60x | 0.82x | 1.49x |
+| the indicator (`moneyline_ref`, same perpetuals) | 72.12x | 20.58x | 3.50x | 1.11x | 0.92x |
+
+- **Full window.** Sharpe R0 1.07, S1 1.17, buy-and-hold 1.08, indicator 1.44. Max drawdown −50% / −23% / −85% /
+  −51%. After tax 39.0% / 20.5% / 66.5% / 67.6% a year (SPY 13.9%).
+- **Sensitivity rows** (`rows/rows.csv`).
+  - Full multiples run from 1.12x to 131.9x, and no row survives BH (smallest adjusted p 0.26).
+  - W16 multiples are 0.49x-1.74x, except S17 with ZEC: 8.96x, and 0.88x without ZEC.
+- **Matching the post.**
+  - H11: 0 of 78 variant-windows consistent. Every one fails the 0.5-2x count band; the most active (F) has 435
+    tranches in W16 (400 without ZEC) vs 1,462; turnover among the 39 H11 rows is at most 183x. Some H11b cells
+    reach the post's count (mostly 1-hour) and some 1-hour cells its volume (up to 2,588x), but none matches its
+    hit rate. Decoys consistent: 0 of 2,740.
+  - H11b: the identified set is 16 of 648 cells (W16) and 21 (W16b), with 0 decoys. All use 4-hour bars, but they
+    disagree on universe, direction and grid, so the post's statistics do not identify a strategy. The set made
+    1.14-2.66x in W16 (fitted, in-window); out of window its median log growth beat the median cell's in W16 (41.7
+    vs 26.4 points a year) but not in W16b (5.9 vs 28.0). Run at 5x, seven W16b set cells passed 4.3x (4.40-6.75x,
+    no ZEC traded); single in-window paths.
+- **Luck** (`luck/`).
+  - R0's W16 multiple is at the 55th percentile of 1,000 random-entry versions (W16b 58th). 0 of 4,000 versions
+    reach 4.3x, and 0-1.8% reach 2x.
+  - Months for t ≥ 2 at +9.5% a month: 4.5-14.6 (3x swings), 11.8-29.6 (5x).
+- **Leverage (H9).**
+  - Growth at L 1-5: 25.4 / 40.6 / 47.0 / 49.3 / 48.5 log points a year. Optimal L 4 (90%: 2 to ≥5, censored).
+  - 0 liquidations by construction (the L cap). Average account exposure at 3x is 0.42.
+  - The 2025-10-10 stress row is vacuous (no R0 position open).
+- **Grid (H10).**
+  - G-A grid profit +0.157 / +0.118 / +0.088 of a sleeve on BTC/ETH/SOL, against inventory −0.177 / −0.191 /
+    −0.132.
+  - Zero fees still −2.8% a year. The always-on grid: BTC +1.016 grid profit vs −1.011 inventory.
+- **Stocks.**
+  - HS1 per trade: +0.09% of M unadjusted, −0.64% of M drift-adjusted. The Sharpe part alone carries HARMS (bound
+    −0.041).
+  - Vs a random-entry book (exploratory): −0.42 Sharpe [−0.72, −0.11].
+  - 20-slot book 1.28x (idle cash at the T-bill) vs equal-weight members 13.05x (2001-2026).
+  - 1996-2000, separately: −0.43% per trade, Sharpe −0.88.
+- **User's tickers.**
+  - TSLA, 40 trades: +5.89% [−0.13, +11.91]; book 23.1x vs hold 285x.
+  - SPY / QQQ / IWM: −0.38 / −0.49 / −0.57% per trade.
+  - COIN (11 trades), HOOD (14) and CRCL (1) are under 20 trades and not interpreted.
+- **Routes** (`routes/summary.csv`). 0 TRADE.
+  - PROBATION, failing only T1 on 11-20 trades: AVAX, DOT, UNI and ADA (Robinhood route) and COIN. The placebo
+    expects 0.20-0.26 per group.
+  - CB is capped by T1.
+  - Every route trails buy-and-hold after tax: crypto by 14-42 points a year on the longest history (spot routes
+    from 2017-08) and 30-53 over 2020-2026; stocks by 6-13.
+- **H12 shorts (exploratory).** 1.54x vs 0.86x in W16 (one path; BH p 0.25). Over the Full sample 29.0x vs 20.7x,
+  Sharpe −0.06 vs R0 (−0.47 to +0.43), one liquidation, −71% drawdown. Neither difference is distinguishable from
+  zero.
+- **Rules** (`scorecard/scorecard.csv`).
+  - Rule 3 is a no-op as coded. Rule 6 is a no-op in R0 (0 exits suppressed), and NO EDGE only as a 72-h hold
+    that binds on 2 of 92 signals. Rule 9 is not testable.
+  - Rules 1, 5, 8, 10 and 11 show no detectable effect.
+  - Rules 2, 4, 7 and 12-14 are INCONCLUSIVE (H3, H9, H4, H7, H6). For rule 15 the data cannot tell.
+
+**Corrections after the audit (no verdict changed; commits 39acaad, ae55c59):**
+- **Stock drift sample.** The leave-out drift sample now drops returns across gaps over 30 days and closes below
+  $0.01 (FRC, SIVB, SBNY post-failure prints; CHK and BTUUQ splices). HS1's trade part moved from −0.6712% to
+  −0.6427% of M per trade; the verdict is unchanged.
+- **H9 units.** Relabelled as natural-log units (0.216 = 21.6 log points).
+- **Labels.** H11 labels follow the literal rule ("inconsistent (also different trading frequency)"). Scorecard
+  rule 15 notes that H8's NO EDGE comes only from the 72-h hold. Stock headline rows state their account and trade
+  bases.
+- **Documented, not changed.** The H11b share counts unscorable 1-hour cells (3.2% and 4.0% without them); H8(a)'s
+  bootstrap is degenerate; part of H10's gap is rule 11's sizing; crypto buy-and-hold pays no rebalancing costs.
+
+**Caveats:**
+- **The post** is unverified and doubly selected (by the summariser and the poster).
+- **Venue.** Binance perpetuals and grids are generally not available to US residents. The CB route's cost is an
+  assumption.
+- **Stocks.**
+  - Fills at the next open (no intraday data).
+  - Close-only member rows (16% of 2001-2013 member-days, 33% of 1996-2000) create no signal.
+  - The drift charge (about 0.73% of M per trade) sets the sign of HS1's trade part; the Sharpe part does not use
+    it.
+- **Inference.** Far-tail coverage after widening is about 1.5% vs a nominal 0.375%. No NO EDGE verdict is near
+  its bound.
+
+**Practical reading:**
+- The exact strategy cannot be recovered from the post. The described rules on BTC/ETH/SOL do not come near 4.3x,
+  by design or by luck; among the pre-registered rows only adding ZEC with hindsight (S17) exceeds it.
+- Don't trade these rules, their leverage or their grid. On the same coins the repo's indicator was ahead (Sharpe
+  1.44 vs 1.17), though H2 cannot separate them.
+- To judge the trader: exchange statements for both accounts, with fees and funding, against holding the same
+  coins at the same leverage.

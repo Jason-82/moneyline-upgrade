@@ -189,6 +189,13 @@ Do **not** add these (all tested):
   maker fees; in stocks the intraday test on 5-minute bars was inconclusive (bars without quotes
   cannot test it), and daily liquidity provision in thin stocks cannot pay its spreads (HANDOFF
   section 5.21). The agent is also too slow for it, gets no rebates and cannot short.
+- the Bollinger-band breakout rules from a Twitter "AI breakdown" (breakouts near highs, pyramiding,
+  3-5x leverage, weekday and hour rules, a grid "while waiting"): the breakout rules (as a 1x daily
+  stock version) do not work on S&P 500 stocks or the 14 ETFs, on crypto the data cannot tell, the
+  indicator was ahead on the same coins (descriptive; H2 cannot separate them), the grid's profit is
+  given back by its inventory, and no US route got a TRADE verdict (four Robinhood coins and COIN got
+  PROBATION on 11-20 trades) (HANDOFF section 5.22). Binance perpetuals and grid bots are generally not
+  available to US residents.
 
 ---
 
