@@ -158,7 +158,7 @@ def recent_attempts(inbox_dir, short: str, now_utc=None, *, base=None,
         try:
             e = json.loads(line)
             ts = ledger.parse_ts(e.get("ts"))
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError, RecursionError):     # RecursionError: a damaged line of nested brackets
             continue
         if ts is not None and now - ts > timedelta(hours=hours):
             break

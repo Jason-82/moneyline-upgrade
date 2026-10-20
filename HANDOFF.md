@@ -727,6 +727,11 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
   - **Hooks** in `.claude/settings.json` guard every Robinhood MCP tool. The PreToolUse hook fails closed and
     allows a place call only if it exactly matches a plan order within the caps. The PostToolUse hook captures
     results, keeps the journal and the ledger, and writes STOP if an order skips approval.
+  - **STOP is sticky (2026-10-20):** `stop` and the PostToolUse hook also record STOP in the append-only `hook.log`,
+    so deleting the STOP file no longer re-enables trading; only `resume` in the user's terminal clears it, and each
+    clear is logged (README section 6). Deleting, emptying, trimming or rotating `hook.log`, or a sync tool restoring
+    an older copy, does lift it (a missing hook.log means the file check alone): never touch hook.log while STOP may
+    be set. FLATTEN and BLOCK_BUYS stay file-based.
   - **Signal:** the old MoneyLine computed from OHLC (exact replica), by the user's choice, so no daily exports
     are needed. `tv_export` remains available for the new indicator.
   - **Modes** (per asset): `immediate`, `split` (half at N=1, half at N=5) and `confirm5`. Default **split** for crypto and

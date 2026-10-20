@@ -123,7 +123,15 @@
       "Edit(private/agentic/**)",
       "Bash(*agentic resume*)",
       "Bash(*agentic*--replan*)",
-      "Bash(*agentic*init*--update*)"
+      "Bash(*agentic*init*--update*)",
+      "Bash(*private/agentic/STOP*)",
+      "Bash(*private/agentic/FLATTEN*)",
+      "Bash(*private/agentic/BLOCK_BUYS*)",
+      "Bash(*private/agentic/hook.log*)",
+      "Bash(*private/agentic/journal*)",
+      "Bash(*private/agentic/ledger*)",
+      "Bash(*rm *private/agentic*)",
+      "Bash(*mv *private/agentic*)"
     ]
   }
 }

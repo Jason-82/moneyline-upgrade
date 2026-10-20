@@ -219,25 +219,77 @@ def cmd_init(args) -> int:
 
 
 def cmd_flag(args) -> int:
+    """`stop` / `flatten`: write the flag file and a hook.log record (_flag_log: hook "cli", tool "stop"/"flatten",
+    decision "STOP"/"FLATTEN"). The STOP record makes STOP sticky (hooks.sticky_stop): deleting the file does not
+    undo it, only `resume` does. FLATTEN stays file-based; its record is for the audit trail."""
     name = args.cmd.upper()
-    reason = f"{ledger.iso_z(_now())} " + (" ".join(args.reason) or f"set by `{cli_command()} {args.cmd}`")
-    prior = ledger.read_flags().get(name)                # keep e.g. a STOP reason written by the hook
-    ledger.set_flag(name, f"{prior}\n{reason}" if prior else reason)
+    now = _now()
+    text = " ".join(args.reason) or f"set by `{cli_command()} {args.cmd}`"
+    reason = f"{ledger.iso_z(now)} {text}"
+    prior = ledger.read_flags(log=False).get(name)       # keep e.g. a STOP reason written by the hook
     if name == "STOP":
-        print("STOP set: the hook blocks every place call. To pull open orders: `fetch-list`, make the reads, then "
-              "`plan` - it lists a cancel for each of this system's open orders; make those cancel calls.")
-    else:
-        print("FLATTEN set: every target is 0 and only sells of the sleeve's own shares are allowed. Run `fetch-list` "
-              "and `run` to get the exit orders; the new plan replaces the current one and cancels its open buys. "
-              "Reject any buy proposals still waiting in the Robinhood app. Rejecting does not clear the hook's "
-              "pending-proposal count, which blocks sells too: once none waits in the app any more, run "
-              f"`{cli_command()} resume --proposals` in this terminal (`status` shows the count).")
+        return _set_stop(text, f"{prior}\n{reason}" if prior else reason, now)
+    ledger.set_flag(name, f"{prior}\n{reason}" if prior else reason)
+    _flag_log(args.cmd, name, text, now)
+    print("FLATTEN set: every target is 0 and only sells of the sleeve's own shares are allowed. Run `fetch-list` "
+          "and `run` to get the exit orders; the new plan replaces the current one and cancels its open buys. "
+          "Reject any buy proposals still waiting in the Robinhood app. Rejecting does not clear the hook's "
+          "pending-proposal count, which blocks sells too: once none waits in the app any more, run "
+          f"`{cli_command()} resume --proposals` in this terminal (`status` shows the count).")
     return 0
+
+
+def _set_stop(text: str, file_text: str, now: datetime) -> int:
+    """`stop`: the hook.log record first (it keeps STOP active even if the file cannot be written), then the file.
+    Exit 1 if either is missing, after saying which."""
+    logged = _flag_log("stop", "STOP", text, now)
+    try:
+        ledger.set_flag("STOP", file_text)
+    except OSError as e:
+        if not logged:
+            raise
+        print(f"WARNING: the STOP file could not be written ({type(e).__name__}: {e}); hook.log records the STOP, so "
+              "the hook still blocks every place call", file=sys.stderr)
+        return 1
+    print("STOP set: the hook blocks every place call until you run `resume` in your own terminal (deleting the STOP "
+          "file does not undo it: hook.log records it). To pull open orders: `fetch-list`, make the reads, then "
+          "`plan` - it lists a cancel for each of this system's open orders; make those cancel calls.")
+    if not logged:
+        print("WARNING: STOP is held by the STOP file alone: deleting the file would re-enable place calls",
+              file=sys.stderr)
+        return 1
+    return 0
+
+
+def _flag_log(cmd: str, decision: str, text: str, now: datetime) -> bool:
+    """Append `stop`'s / `flatten`'s hook.log record; False (after a warning) if it cannot be written."""
+    try:
+        _cli_log(decision, text, now, tool=cmd)
+        return True
+    except Exception as e:
+        print(f"WARNING: could not record {decision} in hook.log ({type(e).__name__}: {e})", file=sys.stderr)
+        return False
+
+
+def _newest_stop() -> dict | None:
+    """The newest STOP record in hook.log's window ({"id", "ts", "reason"} of its origin, cleared or not): the STOP a
+    `resume` CLEAR names in "through" (hooks.stop_state)."""
+    from agentic import hooks as H
+    return H.stop_state(paths()["hook_log"])[1]
+
+
+def _future_dated(seen: dict | None, now: datetime) -> bool:
+    """Is `seen` the sticky STOP in force, dated in the future (the PC clock was ahead when it was written)?"""
+    from agentic import hooks as H
+    cur = H.sticky_stop(paths()["hook_log"])
+    t = H._ts_or_none(seen.get("ts")) if seen and cur and cur.get("id") == seen.get("id") else None
+    return t is not None and t > now + H.FUTURE_SKEW
 
 
 def cmd_resume(args) -> int:
     if getattr(args, "proposals", False):
         return resolve_proposals()
+    seen = _newest_stop()                         # before the flags: a STOP recorded in between is never cleared
     active = ledger.read_flags()
     names = [args.flag.upper()] if args.flag else list(active)
     names = [n for n in names if n in active]
@@ -247,6 +299,16 @@ def cmd_resume(args) -> int:
     for n in names:
         print(f"{n}: {active[n] or '(no reason recorded)'}")
     if "STOP" in names:
+        if str(active["STOP"]).startswith("STOP is active per hook.log"):
+            print("The STOP file is missing, but hook.log keeps STOP active: deleting the file never clears STOP. "
+                  "Resuming clears it and records the clear in hook.log.")
+        elif str(active["STOP"]).startswith("STOP is treated as active"):
+            print("hook.log cannot be read, so STOP stays active (fail closed) until it can: make it readable "
+                  "first; resume cannot record a clear in it.")
+        if _future_dated(seen, _now()):
+            print(f"NOTE: the newest STOP in hook.log is dated {seen['ts']}, in the future: the PC clock was ahead "
+                  "when it was written. Resuming clears it all the same (the clear names the STOP it clears); check "
+                  "the PC clock.")
         print("Before resuming after a STOP: check the Robinhood app for unexpected orders and confirm Trade approvals "
               "are ON (Agent Settings -> Safety Controls).")
     if "BLOCK_BUYS" in names:
@@ -258,10 +320,16 @@ def cmd_resume(args) -> int:
     if input(f"type 'resume' to clear {', '.join(names)}: ").strip().lower() != "resume":
         print("not cleared")
         return 1
+    now_flags = ledger.read_flags()
+    if (any(now_flags.get(n) != active[n] for n in names)     # e.g. the hook wrote a new STOP meanwhile
+            or ("STOP" in names and _stop_id(_newest_stop()) != _stop_id(seen))):
+        print("not cleared: the flags changed while you were confirming (a new STOP?); run resume again to see them",
+              file=sys.stderr)
+        return 1
     cleared: list[str] = []
     try:
         for n in names:
-            ledger.clear_flag(n)
+            ledger.clear_flag(n)                  # no file (a STOP held by hook.log alone): nothing to remove
             cleared.append(n)
     except OSError as e:                          # Windows: a flag file held open (WinError 32); the rest stay set
         print(f"could not clear {n} ({type(e).__name__}: {e}): close whatever has the file open, then run resume "
@@ -270,10 +338,28 @@ def cmd_resume(args) -> int:
         if cleared:
             print(f"cleared {', '.join(cleared)}")
             try:
-                log_flag_clear(cleared, active, _now())
+                log_flag_clear(cleared, active, _now(), through=seen)
             except Exception as e:                # the flags are cleared; say loudly that the record is missing
                 print(f"WARNING: could not record this in hook.log ({type(e).__name__}: {e})", file=sys.stderr)
+    if "STOP" in cleared:                         # the CLEAR record must now clear every STOP record
+        from agentic import hooks as H
+        still = H.sticky_stop(paths()["hook_log"])
+        if still is not None and still.get("id") and still["id"] != _stop_id(seen):
+            print(f"WARNING: a new STOP was recorded while resume was clearing (written {still.get('ts')}: "
+                  f"{still.get('reason')}), so STOP stays active: check it, then run resume again", file=sys.stderr)
+            return 1
+        if still is not None:
+            print(f"WARNING: STOP is still active: {H.sticky_stop_message(still)}", file=sys.stderr)
+            return 1
+        if paths()["STOP"].exists():              # the hook wrote a new STOP file after resume removed it
+            print("WARNING: a new STOP file appeared while resume was clearing, so STOP stays set: run resume again "
+                  "to see it", file=sys.stderr)
+            return 1
     return 0 if len(cleared) == len(names) else 1
+
+
+def _stop_id(s: dict | None) -> str | None:
+    return s.get("id") if s else None
 
 
 def _place_line(e: dict) -> str:
@@ -327,24 +413,31 @@ def resolve_proposals() -> int:
 FLAG_TEXT_MAX, CLEAR_REASON_MAX = 300, 1000       # characters of each flag's text, and of the whole reason
 
 
-def _cli_log(decision: str, reason: str, now: datetime) -> dict:
-    """Append one `resume` record to hook.log, as the hooks write theirs: {ts, hook "cli", tool "resume", decision,
-    reason (account numbers and long digit runs masked, truncated to CLEAR_REASON_MAX), ref_id null}."""
+def _cli_log(decision: str, reason: str, now: datetime, tool: str = "resume", **extra) -> dict:
+    """Append one CLI record to hook.log, as the hooks write theirs: {ts, hook "cli", tool ("resume", "stop" or
+    "flatten"), decision, reason (account numbers and long digit runs masked, truncated to CLEAR_REASON_MAX), ref_id
+    null, **extra}."""
     from agentic import hooks as H
-    entry = {"ts": H.iso_z(now), "hook": "cli", "tool": "resume", "decision": decision,
-             "reason": H.scrub(reason, H.account_secrets())[:CLEAR_REASON_MAX], "ref_id": None}
+    entry = {"ts": H.iso_z(now), "hook": "cli", "tool": tool, "decision": decision,
+             "reason": H.scrub(reason, H.account_secrets())[:CLEAR_REASON_MAX], "ref_id": None, **extra}
     H.append_jsonl(paths()["hook_log"], entry)
     return entry
 
 
-def log_flag_clear(names: list[str], previous: dict, now: datetime) -> dict:
-    """Append `resume`'s record to hook.log: decision "CLEAR", reason = each cleared flag and its previous text
-    (truncated). `status` shows the newest one."""
+def log_flag_clear(names: list[str], previous: dict, now: datetime, through: dict | None = None) -> dict:
+    """Append `resume`'s record to hook.log: decision "CLEAR", "flags" = the flags cleared, reason = each cleared flag
+    and its previous text (truncated). With STOP: "through" = the id of the newest STOP record the user was shown
+    (`through`, hooks.stop_state; null if hook.log held none) and "through_ts" its time. Such a CLEAR ends exactly that
+    sticky STOP (hooks.sticky_stop), whatever the dates; a STOP recorded after the prompt stays in force. `status`
+    shows the newest one."""
     parts = []
     for n in names:
         text = " | ".join(x.strip() for x in str(previous.get(n) or "").splitlines() if x.strip())
         parts.append(f"{n} (was: {text[:FLAG_TEXT_MAX] or 'no reason recorded'})")
-    return _cli_log("CLEAR", "cleared " + "; ".join(parts), now)
+    extra = {"through": through.get("id"), "through_ts": through.get("ts")} if through else \
+        {"through": None, "through_ts": None}
+    return _cli_log("CLEAR", "cleared " + "; ".join(parts), now, flags=list(names),
+                    **(extra if "STOP" in names else {}))
 
 
 def log_proposals_resolved(places: list[dict], now: datetime) -> dict:
@@ -372,7 +465,7 @@ def last_cli_record(decision: str, tail: int = 1 << 20) -> dict | None:
     for line in reversed(text.splitlines()):
         try:
             e = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):      # RecursionError: a damaged line of deeply nested brackets
             continue
         if isinstance(e, dict) and (e.get("hook"), e.get("tool"), e.get("decision")) == ("cli", "resume", decision):
             return e

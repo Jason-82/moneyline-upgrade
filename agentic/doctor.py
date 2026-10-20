@@ -323,6 +323,7 @@ def run(settings_dir: Path | None = None) -> int:
     except Exception as e:                         # noqa: BLE001
         rep.add("FAIL", "config", f"cannot read ({type(e).__name__})")
     _check_ignored(rep, p["config"])
+    _check_flags(rep)
     if cfg is not None:
         check_universe(rep, cfg, p)
         check_stocks(rep, cfg, p)
@@ -384,6 +385,20 @@ def run(settings_dir: Path | None = None) -> int:
     print(f"doctor: {'all checks passed' if not rep.failed else f'{rep.failed} FAIL'}"
           + ("" if not rep.failed else " (README section 1)"))
     return 1 if rep.failed else 0
+
+
+def _check_flags(rep: Report) -> None:
+    """The `status` banner (ledger.flag_banner) as WARN lines: STOP (the file, or sticky in hook.log with the file
+    missing), FLATTEN, BLOCK_BUYS. A set flag is not an install problem, so never a FAIL."""
+    try:
+        from agentic import ledger
+        banner = ledger.flag_banner()
+    except Exception as e:                         # noqa: BLE001
+        banner = [f"!!! cannot read the flags ({type(e).__name__})"]
+    for line in banner:
+        rep.add("WARN", "flags", line.removeprefix("!!! "))
+    if not banner:
+        rep.add("PASS", "flags", "none set (no STOP, FLATTEN or BLOCK_BUYS file, no active STOP in hook.log)")
 
 
 def _fav_note(cfg: dict) -> str:

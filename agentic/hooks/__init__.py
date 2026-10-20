@@ -5,6 +5,7 @@ both hooks classify tools, match plan orders and read the journal and ledger the
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -257,7 +258,7 @@ def read_journal(path, strict: bool = True) -> list[dict]:
             continue
         try:
             e = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):        # RecursionError: deeply nested brackets on a damaged line
             if strict:
                 raise ValueError(f"journal.jsonl line {i} is not valid JSON") from None
             continue
@@ -336,6 +337,161 @@ def ledger_add(path, day: date, usd: float, ref_id=None) -> float:
 
 def write_stop(p: dict, reason: str, now: datetime) -> None:
     append_line(p["STOP"], f"{iso_z(now)} {reason}")
+
+
+# ------------------------------------------------------------------ sticky STOP (hook.log)
+
+STOP_LOG_TAIL = 2 << 20                            # bytes of hook.log the sticky-STOP check reads (the newest 2 MB)
+STOP_LOG_HEADS = ("STOP is active per hook.log", "STOP is treated as active")   # sticky_stop_message's openings
+_STOP_TEXT = re.compile(r'"decision"\s*:\s*"STOP"')
+_CARRIED = re.compile(r"^(?:carried forward from (.+?): )+")   # the nested prefixes of a carry without "origin"
+FUTURE_SKEW = timedelta(minutes=5)                 # a STOP dated further ahead than this was written by a fast clock
+
+
+def clears_stop(e: dict) -> bool:
+    """Is hook.log record `e` a `resume` CLEAR that cleared STOP? Its "flags" list names STOP; a CLEAR written before
+    records had "flags" counts when its reason starts with "cleared STOP (" (resume always names STOP first)."""
+    if (e.get("hook"), e.get("tool"), e.get("decision")) != ("cli", "resume", "CLEAR"):
+        return False
+    fl = e.get("flags")
+    if isinstance(fl, list):
+        return "STOP" in fl
+    return str(e.get("reason") or "").startswith("cleared STOP (")
+
+
+def stop_record_id(raw: bytes) -> str:
+    """A hook.log STOP record's identity: the first 16 hex digits of the SHA-256 of its line (surrounding whitespace,
+    such as a Windows \\r, stripped). Append-only, so a record's line never changes."""
+    return hashlib.sha256(raw.strip()).hexdigest()[:16]
+
+
+def _stop_origin(raw: bytes, e) -> dict:
+    """{"id", "ts", "reason"} of the STOP a STOP record stands for: a carried record's "origin" (carry_stop_forward
+    copies it, so every carry of one STOP has the same id), else the record itself. A carry written before records had
+    "origin" ("carried forward from <ts>: ..." prefixes, possibly nested) gives its innermost ts and reason."""
+    if not isinstance(e, dict):                    # a damaged line that still reads "decision": "STOP"
+        return {"id": stop_record_id(raw), "ts": None, "reason": "a damaged hook.log line that records a STOP"}
+    o = e.get("origin")
+    if isinstance(o, dict) and isinstance(o.get("id"), str) and o["id"]:
+        return {"id": o["id"], "ts": o.get("ts"), "reason": o.get("reason")}
+    ts, reason = e.get("ts"), str(e.get("reason") or "")
+    m = _CARRIED.match(reason)
+    if m:
+        ts, reason = (None if m.group(1) == "an unknown time" else m.group(1)), reason[m.end():]
+    return {"id": stop_record_id(raw), "ts": ts, "reason": reason}
+
+
+def stop_state(path, tail: int = STOP_LOG_TAIL) -> tuple[dict | None, dict | None]:
+    """(sticky_stop's result, the newest STOP record in the window as {"id", "ts", "reason"} of its origin, cleared or
+    not, or None). `resume` names that id in its CLEAR record ("through"), so the clear covers exactly the STOP the
+    user was shown. Never raises."""
+    try:
+        with open(path, "rb") as fh:
+            size = fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, size - tail))
+            data = fh.read()
+    except FileNotFoundError:
+        return None, None
+    except Exception as e:                         # exists but unreadable (a directory, no permission): fail closed
+        return {"ts": None, "reason": f"hook.log cannot be read ({type(e).__name__})", "why": "unreadable"}, None
+    cur = newest = None                            # the STOP in force (file order), the newest STOP record
+    pos = 0
+    for k, raw in enumerate(data.split(b"\n")):
+        at, pos = pos, pos + len(raw) + 1
+        if (k == 0 and size > tail) or b"STOP" not in raw:     # the cut's partial line; a STOP record and a
+            continue                                           # STOP-clearing CLEAR both name STOP
+        line = raw.decode("utf-8", "replace")
+        try:
+            e = json.loads(line)
+        except (ValueError, RecursionError):       # RecursionError: a damaged line of deeply nested brackets
+            e = None
+        if not isinstance(e, dict):
+            if _STOP_TEXT.search(line):            # a damaged STOP record: a STOP of unknown time
+                newest = _stop_origin(raw, None)
+                cur = {**newest, "at": at, "rec_ts": None, "why": "active"}
+            continue
+        if e.get("decision") == "STOP":
+            newest = _stop_origin(raw, e)
+            cur = {**newest, "at": at, "rec_ts": e.get("ts"), "why": "active"}
+        elif cur is not None and clears_stop(e):
+            if "through" in e:                     # resume names the STOP it clears: only that one, whatever the dates
+                if isinstance(e["through"], str) and e["through"] == cur["id"]:
+                    cur = None                     # (a STOP recorded after the user's prompt stays in force)
+                continue
+            sts, cts = _ts_or_none(cur["rec_ts"]), _ts_or_none(e.get("ts"))   # a CLEAR without "through": by date
+            if cts is not None and (sts is None or cts >= sts):
+                cur = None
+            else:
+                cur.update(why="unordered", clear_ts=str(e.get("ts")))
+    if cur is None:
+        return None, newest
+    out = {"ts": str(cur["ts"]) if cur["ts"] else None, "reason": str(cur["reason"] or "no reason recorded")[:300],
+           "why": cur["why"], "id": cur["id"], "behind": len(data) - cur["at"]}    # bytes from the record to the end
+    if cur["why"] == "unordered":
+        out["clear_ts"] = cur["clear_ts"]
+    return out, newest
+
+
+def sticky_stop(path, tail: int = STOP_LOG_TAIL) -> dict | None:
+    """STOP as hook.log records it, whatever the STOP file says: None when hook.log does not exist, holds no STOP
+    record, or every STOP record is cleared. A STOP record is any line with "decision": "STOP" (the PostToolUse
+    hook's, `stop`'s with hook "cli", and carry_stop_forward's). Records count in file order (append-only): a STOP is
+    in force until a later `resume` CLEAR that clears STOP (clears_stop) clears it. A CLEAR with "through" (every
+    resume since 2026-10-20) clears only the STOP whose origin id (stop_record_id) it names, whatever the dates: a STOP
+    recorded after the user's prompt stays in force. A CLEAR without "through" clears it when dated at or after the
+    STOP record; dated before it, or without a readable date, the two cannot be ordered.
+
+    Else {"ts", "reason", "why", "id", "behind"}: ts and reason of the STOP's origin (a carried record's first STOP),
+    why "active", "unordered" (that undatable or earlier-dated clear; also "clear_ts") or "unreadable" (hook.log exists
+    but cannot be read). The last two fail closed: STOP counts as active. "id": the origin's id; "behind": the bytes
+    from the STOP record to the end of the file (carry_stop_forward).
+
+    Reads only the last `tail` bytes (the first, partial line of a cut is dropped). Lines that are not JSON objects
+    are skipped, except one that still reads "decision": "STOP" (a damaged STOP record): it counts as a STOP of
+    unknown time, which a later clear in the file still clears. Never raises."""
+    return stop_state(path, tail)[0]
+
+
+def _ts_text(ts) -> str:
+    """A STOP's time for a carried record's reason: to the second, so the digit scrub of hook.log reasons leaves it
+    readable."""
+    t = _ts_or_none(ts)
+    return t.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ") if t is not None else str(ts or "an unknown time")
+
+
+def carry_stop_forward(path, tool=None, tail: int = STOP_LOG_TAIL, hook: str = "post") -> bool:
+    """Re-append the STOP in force before it leaves the window sticky_stop reads: once its record lies more than half
+    the tail back, log a new "decision": "STOP" record with "origin" {"id", "ts", "reason"} (the first STOP's, so
+    carries never nest) and "reason" "carried forward from <origin time>: <origin reason>". An "unordered" STOP is
+    carried too (after the clear, so it becomes an ordinary active STOP that one resume clears); an unreadable
+    hook.log is not. The PostToolUse hook calls this after each Robinhood call and the PreToolUse hook after each call
+    it blocks (no PostToolUse follows those), so neither the reads a run keeps making under STOP nor repeated blocked
+    place calls push it out. A small hook.log is not read at all. Returns whether it wrote one."""
+    try:
+        if os.path.getsize(path) <= tail // 2:
+            return False
+    except OSError:
+        return False
+    s = sticky_stop(path, tail)
+    if s is None or s["why"] == "unreadable" or s["behind"] <= tail // 2:
+        return False
+    reason = scrub(s["reason"])
+    log(hook, tool, "STOP", f"carried forward from {_ts_text(s['ts'])}: {reason}"[:300],
+        extra={"origin": {"id": s["id"], "ts": s["ts"], "reason": reason}})
+    return True
+
+
+def sticky_stop_message(s: dict) -> str:
+    """What the PreToolUse hook, `status`, `doctor` and the digest say about a sticky_stop() result."""
+    if s.get("why") == "unreadable":
+        return (f"STOP is treated as active: {s['reason']}, so a STOP recorded there cannot be ruled out (fail "
+                "closed); make hook.log readable again")
+    msg = (f"STOP is active per hook.log (written {s.get('ts') or 'at an unknown time'}: {s.get('reason')}) although "
+           "the STOP file is missing; only resume in your own terminal clears it")
+    if s.get("why") == "unordered":
+        msg += (f" (the newest clear in hook.log, dated {s.get('clear_ts')}, cannot be ordered after this STOP: check "
+                "the PC clock, then run resume again)")
+    return msg
 
 
 # ------------------------------------------------------------------ plan integrity, quotes, orders
@@ -631,11 +787,13 @@ def scrub(text, secrets=(), digits: bool = True) -> str:
     return _LONG_DIGITS.sub("***", s) if digits else s
 
 
-def log(hook: str, tool, decision: str, reason: str, ref_id=None, secrets=()) -> None:
-    """Append one JSON line to hook.log. Never raises."""
+def log(hook: str, tool, decision: str, reason: str, ref_id=None, secrets=(), extra: dict | None = None) -> None:
+    """Append one JSON line to hook.log: ts, hook, tool, decision, reason (scrubbed), ref_id, then `extra`'s fields as
+    given (the caller scrubs them). Never raises."""
     try:
         append_jsonl(paths()["hook_log"], {
             "ts": iso_z(utc_now()), "hook": hook, "tool": scrub(tool, secrets, digits=False), "decision": decision,
-            "reason": scrub(reason, secrets), "ref_id": scrub(ref_id, secrets, digits=False) if ref_id else None})
+            "reason": scrub(reason, secrets), "ref_id": scrub(ref_id, secrets, digits=False) if ref_id else None,
+            **(extra or {})})
     except Exception:
         pass

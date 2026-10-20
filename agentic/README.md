@@ -68,15 +68,20 @@ see the last bullet.
     call that fails or times out is journaled (the order may exist) and counted against `max_day_usd`
   - deny rules for the option, alert, scan and watchlist write tools
   - deny rules so the agent cannot undo a STOP or replace a plan with placed orders, or edit the plan the hook
-    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit on `private/agentic/**` (Edit rules cover every file-editing tool). `resume` (and `resume --proposals`, which the same rule covers) also refuses to run without a terminal, so only you can clear a flag or release pending proposals. These
+    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit on `private/agentic/**` (Edit rules cover every file-editing tool). Deleting the STOP file does not undo a STOP either: hook.log keeps it until `resume` (section 6). Deleting, emptying, trimming or rotating `hook.log` does undo it, so leave that file alone (section 6). `resume` (and `resume --proposals`, which the same rule covers) also refuses to run without a terminal, so only you can clear a flag or release pending proposals. These
     Bash deny rules also turn off Claude Code's PowerShell tool on Windows. That is fine: everything here runs in
     Git Bash.
+  - deny rules for any shell command that names the state files (`STOP`, `FLATTEN`, `BLOCK_BUYS`, `hook.log`,
+    `journal`, `ledger`) or runs `rm`/`mv` in `private/agentic`. Deleting or trimming `hook.log` would lift a
+    sticky STOP, so the agent must never touch these files from the shell.
 - **Check the install:** `.venv/Scripts/python.exe -m agentic doctor`. It prints one PASS, WARN or FAIL line for
   each check:
   - Python, pandas, numpy and the time-zone source
   - `AGENTIC_PYTHON`, read from `settings.local.json`, so your Git Bash does not need it set, and that it can
     import pandas and numpy (`/moneyline` runs every command with it)
   - the state dir, and the config and account numbers (never shown)
+  - the flags: a WARN line per `status` banner line while STOP (the file, or sticky in `hook.log`), FLATTEN or
+    BLOCK_BUYS is set (section 6); never a FAIL
   - that git ignores the private files, the hook registration and Git Bash
   - a live test of the PreToolUse hook: an unplanned order must be blocked and a read allowed
 
@@ -280,7 +285,8 @@ Rules of thumb:
     approvals could skip approval too. So after rejecting buy proposals under FLATTEN, run `resume --proposals`, or
     the exits stay blocked.
 - `.venv/Scripts/python.exe -m agentic status` starts with a `!!!` banner while a flag is set: STOP and its
-  reasons, plus the APPROVAL BYPASS advice when the hook wrote STOP because an order went live without approval.
+  reasons (or, with the STOP file deleted, that hook.log keeps STOP active until `resume`: section 6), plus the
+  APPROVAL BYPASS advice when the hook wrote STOP because an order went live without approval.
   The digest starts with the same banner. Then come the flags and the last `resume` (from `hook.log`), the last
   signals and plan, today's placed notional, today's pending proposals and the journal tail. No account numbers are
   shown.
@@ -344,6 +350,8 @@ The defences:
   proposals of the last 7 days are pending (section 3).
 - **Loud STOP:** while that STOP is set, `status` and the digest open with an APPROVAL BYPASS banner. `resume`
   records each flag it clears, with the flag's previous text, in `hook.log`. `status` shows the newest such record.
+- **Sticky STOP:** the hook's STOP is also recorded in `hook.log`, so deleting the STOP file does not lift it; only
+  `resume` does, as long as `hook.log` itself is not deleted, emptied, trimmed or replaced (section 6).
 
 If it happens again:
 
@@ -357,22 +365,67 @@ Keep both caps at 4 or less until Robinhood confirms how many pending approvals 
 
 | command | effect |
 |---|---|
-| `.venv/Scripts/python.exe -m agentic stop "reason"` | STOP: the hook blocks every place call. The next plan lists a cancel for each open order this system placed; run `/moneyline` to make those cancels, or cancel in the app. |
+| `.venv/Scripts/python.exe -m agentic stop "reason"` | STOP: the hook blocks every place call until you run `resume` (deleting the STOP file does not lift it: see "STOP is sticky" below). The next plan lists a cancel for each open order this system placed; run `/moneyline` to make those cancels, or cancel in the app. |
 | `.venv/Scripts/python.exe -m agentic flatten` | FLATTEN: every target becomes 0; sells of the sleeve's own shares only. The next `run` replaces the current plan (even with placed orders) and cancels its open buys; reject buy proposals still waiting in the app, then run `resume --proposals` (rejecting does not clear the pending-proposal count, which blocks sells too). |
-| `.venv/Scripts/python.exe -m agentic resume` | removes flags after you type `resume` (`--flag NAME` for one). It refuses without a terminal, so Claude cannot run it. |
+| `.venv/Scripts/python.exe -m agentic resume` | removes flags after you type `resume` (`--flag NAME` for one), including a STOP that `hook.log` keeps active after its file was deleted. It refuses without a terminal, so Claude cannot run it. |
 | `.venv/Scripts/python.exe -m agentic resume --proposals` | lists the proposals the pending-proposal guard still counts and, after you type `resolved`, stops counting them (section 3). Flags are not touched. Terminal only, like `resume`. |
 | `.venv/Scripts/python.exe -m agentic reconcile --accept` | after checking a BLOCK_BUYS mismatch in the app, adopt the positions as the new baseline |
 
 - **`resume` in Git Bash's own window:** that window (mintty) does not give Windows programs a terminal, so
   `resume` refuses there. Prefix the command with `winpty`, which comes with Git for Windows:
   `winpty .venv/Scripts/python.exe -m agentic resume`. A Git Bash tab in Windows Terminal works without it.
+- **STOP is sticky: of the flag commands, only `resume` clears it, and every clear is logged.** `stop` and the
+  PostToolUse hook write the STOP file and also append a `"decision": "STOP"` record to the append-only
+  `private/agentic/hook.log` (`stop`: `"hook": "cli", "tool": "stop"`). The PreToolUse hook blocks place calls
+  while the STOP file exists **or** hook.log holds a STOP record that no later `resume` cleared. So deleting the STOP
+  file (by hand, a sync tool, or an agent's shell command, which the deny rules do not fully cover) does not
+  re-enable trading; deleting or trimming hook.log does (next point). The block then
+  says `STOP is active per hook.log (written <time>: <reason>) although the STOP file is missing; only resume in your
+  own terminal clears it`. `status` and the digest open with the same banner, and `doctor` shows it as a WARN line.
+  Cancels and reads still work.
+  - **Leave hook.log alone while STOP may be set.** The sticky STOP lives in `hook.log`. Deleting, emptying,
+    renaming (rotating) or trimming it, or replacing it with an older copy, lifts a sticky STOP with no `resume` and
+    no record: with `hook.log` missing, the hook checks the STOP file alone. That holds whoever does it: you, a log
+    cleanup that keeps only the newest lines, a sync or backup tool restoring an older copy of `private/agentic/`,
+    or an agent's shell command (the deny rules cover `agentic resume`, not `rm` or `>`).
+    Nothing can detect a trimmed or older copy. So never trim, rotate or delete `hook.log`; if you must, run `status`
+    first and only go ahead when it shows no STOP. After restoring `private/agentic/` from a backup, check the
+    Robinhood app and run `stop` again if a STOP was set.
+  - `resume` offers to clear STOP even when the file is missing, and appends its CLEAR record (`"flags": ["STOP",
+    ...]`, and `"through"` / `"through_ts"`: the id and time of the newest STOP record it showed you). That clear
+    ends exactly that STOP, whatever the dates: a STOP dated in the future (the PC clock was ahead when it was
+    written) clears too, and resume says so. A STOP recorded after it showed you the prompt is not cleared by it:
+    if one arrives while you are typing `resume`, nothing is cleared; if one arrives while resume is clearing, it
+    warns `a new STOP was recorded while resume was clearing` and exits 1 (likewise if a new STOP file appears).
+    Run it again to see the new reason.
+  - Fail closed: if hook.log exists but cannot be read, STOP counts as active ("STOP is treated as active ...").
+    A clear written before clears named their STOP (before 2026-10-20) counts only when dated at or after the STOP;
+    if it is dated before the STOP it follows (the PC clock jumped back), the two cannot be ordered and STOP stays
+    active: run `resume` again (its clear names the STOP). A damaged line that still reads `"decision": "STOP"`
+    counts as a STOP; other malformed lines are skipped.
+  - The check reads only the last 2 MB of hook.log. So that neither the reads a run keeps making under STOP nor
+    repeated blocked place calls push a STOP out of that window, the PostToolUse hook (after every Robinhood call)
+    and the PreToolUse hook (after every call it blocks) append it again once it lies more than 1 MB back:
+    `"reason": "carried forward from <time of the first STOP>: <its reason>"`, with `"origin"` holding the first
+    STOP's id, time and reason, so carries never nest and `status` keeps showing the original reason (and the
+    APPROVAL BYPASS banner). A STOP that cannot be ordered against its clear is carried too; it then comes after
+    the clear, so one `resume` clears it.
+  - After upgrading to this version, a STOP the hook recorded earlier that no `resume` record clears (for example one
+    lifted by deleting the file) is active again: `status` shows it; check the app, then run `resume` once.
+  - FLATTEN and BLOCK_BUYS stay file-based: `flatten` appends a `"decision": "FLATTEN"` record for the audit trail
+    only, and deleting the FLATTEN or BLOCK_BUYS file lifts that flag as before.
+  - hook.log records are not signed: a program that can append to the file could forge a clear. Claude's Edit tool
+    is denied on `private/agentic/**`, but deny rules match command text only, so this guards against deleting the
+    STOP file by accident or by a sync tool, not against changes to hook.log itself (above) or a determined process
+    on your PC.
 - Disconnecting the agent does **not** cancel open orders, and crypto limit orders last 90 days. Cancel them first.
 - The PostToolUse hook writes STOP by itself if an agent order goes live without your approval. `status` and the
   digest then open with an APPROVAL BYPASS banner until you clear it. Check the app's activity (the robot icon,
   section 5) and your approval setting before `resume`.
 - `resume` appends one JSON line to `private/agentic/hook.log` for each clear: `"hook": "cli"`, `"tool":
-  "resume"`, `"decision": "CLEAR"`, and a reason that names each flag with its previous text (truncated, digits
-  masked). `status` shows the newest one as `last flag clear`. `resume --proposals` appends one with `"decision":
+  "resume"`, `"decision": "CLEAR"`, `"flags"` (the flags it cleared), with STOP `"through"` / `"through_ts"` (the
+  STOP it cleared), and a reason that names each flag with its previous text (truncated, digits masked). `status`
+  shows the newest one as `last flag clear`. `resume --proposals` appends one with `"decision":
   "RESOLVE"`, shown as `last proposals resolved`. To list all of them:
   `grep '"tool": "resume"' private/agentic/hook.log`.
 - If a flag file cannot be removed (Windows: another program has it open), `resume` stops there, records the flags
@@ -918,7 +971,8 @@ accounts. List such tickers in `wash_sale_block_symbols` (section 11) for those 
 | `private/agentic/config.json` | your config (account numbers): private |
 | `private/agentic/inbox/` | raw Robinhood tool results saved by the PostToolUse hook |
 | `private/agentic/signals/`, `digests/`, `plans/`, `plan_current.json` | daily outputs |
-| `private/agentic/journal.jsonl`, `ledger.json`, `positions_reconciled.json`, `hook.log` | audit trail |
+| `private/agentic/journal.jsonl`, `ledger.json`, `positions_reconciled.json` | audit trail |
+| `private/agentic/hook.log` | every hook decision and `resume`, and the sticky STOP: deleting, emptying, trimming, rotating or replacing it lifts a STOP, so leave it alone (section 6) |
 | `private/agentic/cron.log` | output of the scheduled phase 1 job |
 | `private/agentic/STOP`, `FLATTEN`, `BLOCK_BUYS` | flags |
 | `private/agentic/strategy_start.json` | the first live plan's date (entry policy `fresh_only`) |

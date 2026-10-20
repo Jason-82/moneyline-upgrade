@@ -474,6 +474,8 @@ def test_rejected_proposals_block_a_flatten_exit_until_the_user_resolves_them(st
     assert len(res) == 1 and res[0]["count"] == 4 and res[0]["places"] == [hooks.place_id(e) for e in places]
     rec = [json.loads(x) for x in (state / "hook.log").read_text().splitlines()]
     rec = [r for r in rec if r.get("hook") == "cli"]
+    assert [(r["tool"], r["decision"]) for r in rec] == [("flatten", "FLATTEN"), ("resume", "RESOLVE")]   # flatten
+    rec = rec[1:]                                                  # records itself too (sticky STOP change)
     assert len(rec) == 1 and (rec[0]["tool"], rec[0]["decision"], rec[0]["ref_id"]) == ("resume", "RESOLVE", None)
     assert rec[0]["reason"].startswith("resolved 4 proposal(s)") and "SAAA|AAA|buy|0" in rec[0]["reason"]
     assert set(ledger.read_flags()) == {"FLATTEN"}                 # flags are not touched

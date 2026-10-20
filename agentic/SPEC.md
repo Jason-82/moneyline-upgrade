@@ -331,7 +331,8 @@ Returns:
 def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 ```
 
-`flags` are read from the state dir: STOP, FLATTEN, BLOCK_BUYS.
+`flags` are read from the state dir: STOP, FLATTEN, BLOCK_BUYS (`ledger.read_flags`: the flag files, plus STOP while
+hook.log keeps it active with the file missing, `hooks.sticky_stop`, section 9).
 
 **Entry policy** (`entry.py`; config `entry`, per-asset override `asset.entry`):
 - `full_tf` = Σ w_k · green_k (the signal's `target_frac`); `entry_tf` = Σ w_k · green_k · eligible_k, capped at
@@ -515,7 +516,46 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
     account; log.
   - **trade:** `place_equity_order`, `place_crypto_order` → allow only if ALL of these hold (otherwise exit 2 with a
     one-line reason on stderr):
-    1. no STOP file
+    1. no STOP: no STOP file, and no sticky STOP in hook.log (`hooks.sticky_stop`, added after the first live
+       day so that deleting the file never re-enables trading).
+       - A STOP record is any hook.log line with `"decision": "STOP"`: the PostToolUse hook's (section 10),
+         `cli stop`'s (`hook: "cli", tool: "stop"`) and `hooks.carry_stop_forward`'s. A clear is `cli resume`'s
+         CLEAR record whose `"flags"` list names STOP (`hooks.clears_stop`; a CLEAR written before records had
+         `"flags"` counts when its reason starts `cleared STOP (`). Records count in file order (append-only): a STOP
+         is in force from its record until a later clear clears it.
+         - Each STOP has an id, `hooks.stop_record_id` (the first 16 hex digits of the SHA-256 of its line); a carried
+           record keeps its first STOP's id, time and reason in `"origin"`. `cli resume` writes `"through"` (the id
+           of the newest STOP record in the window when it showed the user the prompt, `hooks.stop_state`; null if
+           none) and `"through_ts"` into its CLEAR. Such a CLEAR clears the STOP in force only when its id equals
+           `"through"`, whatever the dates (a STOP dated in the future, the clock ahead when it was written, is
+           cleared); a STOP recorded after the prompt stays in force, and so does one a replayed copy of an old
+           CLEAR line meets.
+         - A CLEAR without `"through"` (written before 2026-10-20) clears the STOP in force when dated at or after
+           its record; dated before it, or without a readable date, they cannot be ordered: STOP stays active
+           (`"why": "unordered"`, fail closed) until a later clear. A STOP record without a readable date is
+           ordered by its position alone.
+       - Reads only the last `hooks.STOP_LOG_TAIL` bytes (2 MB; the cut's first, partial line is dropped) and only
+         parses lines that contain `STOP`. Lines that are not JSON objects (a `RecursionError` from deeply nested
+         brackets included) are skipped, except one that still matches `"decision": "STOP"` (a damaged STOP
+         record), which counts as a STOP of unknown time. hook.log present but unreadable → STOP active (fail
+         closed).
+       - hook.log missing → the file check alone. So deleting, emptying, renaming (rotating) or trimming hook.log,
+         or replacing it with an older copy (a sync or backup tool), lifts a sticky STOP without a `resume` and
+         without a record, whoever does it (the deny rules cover `agentic resume`, not `rm` or `>`). This cannot be
+         detected from hook.log; README section 6 says never to touch hook.log while STOP may be set.
+       - `hooks.carry_stop_forward`, called by the PostToolUse hook after every Robinhood call (even one whose
+         handling raised) and by the PreToolUse hook after every call it blocks (no PostToolUse hook follows those):
+         once the STOP in force, active or unordered, lies more than half the tail back, it appends a new STOP
+         record (`"reason": "carried forward from <origin ts, to the second>: <origin reason>"`, `"origin": {"id",
+         "ts", "reason"}`), so an uncleared STOP never leaves the window and carries never nest. A carried unordered
+         STOP comes after its clear, so it is active and one `resume` clears it. A hook.log under half the tail is
+         not read. `hooks.sticky_stop` reports the origin's ts and reason.
+       - With the file missing, the block reason is `hooks.sticky_stop_message`: `STOP is active per hook.log
+         (written <ts>: <reason>) although the STOP file is missing; only resume in your own terminal clears it`
+         (unreadable: `STOP is treated as active: hook.log cannot be read (...) ... (fail closed)`). `status`,
+         `doctor` and the digest show it in the banner (`ledger.read_flags` / `ledger.flag_banner`).
+       - FLATTEN and BLOCK_BUYS stay file-based (`cli flatten` logs a `"decision": "FLATTEN"` record for the audit
+         trail only).
     2. config `live` is true
     3. `plan_current.json` exists, `now < valid_until`, and the plan's account numbers match the config
     4. an order in the plan has `tool` == short name and `params` == `tool_input` exactly, comparing JSON values
@@ -556,13 +596,14 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
           `<cli> resume --proposals` in their own terminal ...`.
         - Never applied to cancels or reads.
   - **cancel:** `cancel_equity_order`, `cancel_crypto_order` → allow if `order_id` is in `plan.cancels`, or the
-    journal shows an order this system placed. Cancels are allowed even under STOP (the kill switch must be able to
-    pull orders).
+    journal shows an order this system placed. Cancels are allowed even under STOP, file or sticky (the kill switch
+    must be able to pull orders).
   - **everything else** (options, alerts, scans, watchlists, `exercise_option`, unknown tools) → block.
 - Any exception while handling a trade/cancel/unknown tool → exit 2, fail closed. On a read tool → exit 0 and log the
   exception.
 - Every decision is appended to `hook.log` as JSON: ts, tool, decision, reason, ref_id. No account numbers or
-  balances in the reason text. `cli resume` appends its clears to the same file (`hook: "cli"`, section 12).
+  balances in the reason text. `cli resume` appends its clears, and `cli stop` / `cli flatten` their STOP / FLATTEN
+  records, to the same file (`hook: "cli"`, section 12).
 
 ## 10. hooks/post_tool_use.py (D)
 
@@ -573,7 +614,11 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 - **Approval check:** if config `account.approvals_required`, a successful place response with any non-null
   `data.order` (whatever `placed_agent` says: an approval happens later, in the app) means the agent's order went
   live without the user's approval. Write STOP with that reason and print a loud warning on stderr (the warning is
-  printed even if STOP cannot be written).
+  printed even if STOP cannot be written). Every STOP also appends a `"decision": "STOP"` record to hook.log, even
+  when the STOP file cannot be written: it keeps STOP active after the file is deleted (sticky STOP, section 9).
+  After every Robinhood call (even one whose handling raised) it also carries the STOP in force forward before it
+  leaves the 2 MB window the check reads (`hooks.carry_stop_forward`; the PreToolUse hook does the same after each
+  call it blocks).
   - `data.order` null or omitted, with no order fields in `data`, is recorded as
     `"state": "proposal_pending_approval?"`; order fields without `data.order` → STOP ("unrecognised"). The exact
     approval response shape must be confirmed on the first live order (README).
@@ -619,8 +664,13 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   covers `resume --proposals` too), `Bash(*agentic*--replan*)` (any interpreter path in front),
   `Bash(*agentic*init*--update*)`,
   `Edit(private/agentic/**)`
-  (Claude Code applies Edit rules to every file-editing tool; a Write(path) rule is ignored with a warning). Deny rules match command text and are not a security boundary: `resume` refusing to
-  run without a terminal is the real guard. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
+  (Claude Code applies Edit rules to every file-editing tool; a Write(path) rule is ignored with a warning), and
+  shell commands that name the state files: `Bash(*private/agentic/STOP*)`, `Bash(*private/agentic/FLATTEN*)`,
+  `Bash(*private/agentic/BLOCK_BUYS*)`, `Bash(*private/agentic/hook.log*)`, `Bash(*private/agentic/journal*)`,
+  `Bash(*private/agentic/ledger*)`, `Bash(*rm *private/agentic*)`, `Bash(*mv *private/agentic*)` (deleting or
+  trimming hook.log would lift a sticky STOP). Deny rules match command text and are not a security boundary: `resume` refusing to
+  run without a terminal is the real guard, and STOP is sticky in hook.log (section 9), so deleting the STOP file does
+  not lift it. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
   tool.
 - `doctor.HOOK_COMMANDS` holds the same three command strings; tests check them, and this section, against
   `.claude/settings.json`.
@@ -697,10 +747,10 @@ own hints name the interpreter running it (`config.cli_command()`):
 | `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call). It refuses (`NOT RE-PLANNING`) while the current plan is valid, at the same or a higher attempt, with unchanged flags, and has placed orders. Exception: the plan left orders unplaced (`deferred` by `max_orders_per_plan`, or plan orders without a successful place), and every order it did place shows up settled in an order listing captured after it (`hooks.unsettled`: filled, cancelled or rejected; anything unmatched counts as open). Then nothing of it can be cancelled or duplicated, so the rest may be planned |
 | `run` | `signals` then `plan` |
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
-| `status` | first a `!!!` banner per flag (`ledger.flag_banner`: STOP with its newest reasons, the APPROVAL BYPASS advice for the hook's "went live without approval" STOP, FLATTEN, BLOCK_BUYS); then config, flags, `last flag clear` (the newest `resume` record in hook.log), last signals and plan (with its deferred count), today's ledger, the last 7 days' proposals pending approval (as the hook counts them; with any, how to release rejected ones with `resume --proposals`), `last proposals resolved` (the newest RESOLVE record, if any), journal tail (no account numbers). The digest (`signals`, `run`) starts with the same banner |
-| `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`). After clearing, resume appends a JSON line to hook.log: `{ts, hook: "cli", tool: "resume", decision: "CLEAR", reason: "cleared STOP (was: <previous text>); ...", ref_id: null}`, naming only the flags actually removed: a flag whose file cannot be removed (Windows: held open) stops the loop, the ones already cleared are still recorded, and it exits 1. Each flag's text is truncated to 300 characters and the reason to 1,000; account numbers and long digit runs are masked. `flatten` also says that rejecting buy proposals does not clear the pending-proposal count |
+| `status` | first a `!!!` banner per flag (`ledger.flag_banner`: STOP with its newest reasons, or `hooks.sticky_stop_message` when only hook.log keeps STOP active, the APPROVAL BYPASS advice for the hook's "went live without approval" STOP, FLATTEN, BLOCK_BUYS); then config, flags, `last flag clear` (the newest `resume` record in hook.log), last signals and plan (with its deferred count), today's ledger, the last 7 days' proposals pending approval (as the hook counts them; with any, how to release rejected ones with `resume --proposals`), `last proposals resolved` (the newest RESOLVE record, if any), journal tail (no account numbers). The digest (`signals`, `run`) starts with the same banner |
+| `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`). `stop` first appends `{ts, hook: "cli", tool: "stop", decision: "STOP", reason, ref_id: null}` to hook.log (the sticky STOP record, section 9), then writes the file; it exits 1 when either cannot be written (the other still holds STOP). `flatten` appends the same with tool `flatten`, decision `FLATTEN` (audit only: FLATTEN stays file-based). resume lists STOP also when only hook.log keeps it active (the file is missing) and clears it all the same, with a NOTE when that STOP is dated more than 5 minutes in the future; it clears nothing if the flags or the newest STOP record changed while the user was confirming. After clearing, resume appends a JSON line to hook.log: `{ts, hook: "cli", tool: "resume", decision: "CLEAR", flags: [<cleared flags>], reason: "cleared STOP (was: <previous text>); ...", ref_id: null}`, plus, with STOP, `through` / `through_ts` (the newest STOP record read before the prompt, section 9), naming only the flags actually removed. Then it re-reads hook.log and exits 1 with a warning if STOP is still active: a STOP recorded while it was clearing (`a new STOP was recorded while resume was clearing`), a CLEAR that could not be written, or a STOP file that reappeared: a flag whose file cannot be removed (Windows: held open) stops the loop, the ones already cleared are still recorded, and it exits 1. Each flag's text is truncated to 300 characters and the reason to 1,000; account numbers and long digit runs are masked. `flatten` also says that rejecting buy proposals does not clear the pending-proposal count |
 | `resume --proposals` | lists the place calls `hooks.awaiting_approval` still counts; in a terminal only, after a typed `resolved`, journals `{"event": "proposals_resolved", "places": [hooks.place_id ...], "count": N}` (section 9, item 10) and appends `{ts, hook: "cli", tool: "resume", decision: "RESOLVE", reason: "resolved N proposal(s) ...: <ts> <key>; ...", ref_id: null}` to hook.log. Flags are not touched; `--flag` and `--proposals` exclude each other |
-| `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, favorites that name both a scan candidate coin and a ticker in `universe.equity.symbols`, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
+| `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the flags (`ledger.flag_banner` as WARN lines, e.g. a sticky STOP; PASS when none), the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, favorites that name both a scan candidate coin and a ticker in `universe.equity.symbols`, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 
 - `README.md`: setup, daily runbook (phase 1 cron; phase 2 "/moneyline" in Claude Code), shadow mode, rollout steps

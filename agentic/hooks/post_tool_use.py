@@ -3,9 +3,11 @@
 check approvals (SPEC sections 8 and 10).
 
 Never blocks: always exits 0 and logs its own errors to hook.log. If an agent order went live while approvals are
-required (in a place result or in a later order listing), or a tool outside the allowlist ran, it writes STOP and
-warns on stderr and through the hook's JSON output. A failed or timed-out place is journaled as failed_or_unknown and
-counted against the daily cap. Standard library only.
+required (in a place result or in a later order listing), or a tool outside the allowlist ran, it writes STOP (the
+file, and a "decision": "STOP" record in hook.log that keeps STOP active if the file is deleted; after every
+Robinhood call, even one whose handling failed, a STOP record in force that is about to leave the window the
+PreToolUse check reads is carried forward) and warns on stderr and through the hook's JSON output. A failed or
+timed-out place is journaled as failed_or_unknown and counted against the daily cap. Standard library only.
 """
 from __future__ import annotations
 
@@ -45,7 +47,9 @@ def _guarded(label: str, tool: str, secrets: list, fn, *args):
 
 
 def _stop(p: dict, tool: str, reason: str, now, ref, secrets: list, warnings: list) -> None:
-    """Write STOP and warn. The warning is added first, so a failed write is still reported loudly."""
+    """Write STOP and warn. The warning is added first, so a failed write is still reported loudly. The hook.log
+    "STOP" record is written even when the STOP file cannot be: it makes STOP sticky (hooks.sticky_stop), so the
+    PreToolUse hook blocks place calls until `resume` clears it, with or without the file."""
     warnings.append(f"AGENTIC STOP: {reason}. {STOP_ADVICE}")
     try:
         H.write_stop(p, reason, now)
@@ -53,7 +57,6 @@ def _stop(p: dict, tool: str, reason: str, now, ref, secrets: list, warnings: li
         warnings.append(f"the STOP file could NOT be written ({type(e).__name__}): place nothing more and tell the "
                         "user now")
         H.log("post", tool, "error", f"stop: {type(e).__name__}: {e}", ref, secrets)
-        return
     H.log("post", tool, "STOP", reason, ref, secrets)
 
 
@@ -200,7 +203,24 @@ def _readback(cfg, p: dict, tool: str, resp, now, secrets: list) -> list[str]:
 
 def handle(event: dict, now=None) -> list[str]:
     """Capture, journal and approval-check one Robinhood tool result (PostToolUse) or failure (PostToolUseFailure);
-    returns warnings for the user."""
+    returns warnings for the user. Then, whatever happened (an early return, an exception), carry a STOP in force
+    forward in hook.log when needed (hooks.carry_stop_forward)."""
+    try:
+        return _handle(event, now)
+    finally:
+        _carry(event.get("tool_name"))
+
+
+def _carry(tool) -> None:
+    """hooks.carry_stop_forward, so a STOP in force stays in the window the PreToolUse check reads. Never raises."""
+    try:
+        from agentic.config import paths
+        H.carry_stop_forward(paths()["hook_log"], tool)
+    except Exception as e:
+        H.log("post", tool, "error", f"carry stop: {type(e).__name__}: {e}", None, H.account_secrets())
+
+
+def _handle(event: dict, now=None) -> list[str]:
     from agentic.config import load_config, paths
     now = now or H.utc_now()
     tool = event["tool_name"]

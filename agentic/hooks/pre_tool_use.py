@@ -3,7 +3,10 @@
 
 Claude Code passes the event JSON on stdin. Exit 0 lets the call proceed (normal permission flow); exit 2 blocks it
 and stderr is shown to Claude. Fails closed: any error while handling a trade, cancel, simulate or unknown Robinhood
-tool blocks the call. A place call is also blocked while limits.max_pending_proposals of the last 7 days' proposals
+tool blocks the call. STOP is sticky: a place call is blocked while the STOP file exists or hook.log holds a STOP
+record no later `resume` cleared (hooks.sticky_stop; an unreadable hook.log counts as STOP). After each call it blocks
+(no PostToolUse hook follows one) it carries that STOP forward in hook.log when needed (hooks.carry_stop_forward).
+A place call is also blocked while limits.max_pending_proposals of the last 7 days' proposals
 may still wait for approval (cancels and reads never are; `resume --proposals`, run by the user in a terminal,
 releases proposals that no longer wait in the app). Standard library only.
 """
@@ -113,6 +116,9 @@ def _call_notional(p: dict, short: str, ti: dict) -> tuple[float | None, str]:
 def _check_trade(cfg: dict, p: dict, short: str, ti: dict, now) -> tuple[bool, str]:
     if p["STOP"].exists():
         return False, "STOP file present: no new orders (cancels are still allowed)"
+    stop = H.sticky_stop(p["hook_log"])               # STOP is sticky: deleting the file does not undo it
+    if stop is not None:
+        return False, f"{H.sticky_stop_message(stop)}. No new orders (cancels are still allowed)"
     if cfg["live"] is not True:
         return False, "config live=false (shadow mode): place calls are blocked; use the review/preview tool"
     bad = _account_problem(cfg, ti)
@@ -243,9 +249,19 @@ def _load_helpers():
     return H
 
 
+def _carry(tool) -> None:
+    """A blocked call runs no PostToolUse hook, so under a sticky STOP repeated blocked place calls would add hook.log
+    lines that nothing carries the STOP past: carry it forward here (hooks.carry_stop_forward). Never raises."""
+    try:
+        H.carry_stop_forward(H.paths()["hook_log"], tool, hook="pre")
+    except BaseException:
+        pass
+
+
 def _block_unreadable(why: str) -> int:
     try:
         _load_helpers().log("pre", None, "block", why)
+        _carry(None)
     except BaseException:
         pass
     print(f"BLOCKED by agentic hook: {why} (fail closed)", file=sys.stderr)
@@ -279,6 +295,7 @@ def main() -> int:
     H.log("pre", tool, "allow" if allow else "block", reason, ref, secrets)
     if allow:
         return 0
+    _carry(tool)
     print(f"BLOCKED by agentic hook ({short}): {H.scrub(reason, secrets)}. Do not edit or retry the call; "
           f"stop and report this to the user.", file=sys.stderr)
     return BLOCK

@@ -1,4 +1,5 @@
-"""Journal (jsonl), daily placed-notional ledger, flag files and position reconciliation.
+"""Journal (jsonl), daily placed-notional ledger, flags (files, and the sticky STOP that hook.log records) and position
+reconciliation.
 
 Standard library only: the Claude Code hooks import this module. Everything here lives in the private state dir
 (agentic.config.state_dir()); nothing it writes may be committed.
@@ -23,7 +24,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from agentic import calendar as cal
+from agentic import hooks
 from agentic.config import paths
+from agentic.hooks import STOP_LOG_HEADS
 
 UTC = timezone.utc
 ET = cal.ET                   # zoneinfo America/New_York, or the built-in US Eastern rule without a tz database
@@ -133,7 +136,7 @@ def read_journal(base=None, since=None) -> list[dict]:
     for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
         try:
             e = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):        # RecursionError: deeply nested brackets on a damaged line
             continue
         if not isinstance(e, dict):
             continue
@@ -237,8 +240,10 @@ def add_placed(notional_usd: float, ref_id: str | None = None, now_utc=None, bas
 
 # ------------------------------------------------------------------ flags
 
-def read_flags(base=None) -> dict[str, str]:
-    """Active flag files -> their text, e.g. {"BLOCK_BUYS": "reconcile: ETHA expected 10 got 12"}."""
+def read_flags(base=None, log: bool = True) -> dict[str, str]:
+    """Active flags -> their text, e.g. {"BLOCK_BUYS": "reconcile: ETHA expected 10 got 12"}: the flag files, and
+    (`log`) STOP while hook.log says it is active although the STOP file is missing (sticky STOP,
+    hooks.sticky_stop; its text is hooks.sticky_stop_message). `log=False`: the files only."""
     p = paths(base)
     out = {}
     for f in FLAGS:
@@ -247,6 +252,10 @@ def read_flags(base=None) -> dict[str, str]:
                 out[f] = p[f].read_text(encoding="utf-8", errors="replace").strip()
             except OSError:
                 out[f] = ""
+    if log and "STOP" not in out:
+        s = hooks.sticky_stop(p["hook_log"])
+        if s is not None:
+            out = {"STOP": hooks.sticky_stop_message(s), **out}
     return out
 
 
@@ -261,14 +270,18 @@ BYPASS_ADVICE = ("APPROVAL BYPASS: an agent order went live without your approva
 
 
 def flag_banner(flags: dict | None = None, base=None) -> list[str]:
-    """Lines that `status` and the digest put first while a flag is set: STOP with its newest reasons, and the
-    APPROVAL BYPASS advice when a STOP reason is the hook's 'went live without approval' (shown until `resume`)."""
+    """Lines that `status`, `doctor` and the digest put first while a flag is set: STOP with its newest reasons (or,
+    with the STOP file missing, that hook.log keeps STOP active and only `resume` clears it), and the APPROVAL BYPASS
+    advice when a STOP reason is the hook's 'went live without approval' (shown until `resume`)."""
     fl = read_flags(base) if flags is None else flags
     out = []
     if "STOP" in fl:
         reasons = [x.strip() for x in str(fl["STOP"] or "").splitlines() if x.strip()]
-        out.append("!!! STOP is set: the hook blocks every place call (cancels still work). "
-                   + ("Reason: " + " | ".join(r[:200] for r in reasons[-3:]) if reasons else "No reason recorded."))
+        if reasons and reasons[0].startswith(STOP_LOG_HEADS):     # held by hook.log alone: the STOP file is missing
+            out.append(f"!!! {reasons[0][:700]}. The hook blocks every place call (cancels still work).")
+        else:
+            out.append("!!! STOP is set: the hook blocks every place call (cancels still work). "
+                       + ("Reason: " + " | ".join(r[:200] for r in reasons[-3:]) if reasons else "No reason recorded."))
         if any(m in r.lower() for r in reasons for m in BYPASS_MARKERS):
             out.append("!!! " + BYPASS_ADVICE)
     for name, what in (("FLATTEN", "sells toward 0 only"), ("BLOCK_BUYS", "buys blocked, exits allowed")):
