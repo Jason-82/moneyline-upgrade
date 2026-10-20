@@ -15,7 +15,7 @@ from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 
 from agentic import calendar as cal
 from agentic import entry, ledger
-from agentic.config import STOCK_SUFFIX, VALID_CLASSES, cli_command, crosscheck_applies, paths
+from agentic.config import DEFAULT_LIMITS, STOCK_SUFFIX, VALID_CLASSES, cli_command, crosscheck_applies, paths
 from agentic.snapshot import code_for, mid, pair_for, quote_problem
 
 EQUITY_PARAMS = ("account_number", "symbol", "side", "type", "quantity", "dollar_amount", "limit_price", "stop_price",
@@ -27,6 +27,8 @@ TOOLS = {"equity": ("place_equity_order", "review_equity_order", "cancel_equity_
 FRACTIONAL_MSG = "fractional orders are market orders: re-run the plan in regular hours before 15:45 ET"
 CANCEL_MSG = "re-run plan after the cancel settles"
 REFETCH_MSG = "exact call under RE-FETCH QUOTES"
+DEFER_MSG = ("deferred: max_orders_per_plan {n} (Robinhood may execute agent orders beyond about 5 pending approvals "
+             "without approval): run /moneyline again after approving these")
 QUOTE_CHUNK = 20
 WHOLE_MISS_FRAC = 0.10
 ONE = Decimal(1)
@@ -604,7 +606,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             "attempt": attempt, "account_number": str(acct.get("account_number") or ""),
             "rhs_account_number": str(acct.get("rhs_account_number") or ""), "capital_usd": 0.0,
             "signals_file": sfile or f"signals/signals_{sdate}.json", "signals_date": sdate, "flags": sorted(fl),
-            "orders": [], "cancels": [], "skipped": [], "warnings": [], "errors": [], "refetch": []}
+            "orders": [], "cancels": [], "skipped": [], "warnings": [], "errors": [], "refetch": [], "deferred": 0}
     errors, warnings, skipped = plan["errors"], plan["warnings"], plan["skipped"]
     enabled = [a for a in cfg.get("assets", []) if a.get("enabled")]
     managed_v = {_vkey(a["vehicle"]["type"], a["vehicle"]["symbol"]) for a in enabled}
@@ -923,6 +925,7 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
             skipped.append(dict(asset=po["asset"], reason=f"{po['key']}: ref_id already used (order "
                                                           f"{used[po['params']['ref_id']].get('state')}); re-run "
                                                           f"with --attempt {attempt + 1} for a new order"))
+    kept = _cap_orders(plan, kept, lim)
     for po in kept:
         if po["kind"] == "equity" and po["params"]["side"] == "buy":
             losses = ledger.loss_sales(po["params"]["symbol"], now, journal)
@@ -946,6 +949,32 @@ def make_plan(signals, snapshot: dict, cfg: dict, now_utc=None, attempt: int = 1
     return plan
 
 
+def _cap_orders(plan: dict, kept: list[dict], lim: dict) -> list[dict]:
+    """At most limits.max_orders_per_plan place orders: sells first (an exit is never dropped for a buy; beyond the
+    cap the first sells in plan order stay), then buys in priority order. Every order beyond the cap is listed in
+    `skipped` as deferred (DEFER_MSG) and counted in plan["deferred"]: Robinhood executed an agent order without
+    approval when it came after 5 pending proposals (README section 5). Cancels are not capped."""
+    cap = int(lim.get("max_orders_per_plan", DEFAULT_LIMITS["max_orders_per_plan"]))
+    if cap < 1:
+        raise ValueError("limits.max_orders_per_plan must be at least 1")
+    ordered = ([po for po in kept if po["params"]["side"] == "sell"]
+               + [po for po in kept if po["params"]["side"] != "sell"])
+    plan["max_orders_per_plan"] = cap
+    plan["deferred"] = max(len(ordered) - cap, 0)
+    why = DEFER_MSG.format(n=cap)
+    for po in ordered[cap:]:
+        plan["skipped"].append(dict(asset=po["asset"], reason=f"{why} ({po['key']}, ${po['notional_usd']:.2f})"))
+    pend = lim.get("max_pending_proposals")
+    if pend is not None and min(cap, len(ordered)) > int(pend):
+        plan["warnings"].append(f"max_orders_per_plan {cap} > max_pending_proposals {pend}: the hook blocks this "
+                                f"plan's place calls once {pend} proposals are pending")
+    exits = sum(1 for po in ordered[cap:] if po["params"]["side"] == "sell")
+    if exits:
+        plan["warnings"].append(f"{exits} sell order(s) deferred: this plan's {cap} orders (max_orders_per_plan) are "
+                                "all sells; run /moneyline again after approving them for the rest")
+    return ordered[:cap]
+
+
 def write_plan(plan: dict, base=None):
     """Write plans/plan_<plan_id>.json and copy it to plan_current.json. Returns the plan file path. The first live
     plan records its signals date as the strategy start (strategy_start.json; entry policy fresh_only)."""
@@ -966,6 +995,12 @@ def format_plan(plan: dict, mask_accounts: bool = True) -> str:
     mode = "LIVE" if plan.get("live") else "SHADOW (place calls are blocked)"
     lines = [f"PLAN {plan['plan_id']}  attempt {plan['attempt']}  {mode}",
              f"created {plan['created_at']}  valid until {plan['valid_until']}  capital ${plan['capital_usd']:.2f}"]
+    if plan.get("deferred"):
+        n, cap = int(plan["deferred"]), plan.get("max_orders_per_plan")
+        lines.append(f"DEFERRED {n} order{'s' if n != 1 else ''} beyond max_orders_per_plan {cap} (Robinhood may "
+                     "execute agent orders beyond about 5 pending approvals without approval): place the "
+                     f"{len(plan.get('orders') or [])} below, then run /moneyline again after approving them in the "
+                     "Robinhood app and they fill")
     al = plan.get("allocation") or {}
     if al.get("method") == "slots":
         new = ", ".join(f"{x['asset']} ${x['usd']:.2f}{' (partial)' if x['partial'] else ''}" for x in al["new"])

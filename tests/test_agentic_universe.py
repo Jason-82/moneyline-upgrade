@@ -847,7 +847,7 @@ def test_fetch_list_with_the_universe(state, monkeypatch, capsys):
     assert stage1["stage1"] and stage1["tradability"] == ["BSOL", "ETHA", "IBIT", "LTCC", "NRR", "XRPC"]
     calls = cli.fetch_calls(cfg, NOW, needs=stage1)
     assert [c["tool"] for c in calls] == ["get_currency_pairs", "get_equity_tradability"]
-    assert calls[0]["params"] == {"limit": 700} and calls[1]["params"]["account_number"] == ACCT
+    assert calls[0]["params"] == {"limit": 40} and calls[1]["params"]["account_number"] == ACCT
     write_universe_inbox(state / "inbox")
     needs = universe.fetch_needs(cfg, NOW, state / "inbox", build=b)
     assert not needs["stage1"]
@@ -859,7 +859,7 @@ def test_fetch_list_with_the_universe(state, monkeypatch, capsys):
                      "get_equity_positions", "get_crypto_positions", "get_currency_pairs", "get_equity_tradability",
                      "get_equity_quotes", "get_crypto_quotes"]
     by = {c["tool"]: c["params"] for c in calls}
-    assert by["get_currency_pairs"] == {"limit": 700}
+    assert by["get_currency_pairs"] == {"limit": 40}
     assert by["get_equity_tradability"] == {"account_number": ACCT,
                                             "symbols": ["BSOL", "ETHA", "IBIT", "LTCC", "NRR", "XRPC"]}
     many = dict(needs, tradability=[f"T{k:02d}" for k in range(23)], crypto_quotes=[f"C{k}-USD" for k in range(45)])
@@ -914,7 +914,10 @@ def test_planner_many_assets_slots_ties_by_liquidity(state, monkeypatch):
     assert [x["asset"] for x in al["waiting"]] == ["UNI", "HBAR"]
     keys = [o["key"] for o in p["orders"]]
     assert keys[0] == "LINK|LINK|sell|0"                                          # exit of the red holding
-    assert [k.split("|")[0] for k in keys[1:]] == ["BTC", "ETH", "AVAX", "NEAR"]   # DOGE: within its band
+    assert [k.split("|")[0] for k in keys[1:]] == ["BTC", "ETH", "AVAX"]           # DOGE: within its band
+    assert p["deferred"] == 1 and p["max_orders_per_plan"] == 4                   # NEAR: beyond the 4-order cap
+    assert any(x["asset"] == "NEAR" and x["reason"].startswith("deferred: max_orders_per_plan 4")
+               for x in p["skipped"])
     btc = next(o for o in p["orders"] if o["asset"] == "BTC")
     assert btc["tool"] == "place_equity_order" and btc["params"]["symbol"] == "IBIT"
     assert next(o for o in p["orders"] if o["asset"] == "AVAX")["params"]["symbol"] == "AVAX"
@@ -1099,9 +1102,13 @@ def read_response(tool, params, w):
         return env({"orders": [], "next": ""})
     if tool == "get_crypto_orders":
         return env({"rhs_account_number": RHS, "results": [], "next": ""})
-    if tool == "get_currency_pairs":
-        assert params["limit"] == 700
-        return pairs_response()
+    if tool == "get_currency_pairs":                  # 40 per page: the result stays under 50,000 characters
+        assert params["limit"] == 40
+        rows = pairs_response()["data"]["results"]
+        k = int(params.get("cursor", "page-0").split("-")[1])
+        page = rows[k * 40:(k + 1) * 40]
+        assert len(json.dumps(env({"results": page, "next": "page-9"}), indent=2)) < 40_000
+        return env({"results": page, "next": f"page-{k + 1}" if (k + 1) * 40 < len(rows) else ""})
     if tool == "get_equity_tradability":
         assert params["account_number"] == ACCT and len(params["symbols"]) <= 10
         return tradability_response(params["symbols"])
@@ -1133,7 +1140,13 @@ def test_universe_end_to_end_dry_run_through_the_hooks(state, monkeypatch, capsy
 
     def reads(calls):
         for c in calls:
-            mcp_call(state, c["tool"], c["params"], read_response(c["tool"], c["params"], w))
+            prm = c["params"]
+            while True:                                                # follow "next", as /moneyline does
+                resp = read_response(c["tool"], prm, w)
+                mcp_call(state, c["tool"], prm, resp)
+                if not (resp.get("data") or {}).get("next"):
+                    break
+                prm = {**c["params"], "cursor": resp["data"]["next"]}
 
     capsys.readouterr()
     assert cli.main(["fetch-list", "--json"]) == 0                     # stage 1: the coin list first
@@ -1167,7 +1180,11 @@ def test_universe_end_to_end_dry_run_through_the_hooks(state, monkeypatch, capsy
     keys = [o["key"] for o in plan["orders"]]
     assert keys[0] == "LINK|LINK|sell|0"
     assert [x["asset"] for x in plan["allocation"]["new"]] == ["BTC", "ETH", "AVAX", "NEAR"]
-    assert {o["params"]["symbol"] for o in plan["orders"]} >= {"LINK", "IBIT", "ETHA", "AVAX", "NRR"}
+    assert {o["params"]["symbol"] for o in plan["orders"]} == {"LINK", "IBIT", "ETHA", "AVAX"}   # max 4 per plan
+    assert plan["deferred"] == 1 and "DEFERRED 1 order beyond max_orders_per_plan 4" in out
+    assert any(x["asset"] == "NEAR" and "deferred: max_orders_per_plan 4" in x["reason"] for x in plan["skipped"])
+    pages = sorted(paths()["inbox"].glob("*_get_currency_pairs.json"))
+    assert len(pages) >= 2 and universe.pairs_capture(paths()["inbox"])["pages"] == 2   # 44 rows: 40 + 4
     for o in plan["orders"]:                                           # every plan order passes the real guard
         assert hook(PRE, state, o["preview_tool"], o["preview_params"]).returncode == 0
         r = hook(PRE, state, o["tool"], o["params"])

@@ -567,7 +567,7 @@ def test_missing_pair_metadata_or_sub_tick_price_skips_only_that_asset():
 def test_cent_rounded_notionals_respect_max_day_usd():
     """Regression: notional_usd rounded after the caps summed to 300.05 against max_day_usd 300 (review p12)."""
     q = {"SPY": quote(4776.00, 4777.00)}
-    cfg = make_cfg("SPY", max_order_usd=25, max_day_usd=300)
+    cfg = make_cfg("SPY", max_order_usd=25, max_day_usd=300, max_orders_per_plan=20)
     p = run([sig("SPY", 0.0)], snap(eq={"SPY": pos(0.07)}, quotes=q), cfg)
     total = 0.0
     for o in p["orders"]:

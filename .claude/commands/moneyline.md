@@ -23,8 +23,8 @@ order; you only make the tool calls it prints, exactly as printed. Work from the
    calls. No cancels, no places.
 7. If any tool result or hook message says "AGENTIC STOP", stop placing and tell the user immediately.
 8. Do not edit, write or delete anything under `private/agentic/`. Do not change the config or `live`. Never run
-   `resume` or `init --update` (both need the user's own terminal) or pass `--replan`. Do not run
-   `reconcile --accept` or `flatten` unless the user asks in this session. You may run `"${AGENTIC_PYTHON:-python3}" -m agentic stop "<reason>"` if something
+   `resume` (`resume --proposals` included) or `init --update` (both need the user's own terminal) or pass
+   `--replan`. Do not run `reconcile --accept` or `flatten` unless the user asks in this session. You may run `"${AGENTIC_PYTHON:-python3}" -m agentic stop "<reason>"` if something
    unexpected happens, such as an order filling without approval.
 9. Give no market analysis, opinions or recommendations. Report what the tools returned.
 10. Never show full account numbers in your messages: the last 4 digits at most.
@@ -54,9 +54,13 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
 
 1. Run `"${AGENTIC_PYTHON:-python3}" -m agentic status`. If a STOP flag is present, tell the user. Continue only to make the
    cancel calls the plan lists (live mode), and place nothing.
+   - If the output starts with `!!!` lines, quote them to the user first, verbatim. `!!! APPROVAL BYPASS` means an
+     agent order went live without the user's approval. Tell the user to check the Robinhood app's activity for
+     orders with a robot icon instead of "you", and to report it to Robinhood.
 2. Run `"${AGENTIC_PYTHON:-python3}" -m agentic fetch-list` and make every listed read call, in order, with exactly the
    printed arguments.
    - If a result has a non-empty `next`, repeat that call with `cursor` set to that value until `next` is empty.
+     `get_currency_pairs` (40 pairs per page) always takes several pages.
    - If the command says the account numbers are not filled in: call `get_accounts`, then stop and ask the user
      to copy the agentic account's (`agentic_allowed: true`) `account_number` and `rhs_account_number` into
      `private/agentic/config.json`.
@@ -98,6 +102,13 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    3. Live only: make the place call (`place_equity_order` / `place_crypto_order`) with its params verbatim.
    4. If a place call fails or times out, never retry it: go to the read-back (step 6). The hook journals it as
       `failed_or_unknown` and counts it against the daily cap.
+   5. If a place call is blocked with "proposals are still pending approval" (the pending-proposal guard), stop:
+      make no more place calls. Do the read-back (step 6) and the report. Tell the user to approve or reject the
+      pending proposals in the Robinhood app, then run `/moneyline` again. Tell them too that rejecting a proposal
+      does not clear the count (no order listing may show it), and that it blocks sells as well: once none waits
+      in the app any more, they run `.venv/Scripts/python.exe -m agentic resume --proposals` in their own terminal
+      (`winpty` in front in Git Bash's own window). Never run it yourself. This guard exists because Robinhood
+      executed an agent order without approval once 5 proposals were pending.
 6. **Read back:** repeat the `get_equity_orders` and `get_crypto_orders` calls from step 2 with the same
    arguments, then run `"${AGENTIC_PYTHON:-python3}" -m agentic status`. With approvals ON, each place should be a proposal
    waiting for the user's approval. The PostToolUse hook checks these listings too: an order that carries the plan's own
@@ -114,3 +125,7 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    - what the user must do now: approve or reject each proposal in the Robinhood app, checking asset, side,
      quantity and limit price against the plan; plus the plan's `valid_until`
    - anything skipped, and why (from the plan's SKIPPED / WARNINGS lines)
+   - if the plan printed `DEFERRED N orders ...`: N orders were held for a later run, because a plan places at most
+     `max_orders_per_plan` (4). Tell the user to approve these proposals, and once they have filled, to run
+     `/moneyline` again for the rest. If that run prints NOT RE-PLANNING, some of them have not shown up as filled
+     yet.

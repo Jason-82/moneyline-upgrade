@@ -3,7 +3,9 @@
 
 Claude Code passes the event JSON on stdin. Exit 0 lets the call proceed (normal permission flow); exit 2 blocks it
 and stderr is shown to Claude. Fails closed: any error while handling a trade, cancel, simulate or unknown Robinhood
-tool blocks the call. Standard library only.
+tool blocks the call. A place call is also blocked while limits.max_pending_proposals of the last 7 days' proposals
+may still wait for approval (cancels and reads never are; `resume --proposals`, run by the user in a terminal,
+releases proposals that no longer wait in the app). Standard library only.
 """
 from __future__ import annotations
 
@@ -160,9 +162,35 @@ def _check_trade(cfg: dict, p: dict, short: str, ti: dict, now) -> tuple[bool, s
     if today + notional > float(lim["max_day_usd"]) + 1e-9:
         return False, (f"daily cap: placed today {today:.2f} + this {notional:.2f} > "
                        f"max_day_usd {float(lim['max_day_usd']):.2f}")
-    if H.placed_ok(H.read_journal(p["journal"]), H.norm(ti["ref_id"])):
+    entries = H.read_journal(p["journal"])
+    if H.placed_ok(entries, H.norm(ti["ref_id"])):
         return False, "this ref_id was already placed: read the order status instead of re-sending"
+    bad = _pending_problem(p, lim, entries, now)
+    if bad:
+        return False, bad
     return True, f"matches plan {plan.get('plan_id')} order {order.get('key')}"
+
+
+def _pending_problem(p: dict, lim: dict, entries: list, now) -> str | None:
+    """On the first live day Robinhood executed an agent order directly, without the user's approval, when it came
+    after 5 proposals were already pending (README section 5). So no place call, sells included, while
+    limits.max_pending_proposals of the last 7 days' proposals are still pending (hooks.awaiting_approval: anything
+    not seen settled, and not acknowledged by the user with `resume --proposals`, counts)."""
+    cap = int(lim["max_pending_proposals"])
+    if cap < 1:
+        raise ValueError("limits.max_pending_proposals must be at least 1")
+    n = len(H.awaiting_approval(entries, p["inbox"], now))
+    if n < cap:
+        return None
+    from agentic.config import cli_command
+    days = H.PENDING_LOOKBACK.days
+    return (f"{n} proposals are still pending approval (limits.max_pending_proposals {cap}; Robinhood may execute "
+            "agent orders beyond about 5 pending approvals without approval): approve or reject them in the Robinhood "
+            "app, then run /moneyline again. A proposal counts until an order listing shows it filled, cancelled or "
+            f"rejected, for up to {days} days. Rejecting a proposal in the app does not by itself clear the count (an "
+            "order listing may never show it): once none of them waits in the app any more, the user runs "
+            f"`{cli_command()} resume --proposals` in their own terminal (`winpty` in front in Git Bash's own window), "
+            "which lists them and asks to confirm")
 
 
 def _check_cancel(cfg: dict, p: dict, short: str, ti: dict) -> tuple[bool, str]:

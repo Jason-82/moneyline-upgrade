@@ -15,7 +15,10 @@
     "max_day_usd": 1500,
     "max_asset_frac": 0.30,
     "max_crypto_frac": 0.60,
-    "min_order_usd": 5
+    "min_order_usd": 5,
+    "_comment_approval_caps": "On the first live day Robinhood executed an agent order directly, without approval (a robot icon instead of 'you' in the app's activity), when it came after 5 proposals were already pending approval (README section 5). max_orders_per_plan (1-20): place orders per plan, sells first then buys by priority; the rest are listed as deferred, so run /moneyline again after approving these and they fill. max_pending_proposals (1-20): the PreToolUse hook blocks a place call while this many of today's proposals are still pending (not yet seen filled, cancelled or rejected in an order listing). Keep both at 4 or less.",
+    "max_orders_per_plan": 4,
+    "max_pending_proposals": 4
   },
   "allocation": {
     "_comment": "slots: every enabled asset's full position is slot_frac x capital (alloc_frac is ignored): 0.10 = 10 slots of 10% (slot_frac must be at most limits.max_asset_frac). Held positions keep their whole slot; the rest of capital goes to new entries in priority order (a partial slot only if at least half a slot is left). class_max_frac caps each class's share of capital (1.0 = no cap). method fixed: per-asset alloc_frac, class caps scale targets down. README section 9.",

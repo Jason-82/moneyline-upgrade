@@ -250,6 +250,34 @@ def read_flags(base=None) -> dict[str, str]:
     return out
 
 
+# Phrases of the PostToolUse hook's STOP reasons when an agent order went live without the user's approval.
+BYPASS_MARKERS = ("without approval", "without a trade approval", "not approved in the app",
+                  "approval cannot be confirmed")
+BYPASS_ADVICE = ("APPROVAL BYPASS: an agent order went live without your approval in the Robinhood app (first live "
+                 "day: Robinhood executed an order that came after 5 pending proposals). In the app's account "
+                 "activity such an order shows a robot icon instead of 'you'. Check it, cancel it if it is still open "
+                 "and unwanted, report it to Robinhood, confirm Trade approvals are ON, then run `resume` in your own "
+                 "terminal.")
+
+
+def flag_banner(flags: dict | None = None, base=None) -> list[str]:
+    """Lines that `status` and the digest put first while a flag is set: STOP with its newest reasons, and the
+    APPROVAL BYPASS advice when a STOP reason is the hook's 'went live without approval' (shown until `resume`)."""
+    fl = read_flags(base) if flags is None else flags
+    out = []
+    if "STOP" in fl:
+        reasons = [x.strip() for x in str(fl["STOP"] or "").splitlines() if x.strip()]
+        out.append("!!! STOP is set: the hook blocks every place call (cancels still work). "
+                   + ("Reason: " + " | ".join(r[:200] for r in reasons[-3:]) if reasons else "No reason recorded."))
+        if any(m in r.lower() for r in reasons for m in BYPASS_MARKERS):
+            out.append("!!! " + BYPASS_ADVICE)
+    for name, what in (("FLATTEN", "sells toward 0 only"), ("BLOCK_BUYS", "buys blocked, exits allowed")):
+        if name in fl:
+            last = [x.strip() for x in str(fl[name] or "").splitlines() if x.strip()][-1:]
+            out.append(f"!!! {name} is set: {what}" + (f". Reason: {last[0][:200]}" if last else ""))
+    return out
+
+
 def set_flag(name: str, reason: str = "", base=None) -> Path:
     if name not in FLAGS:
         raise ValueError(f"unknown flag {name!r}; one of {FLAGS}")

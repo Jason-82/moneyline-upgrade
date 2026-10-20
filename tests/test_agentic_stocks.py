@@ -1349,8 +1349,10 @@ def test_schedule_install_picks_the_time_from_the_pc_time_zone(tmp_path, tz, wan
 # ------------------------------------------------------------------ end to end through the real hooks
 
 def e2e_cfg():
-    return stock_cfg(crypto={"enabled": True, "source": "list", "symbols": list(COINS), "etf_map": {}},
-                     favorites=["OOO", "EEE", "UNI"], sleeve={"DDD": 10})
+    raw = stock_cfg(crypto={"enabled": True, "source": "list", "symbols": list(COINS), "etf_map": {}},
+                    favorites=["OOO", "EEE", "UNI"], sleeve={"DDD": 10})
+    raw["limits"]["max_orders_per_plan"] = 20          # the whole allocation in one plan (the cap is tested elsewhere)
+    return raw
 
 
 SPLIT_PC = {"FFF", "DDD"}             # Robinhood's previous_close disagrees with yfinance (a split): buys blocked

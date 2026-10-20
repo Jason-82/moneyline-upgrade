@@ -229,11 +229,15 @@ def cmd_flag(args) -> int:
     else:
         print("FLATTEN set: every target is 0 and only sells of the sleeve's own shares are allowed. Run `fetch-list` "
               "and `run` to get the exit orders; the new plan replaces the current one and cancels its open buys. "
-              "Reject any buy proposals still waiting in the Robinhood app.")
+              "Reject any buy proposals still waiting in the Robinhood app. Rejecting does not clear the hook's "
+              "pending-proposal count, which blocks sells too: once none waits in the app any more, run "
+              f"`{cli_command()} resume --proposals` in this terminal (`status` shows the count).")
     return 0
 
 
 def cmd_resume(args) -> int:
+    if getattr(args, "proposals", False):
+        return resolve_proposals()
     active = ledger.read_flags()
     names = [args.flag.upper()] if args.flag else list(active)
     names = [n for n in names if n in active]
@@ -254,16 +258,134 @@ def cmd_resume(args) -> int:
     if input(f"type 'resume' to clear {', '.join(names)}: ").strip().lower() != "resume":
         print("not cleared")
         return 1
-    for n in names:
-        ledger.clear_flag(n)
-    print(f"cleared {', '.join(names)}")
+    cleared: list[str] = []
+    try:
+        for n in names:
+            ledger.clear_flag(n)
+            cleared.append(n)
+    except OSError as e:                          # Windows: a flag file held open (WinError 32); the rest stay set
+        print(f"could not clear {n} ({type(e).__name__}: {e}): close whatever has the file open, then run resume "
+              "again", file=sys.stderr)
+    finally:                                      # record every flag actually cleared, even if a later one failed
+        if cleared:
+            print(f"cleared {', '.join(cleared)}")
+            try:
+                log_flag_clear(cleared, active, _now())
+            except Exception as e:                # the flags are cleared; say loudly that the record is missing
+                print(f"WARNING: could not record this in hook.log ({type(e).__name__}: {e})", file=sys.stderr)
+    return 0 if len(cleared) == len(names) else 1
+
+
+def _place_line(e: dict) -> str:
+    """One journal place entry for `resume --proposals`: time, kind, side, quantity, symbol, limit price, state."""
+    prm = e.get("params") if isinstance(e.get("params"), dict) else {}
+    kind = "crypto" if "crypto" in str(e.get("tool") or "") else "equity"
+    px = f" @ {prm['limit_price']}" if prm.get("limit_price") not in (None, "") else ""
+    return (f"{e.get('ts')} {kind} {prm.get('side') or '?'} {prm.get('quantity') or '?'} {prm.get('symbol') or '?'}"
+            f"{px} ({e.get('state')}, plan {e.get('plan_id')})")
+
+
+def resolve_proposals() -> int:
+    """`resume --proposals`: the user's acknowledgement that the place calls the pending-proposal guard still counts
+    (hooks.awaiting_approval) no longer wait for approval in the Robinhood app, e.g. proposals rejected there, which
+    no order listing may ever show. Lists them; then, in a terminal only and after a typed 'resolved', journals a
+    hooks.RESOLVED_EVENT entry with exactly their place_ids (the guard stops counting those, and only those) and
+    appends a hook.log record (log_proposals_resolved). Never run by Claude (README section 6)."""
+    from agentic import hooks as H
+    p = paths()
+    now = _now()
+    days = H.PENDING_LOOKBACK.days
+    pend = H.awaiting_approval(ledger.read_journal(), p["inbox"], now)
+    if not pend:
+        print(f"no place call of the last {days} days counts as pending approval: nothing to resolve")
+        return 0
+    print(f"{len(pend)} place call(s) of the last {days} days still count as pending approval (the PreToolUse hook "
+          "blocks every place call, sells included, at limits.max_pending_proposals):")
+    for e in pend:
+        print(f"  {_place_line(e)}")
+    print("Check each one in the Robinhood app first. Approve or reject any that still waits for your approval: "
+          "Robinhood may execute agent orders beyond about 5 pending approvals without approval (README section 5). "
+          "Confirm only when none of these waits for approval any more (rejected, expired, or approved).")
+    if not sys.stdin.isatty():                    # an agent's shell has no terminal: only the user may resolve them
+        print("refusing to resolve proposals without an interactive terminal: the user must run this in a terminal "
+              "(Git Bash window: prefix it with winpty)", file=sys.stderr)
+        return 2
+    if input(f"type 'resolved' if none of these {len(pend)} waits for approval in the app: ").strip().lower() \
+            != "resolved":
+        print("not changed")
+        return 1
+    ledger.append_journal({"event": H.RESOLVED_EVENT, "places": [H.place_id(e) for e in pend], "count": len(pend)},
+                          now_utc=now)
+    print(f"resolved {len(pend)}: the pending-proposal guard no longer counts them")
+    try:
+        log_proposals_resolved(pend, now)
+    except Exception as e:                        # resolved; say loudly that the record is missing
+        print(f"WARNING: could not record this in hook.log ({type(e).__name__}: {e})", file=sys.stderr)
     return 0
+
+
+FLAG_TEXT_MAX, CLEAR_REASON_MAX = 300, 1000       # characters of each flag's text, and of the whole reason
+
+
+def _cli_log(decision: str, reason: str, now: datetime) -> dict:
+    """Append one `resume` record to hook.log, as the hooks write theirs: {ts, hook "cli", tool "resume", decision,
+    reason (account numbers and long digit runs masked, truncated to CLEAR_REASON_MAX), ref_id null}."""
+    from agentic import hooks as H
+    entry = {"ts": H.iso_z(now), "hook": "cli", "tool": "resume", "decision": decision,
+             "reason": H.scrub(reason, H.account_secrets())[:CLEAR_REASON_MAX], "ref_id": None}
+    H.append_jsonl(paths()["hook_log"], entry)
+    return entry
+
+
+def log_flag_clear(names: list[str], previous: dict, now: datetime) -> dict:
+    """Append `resume`'s record to hook.log: decision "CLEAR", reason = each cleared flag and its previous text
+    (truncated). `status` shows the newest one."""
+    parts = []
+    for n in names:
+        text = " | ".join(x.strip() for x in str(previous.get(n) or "").splitlines() if x.strip())
+        parts.append(f"{n} (was: {text[:FLAG_TEXT_MAX] or 'no reason recorded'})")
+    return _cli_log("CLEAR", "cleared " + "; ".join(parts), now)
+
+
+def log_proposals_resolved(places: list[dict], now: datetime) -> dict:
+    """Append `resume --proposals`' record to hook.log: decision "RESOLVE", reason = how many and each place's time
+    and plan key. `status` shows the newest one."""
+    return _cli_log("RESOLVE", f"resolved {len(places)} proposal(s) the user confirmed no longer wait for approval: "
+                    + "; ".join(f"{e.get('ts')} {e.get('key')}" for e in places), now)
+
+
+def last_flag_clear(tail: int = 1 << 20) -> dict | None:
+    """The newest `resume` record in hook.log (log_flag_clear), from its last `tail` bytes; None if there is none."""
+    return last_cli_record("CLEAR", tail)
+
+
+def last_cli_record(decision: str, tail: int = 1 << 20) -> dict | None:
+    """The newest `resume` record with this decision ("CLEAR": flags, "RESOLVE": proposals) in hook.log, from its last
+    `tail` bytes; None if there is none."""
+    try:
+        with open(paths()["hook_log"], "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(fh.tell() - tail, 0))
+            text = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return None
+    for line in reversed(text.splitlines()):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(e, dict) and (e.get("hook"), e.get("tool"), e.get("decision")) == ("cli", "resume", decision):
+            return e
+    return None
 
 
 def cmd_status(args) -> int:
     from agentic.signals import latest_signals
     p = paths()
     now = _now()
+    flags = ledger.read_flags()
+    for line in ledger.flag_banner(flags):        # first and loud: e.g. an order that went live without approval
+        print(line)
     try:
         cfg = load_config()
         print(f"config: ok, {'LIVE' if cfg['live'] else 'SHADOW (live=false)'}, "
@@ -277,8 +399,10 @@ def cmd_status(args) -> int:
     except ConfigError as e:
         cfg = None
         print(f"config: {e}")
-    flags = ledger.read_flags()
     print("flags: " + (", ".join(f"{k} ({v})" if v else k for k, v in flags.items()) if flags else "none"))
+    clear = last_flag_clear()
+    print("last flag clear: " + (f"{clear.get('ts')} {str(clear.get('reason'))[:300]}" if clear else
+                                 "none recorded in hook.log"))
     sig, f = latest_signals()
     if sig:
         print(f"signals: {f.name} generated {sig.get('generated_at')}")
@@ -296,11 +420,16 @@ def cmd_status(args) -> int:
         state = "expired" if vu is None or now >= vu else "valid"
         print(f"plan: {plan.get('plan_id')} created {plan.get('created_at')} valid until {plan.get('valid_until')} "
               f"({state}), {'LIVE' if plan.get('live') else 'SHADOW'}, {len(plan.get('orders') or [])} orders, "
-              f"{len(plan.get('cancels') or [])} cancels, {len(plan.get('errors') or [])} errors")
+              f"{len(plan.get('cancels') or [])} cancels, {len(plan.get('errors') or [])} errors"
+              + (f", {plan['deferred']} deferred (max_orders_per_plan)" if plan.get('deferred') else ""))
     else:
         print("plan: none")
     cap = f" of max_day_usd {cfg['limits']['max_day_usd']}" if cfg else ""
     print(f"ledger {ledger.day_key(now)} (ET): ${ledger.placed_usd(now):,.2f} placed{cap}")
+    print(pending_line(now, cfg))
+    res = last_cli_record("RESOLVE")
+    if res:
+        print(f"last proposals resolved: {res.get('ts')} {str(res.get('reason'))[:300]}")
     caps = sorted(p["inbox"].glob("*.json")) if p["inbox"].is_dir() else []
     print(f"inbox: {len(caps)} captures" + (f", newest {caps[-1].name.split('_', 1)[0]}" if caps else ""))
     tail = ledger.read_journal()[-args.n:]
@@ -313,7 +442,32 @@ def cmd_status(args) -> int:
     return 0
 
 
+def pending_line(now: datetime, cfg: dict | None) -> str:
+    """`status`: the last 7 days' proposals that may still wait for approval, counted as the PreToolUse hook counts
+    them (hooks.awaiting_approval), and how to release rejected ones (`resume --proposals`)."""
+    from agentic import hooks as H
+    p = paths()
+    head = f"proposals pending approval (last {H.PENDING_LOOKBACK.days} days)"
+    try:
+        n = len(H.awaiting_approval(H.read_journal(p["journal"], strict=False), p["inbox"], now))
+    except Exception as e:
+        return f"{head}: unknown ({type(e).__name__})"
+    cap = cfg["limits"]["max_pending_proposals"] if cfg else None
+    line = f"{head}: {n}" + (f" (the hook blocks place calls at {cap}, limits.max_pending_proposals)" if cap else "")
+    if n:
+        line += (f"; rejecting in the app does not clear these: once none waits there, run `{cli_command()} resume "
+                 "--proposals` in your own terminal")
+    return line
+
+
 # ------------------------------------------------------------------ fetch-list
+
+# get_currency_pairs page size: a pair row of the official output schema is about 600-700 characters of JSON
+# (indented); 40 rows at a conservative 1,000 each stay at RH_MAX_RESULT_CHARS (40,000), well under Claude Code's
+# 50,000-character limit for an MCP text result. The old single call (limit 700, a few hundred pairs at ~650
+# characters each) could exceed it and come back as Claude Code's "too large" notice, which holds no data.
+PAIRS_CHARS_PER_ROW = 1000
+
 
 def _orders_since(now: datetime) -> str:
     ref = ledger.read_json(paths()["positions_ref"], None)
@@ -354,6 +508,9 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
     from agentic.stocks import history_calls
     from agentic.universe import QUOTE_CHUNK, TRADABILITY_CHUNK, chunks
     now = now_utc or _now()
+    pairs_call = dict(tool="get_currency_pairs", params={"limit": pairs_page_limit()},
+                      why="every coin Robinhood offers (the crypto universe), with order increments; "
+                          f"{pairs_page_limit()} per page: follow \"next\"")
     acct = cfg["account"]
     an, rhs = str(acct.get("account_number") or ""), str(acct.get("rhs_account_number") or "")
     enabled = [a for a in cfg["assets"] if a.get("enabled")]
@@ -363,9 +520,7 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
     needs = needs or {}
     trad_why = "is each mapped spot ETF or universe stock tradable on this account (vehicle; whole or fractional)"
     if needs.get("stage1"):                          # no coin list or tradability yet: those first, then fetch-list
-        first = [dict(tool="get_currency_pairs", params={"limit": 700},
-                      why="every coin Robinhood offers (the crypto universe), with order increments")] \
-            if needs.get("pairs_stage1", True) else []
+        first = [pairs_call] if needs.get("pairs_stage1", True) else []
         return first + [dict(tool="get_equity_tradability", params={"account_number": an, "symbols": syms},
                              why=trad_why) for syms in chunks(list(needs.get("tradability") or []), TRADABILITY_CHUNK)]
     crypto = crypto_needed(cfg, needs)
@@ -383,11 +538,10 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
     if crypto:
         calls.append(dict(tool="get_crypto_positions", params={"rhs_account_number": rhs}, why="crypto positions"))
     if uni:
-        calls.append(dict(tool="get_currency_pairs", params={"limit": 700},
-                          why="every coin Robinhood offers (the crypto universe), with order increments"))
+        calls.append(pairs_call)
     elif crypto:
-        calls.append(dict(tool="get_currency_pairs", params={"limit": 100},
-                          why="crypto order size and price increments"))
+        calls.append(dict(pairs_call, why=f"crypto order size and price increments; {pairs_page_limit()} per page: "
+                                          "follow \"next\""))
     starts: dict = {}
     for a in enabled:
         if a["signal"].get("source", "computed") == "computed" and a["signal"].get("feed") == "robinhood":
@@ -409,6 +563,12 @@ def fetch_calls(cfg: dict, now_utc=None, needs: dict | None = None) -> list[dict
         calls.append(dict(tool="get_crypto_quotes", params={"symbols": syms, "rhs_account_number": rhs},
                           why="crypto prices on this account's routing (fetch last)"))
     return calls
+
+
+def pairs_page_limit() -> int:
+    """The `limit` of every get_currency_pairs call (PAIRS_CHARS_PER_ROW): 40."""
+    from agentic.stocks import RH_MAX_RESULT_CHARS
+    return max(RH_MAX_RESULT_CHARS // PAIRS_CHARS_PER_ROW, 1)
 
 
 def _accounts_missing(cfg: dict, crypto: bool) -> bool:
@@ -477,7 +637,7 @@ def _signals(args, cfg, now) -> tuple[dict, int]:
     sig = compute_signals(cfg, now, paths()["inbox"], include_disabled=getattr(args, "all", False), classes=classes,
                           skip_feeds=getattr(args, "skip_feed", None))
     f = write_signals(sig)
-    text = format_digest(sig, full=getattr(args, "all", False))
+    text = "\n".join(ledger.flag_banner() + [format_digest(sig, full=getattr(args, "all", False))])
     d = write_digest(sig, text)
     print(text)
     print(f"signals: {_rel(f)}  digest: {_rel(d)}")
@@ -566,13 +726,39 @@ def replan_problem(now, attempt: int) -> str | None:
     flags = ledger.read_flags()
     if "STOP" in flags or "FLATTEN" in flags or sorted(flags) != sorted(plan.get("flags") or []):
         return None
-    placed = [e for e in ledger.read_journal() if e.get("event") == "place" and e.get("plan_id") == plan.get("plan_id")
+    journal = ledger.read_journal()
+    placed = [e for e in journal if e.get("event") == "place" and e.get("plan_id") == plan.get("plan_id")
               and (not e.get("error") or e.get("state") == ledger.FAILED)]
     if not placed:
         return None
+    left = _left_unplaced(plan, placed)
+    if left and _all_settled(placed, journal):
+        return None
+    rest = (f" Its {left} order{'s' if left != 1 else ''} not placed yet (deferred by max_orders_per_plan, or "
+            "stopped) can be planned once every placed one shows up filled, cancelled or rejected in an order "
+            "listing: approve them in the Robinhood app, then run /moneyline again." if left else "")
     return (f"plan {plan.get('plan_id')} is valid until {plan.get('valid_until')} and {len(placed)} of its orders "
             "were placed (awaiting approval or fills): a new plan would cancel or duplicate them. Use `calls` or "
-            f"`status`; to re-quote unfilled orders run `plan --attempt {attempt + 1}`")
+            f"`status`; to re-quote unfilled orders run `plan --attempt {attempt + 1}`.{rest}")
+
+
+def _left_unplaced(plan: dict, placed: list[dict]) -> int:
+    """The current plan's orders that were never placed: deferred by max_orders_per_plan, or listed but not placed
+    (a hook block or an error stopped the run)."""
+    keys = {e.get("key") for e in placed}
+    return int(plan.get("deferred") or 0) + sum(1 for o in plan.get("orders") or []
+                                                if isinstance(o, dict) and o.get("key") not in keys)
+
+
+def _all_settled(placed: list[dict], journal: list[dict]) -> bool:
+    """Every place in `placed` has since shown up filled, cancelled or rejected in an order listing captured after it
+    (hooks.unsettled; anything unmatched counts as still open): a new plan can then neither cancel nor duplicate any of
+    them, so the orders the plan left unplaced may be planned now."""
+    from agentic import hooks as H
+    try:
+        return not H.unsettled(placed, journal, paths()["inbox"])
+    except Exception:
+        return False
 
 
 def _plan(args, cfg, now) -> tuple[dict | None, int]:
@@ -779,8 +965,14 @@ def build_parser() -> argparse.ArgumentParser:
         s = sub.add_parser(name, help=hlp)
         s.add_argument("reason", nargs="*")
         s.set_defaults(func=cmd_flag)
-    s = sub.add_parser("resume", help="remove flag files (in a terminal only; asks for confirmation)")
-    s.add_argument("--flag", choices=ledger.FLAGS, help="clear only this flag")
+    s = sub.add_parser("resume", help="remove flag files, or with --proposals release proposals that no longer wait "
+                                      "for approval (in a terminal only; asks for confirmation)")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--flag", choices=ledger.FLAGS, help="clear only this flag")
+    g.add_argument("--proposals", action="store_true",
+                   help="list the place calls the pending-proposal guard still counts (e.g. proposals you rejected in "
+                        "the app, which no order listing shows) and, after you confirm none waits for approval any "
+                        "more, stop counting them; flags are not touched")
     s.set_defaults(func=cmd_resume)
     s = sub.add_parser("backtest", help="compare modes vs buy & hold for one asset")
     s.add_argument("--asset", help="asset name from the config")

@@ -68,7 +68,7 @@ see the last bullet.
     call that fails or times out is journaled (the order may exist) and counted against `max_day_usd`
   - deny rules for the option, alert, scan and watchlist write tools
   - deny rules so the agent cannot undo a STOP or replace a plan with placed orders, or edit the plan the hook
-    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit on `private/agentic/**` (Edit rules cover every file-editing tool). `resume` also refuses to run without a terminal, so only you can clear a flag. These
+    trusts: any command containing `agentic resume` or `agentic ... --replan`, and Edit on `private/agentic/**` (Edit rules cover every file-editing tool). `resume` (and `resume --proposals`, which the same rule covers) also refuses to run without a terminal, so only you can clear a flag or release pending proposals. These
     Bash deny rules also turn off Claude Code's PowerShell tool on Windows. That is fine: everything here runs in
     Git Bash.
 - **Check the install:** `.venv/Scripts/python.exe -m agentic doctor`. It prints one PASS, WARN or FAIL line for
@@ -116,6 +116,11 @@ Edit `private/agentic/config.json` in VS Code (`code private/agentic/config.json
   `max_asset_frac` (0.30), `max_crypto_frac` (0.60, all crypto-signal assets together, unless
   `allocation.class_max_frac` sets it; above 1 means no cap), `min_order_usd`, `rebalance_band_frac`, the price
   collars and `min_bars`.
+- `limits.max_orders_per_plan` (4) and `limits.max_pending_proposals` (4), each a whole number from 1 to 20, exist
+  because of the first live day (section 5): Robinhood executed an order without approval when it came after 5
+  pending proposals. A plan holds at most `max_orders_per_plan` place orders, sells first, and defers the rest.
+  The PreToolUse hook blocks a place call while `max_pending_proposals` proposals of the last 7 days may still wait
+  for approval (section 3). Keep both at 4 or less.
 - `allocation` (section 9): `method` `slots` (the example: each position is `slot_frac` 0.10 of capital, so 10
   slots of 10%; new entries by `priority` `crypto_first`, ties broken by `favorites`; `class_max_frac` crypto 0.60)
   or `fixed` (per-asset `alloc_frac`; the default when the block is missing). `slot_frac` must be at most
@@ -248,8 +253,37 @@ Rules of thumb:
 - The planner checks the captured positions against the baseline plus this system's fills. If they disagree (for
   example, positions were captured before an order filled), that asset is skipped with an error, buys and sells
   alike: re-fetch orders, then positions. `fetch-list` lists orders before positions for this reason.
-- `.venv/Scripts/python.exe -m agentic status` shows flags, the last signals and plan, today's placed notional and
-  the journal tail, with no account numbers.
+- **At most 4 orders per plan** (`limits.max_orders_per_plan`, section 5). Sells come first: an exit is never
+  dropped for a buy. Then buys follow in priority order. The plan prints `DEFERRED N orders ...` and lists each one
+  under SKIPPED as `deferred: max_orders_per_plan 4 (...)`. Approve the placed proposals in the app. Once they have
+  filled, run `/moneyline` again for the rest.
+  - The new run may replace the current plan only when every order it placed shows up filled, cancelled or
+    rejected in the order listings that `fetch-list` captures. Until then it prints NOT RE-PLANNING, as before.
+  - The same applies to a plan whose run stopped before all its orders were placed (a hook block).
+- **Pending-proposal guard** (`limits.max_pending_proposals`, 4): the PreToolUse hook blocks a place call, sells
+  included, while 4 proposals of the last 7 days are still pending, with "N proposals are still pending approval
+  ...: approve or reject them in the Robinhood app, then run /moneyline again ...".
+  - The window is rolling, not the ET date: proposals made just before midnight, or the evening before, still count
+    the next morning. A gtc crypto proposal may wait in the app for days.
+  - A proposal stops counting once a later `get_equity_orders` / `get_crypto_orders` capture shows its order
+    filled, cancelled or rejected. Approved orders carry the approval's id, so they are matched on symbol, side,
+    quantity and limit price.
+  - The rule is conservative. An approved order that is still open counts. So does a proposal you rejected, which
+    no listing may ever show, and a place call that failed or timed out. Each counts for 7 days.
+  - **Rejecting a proposal in the app does not clear the count.** Once none of the counted proposals waits in the
+    app any more (rejected, expired, or approved), release them yourself in your own terminal:
+    `winpty .venv/Scripts/python.exe -m agentic resume --proposals` (no `winpty` in Windows Terminal). It lists what
+    the hook counts and asks you to type `resolved`. Only those listed stop counting; it writes a
+    `proposals_resolved` journal entry and a `"decision": "RESOLVE"` line in `hook.log`. Like `resume`, it refuses
+    without a terminal, and Claude never runs it.
+  - Cancels and reads are never blocked by this guard. Sells are not exempt: a sell beyond about 5 pending
+    approvals could skip approval too. So after rejecting buy proposals under FLATTEN, run `resume --proposals`, or
+    the exits stay blocked.
+- `.venv/Scripts/python.exe -m agentic status` starts with a `!!!` banner while a flag is set: STOP and its
+  reasons, plus the APPROVAL BYPASS advice when the hook wrote STOP because an order went live without approval.
+  The digest starts with the same banner. Then come the flags and the last `resume` (from `hook.log`), the last
+  signals and plan, today's placed notional, today's pending proposals and the journal tail. No account numbers are
+  shown.
 
 ## 4. Shadow mode first (`live: false`, 4-8 weeks)
 
@@ -277,6 +311,8 @@ notes:
       carries any order (a proposal never does), when it has order fields but no `data.order`, and when a later
       order listing shows an order with this system's own `ref_id` (approved orders carry the approval's id) or
       `placed_agent: agentic`. Adjust it if the real shape differs.
+      - The first live day confirmed this shape: a proposal returns `data.order` null. The same day showed that
+        Robinhood executes an agent order beyond about 5 pending approvals without approval (section 5).
 - [ ] `reconcile` stays clean day after day: no BLOCK_BUYS you can't explain.
 
 ## 5. Going live
@@ -288,21 +324,59 @@ notes:
 3. Keep the daily line check running. Scale only after several clean weeks with no data, login or reconcile
    incidents.
 
+**Incident, first live day (October 2026): Robinhood executed an agent order without approval.** A plan with 6
+buy orders ran with Trade Approvals ON.
+
+- The first 5 place calls returned proposals (`data.order` null). The user approved them later, and the app's
+  activity shows them as placed by "you".
+- The 6th place call, the order after the 5th pending proposal, returned a live order: state `unconfirmed`,
+  `placed_agent: agentic`. Robinhood had created an approval object for it about a second earlier. The order
+  filled seconds later without the user approving it. In the app's activity it shows a robot icon instead of
+  "you".
+- The PostToolUse hook saw the live order and wrote STOP, as designed. But the hook runs only after the call, so it
+  could not stop the order.
+- Working hypothesis: Robinhood allows about 5 pending approvals and executes further agent orders directly.
+
+The defences:
+
+- **Plan cap:** `limits.max_orders_per_plan` (4). The rest of a plan is deferred to the next run (section 3).
+- **Pending-proposal guard:** the PreToolUse hook blocks a place call while `limits.max_pending_proposals` (4)
+  proposals of the last 7 days are pending (section 3).
+- **Loud STOP:** while that STOP is set, `status` and the digest open with an APPROVAL BYPASS banner. `resume`
+  records each flag it clears, with the flag's previous text, in `hook.log`. `status` shows the newest such record.
+
+If it happens again:
+
+1. Check the app's account activity for orders with the robot icon. Cancel any that is still open and unwanted.
+2. Report it to Robinhood (the order, the time, and that Trade Approvals were ON).
+3. Confirm Trade Approvals are still ON, then clear STOP with `resume` in your own terminal.
+
+Keep both caps at 4 or less until Robinhood confirms how many pending approvals it allows.
+
 ## 6. Kill switch and flags
 
 | command | effect |
 |---|---|
 | `.venv/Scripts/python.exe -m agentic stop "reason"` | STOP: the hook blocks every place call. The next plan lists a cancel for each open order this system placed; run `/moneyline` to make those cancels, or cancel in the app. |
-| `.venv/Scripts/python.exe -m agentic flatten` | FLATTEN: every target becomes 0; sells of the sleeve's own shares only. The next `run` replaces the current plan (even with placed orders) and cancels its open buys; reject buy proposals still waiting in the app. |
+| `.venv/Scripts/python.exe -m agentic flatten` | FLATTEN: every target becomes 0; sells of the sleeve's own shares only. The next `run` replaces the current plan (even with placed orders) and cancels its open buys; reject buy proposals still waiting in the app, then run `resume --proposals` (rejecting does not clear the pending-proposal count, which blocks sells too). |
 | `.venv/Scripts/python.exe -m agentic resume` | removes flags after you type `resume` (`--flag NAME` for one). It refuses without a terminal, so Claude cannot run it. |
+| `.venv/Scripts/python.exe -m agentic resume --proposals` | lists the proposals the pending-proposal guard still counts and, after you type `resolved`, stops counting them (section 3). Flags are not touched. Terminal only, like `resume`. |
 | `.venv/Scripts/python.exe -m agentic reconcile --accept` | after checking a BLOCK_BUYS mismatch in the app, adopt the positions as the new baseline |
 
 - **`resume` in Git Bash's own window:** that window (mintty) does not give Windows programs a terminal, so
   `resume` refuses there. Prefix the command with `winpty`, which comes with Git for Windows:
   `winpty .venv/Scripts/python.exe -m agentic resume`. A Git Bash tab in Windows Terminal works without it.
 - Disconnecting the agent does **not** cancel open orders, and crypto limit orders last 90 days. Cancel them first.
-- The PostToolUse hook writes STOP by itself if an agent order goes live without your approval. Check the app and
-  your approval setting before `resume`.
+- The PostToolUse hook writes STOP by itself if an agent order goes live without your approval. `status` and the
+  digest then open with an APPROVAL BYPASS banner until you clear it. Check the app's activity (the robot icon,
+  section 5) and your approval setting before `resume`.
+- `resume` appends one JSON line to `private/agentic/hook.log` for each clear: `"hook": "cli"`, `"tool":
+  "resume"`, `"decision": "CLEAR"`, and a reason that names each flag with its previous text (truncated, digits
+  masked). `status` shows the newest one as `last flag clear`. `resume --proposals` appends one with `"decision":
+  "RESOLVE"`, shown as `last proposals resolved`. To list all of them:
+  `grep '"tool": "resume"' private/agentic/hook.log`.
+- If a flag file cannot be removed (Windows: another program has it open), `resume` stops there, records the flags
+  it did clear in `hook.log`, and says which one is left. Close that program and run it again.
 
 ## 7. Which signal: `computed` or `tv_export`
 
@@ -622,7 +696,10 @@ red or FLATTEN is set, then sold in full.
 
 - The phase 1 job (`signals --skip-feed robinhood`) scans the universe too, from the newest captures in the inbox.
 
-- `fetch-list` adds `get_currency_pairs` (limit 700; follow `next`) and `get_equity_tradability`.
+- `fetch-list` adds `get_currency_pairs` (limit 40; follow `next`) and `get_equity_tradability`.
+  - Each pair is about 600-700 characters of JSON, so 40 per page stay well under Claude Code's 50,000-character
+    limit for one result. Robinhood lists hundreds of pairs, so the list takes several pages.
+  - The loaders merge every page of one fetch. A fetch with a page missing is flagged as incomplete.
 - It asks for quotes only for what a plan can need: every held vehicle, plus every scanned coin that is green and
   entry-eligible on today's crypto signals. `fetch-list` computes those signals itself from the Coinbase cache.
 - **Missing quotes:** if the plan still lacks a quote for a coin that gets a slot, it prints `RE-FETCH QUOTES` with
@@ -696,7 +773,14 @@ winpty .venv/Scripts/python.exe -m agentic init --update    # winpty: Git Bash's
 - The line is a trigger, not a stop: exits fill past it, and a gap can cost several times the distance.
 - The 25% rebalance band trims winners, which realizes gains (with slots too: a position past 1.25 × its slot).
 - `join_recent` can miss a run that a full slot book or a data error kept out for its first 20 bars.
-- The daily cap assumes Claude makes place calls one at a time.
+- The daily cap and the pending-proposal guard assume Claude makes place calls one at a time.
+- The pending-proposal guard counts only this system's place calls, and only those of the last 7 days.
+  - A proposal you rejected, which no order listing may show, counts until you run `resume --proposals`.
+  - A proposal still pending in the app after 7 days stops counting (whether Robinhood expires proposals is not
+    known yet).
+  - It relies on the PostToolUse hook's journal: a place call that hook failed to journal is not counted. The
+    4-order plan cap still applies.
+  - Robinhood's real limit on pending approvals is an inference from one incident (section 5).
 - The hook matches calls against `private/agentic/plan_current.json`, but caps each call on its own quantity ×
   limit price (or × the newest captured quote for a market order), allows only the order shapes the planner makes,
   and checks the plan's ref_ids, lifetime and live flag. An edited plan can still change which planned order is

@@ -445,6 +445,20 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   - `plan_id` = `f"{signals_date}-{sha1(json.dumps(orders_core, sort_keys=True))[:8]}"`, so identical inputs give
     an identical plan.
   - `key` = `f"{asset}|{vehicle_symbol}|{side}|{i}"`.
+- **Order cap** (`limits.max_orders_per_plan`, default 4, a whole number from 1 to 20; `_cap_orders`):
+  - Applied last, to the orders that will be placed: after open orders matched, held back or refused (already
+    open, cancel first, foreign order, ref_id used).
+  - At most that many place orders. All sells come first: an exit is never dropped for a buy. With more sells than
+    the cap, the first sells in plan order stay. Buys follow in their priority order.
+  - Each order beyond the cap goes into `skipped` as `deferred: max_orders_per_plan N (Robinhood may execute agent
+    orders beyond about 5 pending approvals without approval): run /moneyline again after approving these (<key>,
+    $<notional>)`. A deferred sell also adds a warning.
+  - `plan["deferred"]` holds the count and `plan["max_orders_per_plan"]` the cap. `format_plan` prints `DEFERRED N
+    orders beyond max_orders_per_plan N ...` under the header.
+  - `plan_id` and the ref_ids come from all planned orders before the cap: the same inputs give the same plan.
+  - Cancels are not capped.
+  - Why: on the first live day the 6th place call of a 6-buy plan, sent while 5 proposals were pending approval,
+    came back as a live order that filled without the user's approval (README section 5).
 - **Cancels:** every open order of this system (`ledger.is_own_order`, or agent-initiated on a managed vehicle)
   that is not in this plan, i.e. stale plan orders, goes into `plan["cancels"]` as cancel tool params; STOP cancels
   the same set. The user's own orders are never cancelled: on a managed vehicle they hold that asset back ("cancel
@@ -462,7 +476,8 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
                         "limit_price": "25.43", "time_in_force": "gfd", "market_hours": "regular_hours", "ref_id": "..."},
              "notional_usd": 305.16, "reason": "target 0.50 -> 1.00 (tranche 2: 5/5 closes above the line)"}],
  "cancels": [{"tool": "cancel_equity_order", "params": {"account_number": "...", "order_id": "..."}, "reason": "..."}],
- "skipped": [{"asset": "...", "reason": "..."}], "warnings": [], "errors": [], "refetch": []}
+ "skipped": [{"asset": "...", "reason": "..."}], "warnings": [], "errors": [], "refetch": [],
+ "deferred": 0, "max_orders_per_plan": 4}
 ```
 
 - All params are strings, exactly as they will be sent. Claude copies them verbatim; the hook compares them
@@ -515,6 +530,31 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
        planner shape (equity: gfd regular_hours limit, or market without limit_price; crypto: gtc limit; never
        dollar_amount / tax_lots / stop_price); a market order only in regular hours before 15:45 ET; caps 6-7 use
        max(plan notional, quantity × limit_price or × the newest captured quote); config `live` must be `true`
+    10. added after the first live day: fewer than `limits.max_pending_proposals` (default 4, a whole number from 1
+        to 20) proposals of the last 7 days still wait for approval (`hooks.awaiting_approval`). Applies to sells
+        too: a sell beyond about 5 pending approvals could also skip approval.
+        - The counted proposals are journal place entries of the last `hooks.PENDING_LOOKBACK` (7 days, rolling:
+          not the ET date, so proposals placed before midnight or the evening before still count) in state
+          `proposal_pending_approval?` or `failed_or_unknown`, without an order id.
+        - An entry stops counting once its order shows up in a SETTLED_STATES state (filled, cancelled/canceled,
+          rejected, failed, expired, voided). That evidence is either an order-listing capture
+          (`get_equity_orders` / `get_crypto_orders`) taken after the call, using the newest row per order id, or a
+          later journal `fill` event.
+        - An approved proposal's order carries the approval's id, so it is matched by `hooks.same_order`. That is
+          the same ref_id, or the same symbol, side, quantity and limit price, with the order created no earlier
+          than 5 minutes before the call. Each order settles at most one entry.
+        - Conservative: an open approved order counts, and so does anything unmatched (a rejected proposal no
+          listing shows, an unreadable capture, an unreadable timestamp). A corrupt journal fails closed.
+        - The user's acknowledgement releases entries: `cli resume --proposals` (terminal only, typed `resolved`)
+          appends a journal entry `{"event": "proposals_resolved", "places": [place_id, ...], "count": N}`, where
+          `hooks.place_id` = `"<ts>|<ref_id>"` of each entry it listed. `hooks.unsettled` drops exactly those
+          (`hooks.resolved_ids`), so `awaiting_approval` and the re-plan check (`cli._all_settled`) treat them as
+          settled. Entries placed later still count.
+        - The block reason: `N proposals are still pending approval (limits.max_pending_proposals M; ...): approve
+          or reject them in the Robinhood app, then run /moneyline again. A proposal counts until ..., for up to 7
+          days. Rejecting a proposal in the app does not by itself clear the count (...): ... the user runs
+          `<cli> resume --proposals` in their own terminal ...`.
+        - Never applied to cancels or reads.
   - **cancel:** `cancel_equity_order`, `cancel_crypto_order` → allow if `order_id` is in `plan.cancels`, or the
     journal shows an order this system placed. Cancels are allowed even under STOP (the kill switch must be able to
     pull orders).
@@ -522,7 +562,7 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
 - Any exception while handling a trade/cancel/unknown tool → exit 2, fail closed. On a read tool → exit 0 and log the
   exception.
 - Every decision is appended to `hook.log` as JSON: ts, tool, decision, reason, ref_id. No account numbers or
-  balances in the reason text.
+  balances in the reason text. `cli resume` appends its clears to the same file (`hook: "cli"`, section 12).
 
 ## 10. hooks/post_tool_use.py (D)
 
@@ -540,6 +580,9 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   - `get_equity_orders` / `get_crypto_orders` results are checked too: an order carrying a ref_id of a journaled
     proposal or of the current plan (approved orders carry the approval's id), or a recent one with
     `placed_agent` / `initiator_type` agentic, → STOP once per order (journal event `approval_bypass`).
+- A STOP for an order that went live without approval (its reason says "without approval", "not approved in the
+  app", "without a trade approval" or "approval cannot be confirmed": `ledger.BYPASS_MARKERS`) puts the APPROVAL
+  BYPASS advice first in `status` and the digest (`ledger.flag_banner`) until `resume` clears STOP.
 - A Robinhood tool outside the allowlist that ran → STOP.
 - `PostToolUseFailure` events (the same script is registered for them): a failed place is journaled as
   `failed_or_unknown` (the order may exist) and its plan notional is counted in the ledger.
@@ -572,8 +615,9 @@ def make_plan(signals, snapshot, cfg, now_utc, attempt=1, flags) -> dict
   `"${AGENTIC_PYTHON:-python3}" -I "${CLAUDE_PROJECT_DIR}/agentic/hooks/post_tool_use.py"` with the same matcher
   (never blocking).
 - `permissions.deny` lists the option, alert, scan, watchlist and exercise tools for the server names
-  robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus `Bash(*agentic resume*)`,
-  `Bash(*agentic*--replan*)` (any interpreter path in front), `Bash(*agentic*init*--update*)`,
+  robinhood-trading, Robinhood, robinhood-for-agents and claude_ai_Robinhood, plus `Bash(*agentic resume*)` (it
+  covers `resume --proposals` too), `Bash(*agentic*--replan*)` (any interpreter path in front),
+  `Bash(*agentic*init*--update*)`,
   `Edit(private/agentic/**)`
   (Claude Code applies Edit rules to every file-editing tool; a Write(path) rule is ignored with a warning). Deny rules match command text and are not a security boundary: `resume` refusing to
   run without a terminal is the real guard. On Windows with Git Bash, Bash deny rules also turn off the PowerShell
@@ -649,12 +693,13 @@ own hints name the interpreter running it (`config.cli_command()`):
 | `init` | create the state dirs; copy the example config if missing (never overwrite) |
 | `init --update` | add every top-level block of `config.example.json` the private config lacks (e.g. `universe`, `allocation`, `entry`) and every missing key inside the settings blocks `allocation`, `entry`, `limits`, `capital`, `universe`, `universe.crypto`, `universe.equity` (e.g. `allocation.favorites`, `universe.equity`), changing no existing value, list, mapping (`etf_map`, `class_max_frac`) or asset; a missing nested key whose example value would change the effective value (e.g. `allocation.slot_frac`, `universe.crypto.enabled`) is not added but printed as `not added`; validates the result and prints what it adds, with a `note:` for each effective value a whole added block changes; needs a terminal and a typed `update` (like `resume`), then writes `config.json.bak-<UTC time>` and the config. `.claude/settings.json` denies it like `resume` (`Bash(*agentic*init*--update*)`) |
 | `signals [--all] [--class C] [--skip-feed FEED]` | compute signals (`--all`: disabled assets too, and the full digest; `--skip-feed`: leave out assets on that feed, not counted as errors); prints `ACTION: split detected for ...` (stderr) when a Robinhood capture found a split and the history is not back yet: fetch-list again, its calls, then run again |
-| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (only what the Robinhood cache lacks: `stocks.history_calls`, below) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill. With the crypto universe on (section 13): `get_currency_pairs {limit: 700}` (follow `next`), then `get_equity_tradability` (10 symbols per call) for the mapped ETFs of the scanned coins, and quotes (20 symbols per call) for every held vehicle plus every universe coin that is green and entry-eligible on crypto signals computed from the Coinbase cache: the ETF for a mapped coin, else the pair. Without any `get_currency_pairs` capture it prints stage 1 only (the pair list and every mapped ETF's tradability) and "Then run fetch-list again"; so it does while a stock universe ticker has no `get_equity_tradability` capture of the last 7 days and none tried in the last `universe.STAGE1_RETRY_HOURS` (12; a tool error, or a failure in hook.log, counts as tried: the normal list asks again), those tickers' tradability; the crypto stage 1 likewise counts a tried `get_currency_pairs`. Robinhood bars (`stocks.history_calls`, explicit robinhood-feed assets and the stock universe on that feed): only what the Robinhood cache lacks, after merging the inbox into it: an incremental call from 5 sessions before the last cached bar, up to 10 symbols while symbols × expected bars ≤ `RH_MAX_BARS_PER_CALL` 200 (`RH_MAX_RESULT_CHARS` 40,000 at `RH_CHARS_PER_BAR` 200: under Claude Code's 50,000-character limit); a symbol without history (or after a split, or with a hole) a backfill in windows of ≤ 120 sessions (`end_time` = the next window's start), one symbol per call, the first window from 5 sessions before the cached bars it joins (a split since is caught); a request at least as large as one captured `response_too_large` (its symbols, its whole window) is asked smaller: one symbol per call, then halves of the window (down to about 10 sessions), never the same call. With the stock universe: `get_equity_tradability` for every candidate ticker, and quotes for every held universe stock and every one that is green and entry-eligible (yfinance: computed from the batched download; robinhood feed: every tradable or held ticker). The crypto reads are listed whenever `cli.crypto_needed` holds: a crypto vehicle, the universe trading coins directly or holding one for exits, or a coin in the reconciled positions or this system's orders since then (so reconcile never compares against a missing capture); `rhs_account_number` must then be filled in (checked with the same universe needs) |
-| `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call) |
+| `fetch-list` | print exactly which MCP read calls Claude must make now: accounts → portfolio → orders (equity since the baseline; crypto since the baseline and `state_group: open`) → positions (equity, crypto) → historicals for robinhood-feed symbols (only what the Robinhood cache lacks: `stocks.history_calls`, below) → quotes for every vehicle symbol. Orders come before positions so a fill in between shows up as a mismatch, never as a missed fill. With the crypto universe on (section 13): `get_currency_pairs {limit: 40}` (follow `next`; `cli.pairs_page_limit`: `RH_MAX_RESULT_CHARS` 40,000 / `PAIRS_CHARS_PER_ROW` 1,000, about 600-700 characters per pair row of the official schema, so each page stays well under Claude Code's 50,000-character limit; direct crypto without the universe asks the same pages; the loaders merge every page of the newest fetch: `snapshot._pages`, `universe.pairs_capture`), then `get_equity_tradability` (10 symbols per call) for the mapped ETFs of the scanned coins, and quotes (20 symbols per call) for every held vehicle plus every universe coin that is green and entry-eligible on crypto signals computed from the Coinbase cache: the ETF for a mapped coin, else the pair. Without any `get_currency_pairs` capture it prints stage 1 only (the pair list and every mapped ETF's tradability) and "Then run fetch-list again"; so it does while a stock universe ticker has no `get_equity_tradability` capture of the last 7 days and none tried in the last `universe.STAGE1_RETRY_HOURS` (12; a tool error, or a failure in hook.log, counts as tried: the normal list asks again), those tickers' tradability; the crypto stage 1 likewise counts a tried `get_currency_pairs`. Robinhood bars (`stocks.history_calls`, explicit robinhood-feed assets and the stock universe on that feed): only what the Robinhood cache lacks, after merging the inbox into it: an incremental call from 5 sessions before the last cached bar, up to 10 symbols while symbols × expected bars ≤ `RH_MAX_BARS_PER_CALL` 200 (`RH_MAX_RESULT_CHARS` 40,000 at `RH_CHARS_PER_BAR` 200: under Claude Code's 50,000-character limit); a symbol without history (or after a split, or with a hole) a backfill in windows of ≤ 120 sessions (`end_time` = the next window's start), one symbol per call, the first window from 5 sessions before the cached bars it joins (a split since is caught); a request at least as large as one captured `response_too_large` (its symbols, its whole window) is asked smaller: one symbol per call, then halves of the window (down to about 10 sessions), never the same call. With the stock universe: `get_equity_tradability` for every candidate ticker, and quotes for every held universe stock and every one that is green and entry-eligible (yfinance: computed from the batched download; robinhood feed: every tradable or held ticker). The crypto reads are listed whenever `cli.crypto_needed` holds: a crypto vehicle, the universe trading coins directly or holding one for exits, or a coin in the reconciled positions or this system's orders since then (so reconcile never compares against a missing capture); `rhs_account_number` must then be filled in (checked with the same universe needs) |
+| `plan [--attempt N]` | build the snapshot, make the plan, print a human summary plus the exact tool calls in order (cancels first, then sells, then buys; each with its preview call). It refuses (`NOT RE-PLANNING`) while the current plan is valid, at the same or a higher attempt, with unchanged flags, and has placed orders. Exception: the plan left orders unplaced (`deferred` by `max_orders_per_plan`, or plan orders without a successful place), and every order it did place shows up settled in an order listing captured after it (`hooks.unsettled`: filled, cancelled or rejected; anything unmatched counts as open). Then nothing of it can be cancelled or duplicated, so the rest may be planned |
 | `run` | `signals` then `plan` |
 | `reconcile` | compare captured positions with expected positions (last reconciled + journal fills); write BLOCK_BUYS on unexplained changes; update `positions_reconciled.json` when clean |
-| `status` | flags, last signals and plan, today's ledger, journal tail (no account numbers) |
-| `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`) |
+| `status` | first a `!!!` banner per flag (`ledger.flag_banner`: STOP with its newest reasons, the APPROVAL BYPASS advice for the hook's "went live without approval" STOP, FLATTEN, BLOCK_BUYS); then config, flags, `last flag clear` (the newest `resume` record in hook.log), last signals and plan (with its deferred count), today's ledger, the last 7 days' proposals pending approval (as the hook counts them; with any, how to release rejected ones with `resume --proposals`), `last proposals resolved` (the newest RESOLVE record, if any), journal tail (no account numbers). The digest (`signals`, `run`) starts with the same banner |
+| `stop`, `flatten`, `resume` | create or remove the flag files; resume needs a terminal and a typed confirmation (no `--yes`). After clearing, resume appends a JSON line to hook.log: `{ts, hook: "cli", tool: "resume", decision: "CLEAR", reason: "cleared STOP (was: <previous text>); ...", ref_id: null}`, naming only the flags actually removed: a flag whose file cannot be removed (Windows: held open) stops the loop, the ones already cleared are still recorded, and it exits 1. Each flag's text is truncated to 300 characters and the reason to 1,000; account numbers and long digit runs are masked. `flatten` also says that rejecting buy proposals does not clear the pending-proposal count |
+| `resume --proposals` | lists the place calls `hooks.awaiting_approval` still counts; in a terminal only, after a typed `resolved`, journals `{"event": "proposals_resolved", "places": [hooks.place_id ...], "count": N}` (section 9, item 10) and appends `{ts, hook: "cli", tool: "resume", decision: "RESOLVE", reason: "resolved N proposal(s) ...: <ts> <key>; ...", ref_id: null}` to hook.log. Flags are not touched; `--flag` and `--proposals` exclude each other |
 | `doctor` | install check (`doctor.py`): yfinance (FAIL when an enabled asset or the stock universe uses the yfinance feed without it, with the pip command), the stock universe (on/off, empty `symbols`, fixed allocation, tickers without a recent tradability check: WARN lines); Python, pandas/numpy, tz source, AGENTIC_PYTHON (settings env or environment; when it is not the interpreter running doctor, it must also run Python 3.11+ and import pandas and numpy, since the slash command runs the CLI with it), a UTF-8 BOM in a settings file (FAIL), state dir, config and filled account numbers (never printed), git ignores, the hook registration in `.claude/settings.json`, Git Bash on Windows, and the real PreToolUse hook run in a throwaway state dir (unplanned place → exit 2, read → exit 0), directly and through the settings command; and the crypto universe (on/off, source, a fixed allocation, a trimmed `exclude`, the newest `get_currency_pairs` capture's age, enabled explicit assets trading a coin directly while `etf_map` has its ETF, disabled explicit assets that keep a coin out, favorites that name both a scan candidate coin and a ticker in `universe.equity.symbols`, the Coinbase cache: WARN lines only); PASS/WARN/FAIL lines, exit 1 on any FAIL |
 | `backtest --asset NAME [--modes a,b] [--csv path] [--start YYYY-MM-DD] [--cost x]` | compare modes; print the table |
 

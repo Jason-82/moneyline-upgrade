@@ -39,7 +39,12 @@ DEFAULT_LIMITS = {
     "snapshot_max_age_min": 30,      # positions / portfolio / open orders captures
     "plan_valid_min_crypto": 360,    # crypto plans expire after 6 h
     "min_bars": 300,                 # history needed before a signal is trusted
+    # Robinhood executed an agent order directly, without the user's approval, when it came after 5 proposals were
+    # already pending approval (first live day, README section 5). Both caps keep this system below that.
+    "max_orders_per_plan": 4,        # place orders per plan (sells first); the rest are deferred to the next run
+    "max_pending_proposals": 4,      # the PreToolUse hook blocks a place call while this many proposals are pending
 }
+ORDER_CAP_RANGE = (1, 20)            # limits.max_orders_per_plan and limits.max_pending_proposals
 
 VALID_CLASSES = ("crypto", "equity")
 VALID_SOURCES = ("computed", "tv_export")
@@ -379,6 +384,8 @@ def validate(cfg: dict) -> dict:
         raise ConfigError("config must be a JSON object")
     c = copy.deepcopy(cfg)
     c["limits"] = _merge(DEFAULT_LIMITS, c.get("limits", {}))
+    for k in ("max_orders_per_plan", "max_pending_proposals"):
+        c["limits"][k] = _count(c["limits"][k], f"limits.{k}", *ORDER_CAP_RANGE)
     modes = _merge(DEFAULT_MODES, {k: v for k, v in c.get("modes", {}).items() if not k.startswith("_")})
     for name, tranches in modes.items():
         if not isinstance(tranches, list) or not tranches:

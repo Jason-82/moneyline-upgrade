@@ -25,6 +25,15 @@ TRADE = frozenset({"place_equity_order", "place_crypto_order"})
 CANCEL = frozenset({"cancel_equity_order", "cancel_crypto_order"})
 ACCOUNT_KEYS = ("account_number", "rhs_account_number")
 PROPOSAL_STATE = "proposal_pending_approval?"
+FAILED_STATE = "failed_or_unknown"                 # = post_tool_use.FAILED: a place that failed or timed out
+# order states after which an order (or an approved proposal's order) is finished: it no longer waits for anything
+SETTLED_STATES = frozenset({"filled", "cancelled", "canceled", "rejected", "failed", "expired", "voided"})
+MATCH_SKEW = timedelta(minutes=5)                  # an approved proposal's order is created after the place call
+LISTING_TAIL = 500                                 # newest order-listing captures read per tool by the pending check
+# how far back the pending-proposal guard counts unresolved place calls: a rolling window, not the ET date, so a
+# proposal made before midnight (or the evening before) still counts; gtc crypto proposals may wait for days
+PENDING_LOOKBACK = timedelta(days=7)
+RESOLVED_EVENT = "proposals_resolved"              # journal event of `resume --proposals`: the user's acknowledgement
 _LONG_DIGITS = re.compile(r"\d{6,}")
 # Claude Code saves an MCP text result over 50,000 characters (whatever MAX_MCP_OUTPUT_TOKENS says) to a file and
 # passes on a notice instead, which is then all the PostToolUse hook receives: such a capture holds no data.
@@ -391,6 +400,167 @@ def order_rows(obj) -> list[dict]:
         if isinstance(data.get(k), list):
             return [r for r in data[k] if isinstance(r, dict)]
     return [data["order"]] if isinstance(data.get("order"), dict) else []
+
+
+# ------------------------------------------------------------------ proposals still waiting for approval
+
+def _kind(tool) -> str:
+    return "crypto" if "crypto" in str(tool or "") else "equity"
+
+
+def _crypto_code(sym) -> str:
+    """'SOL', 'SOL-USD' or 'SOLUSD' -> 'SOL'."""
+    s = str(sym or "").upper().strip()
+    if "-" in s:
+        return s.split("-")[0]
+    return s[:-3] if s.endswith("USD") and len(s) > 3 else s
+
+
+def _row_symbol(r: dict, kind: str) -> str:
+    if kind == "crypto":
+        return _crypto_code(r.get("currency_code") or r.get("symbol"))
+    return str(r.get("symbol") or "").upper().strip()
+
+
+def _row_state(r: dict) -> str:
+    return str(r.get("state") or "").lower().strip()
+
+
+def _ts_or_none(s) -> datetime | None:
+    try:
+        return parse_ts(s)
+    except (TypeError, ValueError):
+        return None
+
+
+def same_order(entry: dict, row: dict, kind: str, price: bool = True) -> bool:
+    """Is order row `row` (an order listing's, or a journal fill's) the order of journal place entry `entry`? The same
+    ref_id, or (an approved proposal's order carries the approval's id, not ours) the same symbol, side, quantity and
+    (`price`, for a limit order) limit price, created no earlier than MATCH_SKEW before the place call."""
+    prm = entry.get("params") if isinstance(entry.get("params"), dict) else {}
+    ref = entry.get("ref_id")
+    if ref and row.get("ref_id") and norm(row["ref_id"]) == norm(ref):
+        return True
+    sym = str(prm.get("symbol") or "").upper().strip()
+    sym = _crypto_code(sym) if kind == "crypto" else sym
+    if not sym or _row_symbol(row, kind) != sym:
+        return False
+    if str(row.get("side") or "").lower().strip() != str(prm.get("side") or "").lower().strip():
+        return False
+    q, rq = num(prm.get("quantity")), num(row.get("quantity"))
+    if q is None or rq is None or abs(q - rq) > 1e-9 * max(1.0, abs(q)):
+        return False
+    lp = num(prm.get("limit_price"))
+    if price and lp is not None:
+        rp = num(row.get("limit_price") if row.get("limit_price") not in (None, "") else row.get("price"))
+        if rp is None or abs(lp - rp) > 1e-9 * max(1.0, abs(lp)):
+            return False
+    created, placed = _ts_or_none(row.get("created_at")), _ts_or_none(entry.get("ts"))
+    return created is None or placed is None or created >= placed - MATCH_SKEW
+
+
+def _listing_rows(inbox, kinds, since: datetime) -> dict[str, tuple]:
+    """{order id: (captured_at, kind, row, price_known)} from the get_equity_orders / get_crypto_orders captures taken
+    at or after `since` (the newest LISTING_TAIL per tool), the newest capture's row per order. A capture that cannot
+    be read is skipped: it settles nothing."""
+    out: dict[str, tuple] = {}
+    stamp = since.astimezone(UTC).strftime("%Y%m%dT%H%M%S")
+    for kind in sorted(kinds):
+        short = "get_crypto_orders" if kind == "crypto" else "get_equity_orders"
+        try:
+            files = sorted(f for f in Path(inbox).glob(f"*_{short}.json") if f.name[:15] >= stamp)[-LISTING_TAIL:]
+        except OSError:
+            continue
+        for f in files:                              # named by capture time: older captures cannot settle anything
+            try:
+                cap = read_json(f, None)
+                at = parse_ts(cap["captured_at"])
+                obj, err = unwrap(cap.get("response"))
+            except (OSError, ValueError, TypeError, KeyError, AttributeError):
+                continue
+            if err or at < since:
+                continue
+            for r in order_rows(obj):
+                oid = norm(r.get("id")) if r.get("id") else ""
+                if oid and (oid not in out or out[oid][0] <= at):
+                    out[oid] = (at, kind, r, True)
+    return out
+
+
+def place_id(entry: dict) -> str:
+    """A journal place entry's identity in a `resume --proposals` acknowledgement: its ts and ref_id as journaled (a
+    failed_or_unknown place may be retried with the same ref_id, so the ref_id alone is not unique)."""
+    return f"{norm(entry.get('ts'))}|{norm(entry.get('ref_id'))}"
+
+
+def resolved_ids(entries: list[dict]) -> set[str]:
+    """place_id()s the user acknowledged as no longer waiting in the Robinhood app (journal RESOLVED_EVENT entries,
+    written only by `resume --proposals`, which needs a terminal)."""
+    out: set[str] = set()
+    for e in entries:
+        if e.get("event") == RESOLVED_EVENT and isinstance(e.get("places"), list):
+            out |= {x for x in e["places"] if isinstance(x, str)}
+    return out
+
+
+def unsettled(places: list[dict], entries: list[dict], inbox) -> list[dict]:
+    """The journal place entries in `places` not yet seen finished: no order listing captured after the call (and no
+    journal fill event after it, from reconcile) shows their order filled, cancelled or rejected (SETTLED_STATES), and
+    the user has not acknowledged them as resolved (`resume --proposals`: resolved_ids). A live order is matched by
+    its order id; a proposal (no order id) by same_order, each listing order settling at most one place.
+    Conservative: a place nothing matches, or with an unreadable timestamp, stays unsettled."""
+    done = resolved_ids(entries)
+    places = [e for e in places if place_id(e) not in done]
+    if not places:
+        return []
+    stamps = [t for t in (_ts_or_none(e.get("ts")) for e in places) if t is not None]
+    rows = _listing_rows(inbox, {_kind(e.get("tool")) for e in places}, min(stamps)) if stamps else {}
+    for e in entries:                                # reconcile's fills, for orders no capture shows any more
+        if e.get("event") == "fill" and e.get("order_id") and norm(e["order_id"]) not in rows:
+            at = _ts_or_none(e.get("ts"))
+            if at is not None:
+                kind = "crypto" if e.get("kind") == "crypto" else "equity"
+                rows[norm(e["order_id"])] = (at, kind, {
+                    "id": e["order_id"], "ref_id": e.get("ref_id"), "symbol": e.get("symbol"), "side": e.get("side"),
+                    "quantity": e.get("cumulative_quantity"), "state": e.get("state")}, False)
+    used, out = set(), []
+    for e in sorted(places, key=lambda x: str(x.get("ts") or "")):
+        ts, kind = _ts_or_none(e.get("ts")), _kind(e.get("tool"))
+        hit = None
+        if ts is not None and e.get("order_id"):
+            oid = norm(e["order_id"])
+            v = rows.get(oid)
+            if v and v[0] >= ts and _row_state(v[2]) in SETTLED_STATES:
+                hit = oid
+        elif ts is not None:
+            for oid, (at, k, r, priced) in rows.items():
+                if (oid not in used and k == kind and at >= ts and _row_state(r) in SETTLED_STATES
+                        and same_order(e, r, kind, price=priced)):
+                    hit = oid
+                    break
+        if hit is None:
+            out.append(e)
+        else:
+            used.add(hit)
+    return out
+
+
+def awaiting_approval(entries: list[dict], inbox, now: datetime) -> list[dict]:
+    """This system's place calls of the last PENDING_LOOKBACK (7 days, rolling: an ET date change never resets it)
+    that may still wait for the user's approval in the Robinhood app: journal state proposal_pending_approval? or
+    failed_or_unknown (the call may have created one), not since seen settled and not acknowledged by the user
+    (unsettled). Conservative: a rejected proposal that no order listing shows counts until the user acknowledges it
+    with `resume --proposals` (or it is 7 days old), and a place with an unreadable timestamp counts until
+    acknowledged."""
+    since = now - PENDING_LOOKBACK
+    cands = []
+    for e in entries:
+        if e.get("event") != "place" or e.get("state") not in (PROPOSAL_STATE, FAILED_STATE) or e.get("order_id"):
+            continue
+        ts = _ts_or_none(e.get("ts"))
+        if ts is None or ts >= since:
+            cands.append(e)
+    return unsettled(cands, entries, inbox)
 
 
 # ------------------------------------------------------------------ responses
