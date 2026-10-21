@@ -291,6 +291,38 @@ Rules of thumb:
   signals and plan, today's placed notional, today's pending proposals and the journal tail. No account numbers are
   shown.
 
+### Running it from your phone (Remote Control)
+
+`/moneyline` must run on the PC, because the config, caches, hooks and journal are there. Claude Code's Remote Control
+lets the Claude iPhone/Android app drive that PC session (docs: code.claude.com/docs/en/remote-control).
+
+**One-time setup:**
+1. Update Claude Code.
+2. In Claude Code, run `/config`:
+   - Turn on **Enable Remote Control for all sessions**.
+   - Turn on **Push when actions required**.
+3. In the Claude app, sign in with the same claude.ai account.
+4. In Windows Settings, set **System → Power → Sleep** to Never when plugged in. The screen may turn off; the PC
+   must not sleep.
+5. While you are home, test it once in shadow mode, and check that `hook.log` gets new lines from the phone-driven
+   run.
+
+**Each day:**
+1. Leave a session running in the repo folder: `claude --remote-control "MoneyLine"`, or server mode
+   `claude remote-control` with spawn mode same-dir. A worktree would not contain `private/`.
+2. From the phone, open the Claude app, tap **Code**, and open the session (computer icon, green dot).
+3. Type `/moneyline` and answer any permission prompts.
+4. Approve the proposals in the Robinhood app.
+
+**Limits:**
+- **The phone cannot start the session.** If the PC restarted or the session ended, you need the PC. A remote-desktop
+  app installed in advance (for example Chrome Remote Desktop) is the fallback for starting it.
+- **A Robinhood connector re-login needs the PC.** Run `claude mcp login`, then `/mcp reconnect` from the phone.
+- **Cloud sessions cannot run `/moneyline`.** They do not have your private state, and the Robinhood connector failed
+  there.
+- **A fully unattended run** (`claude -p "/moneyline"` from Task Scheduler) is possible in principle but untested.
+  Permission prompts are denied in `-p` mode, and logins expire, so set up Remote Control first.
+
 ## 4. Shadow mode first (`live: false`, 4-8 weeks)
 
 Run `/moneyline` daily with `live: false`. Claude previews and never places. Confirm each item below and keep
