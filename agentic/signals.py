@@ -351,6 +351,13 @@ def _fmt(x, spec: str, empty: str = "-") -> str:
     return empty if x is None else format(x, spec)
 
 
+def _fmt_px(x, empty: str = "-") -> str:
+    """A price or line value: 4 decimals, or 4 significant digits when that would show 0.0000 (e.g. PEPE)."""
+    if x is None:
+        return empty
+    return format(x, ".4f") if abs(x) >= 0.01 or x == 0 else format(x, ".4g")
+
+
 def _eligible(a: dict) -> bool:
     """May a plan buy into it today (enabled, not hold only, no errors, green, and the entry policy allows some)?"""
     return bool(a["enabled"] and not (a.get("universe") or {}).get("hold_only") and not a["errors"]
@@ -364,7 +371,7 @@ def _asset_lines(a: dict) -> list[str]:
     name = a["name"] + ("*" if a.get("held") else "")
     lines = [f"{name:<9}{a['vehicle_symbol']:<9}{a['mode']:<11}{src:<10}{_state(a):<8}"
              f"{_fmt(a['bars_in_state'], 'd'):>5}  {'NEW' if a['changed'] else '-':<5}"
-             f"{_fmt(a['line_n1'], '.4f'):>14}  {dist:>8}  "
+             f"{_fmt_px(a['line_n1']):>14}  {dist:>8}  "
              f"{_fmt(a['target_frac'], '.2f'):>6}  {_fmt(a['prev_target_frac'], '.2f'):>5}  {alloc:>5}  "
              f"{_signal(a)}"]
     if len(a["tranches"]) > 1:
@@ -373,7 +380,7 @@ def _asset_lines(a: dict) -> list[str]:
             pend = f", {t['pending']}/{n} closes toward a flip" if t["pending"] else ""
             lines.append(f"    tranche {k} (w {t['weight']:.2f}, N {t['n_entry']}/{t['n_exit']}): "
                          f"{'green' if t['green'] else 'red'} since {t['last_flip_date'] or '?'}, "
-                         f"line {_fmt(t['line'], '.4f')}{pend}")
+                         f"line {_fmt_px(t['line'])}{pend}")
     elif a["tranches"] and a["tranches"][0]["pending"]:
         t = a["tranches"][0]
         n = t["n_exit"] if t["green"] else t["n_entry"]

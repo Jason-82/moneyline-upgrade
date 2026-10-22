@@ -769,3 +769,10 @@ def test_tv_confirm_defaults_to_count(tmp_path):
     a = asset("ETH-TV", mode="split", source="tv_export", path=str(tmp_path / "COINBASE_ETHUSD_1D*.csv"))
     r = sg.compute_signals(mkcfg(a), NOW)["assets"][0]
     assert r["tv_confirm"] == "count" and r["target_frac"] == 0.0
+
+
+def test_digest_shows_tiny_line_values_with_significant_digits():
+    from agentic.signals import _fmt_px
+    assert _fmt_px(0.0000045312) == "4.531e-06"
+    assert _fmt_px(1208.50721) == "1208.5072"
+    assert _fmt_px(None) == "-"
