@@ -117,6 +117,8 @@ The user's machine is Windows with Git Bash: run every command in Git Bash synta
    - the digest: its SCAN and UNIVERSE lines, the table, plus any data warnings and errors (its SIGNAL column is the
      indicator target, not an order: report the plan's orders as the orders)
    - the reconcile result
+   - the plan's `capital` figure and its `SLOTS` line, verbatim (order sizes follow the slot size, so a deposit or a
+     `capital.max_usd` change shows up here first, and held positions below their slot are topped up)
    - every call you made, with its outcome:
      - previews: ok or the error text
      - places: state or proposal status, order id if any
