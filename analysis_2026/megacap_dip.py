@@ -90,9 +90,9 @@ def duplicate_predecessors(raw, mem=None, min_corr=0.9, min_days=60):
         if mem is not None and s not in WRONG_PREDECESSORS:
             a_, b_ = mem[mem.symbol == s], mem[mem.symbol == m.group(1)]
             far = pd.Timestamp("2100-01-01")
-            overlap = any(x.start <= (y.end if pd.notna(y.end) else far) and y.start <= (x.end if pd.notna(x.end) else far)
-                          for x in a_.itertuples() for y in b_.itertuples())
-            if not overlap:
+            days = max([(min(x.end if pd.notna(x.end) else far, y.end if pd.notna(y.end) else far)
+                         - max(x.start, y.start)).days for x in a_.itertuples() for y in b_.itertuples()] or [-1])
+            if days <= 30:              # a hand-over (shared end/start day or an index-change week) is not an overlap
                 continue
         a, b = raw[s].close.pct_change(), raw[m.group(1)].close.pct_change()
         j = pd.concat([a, b], axis=1, sort=True).dropna()

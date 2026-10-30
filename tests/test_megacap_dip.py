@@ -232,3 +232,13 @@ def test_duplicate_detector_needs_overlapping_memberships():
                         "end": pd.to_datetime([None, "1998-11-13", "1999-01-29", None])})
     # XYZ's spells overlap (a copy); QQQQ continues QQQQ-199901's history after it left (kept)
     assert set(M.duplicate_predecessors(raw, mem)) == {"XYZ-199811"}
+
+
+def test_duplicate_detector_ignores_handover_overlap():
+    days = pd.bdate_range("1996-01-01", periods=300)
+    rng = np.random.default_rng(2)
+    base = pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0, 0.01, 300))}, index=days)
+    raw = {"FTX": base, "FTX-199702": base * 1.5}
+    mem = pd.DataFrame({"symbol": ["FTX-199702", "FTX"], "start": pd.to_datetime(["1996-01-02", "1997-02-03"]),
+                        "end": pd.to_datetime(["1997-02-10", None])})       # one week of index-change overlap
+    assert M.duplicate_predecessors(raw, mem) == {}
