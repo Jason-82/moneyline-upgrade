@@ -45,6 +45,8 @@ def year_end_close(sym, y, cache={}):
 
 
 def member_on(mem, sym, date):
+    """S&P 500 member on `date` (members.csv starts 1996-01-02: an end-1995 list is checked on that day)."""
+    date = max(pd.Timestamp(date), pd.Timestamp("1996-01-02"))
     g = mem[mem.symbol == sym]
     return bool(((g.start <= date) & (g.end.isna() | (g.end >= date))).any())
 
