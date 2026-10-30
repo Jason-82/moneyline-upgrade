@@ -1,0 +1,195 @@
+MEGA-CAP DIP STUDY (pre-registration: analysis_2026/MEGACAP_DIP_PREREG.md)
+sample 1996-01-02..2026-10-12 (7745 days); 1186 price series after the quality filter (12 dropped or cut); rule: 25% below the 252-day high, buy next open, hold 366 calendar days, 0.03% per side
+list names without a price series (dropped): 3
+  1995 #15 Mobil (nan)
+  1995 #20 GTE (nan)
+  1996 #20 Mobil (nan)
+
+U1 top 10 by market cap (prior year-end): 95 events, 90 with a complete window; an event position is open on 77% of days
+U2 top 20 by market cap (prior year-end): 179 events, 173 with a complete window; an event position is open on 90% of days
+U3 every S&P 500 member on the day: 5041 events, 4826 with a complete window; an event position is open on 100% of days
+U4 tech names in the top 20: 80 events, 75 with a complete window; an event position is open on 76% of days
+U5 today's Magnificent 7 (hindsight, biased): 79 events, 76 with a complete window; an event position is open on 85% of days
+U6 top 10 by median dollar volume (prior year): 112 events, 105 with a complete window; an event position is open on 82% of days
+
+PRIMARY TESTS: dip book minus SPY, annualised mean daily excess (stationary bootstrap, block 250, 10000 draws, one-sided, Holm over T1-T3)
+  T1 U1: excess +1.52%/yr, p 0.2920, Holm p 0.8760; halves -3.33 / +6.14; MDE80 7.15%/yr; 10-slot after-tax beats SPY: False -> FAIL
+  T2 U2: excess -3.92%/yr, p 0.8810, Holm p 1.0000; halves -6.83 / -1.14; MDE80 8.34%/yr; 10-slot after-tax beats SPY: False -> FAIL
+  T3 U3: excess -0.45%/yr, p 0.6069, Holm p 1.0000; halves +2.32 / -3.10; MDE80 4.05%/yr; 10-slot after-tax beats SPY: False -> FAIL
+
+S9 10-SLOT PORTFOLIO (10% of value per event from SPY, at most 10 open; tax LT 20% / ST 35%)
+  U1: CAGR 10.49% pre-tax / 8.70% after; maxDD -61.2%; Sharpe 0.471; taken 91, skipped 4 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U2: CAGR 8.62% pre-tax / 6.97% after; maxDD -73.1%; Sharpe 0.379; taken 135, skipped 44 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U3: CAGR 5.18% pre-tax / 5.55% after; maxDD -68.7%; Sharpe 0.234; taken 286, skipped 4755 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U4: CAGR 10.23% pre-tax / 8.40% after; maxDD -72.9%; Sharpe 0.447; taken 75, skipped 5 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U5: CAGR 16.33% pre-tax / 13.71% after; maxDD -61.8%; Sharpe 0.638; taken 79, skipped 0 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U6: CAGR 10.66% pre-tax / 8.54% after; maxDD -67.4%; Sharpe 0.450; taken 107, skipped 5 | SPY 10.49% / 9.73%, maxDD -55.2%
+
+S8 CAPM (monthly, Newey-West 12) and S11 eras: dip book excess %/yr
+  U1: excess +1.52%/yr; alpha +0.58%/yr (t 0.20), beta 1.06; eras 1996-2002 +2.51, 2003-2009 -10.13, 2010-2019 +2.19, 2020-2026 +11.57
+  U2: excess -3.92%/yr; alpha -5.08%/yr (t -1.49), beta 1.07; eras 1996-2002 +1.37, 2003-2009 -15.34, 2010-2019 -4.00, 2020-2026 +2.56
+  U3: excess -0.45%/yr; alpha -1.69%/yr (t -1.00), beta 1.15; eras 1996-2002 +0.30, 2003-2009 +3.18, 2010-2019 -1.86, 2020-2026 -2.92
+  U4: excess +2.33%/yr; alpha -0.06%/yr (t -0.01), beta 1.25; eras 1996-2002 +4.85, 2003-2009 -2.05, 2010-2019 +5.26, 2020-2026 -0.08
+  U5: excess +25.92%/yr; alpha +21.27%/yr (t 3.35), beta 1.59; eras 1996-2002 +39.11, 2003-2009 +30.30, 2010-2019 +17.96, 2020-2026 +19.51
+  U6: excess +3.50%/yr; alpha -0.22%/yr (t -0.06), beta 1.36; eras 1996-2002 +0.93, 2003-2009 +1.46, 2010-2019 -5.34, 2020-2026 +21.33
+
+S10 EVENTS with a complete window: 12-month return minus SPY's (bootstrap by calendar quarter)
+  U1: n 90 (44 quarters); mean +16.5% vs SPY +15.3%; excess +1.2% [-6.3%, +8.7%]; median excess +2.0%; beat SPY 53%; median further drop -11.1%; worst -72.0%
+  U2: n 173 (56 quarters); mean +13.5% vs SPY +14.8%; excess -1.3% [-7.3%, +4.8%]; median excess -0.2%; beat SPY 49%; median further drop -14.2%; worst -96.5%
+  U3: n 4826 (120 quarters); mean +12.9% vs SPY +13.5%; excess -0.6% [-2.8%, +1.6%]; median excess -3.6%; beat SPY 45%; median further drop -18.0%; worst -99.9%
+  U4: n 75 (37 quarters); mean +16.5% vs SPY +12.2%; excess +4.3% [-8.4%, +17.7%]; median excess +0.3%; beat SPY 51%; median further drop -15.4%; worst -90.8%
+  U5: n 76 (45 quarters); mean +44.5% vs SPY +12.0%; excess +32.5% [+13.1%, +52.4%]; median excess +7.1%; beat SPY 64%; median further drop -15.8%; worst -82.5%
+  U6: n 105 (50 quarters); mean +14.6% vs SPY +13.0%; excess +1.6% [-8.2%, +11.2%]; median excess -0.0%; beat SPY 50%; median further drop -17.6%; worst -84.6%
+
+S1 TIMING vs OWNING THE SAME STOCKS: event 12-month excess minus 200 random entries in the same stock and universe (bootstrap by calendar year); and the universe held all the time vs SPY
+  U1: n 90; event +1.2% vs placebo +3.7% -> timing -2.5% [-9.4%, +4.3%]; universe held all the time minus SPY +0.33%/yr
+  U2: n 173; event -1.3% vs placebo -0.3% -> timing -1.0% [-5.9%, +4.8%]; universe held all the time minus SPY -0.04%/yr
+  U3: n 4826; event -0.6% vs placebo +1.2% -> timing -1.8% [-4.2%, +0.6%]
+  U4: n 75; event +4.3% vs placebo +5.3% -> timing -1.0% [-11.6%, +13.8%]; universe held all the time minus SPY +7.41%/yr
+  U5: n 76; event +32.5% vs placebo +32.9% -> timing -0.4% [-19.0%, +20.9%]
+
+S2 TODAY'S MAGNIFICENT 7 (hindsight). Events since the name was coined (2023-04-01):
+  NVDA 2024-08-05 (dd -26%): +74.0% vs SPY +23.3%
+  TSLA 2025-02-10 (dd -27%): +20.5% vs SPY +14.4%
+  NVDA 2025-03-06 (dd -26%): +64.1% vs SPY +20.2%
+  GOOGL 2025-03-28 (dd -25%): +94.8% vs SPY +20.5%
+  AMZN 2025-04-03 (dd -26%): +27.2% vs SPY +27.3%
+  META 2025-04-03 (dd -28%): +13.4% vs SPY +27.3%
+  AAPL 2025-04-04 (dd -27%): +46.7% vs SPY +39.8%
+  META 2025-11-19 (dd -25%): +23.5% vs SPY +16.9% (window not complete)
+  MSFT 2026-02-05 (dd -27%): +36.3% vs SPY +15.1% (window not complete)
+  TSLA 2026-03-27 (dd -26%): +3.3% vs SPY +22.2% (window not complete)
+
+S7 TOP-10 EVENTS (U1), complete or not:
+  1996-01-09 MSFT           #10: +109.2% vs SPY  +27.9% (excess  +81.3%; further drop +2%)
+  1996-07-23 T-200511       #2:   +5.8% vs SPY  +54.5% (excess  -48.7%; further drop -10%)
+  1997-10-27 INTC           #4:  +12.7% vs SPY  +31.4% (excess  -18.7%; further drop -17%)
+  1997-10-27 KO             #2:  +27.6% vs SPY  +31.4% (excess   -3.8%; further drop +4%)
+  1998-05-15 MO             #8:  +19.6% vs SPY  +23.4% (excess   -3.7%; further drop -3%)
+  1998-08-14 RDS-A          #7:  +50.0% vs SPY  +27.6% (excess  +22.4%; further drop -9%)
+  1998-08-31 KO             #2:   -8.7% vs SPY  +39.2% (excess  -47.9%; further drop -14%)
+  1998-09-10 PG             #9:  +48.9% vs SPY  +39.1% (excess   +9.7%; further drop -3%)
+  1998-10-08 GE             #1:  +73.1% vs SPY  +39.4% (excess  +33.8%; further drop +1%)
+  1999-05-21 PFE            #9:  +21.6% vs SPY   +5.9% (excess  +15.7%; further drop -18%)
+  1999-05-26 INTC           #3: +140.8% vs SPY  +10.9% (excess +129.9%; further drop -3%)
+  1999-08-04 MRK            #6:  +15.7% vs SPY  +14.3% (excess   +1.4%; further drop -15%)
+  1999-10-19 INTC           #3:  +27.7% vs SPY  +10.6% (excess  +17.1%; further drop +3%)
+  1999-10-21 IBM            #7:   -0.5% vs SPY   +9.4% (excess   -9.9%; further drop -4%)
+  2000-01-06 LU-200611      #7:  -72.0% vs SPY   -6.2% (excess  -65.8%; further drop -76%)
+  2000-01-06 TWX-201806     #10:  -42.8% vs SPY   -6.2% (excess  -36.6%; further drop -54%)
+  2000-02-17 WMT            #4:  +10.6% vs SPY   -6.6% (excess  +17.1%; further drop -11%)
+  2000-04-04 MSFT           #1:  -36.4% vs SPY  -22.6% (excess  -13.8%; further drop -53%)
+  2000-04-14 CSCO           #3:  -68.5% vs SPY   -7.3% (excess  -61.2%; further drop -76%)
+  2000-05-10 INTC           #6:  -48.8% vs SPY   -9.6% (excess  -39.2%; further drop -58%)
+  2000-09-18 INTC           #6:  -63.8% vs SPY  -31.4% (excess  -32.4%; further drop -64%)
+  2001-01-02 GE             #1:   -6.0% vs SPY   -7.2% (excess   +1.1%; further drop -31%)
+  2001-03-14 AIG            #8:   -2.4% vs SPY   +0.0% (excess   -2.5%; further drop -12%)
+  2001-03-20 MRK            #9:  -14.6% vs SPY   +2.1% (excess  -16.7%; further drop -17%)
+  2001-03-21 C              #5:  +17.8% vs SPY   +2.7% (excess  +15.1%; further drop -12%)
+  2001-03-21 PFE            #3:  +13.1% vs SPY   +2.7% (excess  +10.4%; further drop -1%)
+  2002-04-08 IBM            #8:  -10.1% vs SPY  -21.4% (excess  +11.3%; further drop -38%)
+  2002-07-18 WMT            #5:  +19.2% vs SPY  +15.2% (excess   +4.0%; further drop -6%)
+  2002-07-19 JNJ            #9:  +27.5% vs SPY  +20.0% (excess   +7.5%; further drop +2%)
+  2002-07-19 XOM            #3:  +13.0% vs SPY  +20.0% (excess   -7.0%; further drop -7%)
+  2003-10-30 MRK            #9:  -33.7% vs SPY   +9.4% (excess  -43.1%; further drop -34%)
+  2004-04-30 CSCO           #9:  -16.5% vs SPY   +7.6% (excess  -24.0%; further drop -19%)
+  2004-07-14 INTC           #7:  +21.5% vs SPY  +11.7% (excess   +9.8%; further drop -16%)
+  2004-10-15 PFE            #4:  -12.7% vs SPY  +10.2% (excess  -22.9%; further drop -15%)
+  2004-10-21 AIG            #8:  +15.6% vs SPY  +10.1% (excess   +5.5%; further drop -9%)
+  2005-04-20 IBM            #10:  +13.5% vs SPY  +16.1% (excess   -2.5%; further drop -0%)
+  2005-09-21 WMT            #5:  +16.6% vs SPY  +11.5% (excess   +5.0%; further drop +2%)
+  2007-11-01 C              #4:  -61.9% vs SPY  -34.6% (excess  -27.3%; further drop -68%)
+  2008-01-08 BAC            #10:  -63.4% vs SPY  -34.4% (excess  -29.0%; further drop -69%)
+  2008-01-23 GOOGL          #6:  -42.1% vs SPY  -36.3% (excess   -5.8%; further drop -54%)
+  2008-02-29 MSFT           #3:  -39.6% vs SPY  -44.8% (excess   +5.2%; further drop -41%)
+  2008-05-21 GE             #2:  -53.6% vs SPY  -32.8% (excess  -20.8%; further drop -77%)
+  2008-07-28 T              #4:   -8.6% vs SPY  -18.3% (excess   +9.6%; further drop -27%)
+  2008-10-07 CVX            #7:   +4.7% vs SPY  +12.8% (excess   -8.2%; further drop -20%)
+  2008-10-09 XOM            #1:  +12.3% vs SPY  +27.3% (excess  -15.0%; further drop -2%)
+  2009-01-30 WMT            #2:  +19.0% vs SPY  +37.8% (excess  -18.8%; further drop -0%)
+  2009-02-02 PG             #3:  +18.4% vs SPY  +31.1% (excess  -12.7%; further drop -17%)
+  2009-02-26 JNJ            #7:  +26.8% vs SPY  +54.7% (excess  -27.8%; further drop -10%)
+  2010-06-29 GOOGL          #4:  +14.5% vs SPY  +31.5% (excess  -17.0%; further drop -4%)
+  2010-06-29 MSFT           #2:  +14.3% vs SPY  +31.5% (excess  -17.2%; further drop -1%)
+  2010-08-26 JPM            #10:   +6.3% vs SPY  +16.9% (excess  -10.6%; further drop -6%)
+  2011-06-24 GOOGL          #7:  +20.0% vs SPY   +7.2% (excess  +12.9%; further drop +2%)
+  2011-08-08 GE             #5:  +40.0% vs SPY  +25.9% (excess  +14.1%; further drop -5%)
+  2012-12-14 AAPL           #2:  +10.9% vs SPY  +30.3% (excess  -19.5%; further drop -23%)
+  2015-08-21 WMT            #8:  +16.7% vs SPY  +18.7% (excess   -2.0%; further drop -11%)
+  2015-08-21 XOM            #2:  +33.9% vs SPY  +18.7% (excess  +15.2%; further drop +1%)
+  2015-08-25 PG             #10:  +29.5% vs SPY  +15.6% (excess  +13.9%; further drop -3%)
+  2016-01-07 AAPL           #1:  +23.4% vs SPY  +18.5% (excess   +4.8%; further drop -7%)
+  2016-02-05 AMZN           #6:  +68.4% vs SPY  +26.0% (excess  +42.4%; further drop -1%)
+  2018-09-06 META           #5:  +17.7% vs SPY   +6.0% (excess  +11.7%; further drop -23%)
+  2018-11-19 AMZN           #4:  +20.6% vs SPY  +19.2% (excess   +1.4%; further drop -7%)
+  2018-11-23 AAPL           #1:  +55.9% vs SPY  +21.1% (excess  +34.9%; further drop -18%)
+  2018-12-19 BAC            #10:  +50.7% vs SPY  +31.8% (excess  +19.0%; further drop -5%)
+  2020-03-09 JPM            #7:  +61.6% vs SPY  +40.8% (excess  +20.7%; further drop -20%)
+  2020-03-12 GOOGL          #3:  +74.7% vs SPY  +53.5% (excess  +21.3%; further drop -10%)
+  2020-03-12 META           #5:  +67.3% vs SPY  +53.5% (excess  +13.8%; further drop -11%)
+  2020-03-12 MSFT           #2:  +60.7% vs SPY  +53.5% (excess   +7.2%; further drop -8%)
+  2020-03-16 AAPL           #1:  +96.2% vs SPY  +62.7% (excess  +33.4%; further drop -9%)
+  2020-03-16 V              #8:  +42.5% vs SPY  +62.7% (excess  -20.3%; further drop -13%)
+  2020-03-18 BRK-B          #6:  +47.0% vs SPY  +67.7% (excess  -20.7%; further drop -5%)
+  2020-03-23 JNJ            #9:  +40.0% vs SPY  +68.9% (excess  -28.9%; further drop +0%)
+  2021-03-03 TSLA           #6:  +22.6% vs SPY  +11.5% (excess  +11.1%; further drop -14%)
+  2021-12-20 TSLA           #6:  -59.0% vs SPY  -15.6% (excess  -43.4%; further drop -59%)
+  2022-01-20 NVDA           #7:  -18.3% vs SPY   -8.6% (excess   -9.7%; further drop -52%)
+  2022-01-26 AMZN           #4:  -28.6% vs SPY   -7.1% (excess  -21.5%; further drop -42%)
+  2022-02-03 META           #6:  -20.9% vs SPY   -6.7% (excess  -14.2%; further drop -62%)
+  2022-04-14 JPM            #10:  +16.1% vs SPY   -3.6% (excess  +19.6%; further drop -17%)
+  2022-05-12 MSFT           #2:  +21.4% vs SPY   +5.9% (excess  +15.5%; further drop -16%)
+  2022-05-18 GOOGL          #3:  +12.2% vs SPY   +9.6% (excess   +2.6%; further drop -25%)
+  2022-06-13 AAPL           #1:  +40.5% vs SPY  +19.4% (excess  +21.0%; further drop -6%)
+  2022-06-16 BRK-B          #8:  +26.1% vs SPY  +21.6% (excess   +4.5%; further drop -2%)
+  2024-08-05 NVDA           #5:  +74.0% vs SPY  +23.3% (excess  +50.8%; further drop -9%)
+  2025-02-10 TSLA           #7:  +20.5% vs SPY  +14.4% (excess   +6.1%; further drop -36%)
+  2025-03-06 AVGO           #8:  +85.7% vs SPY  +20.2% (excess  +65.5%; further drop -22%)
+  2025-03-06 NVDA           #2:  +64.1% vs SPY  +20.2% (excess  +43.9%; further drop -15%)
+  2025-03-28 GOOGL          #4:  +94.8% vs SPY  +20.5% (excess  +74.3%; further drop -5%)
+  2025-04-03 AMZN           #5:  +27.2% vs SPY  +27.3% (excess   -0.0%; further drop +0%)
+  2025-04-03 META           #6:  +13.4% vs SPY  +27.3% (excess  -13.9%; further drop -4%)
+  2025-04-04 AAPL           #1:  +46.7% vs SPY  +39.8% (excess   +6.9%; further drop -3%)
+  2025-05-14 LLY            #10:  +37.3% vs SPY  +27.6% (excess   +9.7%; further drop -14%)
+  2025-11-19 META           #6:  +23.5% vs SPY  +16.9% (excess   +6.6%; further drop -13%) *open
+  2026-02-04 AVGO           #7:  +13.4% vs SPY  +15.2% (excess   -1.8%; further drop -6%) *open
+  2026-02-05 MSFT           #4:  +36.3% vs SPY  +15.1% (excess  +21.3%; further drop -11%) *open
+  2026-03-27 TSLA           #8:   +3.3% vs SPY  +22.2% (excess  -18.9%; further drop -18%) *open
+  2026-07-02 AVGO           #7:   -4.9% vs SPY   +4.2% (excess   -9.1%; further drop -9%) *open
+
+S3 GRID (5 thresholds x 3 references x 6 holds) with White's reality check vs SPY (2000 draws)
+  U1: best cell 30% below the 52w high, hold recover: +9.84%/yr; reality-check p 0.088
+  U2: best cell 50% below the 63d high, hold 2y: +8.98%/yr; reality-check p 0.195
+  U3: best cell 50% below the 63d high, hold 63d: +9.05%/yr; reality-check p 0.421
+  U1, 52-week high, excess %/yr by threshold (rows) and hold (columns):
+    hold   63d  126d  366d    2y    3y  recover
+    thr                                        
+    0.20  0.85  1.14  0.12  2.54  4.66     4.28
+    0.25  3.25  2.84  1.52  4.02  6.54     8.91
+    0.30  6.84  7.15  4.69  5.89  7.07     9.84
+    0.40  2.31  0.90  3.53  3.00  3.02     6.24
+    0.50  1.33  2.30  4.27  4.75  2.91     6.89
+  U2, 52-week high, excess %/yr by threshold (rows) and hold (columns):
+    hold   63d  126d  366d    2y    3y  recover
+    thr                                        
+    0.20  2.10 -0.70 -3.99  1.15  3.36     2.23
+    0.25 -1.48 -1.93 -3.92  1.91  3.90     1.60
+    0.30  4.32  0.40  0.22  2.44  4.72     1.64
+    0.40  3.29  1.97 -3.95 -0.95  0.71    -2.05
+    0.50  0.80 -1.23  0.82  5.77  4.70     2.36
+  U3, 52-week high, excess %/yr by threshold (rows) and hold (columns):
+    hold   63d  126d  366d    2y    3y  recover
+    thr                                        
+    0.20 -0.53  0.32  0.12  1.03  1.64     0.67
+    0.25  0.90  0.15 -0.45  0.84  1.30     0.30
+    0.30  1.28 -1.17 -1.65  0.35  0.81    -0.45
+    0.40  2.54 -3.62 -2.87  0.67  0.78     0.42
+    0.50  6.79  0.92 -0.25  1.65  1.21     1.07
+
+S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-week high (vs every 12-month window)
+  S&P 500 1928-2026: 13 events, mean +13.5%, median +10.4%, up 69% | all windows mean +12.1%, median +13.1%, up 75%
+  QQQ 1999-2026: 4 events, mean +7.3%, median +6.2%, up 75% | all windows mean +13.5%, median +16.8%, up 79%
+
+U6 note: members without volume in the parquet (CRSP-sourced dead companies), per year: 0-252; they cannot enter U6, a survivorship bias in this proxy
+
+runtime 362s

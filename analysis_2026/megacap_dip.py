@@ -530,8 +530,10 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
                 if len(pos) >= slots:
                     skipped += 1
                     continue
-                amt = frac * v_open
-                if amt > sum(u for u, _, _ in lots) * spy_o[t]:
+                # 10% of the portfolio, or what SPY is left if positions have grown past 90%: the trades taken
+                # then depend only on open slots, the same with and without tax
+                amt = min(frac * v_open, sum(u for u, _, _ in lots) * spy_o[t])
+                if amt <= 0:
                     skipped += 1
                     continue
                 sell_spy(amt, spy_o[t], t)
@@ -659,7 +661,9 @@ def main():
     slot_res = {}
     for u in U:
         v, after, skipped, taken = slot_portfolio(D, EV[u], ranks=ranks)
-        v0, _, _, _ = slot_portfolio(D, EV[u], ranks=ranks, tax=False)
+        v0, _, skipped0, taken0 = slot_portfolio(D, EV[u], ranks=ranks, tax=False)
+        if (skipped0, taken0) != (skipped, taken):
+            raise AssertionError(f"{u}: the taxed and untaxed 10-slot runs took different trades")
         spy_v = (1 + spy_r).cumprod()
         yrs = len(cal) / 252
         spy_after = spy_v.iloc[-1] - LT_RATE * (spy_v.iloc[-1] - 1)
