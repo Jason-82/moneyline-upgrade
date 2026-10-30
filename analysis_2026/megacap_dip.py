@@ -1010,7 +1010,8 @@ def main():
         f"min {vals.min():+.2f}, median {np.median(vals):+.2f}, max {vals.max():+.2f}%/yr; {np.mean(vals > 0):.0%} above "
         f"zero (pairs: " + "; ".join(f"{y - 1} {a}/{b}" for y, a, b, _, _ in pairs) + ")")
     say("  Hold length, 25% below the 52-week high (excess %/yr, p, halves; Holm across U1-U3 at each hold; 10-slot "
-        "after-tax CAGR vs SPY for U1/U2). Not pre-registered; the grid's reality check covers this search:")
+        "after-tax CAGR vs SPY for U1/U2). Not pre-registered; the grid's reality check (holds 63d-3y and recover) "
+        "already covers part of this search and adding these holds could only raise its p:")
     hold_rows = []
     for h in (366, 548, 731, 913, 1096, 1461, 1827):
         res = {}

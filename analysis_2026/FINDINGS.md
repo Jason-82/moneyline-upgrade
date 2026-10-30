@@ -1701,7 +1701,7 @@ look-ahead. The fair test uses the companies that were the largest at the time.
   weight across open positions, SPY when none is open.
 - **Universes:**
   - U1/U2: the top 10 / top 20 S&P 500 members by market cap at the prior year-end.
-  - U3: every S&P 500 member on the day.
+  - U3: every S&P 500 member on the day, both share classes counted where the index holds both.
   - Secondary: U4 (tech names in the top 20), U5 (today's Mag 7, hindsight), U6 (top 10 by dollar volume).
 - **Data:** the point-in-time S&P 500 set, 1996-01 to 2026-10, including dead companies (Lucent, WorldCom, Nortel,
   old AT&T and others).
@@ -1716,30 +1716,39 @@ look-ahead. The fair test uses the companies that were the largest at the time.
   - a price-consistency check between consecutive years
   - an omission check (caps carried at most 2 years by price)
   - a resolution for every remaining flag (`topcap_flags.csv`)
-- **Two errors corrected after the audit** (`megacap_lists.CORRECTIONS`, from filed year-end share counts):
+- **Corrections after the audit** (`megacap_lists.CORRECTIONS`, from filed year-end share counts):
   - AIG, not Pfizer, was #10 at end-2006.
   - Royal Dutch was #19 at end-2001.
-- **Recall-based values:** 168 of 620 entries are recalled or corrected estimates. The audit found them consistent
-  with nominal year-end prices.
+  - Six missing values were filled (Royal Dutch, old AT&T, Altria), which moves Royal Dutch ahead of Intel inside
+    the 1997 top 10.
+- **Recall-based values:** 174 of 620 entries are recalled, corrected or filled estimates (168 before the audit's six
+  fills). The audit found them consistent with nominal year-end prices.
 - **Dropped:** Mobil, GTE and Citicorp (its file carries Travelers' prices) have no usable series.
 
 **Audit.**
 - **Method:** six lenses (look-ahead and survivorship, lists, engine rebuild, statistics, tax engine, robustness:
-  more than 2,400 variants).
+  more than 2,400 variants). Then a three-agent verification of the fixes, the claims and the robustness numbers.
 - **Confirmed sound:**
-  - The independent rebuild reproduced every U1/U2 event, book, grid cell and era to about 1e-14.
-  - No look-ahead: a truncation test re-detected all 274 U1/U2 events.
+  - On the first-run engine, the independent rebuild reproduced every U1/U2 event, book, grid cell and era to about
+    1e-14.
+  - No look-ahead: a truncation test re-detected all U1/U2 events, repeated on the corrected engine.
+  - The verification's own aggregation reproduces the corrected run's books, hold curve, coin tosses, 10-slot values
+    and held universes.
 - **Fixed:**
-  - The two list errors above.
+  - The list errors above.
   - **Arming.** It now runs from the first loaded bar. The first run started each stock armed at its 252nd bar, so a
     decline that crossed during the warm-up could trigger later, e.g. INTC 1996-01-09 in U2.
-  - **Duplicate files.** Seven predecessor price files that carry their successor's prices are now detected and
-    dropped (C-199811, BAC-199809, WFC-199811 and others).
+  - **Duplicate files.** Predecessor price files that carry their successor's prices are dropped:
+    - C-199811, BAC-199809, WFC-199811 and ITT-199802 (memberships overlap the successor's)
+    - AN-199812 (Amoco's spell, AutoNation's prices)
+
+    FTI-201701 and GRA-199803 are kept: their successors' files continue their own history.
   - **10-slot tax engine:**
-    - Taxed and untaxed runs took different trades.
-    - A year-end tax bill was forgiven when no SPY was left.
+    - Taxed and untaxed runs took different trades. Cash for an entry or a tax bill now comes from SPY, then from
+      the open positions pro rata, and identical trades are asserted.
     - Exits on a leap-year anniversary counted as long-term.
-    - Carried losses lost their character.
+    - Carried losses did not keep their character. They now take the character of the larger loss, as on the IRS
+      worksheet.
     - The SPY benchmark started a day earlier.
   - **U6:** empty in 1996, and Alphabet was counted twice.
   - **Reality check:** 2,000 draws instead of the pre-registered 10,000.
@@ -1749,21 +1758,21 @@ look-ahead. The fair test uses the companies that were the largest at the time.
   - The placebo keeps windows cut short by a delisting, like the events.
 - **Limitations:**
   - **U3 coverage before 2002.** U3 lacks prices for most members that died by 2001: 342 of 499 members are covered
-    in 1996, 434 of 501 in 2000, and all from 2002. So U3 for 1996-2001 is close to a survivors-to-2001 sample.
-    T3 on 2002-2026 alone: −0.33%/yr, p 0.58.
+    in 1996, 434 of 501 in 2000, and about 99-100% from 2002. So U3 for 1996-2001 is close to a survivors-to-2001
+    sample. T3 on 2002-2026 alone: −0.33%/yr, p 0.58.
   - **Close-only entries.** Close-only (CRSP) bars set open = previous close. This affects 5 U1 entries; effect
     about 0.02%/yr.
 
-**Verdicts: all three primary tests fail** (corrected run; first run in brackets).
+**Verdicts: all three primary tests fail** (final run; first run in brackets).
 
-| | dip book − SPY, arithmetic %/yr | compounded (CAGR − SPY) | p (Holm) | halves 1996-2010 / 2011-26 | MDE80 | 10-slot after tax vs SPY 9.70% |
-|---|---|---|---|---|---|---|
-| T1 top 10 | +0.98 (+1.52) | −1.38 | 0.37 (1.0) | −4.45 / +6.14 | 7.6 | 8.24% |
-| T2 top 20 | −4.07 (−3.92) | −6.43 | 0.89 (1.0) | −7.14 / −1.14 | 8.3 | 6.34% |
-| T3 all members | −0.21 (−0.45) | −0.98 | 0.54 (1.0) | +2.85 / −3.12 | 4.1 | 4.65% |
+| | dip book − SPY, arithmetic %/yr | compounded (CAGR − SPY) | p | Holm p | halves 1996-2010 / 2011-26 | MDE80 | 10-slot after tax vs SPY 9.70% |
+|---|---|---|---|---|---|---|---|
+| T1 top 10 | +0.98 (+1.52) | −1.38 | 0.37 (0.29) | 1.0 (0.88) | −4.45 / +6.14 | 7.6 | 8.06% |
+| T2 top 20 | −4.07 (−3.92) | −6.43 | 0.89 (0.88) | 1.0 (1.0) | −7.14 / −1.14 | 8.3 | 6.57% |
+| T3 all members | −0.20 (−0.45) | −0.98 | 0.54 (0.61) | 1.0 (1.0) | +2.86 / −3.13 | 4.2 | 4.56% |
 
 - **The top-10 "+1%" is not a gain.**
-  - Compounded, the U1 book ends behind SPY: CAGR 1.4 points a year lower, because its volatility is 28% vs 19%.
+  - Compounded, the U1 book ends behind SPY: CAGR 1.4 points a year lower, because its volatility is 28.5% vs 19.2%.
   - Its sign is not determined. Across the 512 resolutions of the 9 event-changing #10/#11 near-ties (caps within
     2.5%), T1 runs from −2.86 to +2.78, median −0.04; 49% are above zero.
   - Single trades decide it: MSFT 1996-01-09 is +81 points of excess; AIG 2007-11-21 is −57 points.
@@ -1775,19 +1784,19 @@ look-ahead. The fair test uses the companies that were the largest at the time.
   |---|---|---|
   | U1 | −2.5% | −9.5% to +4.4% |
   | U2 | −1.7% | |
-  | U3 | −1.8% | −4.2% to +0.7% |
+  | U3 | −1.8% | −4.2% to +0.6% |
   | U5 | −1.7% | −20.6% to +18.9% |
 
   The intervals are too wide to call it zero. They can only rule out a large timing gain.
 - **Owning the top 10 is about the same as owning SPY.** The top-10 universe held all the time beat SPY by
   +0.30%/yr; the top 20 by +0.01%/yr.
 - **Today's Magnificent 7 (hindsight, S2):**
-  - Dip book +25.3%/yr over SPY (alpha +20.7%/yr, t 3.3); 10-slot portfolio 13.05% after tax vs 9.70%.
+  - Dip book +25.3%/yr over SPY (alpha +20.7%/yr, t 3.3); 10-slot portfolio 13.03% after tax vs 9.70%.
   - Holding the seven all the time gives +20.9%/yr; random-day entries do as well as the dips.
   - So the number is survivorship (knowing in 2026 which companies won), not a property of buying the drop. This is
     the pre-registered reading.
-  - Since the name was coined (April 2023) there are 7 complete events (NVDA twice, TSLA, GOOGL, AMZN, META, AAPL).
-    Five beat SPY over 12 months (AMZN trailed by 0.1 points, META by 14). That is too few to test.
+  - Since the name was coined (April 2023) there are 7 complete events. Five beat SPY over 12 months (AMZN trailed by
+    0.1 points, META by 14). That is too few to test.
 - **What the rule actually bought.** At the time, it bought:
   - Lucent and AOL (Jan 2000: −72%, −43%)
   - Cisco (Apr 2000: −69%)
@@ -1798,38 +1807,45 @@ look-ahead. The fair test uses the companies that were the largest at the time.
   (GOOGL +95%, AVGO +86%, NVDA +64%). The median top-10 buy fell another 11.5% after entry; across all S&P 500
   members, the median was 18%.
 - **Index dips (S6):**
-  - The S&P 500 after a 25% drawdown, 1928-2026 (13 events): 12-month return mean +13.5%, median +10.4%, up 69%.
-    Every 12-month window: mean +12.1%, median +13.1%, up 75%.
-  - QQQ (4 events): mean +7.3% vs +13.5% for all windows.
-  - No edge.
+  - The S&P 500 after a 25% drawdown, 1928-2026 (13 events): 12-month median +10.4% vs +13.1% for every 12-month
+    window; up 69% vs 75%; mean +13.5% vs +12.1%.
+  - QQQ (4 events): mean +7.3% vs +13.5%.
+  - Not reliably better.
 
 **Hold length: the one thing that looks different (not pre-registered).**
-- **The grid's best cells need longer holds.** Over the 90 U1 cells, the best is 30% below the 52-week high, held until
-  the old high is regained: +9.84%/yr, reality-check p 0.095 (U2 0.20, U3 0.38). Fails at 5%.
+- **Longer holds do better on average in U1 and U2.** The best U1 cell is 30% below the 52-week high, held until the
+  old high is regained: +9.84%/yr. Its reality-check p over 90 cells is 0.095 (U2 0.20, U3 0.38), which fails at
+  5%. U3's best cells are short holds.
 - **The same 25% trigger held longer** (`hold_curve.csv`):
 
   | hold | U1 %/yr | p | Holm across U1-U3 | halves | 10-slot after tax | U2 %/yr | p |
   |---|---|---|---|---|---|---|---|
-  | 366d | +0.98 | 0.37 | 1.00 | −4.4 / +6.1 | 8.24% | −4.07 | 0.89 |
-  | 2 years | +3.71 | 0.13 | 0.40 | −3.3 / +10.4 | 9.05% | +1.86 | 0.29 |
-  | 2.5 years | +5.90 | 0.011 | 0.035 | +1.5 / +10.1 | 10.69% | +3.63 | 0.069 |
-  | 3 years | +6.15 | 0.006 | 0.017 | +3.0 / +9.2 | 11.90% | +3.84 | 0.027 |
-  | 4 years | +5.02 | 0.018 | 0.054 | +3.2 / +6.7 | 10.57% | +3.72 | 0.021 |
-  | 5 years | +5.09 | 0.012 | 0.037 | +3.6 / +6.5 | 10.97% | +3.01 | 0.041 |
+  | 366d | +0.98 | 0.37 | 1.00 | −4.4 / +6.1 | 8.06% | −4.07 | 0.89 |
+  | 2 years | +3.71 | 0.13 | 0.40 | −3.3 / +10.4 | 8.99% | +1.86 | 0.29 |
+  | 2.5 years | +5.90 | 0.011 | 0.035 | +1.5 / +10.1 | 10.59% | +3.63 | 0.069 |
+  | 3 years | +6.15 | 0.006 | 0.017 | +3.0 / +9.2 | 11.80% | +3.84 | 0.027 |
+  | 4 years | +5.02 | 0.018 | 0.054 | +3.2 / +6.7 | 10.56% | +3.72 | 0.021 |
+  | 5 years | +5.09 | 0.012 | 0.037 | +3.6 / +6.5 | 11.19% | +3.01 | 0.041 |
 
-  U3 never passes at any hold (+0.2 to +2.1, p ≥ 0.11).
+  U3 never passes (−0.2 to +2.1, p ≥ 0.11).
 - **Why this is a lead, not a result:**
-  - It was found after looking at the 1-year result, and the reality check that covers this search fails.
-  - At 3 years it passes in only about 56% of the list coin-toss combinations (first-run audit).
-  - The 1996 MSFT trade (+514 points over SPY in 3 years) carries the first half; without it, that half turns
-    negative.
-  - Its timing difference against random entries is not significant (+6.1%, CI −9% to +27%, first-run audit).
+  - It was found after looking at the 1-year result.
+  - The grid's reality check covers the 2- and 3-year holds and recover-exits and fails (p 0.095). Adding 2.5, 4 and
+    5 years could only raise its p.
+  - **Robust to the list coin tosses.** At 3 years, U1 is positive in all 512 resolutions (+3.5 to +6.9%/yr).
+    Nominal p < 0.05 in 97%; a Holm-level pass with U2/U3's 3-year p in 63%; with both halves positive as well in
+    62%. (The first-run audit's 56% used the uncorrected lists.)
+  - **One trade carries the first half.** The 1996 MSFT trade gives +514 points over SPY in 3 years. Without it, the
+    full-sample 3-year excess is still about +4%/yr (p about 0.03), but the 1996-2010 half turns negative (−1.4).
+  - **Timing vs random entries at 3 years:** +6.0% (CI −9% to +27%), not significant (rechecked on the corrected
+    engine).
   - A real test needs a new pre-registration and data the search has not seen. The candidates are mega-caps before
     1995 or outside the US, which we do not have, or a forward test from now.
 
 **Use.**
 - **The rule as stated, buy a fallen mega-cap and hold a year:** no evidence it beats holding SPY. It concentrates
-  the portfolio: maximum drawdown −66% to −76% vs SPY's −55%. Before tax it trails SPY, and after tax it trails
-  further (top 10: 8.2% vs 9.7%).
+  the portfolio: maximum drawdown −68% to −75% vs SPY's −55%. Before tax it trails SPY, and after tax it trails
+  further (top 10: 8.1% vs 9.7%).
 - **The Mag 7 version:** it looks spectacular only because the list was picked in 2023.
-- **A 3-year hold:** worth a pre-registered forward check if wanted. It is not a basis for trading now.
+- **A 3-year hold of top-10 names after a 25% drop:** the one candidate worth a pre-registered forward check. It is
+  not a basis for trading now.

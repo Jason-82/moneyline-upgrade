@@ -643,7 +643,8 @@ Pre-registered (`analysis_2026/SPLIT_DELAY_PREREG.md`) and audited; FINDINGS 202
 
 ### 5.21 Buying mega-caps after a 25% drop — `analysis_2026/megacap_dip.py`
 
-Pre-registered (`analysis_2026/MEGACAP_DIP_PREREG.md`) and audited by six lenses; FINDINGS 2026-10-30 has the tables.
+Pre-registered (`analysis_2026/MEGACAP_DIP_PREREG.md`), audited by six lenses and verified by three more agents;
+FINDINGS 2026-10-30 has the tables.
 
 - **Rule tested.** Buy the next open after a stock closes 25% below its 52-week high; hold 366 days; compare with SPY.
   - Universes: the top 10 / top 20 S&P 500 members by market cap at the prior year-end (point-in-time lists for
@@ -654,20 +655,21 @@ Pre-registered (`analysis_2026/MEGACAP_DIP_PREREG.md`) and audited by six lenses
   |---|---|---|---|
   | top 10 | +0.98%/yr | −1.38 | 0.37 |
   | top 20 | −4.07%/yr | | 0.89 |
-  | all members | −0.21%/yr | | 0.54 |
+  | all members | −0.20%/yr | | 0.54 |
 
   - The top-10 sign flips with knife-edge list calls: −2.9 to +2.8 across 512 resolutions.
   - Buying the same stocks on random days did as well as the dips.
-  - 10-slot portfolio after tax: 8.2% / 6.3% / 4.7% vs SPY's 9.7%. Maximum drawdown −66% to −76% vs −55%.
+  - 10-slot portfolio after tax: 8.1% / 6.6% / 4.6% vs SPY's 9.7%. Maximum drawdown −68% to −75% vs −55%.
 - **Today's Mag 7 (hindsight): +25%/yr.** Holding them all the time gives +21%/yr and random entries do as well, so it
   is survivorship. The rule bought Lucent, AOL, Cisco and Intel in 2000, and Citigroup, AIG, BofA and GE in 2007-08.
-- **Index dips:** after a 25% drawdown the S&P 500's next 12 months are no better than any 12 months (+13.5% vs
-  +12.1%).
-- **Lead, not result.** Holding 2.5-5 years: top 10 +5 to +6%/yr, nominal p about 0.01. This is not pre-registered,
-  the grid reality check gives p 0.095, it rests on the 1996 MSFT trade, and list coin tosses move it. It needs a new
-  pre-registration and unseen data (mega-caps before 1995 or outside the US, or a forward test).
-- **Data caveat:** U3 lacks most companies that died by 2001 (coverage 342/499 in 1996; complete from 2002). T3 on
-  2002-2026: −0.33%/yr.
+- **Index dips:** after a 25% drawdown the S&P 500's next 12 months are not reliably better (13 events): median
+  +10.4% vs +13.1% for all windows, mean +13.5% vs +12.1%.
+- **Lead, not result.** Holding 2.5-5 years: top 10 +5 to +6%/yr, nominal p about 0.01.
+  - At 3 years it is positive in all 512 list resolutions; a Holm-level pass in 63%.
+  - It is not pre-registered, the grid reality check gives p 0.095, and its first half rests on the 1996 MSFT trade.
+  - It needs a new pre-registration and unseen data (mega-caps before 1995 or outside the US, or a forward test).
+- **Data caveat:** U3 lacks most companies that died by 2001 (coverage 342/499 in 1996; about 99-100% from 2002).
+  T3 on 2002-2026: −0.33%/yr.
 
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
