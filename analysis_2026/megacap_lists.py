@@ -12,8 +12,8 @@ Checks (pre-registered):
 - every entry maps to a price series in data/universe_pit_all/ and the company was an S&P 500 member at the date;
 - price consistency: for a company in consecutive lists, log(cap ratio) within 0.25 of log(price ratio) (total-return
   closes, so dividends add a little drift);
-- omissions: a company's cap carried from the nearest year with a reported cap by price ratios; a member that would
-  rank inside the top 20 (or top 10) but is missing is flagged.
+- omissions: a company's cap carried from the nearest year with a reported cap (at most MAX_CARRY years away) by price
+  ratios; a member that would rank inside the top 20 (or top 10) but is missing is flagged.
 """
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PIT = ROOT / "data" / "universe_pit_all"
 OUT = ROOT / "analysis_2026" / "results_megacap_dip"
 TOL = 0.25
+MAX_CARRY = 2                   # years: share counts and dividends drift too far beyond that
 
 
 def year_end_close(sym, y, cache={}):
@@ -108,7 +109,7 @@ def check(raw):
         for s in syms:
             if s in set(g.symbol):
                 continue
-            known = sorted((abs(yy - y), yy) for (ss, yy) in cap if ss == s)
+            known = sorted((abs(yy - y), yy) for (ss, yy) in cap if ss == s and abs(yy - y) <= MAX_CARRY)
             if not known:
                 continue
             yy = known[0][1]

@@ -1,0 +1,68 @@
+kind,year,detail,symbol
+no-cap,1995,"AT&T Corp (old AT&T, pre-Lucent/NCR spin)",T-200511
+no-cap,1995,Philip Morris Companies,MO
+no-cap,1995,Royal Dutch Petroleum,RDS-A
+no-cap,1995,American International Group,AIG
+no-symbol,1995,Mobil,
+no-cap,1995,Mobil,
+no-cap,1995,BellSouth,BLS-200612
+no-cap,1995,Hewlett-Packard,HPQ
+no-symbol,1995,GTE,
+no-cap,1995,GTE,
+no-cap,1996,Royal Dutch Petroleum,RDS-A
+no-cap,1996,"AT&T Corp (old AT&T, post-Lucent spin)",T-200511
+no-cap,1996,DuPont (E.I. du Pont de Nemours),DD-201708
+no-cap,1996,Hewlett-Packard,HPQ
+no-cap,1996,American International Group,AIG
+no-cap,1996,Citicorp,C-199811
+no-symbol,1996,Mobil,
+no-cap,1996,Mobil,
+no-cap,1997,Royal Dutch Petroleum,RDS-A
+no-cap,1997,AT&T Corp (old AT&T),T-200511
+no-cap,1997,American International Group,AIG
+no-cap,1997,DuPont (E.I. du Pont de Nemours),DD-201708
+no-cap,1998,AT&T Corp (old AT&T),T-200511
+no-cap,1998,MCI WorldCom,WCOEQ-200404
+no-cap,2000,EMC Corp,EMC-201609
+no-cap,2000,Royal Dutch Petroleum,RDS-A
+rank-order,2000,caps not descending by rank,
+price-gap,2004,BAC: cap ratio 1.64 vs price ratio 1.22 (log gap +0.30),BAC
+price-gap,2007,MO: cap ratio 0.88 vs price ratio 1.20 (log gap -0.31),MO
+price-gap,2005,PG: cap ratio 1.39 vs price ratio 1.07 (log gap +0.26),PG
+price-gap,1999,T: cap ratio 1.58 vs price ratio 0.93 (log gap +0.54),T
+price-gap,1999,XOM: cap ratio 1.57 vs price ratio 1.13 (log gap +0.33),XOM
+omission-top20,1995,T: carried from 1997 = 49bn vs #20 43bn / #10 52bn,T
+omission-top20,1995,VZ: carried from 1997 = 48bn vs #20 43bn / #10 52bn,VZ
+omission-top10,1996,BAC: carried from 1998 = 80bn vs #20 52bn / #10 73bn,BAC
+omission-top20,1996,C: carried from 1998 = 71bn vs #20 52bn / #10 73bn,C
+omission-top10,1997,BAC: carried from 1998 = 102bn vs #20 67bn / #10 100bn,BAC
+omission-top10,1997,C: carried from 1998 = 128bn vs #20 67bn / #10 100bn,C
+omission-top20,1998,AIG: carried from 1999 = 119bn vs #20 104bn / #10 146bn,AIG
+omission-top20,1999,VZ: carried from 2000 = 161bn vs #20 143bn / #10 170bn,VZ
+omission-top20,2000,JCI: carried from 2001 = 113bn vs #20 106bn / #10 202bn,JCI
+omission-top20,2000,MO: carried from 1998 = 121bn vs #20 106bn / #10 202bn,MO
+omission-top20,2002,JPM: carried from 2004 = 79bn vs #20 73bn / #10 125bn,JPM
+omission-top20,2003,JPM: carried from 2004 = 126bn vs #20 87bn / #10 159bn,JPM
+omission-top20,2003,T: carried from 2002 = 91bn vs #20 87bn / #10 159bn,T
+omission-top20,2005,T: carried from 2006 = 146bn vs #20 96bn / #10 172bn,T
+omission-top20,2006,KO: carried from 2005 = 118bn vs #20 117bn / #10 187bn,KO
+omission-top20,2006,VZ: carried from 2004 = 118bn vs #20 117bn / #10 187bn,VZ
+omission-top20,2007,COP: carried from 2006 = 149bn vs #20 142bn / #10 183bn,COP
+omission-top20,2007,MRK: carried from 2009 = 164bn vs #20 142bn / #10 183bn,MRK
+omission-top20,2008,COP: carried from 2006 = 89bn vs #20 85bn / #10 119bn,COP
+omission-top20,2008,INTC: carried from 2007 = 87bn vs #20 85bn / #10 119bn,INTC
+omission-top20,2008,MO: carried from 2007 = 110bn vs #20 85bn / #10 119bn,MO
+omission-top20,2008,MRK: carried from 2009 = 90bn vs #20 85bn / #10 119bn,MRK
+omission-top20,2009,MO: carried from 2007 = 155bn vs #20 114bn / #10 164bn,MO
+omission-top20,2010,CSCO: carried from 2009 = 116bn vs #20 116bn / #10 180bn,CSCO
+omission-top20,2010,MRK: carried from 2009 = 117bn vs #20 116bn / #10 180bn,MRK
+omission-top20,2010,VZ: carried from 2008 = 128bn vs #20 116bn / #10 180bn,VZ
+omission-top20,2012,VZ: carried from 2014 = 165bn vs #20 124bn / #10 195bn,VZ
+omission-top20,2013,VZ: carried from 2014 = 195bn vs #20 158bn / #10 239bn,VZ
+omission-top20,2014,IBM: carried from 2013 = 173bn vs #20 172bn / #10 246bn,IBM
+omission-top20,2014,MRK: carried from 2012 = 184bn vs #20 172bn / #10 246bn,MRK
+omission-top20,2015,CVX: carried from 2014 = 177bn vs #20 174bn / #10 277bn,CVX
+omission-top20,2018,KO: carried from 2016 = 218bn vs #20 207bn / #10 289bn,KO
+omission-top20,2019,CVX: carried from 2018 = 239bn vs #20 238bn / #10 337bn,CVX
+omission-top20,2019,WFC: carried from 2018 = 256bn vs #20 238bn / #10 337bn,WFC
+omission-top20,2023,CVX: carried from 2022 = 300bn vs #20 293bn / #10 523bn,CVX

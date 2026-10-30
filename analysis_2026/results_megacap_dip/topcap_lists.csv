@@ -1,0 +1,621 @@
+year_end,rank,company,symbol,mcap_bn,tech,sources,confidence,note,estimated
+1995,1,General Electric,GE,120.26,False,fool-2006;mainstay-12/95;finhacker,high,"FinHacker's 73.57 is too low. Its GE figures run about 0.60x the companiesmarketcap values in 1996-98, apparently because past prices are adjusted for later spin-offs. MainStay holdings scaled to Exxon imply about 123.",False
+1995,2,"AT&T Corp (old AT&T, pre-Lucent/NCR spin)",T-200511,-1.0,False,mainstay-12/95;jpm-guide,medium,"No year-end value found. FinHacker omits it entirely because its 'AT&T' is the SBC lineage. MainStay S&P fund holding is 2nd-largest, about 1.03x Exxon's, which implies about 104B (derived, not reported). Classed as a telecom carrier, so tech=false.",False
+1995,3,Exxon,XOM,100.74,False,finhacker;fool-2006;fool-2025;mainstay-12/95,high,Fool-2006 gives 99.955.,False
+1995,4,Coca-Cola,KO,93.2,False,finhacker;fool-2006;mainstay-12/95,high,,False
+1995,5,Merck,MRK,79.45,False,tickerleague;mainstay-12/95;finhacker,high,"FinHacker's 72.73 is about 0.90x true. Its Merck runs 0.90x companiesmarketcap in 1997-98, apparently because of the Organon spin adjustment.",False
+1995,6,Philip Morris Companies,MO,-1.0,False,mainstay-12/95;jpm-guide,medium,Absent from FinHacker's table: Altria's history is depressed by the Kraft and PMI spin adjustments. MainStay holding (6th) implies about 77B (derived).,False
+1995,7,Royal Dutch Petroleum,RDS-A,-1.0,False,mainstay-12/95;jpm-guide,medium,An S&P 500 member until July 2002 (spell 1996-01-02 to 2002-07-22) but Dutch-domiciled. Drop it if foreign companies are excluded. MainStay holding (7th) implies about 76B (derived). FinHacker omits it.,False
+1995,8,Procter & Gamble,PG,56.51,False,finhacker;mainstay-12/95,high,,False
+1995,9,Johnson & Johnson,JNJ,55.38,False,finhacker;mainstay-12/95,high,,False
+1995,10,Microsoft,MSFT,51.98,True,finhacker;mainstay-12/95,high,,False
+1995,11,Wal-Mart Stores,WMT,51.06,False,finhacker;mainstay-12/95,high,,False
+1995,12,IBM,IBM,49.7,True,tickerleague;finhacker;mainstay-12/95,high,FinHacker gives 48.72.,False
+1995,13,Intel,INTC,47.05,True,finhacker;mainstay-12/95,high,,False
+1995,14,American International Group,AIG,-1.0,False,mainstay-12/95;finhacker,medium,"FinHacker's 36.35 is depressed: its 1998 AIG (84.13) is 0.83x AIG's own reported 101.4, which implies about 44 here (derived). Ranks 14-21 all fall in roughly 40-44B.",False
+1995,15,Mobil,,-1.0,False,mainstay-12/95,medium,"Member as MOB-199911, but no price file exists in data/universe_pit_all, so it is unbuyable in the backtest. FinHacker omits it.",False
+1995,16,PepsiCo,PEP,43.95,False,finhacker;mainstay-12/95,medium,,False
+1995,17,BellSouth,BLS-200612,-1.0,False,mainstay-12/95,low,Listed among MainStay's top holdings right after PepsiCo. No value found. Telecom carrier.,False
+1995,18,Bristol-Myers Squibb,BMY,43.4,False,bmy-10k;finhacker,medium,"43.4 is derived from BMY's FY1996 10-K ($54.5B at 12/31/96, a 25.7% increase). FinHacker gives 41.24.",False
+1995,19,Hewlett-Packard,HPQ,-1.0,True,,low,"Placed on judgment, with no sourced 1995 value. It is CSM's #17 at end-1996. FinHacker omits HP in every year, apparently because the Agilent/HPE spin adjustments depress its history.",False
+1995,20,GTE,,-1.0,False,,low,"Placed on judgment, with no sourced value. It is CSM's #23 at end-1996. Member as GTE-200006, but no price file. If GTE and HP are wrong, the next names are Pfizer (FinHacker 37.98, about 40 after the spin correction), GM (MTLQQ-201103) and DuPont.",False
+1996,1,General Electric,GE,162.76,False,cmc;ge-10k;csm-1997;jhancock-12/96;finhacker,high,"GE's own 10-K gives 162.604. FinHacker's 97.40 is depressed by the spin adjustment, which is why FinHacker wrongly ranks Coca-Cola first.",False
+1996,2,Coca-Cola,KO,130.56,False,finhacker;cmc;csm-1997;jhancock-12/96,high,,False
+1996,3,Exxon,XOM,121.71,False,cmc;finhacker;csm-1997;jhancock-12/96,high,,False
+1996,4,Intel,INTC,107.55,True,finhacker;csm-1997;jhancock-12/96,high,,False
+1996,5,Microsoft,MSFT,99.41,True,finhacker;csm-1997;jhancock-12/96,high,,False
+1996,6,Merck,MRK,96.07,False,cmc;tickerleague;csm-1997;jhancock-12/96;finhacker,high,Tickerleague gives 94.44. FinHacker's 86.42 is depressed.,False
+1996,7,Philip Morris Companies,MO,91.64,False,cmc;csm-1997;jhancock-12/96,high,CSM puts it #7 and JHancock #8 (Royal Dutch and Philip Morris swap places). It is absent from FinHacker.,False
+1996,8,Royal Dutch Petroleum,RDS-A,-1.0,False,csm-1997;jhancock-12/96,medium,No year-end value found. Its rank falls between Philip Morris (91.64) and IBM (76.95). It was an S&P 500 member but is foreign-domiciled. Absent from FinHacker.,False
+1996,9,IBM,IBM,76.95,True,cmc;tickerleague;finhacker;csm-1997;jhancock-12/96,high,,False
+1996,10,Procter & Gamble,PG,73.13,False,cmc;finhacker;csm-1997;jhancock-12/96,high,,False
+1996,11,"AT&T Corp (old AT&T, post-Lucent spin)",T-200511,-1.0,False,csm-1997,medium,"CSM ranks it #11, between P&G (73.13) and J&J (66.29). Its 10-K gives a non-affiliate value of 64.8 as of Feb 1997, not year-end. Absent from FinHacker.",False
+1996,12,Johnson & Johnson,JNJ,66.29,False,finhacker;csm-1997,high,,False
+1996,13,Bristol-Myers Squibb,BMY,54.5,False,bmy-10k;finhacker;csm-1997,high,FinHacker gives 51.90.,False
+1996,14,Pfizer,PFE,53.53,False,cmc;finhacker;csm-1997,high,FinHacker gives 50.73.,False
+1996,15,DuPont (E.I. du Pont de Nemours),DD-201708,-1.0,False,csm-1997,medium,No value found. CSM places it between Pfizer (53.53) and Wal-Mart (52.18).,False
+1996,16,Wal-Mart Stores,WMT,52.18,False,cmc;finhacker;csm-1997,high,,False
+1996,17,Hewlett-Packard,HPQ,-1.0,True,csm-1997,medium,"No value found. Absent from FinHacker, apparently because spin adjustments depress HP's history.",False
+1996,18,American International Group,AIG,-1.0,False,csm-1997;finhacker,medium,FinHacker's 42.15 is depressed (about 0.83x). CSM places AIG above Disney (47.08).,False
+1996,19,Citicorp,C-199811,-1.0,False,csm-1997,medium,"No value found. Old Citicorp spell C-199811, 1996-01-02 to 1998-11-13. This is not Travelers (C).",False
+1996,20,Mobil,,-1.0,False,csm-1997,low,"CSM #20, just ahead of Disney (#21, 47.08). Member as MOB-199911, but no price file. If dropped, Disney (DIS) is next.",False
+1997,1,General Electric,GE,239.77,False,cmc;cnn-1998-01-30;finhacker,high,FinHacker's 143.39 (0.60x) is why it wrongly ranks Coca-Cola first.,False
+1997,2,Coca-Cola,KO,164.76,False,cmc;finhacker;cnn-1998-01-30,high,,False
+1997,3,Microsoft,MSFT,157.36,True,finhacker;cnn-1998-01-30,high,Tickerleague's 164.66 looks fiscal-year (June) based.,False
+1997,4,Exxon,XOM,150.33,False,cmc;finhacker;cnn-1998-01-30,high,,False
+1997,5,Merck,MRK,126.52,False,cmc;finhacker;cnn-1998-01-30,high,FinHacker gives 113.80 (depressed).,False
+1997,6,Intel,INTC,114.37,True,finhacker;cnn-1998-01-30,high,"Ranks 6-8 (Intel, Royal Dutch, Philip Morris) are within about 5% of each other.",False
+1997,7,Royal Dutch Petroleum,RDS-A,-1.0,False,cnn-1998-01-30,medium,No year-end value found. CNN gives Royal Dutch alone 112.43 at 30 Jan 1998. It was an S&P 500 member but is foreign-domiciled. Absent from FinHacker.,False
+1997,8,Philip Morris Companies,MO,109.71,False,cmc,high,Absent from FinHacker (spin-adjusted Altria history).,False
+1997,9,Procter & Gamble,PG,107.09,False,cmc;finhacker,high,FinHacker gives 106.23.,False
+1997,10,IBM,IBM,100.24,True,cmc;tickerleague;finhacker,high,,False
+1997,11,AT&T Corp (old AT&T),T-200511,-1.0,False,att-10k,medium,"No year-end value found. Non-affiliate value of 98.8 as of Feb 1998, so close to IBM and Pfizer. It is top 20 either way. Absent from FinHacker.",False
+1997,12,Pfizer,PFE,96.48,False,cmc;finhacker,high,,False
+1997,13,Bristol-Myers Squibb,BMY,94.0,False,bmy-10k;finhacker,high,,False
+1997,14,Johnson & Johnson,JNJ,88.6,False,finhacker,high,"FinHacker shows an identical 88.60 for Walmart, a possible data quirk.",False
+1997,15,Wal-Mart Stores,WMT,88.57,False,cmc;finhacker,high,,False
+1997,16,Eli Lilly,LLY,77.35,False,finhacker,high,,False
+1997,17,American International Group,AIG,-1.0,False,,low,"No 1997 value was found before the search budget ran out. Placed on judgment, consistent with AIG's 101.4 at end-1998 and its 1998 share-price gain. FinHacker ranks 15-19 were not retrieved.",False
+1997,18,Bell Atlantic,VZ,70.66,False,cmc;finhacker,high,Post-NYNEX merger. FinHacker labels it Verizon. Telecom carrier.,False
+1997,19,DuPont (E.I. du Pont de Nemours),DD-201708,-1.0,False,,low,"No 1997 value found; placed on judgment. Ranks 19-22 (DuPont, SBC 67.29, Disney, HP) are within about 5%.",False
+1997,20,SBC Communications,T,67.29,False,cmc,low,"The dataset's 'T' is the SBC lineage (old AT&T is T-200511). FinHacker's 'AT&T' series for SBC is depressed by about 0.75x (WarnerMedia spin), so SBC is absent from its 1997 top 20. Disney (DIS) and HP (HPQ) are the first names out.",False
+1998,1,Microsoft,MSFT,348.11,True,finhacker;fool-1999,high,"Passed GE as most valuable in mid-Sept 1998 (CNN, 14 Sept 1998: MSFT 261.1 vs GE 257.3).",False
+1998,2,General Electric,GE,334.0,False,cmc;fool-1999;finhacker,high,"FinHacker gives 199.82 (0.60x). The Fool's 261 for Jan 1, 1999 conflicts. GE was 245.7 to 257.3 in Sept 1998, so 261 looks stale. CMC's 334 matches about 3.27B shares x about $102.",False
+1998,3,Intel,INTC,196.52,True,finhacker;fool-1999,high,,False
+1998,4,Wal-Mart Stores,WMT,181.07,False,cmc;finhacker;fool-1999,high,,False
+1998,5,Exxon,XOM,177.54,False,cmc;finhacker;fool-1999,high,Pre-Mobil merger (closed Nov 1999).,False
+1998,6,Merck,MRK,174.08,False,cmc;finhacker,high,FinHacker gives 156.56 (depressed).,False
+1998,7,IBM,IBM,168.87,True,cmc;tickerleague;finhacker,high,,False
+1998,8,Coca-Cola,KO,165.18,False,cmc;finhacker,high,,False
+1998,9,Pfizer,PFE,161.75,False,cmc;finhacker,high,,False
+1998,10,Cisco Systems,CSCO,145.99,True,cmc;finhacker,high,,False
+1998,11,Lucent Technologies,LU-200611,144.96,True,cmc,high,"Absent from FinHacker because the company is dead. Communications equipment, so tech=true.",False
+1998,12,AT&T Corp (old AT&T),T-200511,-1.0,False,att-10k,medium,"No year-end value found. The 10-K gives 143.5 at 26 Feb 1999, when the price was higher than at year-end. Ranks 12-15 (AT&T, BMY, WorldCom, Philip Morris) are probably within about 5%. All four are top 20. Absent from FinHacker.",False
+1998,13,Bristol-Myers Squibb,BMY,133.0,False,bmy-10k;finhacker,high,FinHacker gives 126.66.,False
+1998,14,MCI WorldCom,WCOEQ-200404,-1.0,False,,medium,"No year-end value found. The 10-K shows 1,840,280,479 shares at year-end 1998. The Sept 1998 merger valued it at 91B at $47.75. The rank is judgment and it is certainly top 20 at the Dec 1998 price. Counted as a carrier, so tech=false. Absent from FinHacker.",False
+1998,15,Philip Morris Companies,MO,129.98,False,cmc,high,Absent from FinHacker.,False
+1998,16,Procter & Gamble,PG,121.11,False,cmc;finhacker,high,,False
+1998,17,Citigroup,C,119.28,False,finhacker,medium,Formed Oct 1998. The C spell is the Travelers lineage; the old Citicorp spell C-199811 ended 1998-11-13. The value is FinHacker only and was not verified.,False
+1998,18,Johnson & Johnson,JNJ,112.73,False,finhacker,high,,False
+1998,19,SBC Communications,T,105.06,False,cmc;finhacker,medium,"FinHacker's 'AT&T' at 78.71 is this SBC series, about 0.75x after the spin adjustment. The dataset's 'T' is the SBC lineage.",False
+1998,20,BankAmerica (merged NationsBank/BankAmerica),BAC,103.69,False,finhacker,low,"Royal Dutch (no value found, probably about 100-105B) and AIG (101.4, company-reported) are just behind. Any of the three could be #20. The old BankAmerica spell BAC-199809 ended 1998-10-01.",False
+1999,1,Microsoft,MSFT,602.43,True,cnbc-steiger-2014;finhacker;fortboise-1999-12-23;thestreet,high,"CNBC 602.43, FinHacker 604.18, Fort Boise 583 (Dec 23), S&P about 615 (Dec 27).",False
+1999,2,General Electric,GE,507.22,False,cnbc-steiger-2014;companiesmarketcap;fortboise-1999-12-23;thestreet;finhacker,high,"CNBC 507.22, companiesmarketcap 509.94, Fort Boise 504. FinHacker's 305.13 is 0.598x the true value. The same factor shows up in all four years, so FinHacker's GE share count is wrong.",False
+1999,3,Cisco Systems,CSCO,357.11,True,cnbc-steiger-2014;finhacker;fortboise-1999-12-23,high,FinHacker 355.12.,False
+1999,4,Wal-Mart Stores,WMT,307.52,False,cnbc-steiger-2014;finhacker;fortboise-1999-12-23,high,FinHacker 307.84.,False
+1999,5,Exxon Mobil,XOM,278.87,False,cnbc-steiger-2014;finhacker;fortboise-1999-12-23,high,FinHacker 280.12.,False
+1999,6,Intel,INTC,275.01,True,cnbc-steiger-2014;finhacker;fortboise-1999-12-23,high,FinHacker 274.43.,False
+1999,7,Lucent Technologies,LU-200611,227.99,True,cnbc-steiger-2014;companiesmarketcap;fortboise-1999-12-23,high,"companiesmarketcap 235.64, Fort Boise 252 (Dec 23). FinHacker leaves it out entirely, probably because the company no longer exists. Communications equipment, so tech.",False
+1999,8,IBM,IBM,195.78,True,cnbc-steiger-2014;finhacker;fortboise-1999-12-23,high,"FinHacker 183.82, which puts IBM below Citigroup. Ranks 8 and 9 are uncertain, but both are top 10 either way.",False
+1999,9,Citigroup,C,187.76,False,cnbc-steiger-2014;finhacker;companiesmarketcap;fortboise-1999-12-23,high,"FinHacker 201.16 and companiesmarketcap 201.15 would put it ahead of IBM. CNBC 187.76, Fort Boise 180.",False
+1999,10,America Online,TWX-201806,169.62,True,cnbc-steiger-2014;fortboise-1999-12-23,high,"Fort Boise 193 on Dec 23. FinHacker leaves it out. The TWX-201806 spell starts 1999-01-04, when AOL entered the S&P; the same line became AOL Time Warner in Jan 2001. The old Time Warner is TWX-200101, which has no price file.",False
+1999,11,American International Group,AIG,167.4,False,cnbc-steiger-2014;finhacker,high,"FinHacker 138.93, about 17% low.",False
+1999,12,SBC Communications,T,166.3,False,cnbc-steiger-2014;companiesmarketcap;finhacker,high,"companiesmarketcap (AT&T Inc history) 155.74. FinHacker's 'AT&T' 116.70 is this company: it equals 0.749x companiesmarketcap in 1999, 2000 and 2001, which points to a wrong share count. Dataset T is today's AT&T Inc, i.e. the old SBC, member since 1996.",False
+1999,13,AT&T Corp (old AT&T),T-200511,162.38,False,cnbc-steiger-2014,high,Telecom carrier. Left the S&P in Nov 2005 when SBC acquired it. FinHacker has no separate row for it.,False
+1999,14,Oracle,ORCL,159.54,True,cnbc-steiger-2014;finhacker,high,FinHacker 158.09.,False
+1999,15,Home Depot,HD,158.33,False,finhacker,high,"Home Depot is missing from CNBC's global top 20, whose last entry is 157.76, so CNBC's own HD figure must be slightly lower. The difference is immaterial.",False
+1999,16,Merck,MRK,156.48,False,companiesmarketcap;finhacker,high,"FinHacker 140.76 is about 0.90x companiesmarketcap, the same factor in all four years. A Sep-1999 10-Q share count of about 2.34B times about $67 gives about 157, which supports companiesmarketcap.",False
+1999,17,Nortel Networks,NRTLQ-201510,151.85,True,companiesmarketcap,medium,"An S&P 500 member until 2002-07-22 per members.csv; FinHacker leaves it out. companiesmarketcap is the only source with a number. CBC says Nortel passed C$200B (about US$138B) around its Q4-1999 results, so the true value could be 138-152, which might push it to rank 19-21.",False
+1999,18,MCI WorldCom,WCOEQ-200404,150.0,False,gmtresearch,medium,"No exact year-end value found. The 150 is GMT Research's approximate 'about USD 150bn in January 2000'. FinHacker leaves it out. Counted as a carrier, so not tech.",False
+1999,19,Coca-Cola,KO,143.97,False,finhacker,medium,Single source. About 8B above the next candidate that has a sourced value (Sun 135.28).,False
+1999,20,Procter & Gamble,PG,142.95,False,finhacker,medium,"Rank-20 boundary. The next sourced candidates are Sun Microsystems 135.28 (companiesmarketcap, JAVA-201001), J&J 129.57, Qualcomm 124.70 and BMY 121.02. Dell and Royal Dutch (an S&P member until 2002) had no sourced value; they were probably about 130.",False
+2000,1,General Electric,GE,476.16,False,companiesmarketcap;grokipedia;fortboise-2000-12-21;visualcapitalist;finhacker,high,"FinHacker's 284.25 is 0.597x the true value, a systematic error, and it ranks GE 2nd. The VC weight (4.1%) and Fort Boise (470) both confirm GE was #1.",False
+2000,2,Exxon Mobil,XOM,302.2,False,finhacker;fortboise-2000-12-21;visualcapitalist;grokipedia,high,Fort Boise 296 (Dec 21).,False
+2000,3,Pfizer,PFE,275.03,False,finhacker;fortboise-2000-12-21;visualcapitalist,high,Ranked above Cisco by the VC weights (2.5% vs 2.4%) and Fort Boise (293 vs 263). FinHacker has Cisco 0.26B ahead and may understate Pfizer.,False
+2000,4,Cisco Systems,CSCO,275.29,True,finhacker;fortboise-2000-12-21;visualcapitalist;grokipedia,high,Fort Boise 263 (Dec 21).,False
+2000,5,Citigroup,C,256.45,False,companiesmarketcap;visualcapitalist;finhacker;fortboise-2000-12-21,high,FinHacker's 229.40 is low. The VC weight of 2.2% times the S&P total of 11.71T gives about 258.,False
+2000,6,Wal-Mart Stores,WMT,237.29,False,finhacker;fortboise-2000-12-21;visualcapitalist,high,,False
+2000,7,Microsoft,MSFT,231.19,True,finhacker;fortboise-2000-12-21;visualcapitalist,high,,False
+2000,8,American International Group,AIG,216.0,False,fortboise-2000-12-21;visualcapitalist;finhacker,high,"The value is Fort Boise's Dec 21 figure. FinHacker's 189.31 looks low: the VC weight is 2.0%, equal to Wal-Mart and Microsoft and above Merck's 1.8%.",False
+2000,9,Merck,MRK,216.04,False,companiesmarketcap;fortboise-2000-12-21;visualcapitalist;finhacker,high,FinHacker 194.21 (0.90x).,False
+2000,10,Intel,INTC,202.32,True,finhacker;visualcapitalist,high,VC weight 1.7%. Rank 11 (Oracle 162) is 40B lower.,False
+2000,11,Oracle,ORCL,162.2,True,finhacker,high,,False
+2000,12,SBC Communications,T,161.71,False,companiesmarketcap;finhacker,high,"FinHacker's 'AT&T' 121.10 is SBC (0.749x companiesmarketcap). The old AT&T Corp was only about 65 and is out of the top 20. A Fort Boise fragment shows SBC at 154, date unclear.",False
+2000,13,Coca-Cola,KO,151.13,False,finhacker,high,,False
+2000,14,EMC Corp,EMC-201609,-1.0,True,,medium,"No sourced value: the search budget ran out. FinHacker leaves it out, probably because the ticker is dead. From memory, a year-end price of about $66.50 times about 2.2B shares gives about 146B. That figure is unverified, but it would sit well above the rank-20 cutoff of 106. Confirm before use.",False
+2000,15,Johnson & Johnson,JNJ,146.04,False,finhacker,high,,False
+2000,16,IBM,IBM,142.41,True,finhacker,high,"A Fort Boise fragment shows IBM at 187 (rank 11), but the date is unclear and it is probably from another snapshot.",False
+2000,17,Bristol-Myers Squibb,BMY,137.58,False,finhacker,high,,False
+2000,18,Verizon Communications,VZ,135.29,False,finhacker,high,Formed from Bell Atlantic and GTE in June 2000.,False
+2000,19,Royal Dutch Petroleum,RDS-A,-1.0,False,,low,"An S&P 500 member until 2002-07-22 per members.csv; FinHacker leaves it out. No value was retrieved. I believe it was about 125-130B, but that is unverified. If foreign members are excluded by policy (the task text says not Shell), Eli Lilly (104.88) moves up to rank 20 and Home Depot to 19.",False
+2000,20,Home Depot,HD,106.04,False,finhacker,medium,"Boundary. Next come Eli Lilly 104.88, P&G 101.45, Philip Morris 97.15 (companiesmarketcap; FinHacker leaves it out), Nortel 96.41 and Sun 90.86. Tyco and AOL (separate from Time Warner until 11-Jan-2001) have no value retrieved; both were probably about 85-100.",False
+2001,1,General Electric,GE,398.22,False,companiesmarketcap;grokipedia;finhacker,high,FinHacker's 238.24 is 0.598x the true value and ranks GE 5th.,False
+2001,2,Microsoft,MSFT,358.08,True,finhacker;grokipedia,high,,False
+2001,3,Exxon Mobil,XOM,267.59,False,finhacker;grokipedia,high,,False
+2001,4,Citigroup,C,259.91,False,finhacker;companiesmarketcap,high,companiesmarketcap 259.90.,False
+2001,5,Wal-Mart Stores,WMT,256.48,False,finhacker,high,,False
+2001,6,Pfizer,PFE,237.05,False,finhacker,high,"No independent check: the search budget ran out. The value may be somewhat low, but the rank holds.",False
+2001,7,Intel,INTC,210.4,True,finhacker,high,,False
+2001,8,IBM,IBM,199.07,True,finhacker,high,,False
+2001,9,Johnson & Johnson,JNJ,180.08,False,finhacker,high,,False
+2001,10,American International Group,AIG,172.25,False,finhacker,high,"FinHacker understated AIG by 12-17% in 1999-2000, so AIG may really rank 7-9. It stays top 10 either way: rank 11 is about 137.",False
+2001,11,AOL Time Warner,TWX-201806,136.68,True,cnn-money-2002;aol-10k405-2001,medium,Derived from two sourced inputs: the $32.10 year-end close (CNN/Money) times about 4.258B shares (FY2001 10-K405). FinHacker leaves it out. Counted as tech under the internet-platform rule for AOL.,False
+2001,12,Merck,MRK,135.63,False,companiesmarketcap;finhacker,high,FinHacker 120.23 (0.89x).,False
+2001,13,Cisco Systems,CSCO,132.84,True,finhacker,high,,False
+2001,14,SBC Communications,T,131.38,False,companiesmarketcap;finhacker,high,FinHacker's 'AT&T' 98.43 is SBC (0.749x). The old AT&T Corp (T-200511) was far smaller and is not top 20.,False
+2001,15,Verizon Communications,VZ,128.95,False,finhacker,high,,False
+2001,16,Tyco International,JCI,120.0,False,hbs-case-tyco,medium,"The HBS case gives an approximate 2001 market cap of about 120B, not dated to 31 Dec. Wharton puts the price at about $60/share in Dec 2001. FinHacker leaves it out. Dataset: I believe the JCI spell 1996-01-02..2009-03-17 (then 2010-08-27 on) is Tyco, because today's JCI is Tyco's legal successor and the old Johnson Controls is JCI-201609. The repo's screener/README notes JCI = Tyco in qlib. Confirm.",False
+2001,17,Home Depot,HD,119.52,False,finhacker,high,,False
+2001,18,Coca-Cola,KO,117.22,False,finhacker,high,,False
+2001,19,Procter & Gamble,PG,101.71,False,finhacker,medium,,False
+2001,20,Bristol-Myers Squibb,BMY,98.74,False,finhacker,low,"Effectively a three-way tie at rank 20: BMY 98.74 (FinHacker), Philip Morris 98.69 (companiesmarketcap; FinHacker leaves it out; dataset MO) and Bank of America 98.17 (BAC). Next is ChevronTexaco 95.61 (CVX). Royal Dutch (RDS-A, an S&P member until July 2002) has no value retrieved; it was possibly about 100 and could also belong here.",False
+2002,1,Microsoft,MSFT,276.6,True,finhacker;grokipedia,high,,False
+2002,2,General Electric,GE,243.33,False,companiesmarketcap;finhacker,high,FinHacker's 145.55 is 0.598x the true value and ranks GE 7th.,False
+2002,3,Exxon Mobil,XOM,234.1,False,finhacker;grokipedia,high,,False
+2002,4,Wal-Mart Stores,WMT,222.92,False,finhacker;grokipedia,high,,False
+2002,5,Citigroup,C,180.9,False,finhacker;companiesmarketcap,high,Only 2.4B ahead of Pfizer; ranks 5 and 6 may swap.,False
+2002,6,Pfizer,PFE,178.52,False,finhacker,high,,False
+2002,7,Johnson & Johnson,JNJ,159.41,False,finhacker,high,,False
+2002,8,IBM,IBM,127.47,True,finhacker,high,,False
+2002,9,Merck,MRK,127.44,False,companiesmarketcap;finhacker,high,FinHacker 114.32 (0.90x). Still top 10 on either figure.,False
+2002,10,American International Group,AIG,125.22,False,finhacker,high,"Probably understated by FinHacker, as in earlier years. Top 10 either way: rank 11 (P&G) is 111.12.",False
+2002,11,Procter & Gamble,PG,111.12,False,finhacker,high,,False
+2002,12,Coca-Cola,KO,108.33,False,finhacker,high,,False
+2002,13,Verizon Communications,VZ,106.41,False,finhacker,high,,False
+2002,14,Bank of America,BAC,104.39,False,finhacker,high,BAC (the old NationsBank line) is the right spell. BAC-199809 is the old BankAmerica.,False
+2002,15,Intel,INTC,102.37,True,finhacker,high,,False
+2002,16,Cisco Systems,CSCO,94.65,True,finhacker,high,,False
+2002,17,SBC Communications,T,89.94,False,companiesmarketcap,high,"FinHacker has no SBC row ('AT&T') at all for 2002, even though 89.94 would rank 17th.",False
+2002,18,Philip Morris Companies,MO,82.65,False,companiesmarketcap,high,FinHacker leaves it out (it also left it out in 2001). Renamed Altria in 2003.,False
+2002,19,Wells Fargo,WFC,79.02,False,finhacker,medium,WFC (the old Norwest line) is the right spell. WFC-199811 is the old Wells Fargo.,False
+2002,20,PepsiCo,PEP,72.7,False,finhacker,low,"Boundary. Next are Eli Lilly 71.25 (LLY) and ChevronTexaco 71.00 (CVX). Viacom (old line, no price file in the dataset) and UPS (in the S&P since 2002-07-22, dataset UPS) had no value retrieved; both were probably about 70. Dell (DELL-201310) was probably about 69, also unverified.",False
+2003,1,General Electric,GE,311.07,False,https://stockanalysis.com/stocks/ge/market-cap/,high,"stockanalysis year-end value, matches recall (10.06bn sh x $30.98). FinHacker shows GE far lower (spin-off adjusted), not #1.",False
+2003,2,Microsoft,MSFT,295.94,True,https://stockanalysis.com/stocks/msft/market-cap/;finhacker 295.32,high,FinHacker 295.32 agrees.,False
+2003,3,Exxon Mobil,XOM,271.0,False,https://stockanalysis.com/stocks/xom/market-cap/;finhacker 269.29,high,FinHacker 269.29. Within 0.5% of Pfizer; #3/#4 order is a near-tie.,False
+2003,4,Pfizer,PFE,269.6,False,https://stockanalysis.com/stocks/pfe/market-cap/,high,Post-Pharmacia. Near-tie with XOM.,False
+2003,5,Citigroup,C,250.5,False,recall: ~5.16bn sh x $48.54,medium,"Not searched (budget). Estimated from recalled share count and year-end close; well clear of neighbours (WMT 229.6, PFE 269.6).",True
+2003,6,Wal-Mart Stores,WMT,229.58,False,https://stockanalysis.com/stocks/wmt/market-cap/,high,,False
+2003,7,Intel,INTC,209.35,True,https://stockanalysis.com/stocks/intc/market-cap/,high,,False
+2003,8,American International Group,AIG,172.85,False,https://stockanalysis.com/stocks/aig/market-cap/,high,,False
+2003,9,Cisco Systems,CSCO,167.9,True,recall: ~6.93bn sh x $24.23 (close consistent with dataset adjusted-price ratio to 2004),medium,Not searched. Clearly above IBM (159.5) and below AIG (172.9) unless share count is off by >3%.,True
+2003,10,IBM,IBM,159.45,True,https://stockanalysis.com/stocks/ibm/market-cap/,high,"IBM is a FinHacker-distorted name (Kyndryl spin); stockanalysis value used. J&J (153.3) is #11, about 4% behind.",False
+2003,11,Johnson & Johnson,JNJ,153.3,False,https://stockanalysis.com/stocks/jnj/market-cap/,high,"#11, about 4% below IBM.",False
+2003,12,Procter & Gamble,PG,129.5,False,recall: ~1.297bn sh x $99.88 (pre-2004 split),medium,Not searched.,True
+2003,13,Coca-Cola,KO,124.41,False,https://stockanalysis.com/stocks/ko/market-cap/,high,,False
+2003,14,Bank of America,BAC,116.0,False,recall: ~1.442bn sh x $80.43 (pre-2004 split),medium,Pre-FleetBoston. Not searched.,True
+2003,15,Altria Group,MO,110.54,False,https://stockanalysis.com/stocks/mo/market-cap/,high,Undistorted stockanalysis value (FinHacker would understate because of Kraft/PMI spins).,False
+2003,16,Merck,MRK,102.6,False,recall: ~2.22bn sh x $46.20,medium,Not searched; post-Medco spin. Safely inside top 20 (#20 is ~87).,True
+2003,17,Wells Fargo,WFC,99.64,False,https://stockanalysis.com/stocks/wfc/market-cap/,high,"WFC Q4-2003 release says cap exceeded $100bn during the quarter (intra-quarter peak), consistent.",False
+2003,18,Verizon Communications,VZ,96.88,False,https://stockanalysis.com/stocks/vz/market-cap/,high,"Carrier, not tech.",False
+2003,19,ChevronTexaco,CVX,91.9,False,recall: ~1.064bn sh x $86.39 (pre-2004 split),medium,Not searched. About 6% above the #20/#21 pair.,True
+2003,20,Dell,DELL-201310,86.7,True,"dataset close $33.98 (DELL-201310.csv, unadjusted);https://www.sec.gov/Archives/edgar/data/0000826083/000095013404005058/d14085e10vk.htm",low,Estimated ~2.55bn sh (10-K shows 2.53bn at 2004-03-26 after buybacks) x $33.98 = 86.0-87.0. Essentially tied with SBC (T) at 86.2-86.3; #20 could be SBC. UPS 83.8 is #22.,True
+2004,1,General Electric,GE,385.88,False,https://stockanalysis.com/stocks/ge/market-cap/;https://www.nbcnews.com/id/wbna6765986,high,Undistorted value; NBC/AP confirms GE remained most valuable.,False
+2004,2,Exxon Mobil,XOM,330.69,False,https://stockanalysis.com/stocks/xom/market-cap/,high,,False
+2004,3,Microsoft,MSFT,290.49,True,https://stockanalysis.com/stocks/msft/market-cap/,high,After the Dec-2004 $3 special dividend.,False
+2004,4,Citigroup,C,249.6,False,recall: ~5.18bn sh x $48.18,medium,Not searched.,True
+2004,5,Wal-Mart Stores,WMT,223.69,False,https://stockanalysis.com/stocks/wmt/market-cap/,high,,False
+2004,6,Pfizer,PFE,202.5,False,https://stockanalysis.com/stocks/pfe/market-cap/,high,,False
+2004,7,Bank of America,BAC,190.2,False,recall: ~4.047bn sh x $46.99,medium,"Incl. FleetBoston. Within ~1% of J&J (#7/#8 order uncertain, not a boundary).",True
+2004,8,Johnson & Johnson,JNJ,188.2,False,https://stockanalysis.com/stocks/jnj/market-cap/,high,,False
+2004,9,American International Group,AIG,171.04,False,https://stockanalysis.com/stocks/aig/market-cap/,high,,False
+2004,10,IBM,IBM,164.11,True,https://stockanalysis.com/stocks/ibm/market-cap/,high,"Intel (147.9) #11, ~10% behind.",False
+2004,11,Intel,INTC,147.9,True,https://stockanalysis.com/stocks/intc/market-cap/,high,,False
+2004,12,Procter & Gamble,PG,139.4,False,recall: ~2.53bn sh x $55.08,medium,Tied with JPMorgan.,True
+2004,13,JPMorgan Chase,JPM,138.7,False,recall: ~3.556bn sh x $39.01,medium,Incl. Bank One (merged July 2004).,True
+2004,14,Cisco Systems,CSCO,126.0,True,recall: ~6.52bn sh x $19.32,medium,Near-tie with Altria 125.41.,True
+2004,15,Altria Group,MO,125.41,False,https://stockanalysis.com/stocks/mo/market-cap/,high,,False
+2004,16,Verizon Communications,VZ,112.17,False,https://stockanalysis.com/stocks/vz/market-cap/,high,,False
+2004,17,ChevronTexaco,CVX,110.6,False,recall: ~2.107bn sh x $52.51,medium,Not searched.,True
+2004,18,Wells Fargo,WFC,105.15,False,https://stockanalysis.com/stocks/wfc/market-cap/,high,Tied with Dell.,False
+2004,19,Dell,DELL-201310,104.9,True,dataset close $42.14 (DELL-201310.csv);recall ~2.49bn sh,medium,Estimated; ~4% above KO.,True
+2004,20,Coca-Cola,KO,100.75,False,https://stockanalysis.com/stocks/ko/market-cap/,medium,#20; UPS 95.78 is ~5% behind.,False
+2005,1,General Electric,GE,370.34,False,https://stockanalysis.com/stocks/ge/market-cap/,high,GE was #1 at end-2005 (FinHacker's Exxon-#1 is the spin-off distortion). Exxon passed GE in early 2006 (Fortune March 2006 list).,False
+2005,2,Exxon Mobil,XOM,349.51,False,https://stockanalysis.com/stocks/xom/market-cap/;finhacker 349.49,high,FinHacker and stockanalysis agree.,False
+2005,3,Microsoft,MSFT,278.36,True,https://stockanalysis.com/stocks/msft/market-cap/;finhacker 278.24,high,FinHacker and stockanalysis agree.,False
+2005,4,Citigroup,C,241.2,False,recall: ~4.97bn sh x $48.53,medium,Fortune mid-March 2006: 236.6 (consistent).,True
+2005,5,Wal-Mart Stores,WMT,194.85,False,https://stockanalysis.com/stocks/wmt/market-cap/,high,Tied with P&G.,False
+2005,6,Procter & Gamble,PG,194.0,False,"recall: ~3.35bn sh (post-Gillette, buyback underway) x $57.88",medium,Incl. Gillette (Oct 2005). Share count uncertain (3.3-3.4bn => 191-197); #5/#6 order with WMT is a toss-up.,True
+2005,7,Bank of America,BAC,184.6,False,recall: ~4.0bn sh x $46.15,medium,Excludes MBNA (closed 2006-01-01).,True
+2005,8,Johnson & Johnson,JNJ,178.8,False,https://stockanalysis.com/stocks/jnj/market-cap/,high,,False
+2005,9,American International Group,AIG,177.1,False,https://stockanalysis.com/stocks/aig/market-cap/,high,,False
+2005,10,Pfizer,PFE,171.9,False,https://stockanalysis.com/stocks/pfe/market-cap/,high,"Altria (155.6) #11, ~9.5% behind.",False
+2005,11,Altria Group,MO,155.59,False,https://stockanalysis.com/stocks/mo/market-cap/,high,Undistorted value.,False
+2005,12,Intel,INTC,150.48,True,https://stockanalysis.com/stocks/intc/market-cap/,high,,False
+2005,13,JPMorgan Chase,JPM,138.4,False,recall: ~3.487bn sh x $39.69,medium,Not searched.,True
+2005,14,IBM,IBM,129.84,True,https://stockanalysis.com/stocks/ibm/market-cap/,high,,False
+2005,15,Chevron,CVX,126.6,False,recall: ~2.23bn sh x $56.77,medium,Incl. Unocal (Aug 2005).,True
+2005,16,Cisco Systems,CSCO,105.6,True,recall: ~6.17bn sh x $17.12,medium,Tied with Wells Fargo.,True
+2005,17,Wells Fargo,WFC,105.07,False,https://stockanalysis.com/stocks/wfc/market-cap/,high,,False
+2005,18,PepsiCo,PEP,98.03,False,https://stockanalysis.com/stocks/pep/market-cap/,high,Part of #18-#21 cluster within 3.2%.,False
+2005,19,Amgen,AMGN,97.34,False,https://stockanalysis.com/stocks/amgn/market-cap/,high,"Health care, not tech.",False
+2005,20,Coca-Cola,KO,95.9,False,https://stockanalysis.com/stocks/ko/market-cap/,low,"#20 by ~1% over AT&T (T) 94.95 (3,877m 10-K shares x $24.49). stockanalysis shows AT&T at 80.36 using the stale pre-merger SBC share count, which is wrong.",False
+2006,1,Exxon Mobil,XOM,446.94,False,https://stockanalysis.com/stocks/xom/market-cap/,high,Probably uses the Q3 share count; with ~5.73bn year-end shares the value is ~439. Rank unaffected.,False
+2006,2,General Electric,GE,383.56,False,https://stockanalysis.com/stocks/ge/market-cap/,high,Undistorted value.,False
+2006,3,Microsoft,MSFT,293.54,True,https://stockanalysis.com/stocks/msft/market-cap/,high,,False
+2006,4,Citigroup,C,273.5,False,recall: ~4.91bn sh x $55.70,medium,Not searched.,True
+2006,5,Bank of America,BAC,238.0,False,recall: ~4.458bn sh x $53.39,medium,Incl. MBNA. Not searched.,True
+2006,6,AT&T Inc. (formerly SBC),T,223.0,False,https://www.sec.gov/Archives/edgar/data/732717/000073271708000012/ex13.htm,medium,"Computed: 10-K end-of-2006 shares 6,239m (incl. BellSouth, closed 2006-12-29) x $35.75. stockanalysis 137.38 uses the pre-merger count. Carrier, not tech.",True
+2006,7,Procter & Gamble,PG,204.4,False,recall: ~3.18bn sh x $64.27,medium,Not searched.,True
+2006,8,Wal-Mart Stores,WMT,192.48,False,https://stockanalysis.com/stocks/wmt/market-cap/,high,,False
+2006,9,Johnson & Johnson,JNJ,191.4,False,https://stockanalysis.com/stocks/jnj/market-cap/,high,,False
+2006,10,Pfizer,PFE,186.8,False,https://stockanalysis.com/stocks/pfe/market-cap/,low,"0.3% above AIG. stockanalysis likely uses the Q3 count (~7.21bn); Pfizer bought back heavily in Q4 2006, and with ~7.1bn year-end shares it would be ~184.5, i.e. #11 behind AIG.",False
+2006,11,American International Group,AIG,186.3,False,https://stockanalysis.com/stocks/aig/market-cap/,low,Effectively tied with Pfizer for #10.,False
+2006,12,Altria Group,MO,179.87,False,https://stockanalysis.com/stocks/mo/market-cap/,high,"Pre-Kraft spin; undistorted value, 3.5% below #10.",False
+2006,13,JPMorgan Chase,JPM,167.2,False,recall: ~3.462bn sh x $48.30,medium,Tied with Cisco.,True
+2006,14,Cisco Systems,CSCO,165.6,True,recall: ~6.06bn sh x $27.33,medium,,True
+2006,15,Chevron,CVX,160.3,False,recall: ~2.18bn sh x $73.53,medium,,True
+2006,16,IBM,IBM,146.34,True,https://stockanalysis.com/stocks/ibm/market-cap/,high,,False
+2006,17,Google,GOOGL,140.5,True,recall: ~305-309m A+B sh x $460.48,medium,Joined S&P 500 2006-03-31 (dataset spell from 2006-04-03). Class A traded as GOOG then; both classes combined.,True
+2006,18,Wells Fargo,WFC,120.05,False,https://stockanalysis.com/stocks/wfc/market-cap/,high,,False
+2006,19,ConocoPhillips,COP,118.41,False,https://stockanalysis.com/stocks/cop/market-cap/,high,Incl. Burlington Resources. stockanalysis value is unaffected by the 2012 Phillips 66 spin adjustment.,False
+2006,20,Intel,INTC,116.76,True,https://stockanalysis.com/stocks/intc/market-cap/,medium,#20; Coca-Cola 113.09 (3.1% behind) and HP 112.07 (4.0%) follow.,False
+2007,1,Exxon Mobil,XOM,504.24,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; matches recall ($93.69 x 5.38B).,False
+2007,2,General Electric,GE,370.0,False,https://money.cnn.com/magazines/fortune/fortune500/2008/performers/companies/biggest/;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker 221.41 is spin-adjusted (about 0.6x). Estimated as $37.07 close x about 9.98B shares (recall). Fortune shows $365.6bn on 28 Mar 2008 at about the same price, which supports it. Clearly #2.",True
+2007,3,Microsoft,MSFT,332.11,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,4,AT&T (former SBC),T,251.0,False,https://www.voronoiapp.com/technology/Market-Cap-Evolution-of-US-Telecom-Giants-T-Mobile-vs-Verizon-vs-ATT-20072025-5999;https://money.cnn.com/magazines/fortune/fortune500/2008/performers/companies/biggest/,high,FinHacker 190.18 is spin-adjusted (about 0.76x). Estimated as $41.56 x about 6.03B shares (recall). Voronoi shows about $252bn for 2007 and Fortune $227.3bn on 28 Mar 2008 at a lower price.,True
+2007,5,Procter & Gamble,PG,225.91,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,6,Google,GOOGL,216.3,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value (as Alphabet); whole company.,False
+2007,7,Chevron,CVX,195.06,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,8,Wal-Mart Stores,WMT,190.28,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,9,Johnson & Johnson,JNJ,189.43,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker value matches recall ($66.70 x 2.84B). The Kenvue separation was an exchange offer, so no spin distortion appears.",False
+2007,10,Bank of America,BAC,183.28,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker value. #10, with Apple 5% below.",False
+2007,11,Apple,AAPL,174.03,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,12,Cisco Systems,CSCO,164.23,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,13,Altria Group (incl. PMI),MO,159.0,False,,medium,Missing from FinHacker because of the Kraft and PMI spin adjustments. Estimated as $75.58 x about 2.10B shares (recall). PMI was still inside Altria until March 2008. A top-20 member even at 2.0B shares.,True
+2007,14,Intel,INTC,154.31,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,15,Pfizer,PFE,153.6,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker 145.64 is spin-adjusted (Viatris, about 0.95x). Estimated as $22.73 x about 6.76B shares (recall).",True
+2007,16,IBM,IBM,149.7,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker 142.90 is spin-adjusted (Kyndryl, about 0.955x). Estimated as $108.10 x about 1.385B shares (recall).",True
+2007,17,American International Group,AIG,147.2,False,https://www.sec.gov/Archives/edgar/data/0000005272/000095012308002280/y44393e10vk.htm,medium,"Shares from SEC data (10-K cover: 2,522.3M at 31 Jan 2008; equity/BVPS gives 2.53B) x recalled $58.30 close = $147.0-147.5bn. FinHacker 122.33 looks too low. Effectively tied with Citigroup and JPM.",True
+2007,18,Citigroup,C,147.1,False,https://www.sec.gov/Archives/edgar/data/0000831001/000119312508036445/d10k.htm,medium,Common equity $113.6bn / BVPS $22.74 = 4.996B shares (10-K FY2007) x recalled $29.44 close. FinHacker 161.25 looks too high (it probably used a later 2008 share count).,True
+2007,19,JPMorgan Chase,JPM,146.97,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2007,20,Coca-Cola,KO,142.26,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker value. #20; ConocoPhillips (~137.9) is 3% below. The seed had COP at #20 and left KO out.,False
+2008,1,Exxon Mobil,XOM,406.1,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,2,Wal-Mart Stores,WMT,219.94,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,3,Procter & Gamble,PG,181.19,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,4,Microsoft,MSFT,172.94,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,5,General Electric,GE,170.7,False,https://inderscience.com/offers.php?id=41579,medium,"FinHacker 96.45 is spin-adjusted. Estimated as $16.20 x about 10.54B shares (after the Oct 2008 offering; recall). An academic abstract says $163bn, which would put GE at #7. Ranks 4-7 lie within 4%.",True
+2008,6,AT&T,T,167.9,False,https://de.slideshare.net/g_g_sharma1986/att-1216159,medium,FinHacker 127.16 is spin-adjusted (about 0.76x). Estimated as $28.50 x about 5.89B shares (recall). A secondary source gives 165.19 for 2008.,True
+2008,7,Johnson & Johnson,JNJ,166.03,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,8,Chevron,CVX,148.23,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,9,Wells Fargo,WFC,124.9,False,https://www.sec.gov/Archives/edgar/data/0000072971/000095013409003967/f51597e10vk.htm,medium,"4,237.8M shares at 31 Jan 2009 (10-K cover) x $29.48 year-end price (10-Q). This includes the 422.7M shares issued for Wachovia on 31 Dec 2008 and the Dec 2008 offering. FinHacker 98.02 uses the pre-merger 3.325B shares.",True
+2008,10,Pfizer,PFE,119.4,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 113.17 is spin-adjusted (about 0.948x). Estimated as $17.71 x about 6.75B shares (recall). JPM (117.7) is 1.5% below.,True
+2008,11,JPMorgan Chase,JPM,117.67,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; near the rank-10 boundary.,False
+2008,12,IBM,IBM,112.7,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 107.64 is spin-adjusted (about 0.955x). Estimated as $84.16 x about 1.34B shares (recall).,True
+2008,13,Coca-Cola,KO,104.73,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,14,Verizon Communications,VZ,100.62,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker value. Recall ($33.90 x about 2.84B) gives ~96bn; the rank is unaffected.,False
+2008,15,Google,GOOGL,96.85,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value (as Alphabet); whole company.,False
+2008,16,Cisco Systems,CSCO,95.44,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,17,Oracle,ORCL,89.47,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2008,18,Philip Morris International,PM,88.02,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; S&P 500 member from 2008-03-31.,False
+2008,19,Hewlett-Packard,HPQ,87.7,True,https://capedge.com/filing/47217/0001047469-08-013240/10K-2008FY,medium,"Missing from FinHacker (HPE spin adjustment). 2,416.2M shares at 30 Nov 2008 (10-K FY2008 cover) x recalled $36.29 close on 31 Dec 2008.",True
+2008,20,PepsiCo,PEP,85.06,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker value. #20; Abbott (~82.5, 3% below) and Intel (81.54, 4% below) follow.",False
+2009,1,Exxon Mobil,XOM,322.33,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,2,Microsoft,MSFT,268.56,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,3,Wal-Mart Stores,WMT,203.64,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,4,Google,GOOGL,197.03,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; whole company.,False
+2009,5,Apple,AAPL,191.01,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,6,Johnson & Johnson,JNJ,177.71,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,7,Procter & Gamble,PG,176.13,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,8,IBM,IBM,171.4,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 163.17 is spin-adjusted (about 0.952x). Estimated as $130.90 x about 1.31B shares (recall).,True
+2009,9,AT&T,T,165.405,False,https://www.sec.gov/Archives/edgar/data/0001175215/000119312510055158/d10k.htm,high,Bloomberg 31 Dec 2009 figure from the Cellco 10-K. FinHacker 125.25 is spin-adjusted.,False
+2009,10,JPMorgan Chase,JPM,164.26,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker value. #10, 0.7% below AT&T and 2% above GE.",False
+2009,11,General Electric,GE,161.097,False,https://www.sec.gov/Archives/edgar/data/0001175215/000119312510055158/d10k.htm,high,Bloomberg 31 Dec 2009 figure from the Cellco 10-K. Absent from FinHacker (spin-adjusted to about 0.6x).,False
+2009,12,Chevron,CVX,154.6,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://www.sec.gov/Archives/edgar/data/0001175215/000119312510055158/d10k.htm,high,FinHacker 154.60; Cellco/Bloomberg 154.463 agrees.,False
+2009,13,Pfizer,PFE,146.8,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 139.11 is spin-adjusted (about 0.948x). Estimated as $18.19 x about 8.07B shares after Wyeth (recall).,True
+2009,14,Wells Fargo,WFC,139.78,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,15,Cisco Systems,CSCO,137.73,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,16,Coca-Cola,KO,131.27,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,17,Bank of America,BAC,130.27,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value (8.65B common shares). Excludes the Dec 2009 common-equivalent securities that converted in Feb 2010.,False
+2009,18,Oracle,ORCL,122.92,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2009,19,Hewlett-Packard,HPQ,122.0,True,,medium,Missing from FinHacker (HPE spin adjustment). Estimated as $51.51 x about 2.37B shares (recall). Safely in the top 20; its order against Oracle is uncertain.,True
+2009,20,Merck,MRK,113.6,False,https://www.sec.gov/Archives/edgar/data/0000310158/000095012311019286/y87773e10vk.htm,low,"3.108B shares at 31 Dec 2009 (SEC balance sheet; 3,115.3M on the 29 Jan 2010 cover) x recalled $36.54 close. FinHacker 108.29 is spin-adjusted (Organon). Intel (112.67) is only 0.8% below.",True
+2010,1,Exxon Mobil,XOM,364.06,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://www.visualcapitalist.com/ranked-the-largest-sp-500-companies-over-time-1985-2024/,high,FinHacker value; Visual Capitalist also has it at #1 with 3.2%.,False
+2010,2,Apple,AAPL,297.1,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,3,Microsoft,MSFT,234.53,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,4,Berkshire Hathaway,BRK-B,198.03,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker value (whole company, A+B); S&P 500 member from 2010-02-16.",False
+2010,5,General Electric,GE,194.2,False,https://www.visualcapitalist.com/ranked-the-largest-sp-500-companies-over-time-1985-2024/,high,FinHacker 116.16 is spin-adjusted. Estimated as $18.29 x about 10.62B shares (recall). Goldman/Visual Capitalist shows GE at 1.7% of the index (about $194bn).,True
+2010,6,Wal-Mart Stores,WMT,192.17,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,7,Google,GOOGL,190.85,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; whole company.,False
+2010,8,Chevron,CVX,183.14,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,9,IBM,IBM,180.3,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 172.14 is spin-adjusted (about 0.954x). Estimated as $146.76 x about 1.228B shares (recall). Effectively tied with PG.,True
+2010,10,Procter & Gamble,PG,180.19,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker value. #10, tied with IBM (#9); AT&T (~173.6) is 3.7% below.",False
+2010,11,AT&T,T,173.6,False,https://www.visualcapitalist.com/ranked-the-largest-sp-500-companies-over-time-1985-2024/,medium,FinHacker 131.48 is spin-adjusted (about 0.757x). Estimated as $29.38 x about 5.91B shares (recall). Goldman/Visual Capitalist shows 1.5% of the index (about $171bn).,True
+2010,12,Johnson & Johnson,JNJ,169.84,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,13,JPMorgan Chase,JPM,165.86,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,14,Wells Fargo,WFC,163.07,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,15,Oracle,ORCL,158.13,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,16,Coca-Cola,KO,150.74,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,17,Pfizer,PFE,140.1,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker 132.95 is spin-adjusted (about 0.949x). Estimated as $17.51 x about 8.0B shares (recall).,True
+2010,18,Citigroup,C,137.45,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker value (about 29B shares, before the 2011 reverse split).",False
+2010,19,Bank of America,BAC,134.6,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2010,20,Intel,INTC,115.9,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker value. #20; Schlumberger (~113.7) is 1.9% below, Cisco (~111.9) 3.5% below, Merck (~111) 4% below.",False
+2011,1,Exxon Mobil,XOM,406.27,False,https://companiesmarketcap.com/exxon-mobil/marketcap/;https://stockanalysis.com/stocks/xom/market-cap/;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,CMC and SA 406.27; FinHacker 406.25.,False
+2011,2,Apple,AAPL,377.52,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; no spin-off distortion for Apple. Matches recall (405.00 x ~0.93bn sh).,False
+2011,3,Microsoft,MSFT,218.38,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://stockanalysis.com/stocks/msft/market-cap/,high,FinHacker and SA agree at 218.38. Only 0.8% ahead of IBM.,False
+2011,4,IBM,IBM,216.72,True,https://companiesmarketcap.com/ibm/marketcap/;https://stockanalysis.com/stocks/ibm/market-cap/,high,"CMC and SA 216.72. FinHacker shows 207.07 (Kyndryl-spin distortion, about 0.955x), which put it at #6 there.",False
+2011,5,Chevron,CVX,211.84,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value; no material spin-off. Ranks 3-7 all within 204-218bn.,False
+2011,6,Google (Alphabet),GOOGL,209.41,True,https://stockanalysis.com/stocks/googl/market-cap/;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,SA 209.41; FinHacker 209.15. Class A traded as GOOG in 2011; dataset uses GOOGL.,False
+2011,7,Walmart,WMT,204.58,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2011,8,Berkshire Hathaway,BRK-B,189.21,False,https://companiesmarketcap.com/berkshire-hathaway/marketcap/;https://stockanalysis.com/stocks/brk.b/market-cap/;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,CMC 189.21; SA and FinHacker 188.92. Effectively tied with GE (189.08); #8/#9 order is a coin flip.,False
+2011,9,General Electric,GE,189.08,False,https://stockanalysis.com/stocks/ge/market-cap/,medium,"SA 189.08 (17.91 x ~10.56bn sh). FinHacker shows 113.14 at #20 (spin distortion, about 0.6x). Tied with BRK for #8.",False
+2011,10,Procter & Gamble,PG,183.52,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value. Top-10 boundary: AT&T 179.20 and J&J 179.10 are 2.4% behind.,False
+2011,11,AT&T,T,179.2,False,https://companiesmarketcap.com/att/marketcap/,medium,"CMC 179.20 (SBC lineage, current T spell). Tied with J&J (179.10); #11/#12 order uncertain. FinHacker value is spin-distorted and was not seen.",False
+2011,12,Johnson & Johnson,JNJ,179.1,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker 179.1 (FinHacker's #10; it matches the true value, so the Kenvue exchange offer did not distort it). Tied with AT&T.",False
+2011,13,Pfizer,PFE,166.34,False,https://companiesmarketcap.com/pfizer/marketcap/;https://stockanalysis.com/stocks/pfe/market-cap/,high,"CMC 166.34, SA 166.35. FinHacker 157.64 (Viatris-spin distortion).",False
+2011,14,Coca-Cola,KO,158.9,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2011,15,Wells Fargo,WFC,145.35,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker value. WFC spell, not WFC-199811.",False
+2011,16,Philip Morris International,PM,135.6,False,,medium,Estimate from recall: 78.48 x ~1.73bn sh. Not seen in any retrieved source; comfortably inside top 20 either way.,True
+2011,17,Oracle,ORCL,128.92,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker value.,False
+2011,18,JPMorgan Chase,JPM,126.4,False,,medium,Estimate from recall: 33.25 x ~3.80bn sh. Not seen in any retrieved source.,True
+2011,19,Intel,INTC,123.48,True,https://companiesmarketcap.com/intel/marketcap/;https://stockanalysis.com/stocks/intc/market-cap/;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"CMC, SA and FinHacker all 123.48.",False
+2011,20,Merck,MRK,114.9,False,https://companiesmarketcap.com/merck/marketcap/;https://stockanalysis.com/stocks/mrk/market-cap/,medium,"CMC 114.90, SA 114.91. Verizon (CMC 113.58) is #21, 1.2% behind. FinHacker's Merck is Organon-spin distorted.",False
+2012,1,Apple,AAPL,499.8,True,,high,"Estimate from recall: 532.17 x ~939.2m sh. Not retrieved, but clearly #1 (28% ahead of XOM).",True
+2012,2,Exxon Mobil,XOM,389.64,False,https://companiesmarketcap.com/exxon-mobil/marketcap/;https://stockanalysis.com/stocks/xom/market-cap/,high,CMC 389.64; SA 394.61.,False
+2012,3,Google (Alphabet),GOOGL,231.57,True,https://stockanalysis.com/stocks/googl/market-cap/,high,SA 231.57; WallStreetNumbers ~232.,False
+2012,4,Walmart,WMT,226.1,False,,medium,"Estimate from recall: 68.23 x ~3.31bn sh. Not retrieved. Within 1% of MSFT, so #4/#5 order is uncertain.",True
+2012,5,Microsoft,MSFT,224.8,True,https://stockanalysis.com/stocks/msft/market-cap/,medium,SA 224.80.,False
+2012,6,Berkshire Hathaway,BRK-B,220.61,False,https://companiesmarketcap.com/berkshire-hathaway/marketcap/;https://stockanalysis.com/stocks/brk.b/market-cap/,medium,CMC 220.61; SA 222.45. Tied with GE (220.11).,False
+2012,7,General Electric,GE,220.11,False,https://stockanalysis.com/stocks/ge/market-cap/,medium,SA 220.11 (true value; FinHacker would show about 0.6x).,False
+2012,8,IBM,IBM,214.03,True,https://companiesmarketcap.com/ibm/marketcap/;https://stockanalysis.com/stocks/ibm/market-cap/,medium,CMC 214.03; SA 218.90 (sources disagree by 2%).,False
+2012,9,Chevron,CVX,211.6,False,,medium,"Estimate from recall: 108.14 x ~1.957bn sh. Not retrieved. 8.6% ahead of #10, so it stays top 10.",True
+2012,10,Johnson & Johnson,JNJ,194.77,False,https://companiesmarketcap.com/johnson-and-johnson/marketcap/;https://stockanalysis.com/stocks/jnj/market-cap/,high,CMC 194.77; SA 194.27. 3.5% ahead of AT&T (#11).,False
+2012,11,AT&T,T,188.14,False,https://companiesmarketcap.com/att/marketcap/,high,CMC 188.14 (true value; FinHacker is WarnerMedia-spin distorted).,False
+2012,12,Procter & Gamble,PG,185.45,False,https://companiesmarketcap.com/procter-and-gamble/marketcap/;https://stockanalysis.com/stocks/pg/market-cap/,high,CMC 185.45; SA 185.63.,False
+2012,13,Pfizer,PFE,182.47,False,https://companiesmarketcap.com/pfizer/marketcap/;https://stockanalysis.com/stocks/pfe/market-cap/,high,CMC 182.47; SA 184.65.,False
+2012,14,Wells Fargo,WFC,180.1,False,,medium,Estimate from recall: 34.18 x ~5.27bn sh. Not retrieved.,True
+2012,15,JPMorgan Chase,JPM,167.2,False,,medium,Estimate from recall: 43.97 x ~3.80bn sh. Not retrieved.,True
+2012,16,Coca-Cola,KO,162.0,False,,medium,Estimate from recall: 36.25 x ~4.47bn sh (post Aug-2012 2:1 split). Not retrieved.,True
+2012,17,Oracle,ORCL,158.6,True,,medium,Estimate from recall: 33.32 x ~4.76bn sh. Not retrieved.,True
+2012,18,Philip Morris International,PM,138.2,False,,medium,Estimate from recall: 83.64 x ~1.65bn sh. Not retrieved; 10% ahead of #19.,True
+2012,19,Bank of America,BAC,125.13,False,https://companiesmarketcap.com/bank-of-america/marketcap/,medium,"CMC 125.13; WallStreetNumbers ~125. BAC spell, not BAC-199809. Three-way near-tie with MRK and VZ.",False
+2012,20,Merck,MRK,123.91,False,https://companiesmarketcap.com/merck/marketcap/;https://stockanalysis.com/stocks/mrk/market-cap/,low,"CMC 123.91; SA 124.46. Verizon is #21 at 123.69 (CMC) / 123.49 (SA), only 0.2-0.8% behind; both sources put MRK ahead.",False
+2013,1,Apple,AAPL,500.7,True,,high,Estimate from recall: 561.02 x ~0.89-0.90bn sh (about 500-505). Not retrieved; clearly #1.,True
+2013,2,Exxon Mobil,XOM,438.7,False,https://companiesmarketcap.com/exxon-mobil/marketcap/;https://stockanalysis.com/stocks/xom/market-cap/,high,CMC 438.70; SA 442.09.,False
+2013,3,Google (Alphabet),GOOGL,374.79,True,https://stockanalysis.com/stocks/googl/market-cap/,high,"SA 374.79; WallStreetNumbers ~375. A+B shares, pre-split.",False
+2013,4,Microsoft,MSFT,312.3,True,https://stockanalysis.com/stocks/msft/market-cap/,high,SA 312.30.,False
+2013,5,Berkshire Hathaway,BRK-B,292.41,False,https://companiesmarketcap.com/berkshire-hathaway/marketcap/;https://stockanalysis.com/stocks/brk.b/market-cap/,high,CMC 292.41; SA 292.60. Whole company.,False
+2013,6,General Electric,GE,282.0,False,https://companiesmarketcap.com/general-electric/marketcap/;https://stockanalysis.com/stocks/ge/market-cap/,high,CMC 282.00; SA 283.59 (true value; FinHacker about 0.6x).,False
+2013,7,Johnson & Johnson,JNJ,258.34,False,https://companiesmarketcap.com/johnson-and-johnson/marketcap/;https://stockanalysis.com/stocks/jnj/market-cap/,high,CMC 258.34; SA 258.42.,False
+2013,8,Walmart,WMT,254.6,False,,medium,Estimate from recall: 78.69 x ~3.235bn sh. Not retrieved.,True
+2013,9,Chevron,CVX,241.6,False,,medium,Estimate from recall: 124.91 x ~1.934bn sh. Not retrieved. Within 1% of WFC.,True
+2013,10,Wells Fargo,WFC,239.1,False,,medium,"Estimate from recall: 45.40 x ~5.27bn sh. Not retrieved. 8% ahead of PG (#11, 220.73 sourced), so top-10 membership is fairly safe.",True
+2013,11,Procter & Gamble,PG,220.73,False,https://companiesmarketcap.com/procter-and-gamble/marketcap/;https://stockanalysis.com/stocks/pg/market-cap/,medium,CMC 220.73; SA 221.29. Essentially tied with JPM (~219.7 est.).,False
+2013,12,JPMorgan Chase,JPM,219.7,False,,medium,Estimate from recall: 58.48 x ~3.757bn sh. Not retrieved.,True
+2013,13,IBM,IBM,197.77,True,https://companiesmarketcap.com/ibm/marketcap/;https://stockanalysis.com/stocks/ibm/market-cap/,medium,CMC 197.77; SA 203.67 (3% disagreement). Near-tied with PFE.,False
+2013,14,Pfizer,PFE,196.0,False,https://companiesmarketcap.com/pfizer/marketcap/;https://stockanalysis.com/stocks/pfe/market-cap/,high,CMC 196.00; SA 198.52 (after the Zoetis exchange offer).,False
+2013,15,AT&T,T,183.75,False,https://companiesmarketcap.com/att/marketcap/,medium,"CMC 183.75. The spin-distorted FinHacker value (~0.76x, ~140) likely drops AT&T out of FinHacker's 2013 top 20, which is why Verizon is FinHacker's #20. AMZN and KO are within 1%.",False
+2013,16,Amazon,AMZN,183.0,True,,medium,Estimate from recall: 398.79 x ~459m sh. Not retrieved.,True
+2013,17,Coca-Cola,KO,181.8,False,,medium,Estimate from recall: 41.31 x ~4.40bn sh. Not retrieved.,True
+2013,18,Oracle,ORCL,171.4,True,,medium,Estimate from recall: 38.26 x ~4.48bn sh. Not retrieved.,True
+2013,19,Bank of America,BAC,164.91,False,https://companiesmarketcap.com/bank-of-america/marketcap/;https://stockanalysis.com/stocks/bac/market-cap/,high,CMC 164.91; SA 166.07.,False
+2013,20,Citigroup,C,158.1,False,https://stockanalysis.com/stocks/c/market-cap/;https://www.citigroup.com/rcs/citigpa/storage/public/ar14c_en.pdf,high,"SA 158.1; the Citi 2014 annual report says $158B. C spell, not C-199811. Merck (#21, 146.52 CMC) is 7.3% behind.",False
+2014,1,Apple,AAPL,645.0,True,,high,"Estimate from recall: 110.38 x ~5.83-5.87bn sh (post 7:1 split), about 643-648. Not retrieved; clearly #1.",True
+2014,2,Exxon Mobil,XOM,388.38,False,https://companiesmarketcap.com/exxon-mobil/marketcap/;https://stockanalysis.com/stocks/xom/market-cap/,medium,CMC 388.38; SA 391.48. Only 1.4-2.2% ahead of MSFT.,False
+2014,3,Microsoft,MSFT,382.88,True,https://stockanalysis.com/stocks/msft/market-cap/,medium,SA 382.88. StatMuse's 326.4 uses a dividend-adjusted price (39.34) and is wrong.,False
+2014,4,Berkshire Hathaway,BRK-B,370.66,False,https://companiesmarketcap.com/berkshire-hathaway/marketcap/;https://stockanalysis.com/stocks/brk.b/market-cap/,high,CMC 370.66; SA 369.60. Whole company.,False
+2014,5,Google (Alphabet),GOOGL,359.5,True,https://companiesmarketcap.com/alphabet-google/marketcap/;https://stockanalysis.com/stocks/googl/market-cap/,high,"CMC 359.50; SA 359.98. All classes combined (GOOGL+GOOG after the Apr-2014 split), counted once.",False
+2014,6,Johnson & Johnson,JNJ,291.04,False,https://companiesmarketcap.com/johnson-and-johnson/marketcap/;https://stockanalysis.com/stocks/jnj/market-cap/,high,CMC 291.04; SA 292.70.,False
+2014,7,Wells Fargo,WFC,283.4,False,,medium,Estimate from recall: 54.82 x ~5.17bn sh. Not retrieved.,True
+2014,8,Walmart,WMT,276.7,False,,medium,Estimate from recall: 85.88 x ~3.22bn sh. Not retrieved.,True
+2014,9,General Electric,GE,254.14,False,https://companiesmarketcap.com/general-electric/marketcap/;https://stockanalysis.com/stocks/ge/market-cap/,high,CMC 254.14; SA 253.77 (true value).,False
+2014,10,Procter & Gamble,PG,245.98,False,https://companiesmarketcap.com/procter-and-gamble/marketcap/;https://stockanalysis.com/stocks/pg/market-cap/,medium,"CMC 245.98; SA 246.14. JPM (#11, ~233.4 est.) is about 5% behind.",False
+2014,11,JPMorgan Chase,JPM,233.4,False,,medium,Estimate from recall: 62.58 x ~3.73bn sh. Not retrieved.,True
+2014,12,Facebook (Meta),META,217.7,True,,medium,"Estimate from recall: 78.02 x ~2.79bn class A+B sh. Not retrieved. S&P member from 2013-12-23; use META.csv, not FB.csv.",True
+2014,13,Chevron,CVX,211.1,False,,medium,Estimate from recall: 112.18 x ~1.88bn sh. Not retrieved.,True
+2014,14,Oracle,ORCL,196.1,True,,low,Estimate from recall: 44.97 x ~4.36bn sh. Not retrieved. Tied with PFE (195.96) and VZ (194.36); order uncertain.,True
+2014,15,Pfizer,PFE,195.96,False,https://companiesmarketcap.com/pfizer/marketcap/;https://stockanalysis.com/stocks/pfe/market-cap/,medium,CMC 195.96; SA 196.27.,False
+2014,16,Verizon,VZ,194.36,False,https://companiesmarketcap.com/verizon/marketcap/;https://stockanalysis.com/stocks/vz/market-cap/,medium,CMC 194.36; SA 194.12 (share count up after the Vodafone buyout).,False
+2014,17,Bank of America,BAC,188.14,False,https://companiesmarketcap.com/bank-of-america/marketcap/,high,CMC 188.14; WallStreetNumbers ~188.,False
+2014,18,Coca-Cola,KO,184.5,False,,medium,Estimate from recall: 42.22 x ~4.37bn sh. Not retrieved.,True
+2014,19,AT&T,T,174.22,False,https://companiesmarketcap.com/att/marketcap/,medium,CMC 174.22 (true value; FinHacker is spin-distorted). Near-tied with Intel.,False
+2014,20,Intel,INTC,172.3,True,https://companiesmarketcap.com/intel/marketcap/;https://stockanalysis.com/stocks/intc/market-cap/,medium,"CMC 172.30; SA 175.46 (SA would put Intel above AT&T). Citigroup (#21, 163.9 SA) is 4.9% behind.",False
+2015,1,Apple,AAPL,583.67,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"FinHacker 583.67; FT/Wikipedia Q4 2015 598.3 (apparently an older, larger share count).",False
+2015,2,Alphabet,GOOGL,534.88,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"All share classes, counted once. FT 534.1.",False
+2015,3,Microsoft,MSFT,439.68,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 439.7.,False
+2015,4,Berkshire Hathaway,BRK-B,325.48,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,A+B combined. Near-tie with XOM (0.5%); FT has 323.8 vs XOM 325.2. Both are top 5 either way.,False
+2015,5,Exxon Mobil,XOM,323.96,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 325.2.,False
+2015,6,Amazon,AMZN,318.34,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 323.0.,False
+2015,7,Facebook,META,296.61,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"Traded as FB; the dataset file is META. Missing from the FT/Wikipedia Q4 2015 top 10 as returned, which looks like a gap in that table or the search summary.",False
+2015,8,General Electric,GE,292.16,False,https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Estimate from about 9.379bn shares after the Nov-2015 Synchrony split-off (recalled) x $31.15 close. FinHacker's 174.72 (#17) carries the spin adjustment (about 0.6x). FT/Wikipedia's 313.9 implies about 10.08bn shares, the count before the exchange. GE ranks #7-8 either way.",True
+2015,9,Johnson & Johnson,JNJ,284.23,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 287.2. FinHacker's J&J value shows no visible spin distortion (it implies about 2.77bn shares at $102.72).,False
+2015,10,Wells Fargo,WFC,276.8,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"FT 281.8. JPM (#11) is 12.6% lower, so the top-10 boundary is clear once GE is corrected.",False
+2015,11,JPMorgan Chase,JPM,241.87,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 245.1. #10 in FinHacker only because GE is understated there.,False
+2015,12,Procter & Gamble,PG,214.8,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,AT&T is 1.6% behind.,False
+2015,13,AT&T,T,211.4,False,,medium,"Missing from FinHacker's top 20 because its 2022 WarnerMedia spin adjustment (about 0.76x, judged from 2016) puts it near 160. Estimate from $34.41 close x about 6.145bn shares (recalled). Telecom carrier.",True
+2015,14,Pfizer,PFE,200.0,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker's 188.90 divided by 0.9446 (the 2020 Upjohn/Viatris spin factor) gives 200.0. Cross-check: $32.28 x about 6.18bn shares = 199.5.,True
+2015,15,Walmart,WMT,196.28,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2015,16,Verizon,VZ,188.25,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,Telecom carrier.,False
+2015,17,Coca-Cola,KO,185.76,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2015,18,Visa,V,184.88,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Whole company, as-converted (implies about 2.38bn class-A-equivalent shares at $77.55). On class A alone (about 151bn) Visa would drop out and CVX would enter. GICS IT at the time.",False
+2015,19,Bank of America,BAC,174.7,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,Near-tie with DIS (0.6%).,False
+2015,20,Walt Disney,DIS,173.7,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Rank-20 boundary: Chevron (169.39, FinHacker #20) is 2.5% behind, then HD about 166 and INTC about 163 (both recalled).",False
+2016,1,Apple,AAPL,608.92,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 617.6.,False
+2016,2,Alphabet,GOOGL,546.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"All classes, counted once. FT 532.0 (2.6% lower).",False
+2016,3,Microsoft,MSFT,483.14,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 483.2.,False
+2016,4,Berkshire Hathaway,BRK-B,401.91,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,A+B combined. FT 404.4.,False
+2016,5,Exxon Mobil,XOM,374.31,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 374.3.,False
+2016,6,Amazon,AMZN,356.3,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 356.3.,False
+2016,7,Facebook,META,331.57,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"Traded as FB; the dataset file is META. Missing from the FT/Wikipedia Q4 2016 top 10 as returned, which is inconsistent: 331.6 exceeds JNJ's 313.4, so this looks like a gap in the table or summary.",False
+2016,8,Johnson & Johnson,JNJ,313.49,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 313.4.,False
+2016,9,JPMorgan Chase,JPM,308.75,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 308.8.,False
+2016,10,Wells Fargo,WFC,276.76,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,low,FT 276.8. Effectively tied with GE (0.2% ahead on year-end share counts). On FT's share count GE is ahead instead. Either one could be #10.,False
+2016,11,General Electric,GE,276.27,False,https://www.sec.gov/Archives/edgar/data/40545/000004054517000010/ge10k2016.htm;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,low,"8,742,614,000 shares at 31 Dec 2016 (FY2016 10-K balance sheet/XBRL) x $31.60 close (recalled) = 276.27. FT/Wikipedia gives 279.55 (about 8.85bn shares, an older count), which would put GE #10 above WFC (as in the seed). FinHacker omits GE entirely (spin-adjusted to about 0.6x).",True
+2016,12,AT&T,T,261.1,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker shows 197.74 (#16), scaled by its 2022 WarnerMedia spin adjustment. Estimate from $42.53 close x about 6.14bn shares (recalled). Telecom carrier.",True
+2016,13,Procter & Gamble,PG,225.0,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"Ranks 13-15 (PG, BAC, CVX) are within 1.3% of each other.",False
+2016,14,Bank of America,BAC,223.43,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2016,15,Chevron,CVX,222.22,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2016,16,Verizon,VZ,217.63,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,Telecom carrier.,False
+2016,17,Walmart,WMT,212.43,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2016,18,Pfizer,PFE,197.7,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker's 186.78 divided by 0.9446 (Viatris spin factor) gives 197.7. Cross-check: $32.48 x about 6.07bn shares = 197.2.,True
+2016,19,Visa,V,180.46,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Whole company, as-converted. On class A alone (about 145bn) Visa would drop out and INTC would enter. GICS IT at the time.",False
+2016,20,Coca-Cola,KO,178.82,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Rank-20 boundary: Intel (171.88, FinHacker #20) is 3.9% behind. IBM (about 158) and Merck (about 162) are lower even after spin correction (recalled).",False
+2017,1,Apple,AAPL,860.96,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 868.88.,False
+2017,2,Alphabet,GOOGL,732.11,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"All classes, counted once. FT 727.04.",False
+2017,3,Microsoft,MSFT,659.94,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 659.91.,False
+2017,4,Amazon,AMZN,563.51,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 563.54.,False
+2017,5,Facebook,META,512.79,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,Traded as FB; the dataset file is META. FT 512.76.,False
+2017,6,Berkshire Hathaway,BRK-B,489.01,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,A+B combined. FT 489.49.,False
+2017,7,Johnson & Johnson,JNJ,375.43,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 375.36. Near-tie with JPM (1.2%).,False
+2017,8,JPMorgan Chase,JPM,371.08,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 371.05.,False
+2017,9,Exxon Mobil,XOM,354.38,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2017,10,Bank of America,BAC,307.89,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,Rank-10 boundary: WFC is 3.0% behind and WMT 5.0% behind.,False
+2017,11,Wells Fargo,WFC,298.74,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,,False
+2017,12,Walmart,WMT,292.53,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2017,13,Visa,V,256.77,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Whole company, as-converted. On class A alone (about 1.8bn shares x $114.02, about 205bn) Visa would fall below #20 and UNH would enter. GICS IT at the time.",False
+2017,14,AT&T,T,238.7,False,,medium,Missing from FinHacker's top 20 (spin-adjusted to about 181). Estimate from $38.88 close x about 6.14bn shares (recalled). Near-tie with CVX (0.4%). Telecom carrier.,True
+2017,15,Chevron,CVX,237.74,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2017,16,Procter & Gamble,PG,233.1,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2017,17,Home Depot,HD,221.37,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2017,18,Intel,INTC,216.03,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Ranks 18-21 (INTC, VZ, PFE, UNH) are within 1.1% of each other.",False
+2017,19,Verizon,VZ,215.9,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,Telecom carrier.,False
+2017,20,Pfizer,PFE,215.61,False,https://www.sec.gov/Archives/edgar/data/0000078003/000007800318000027/pfe-12312017x10kshell.htm;https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FY2017 10-K cover: 5,952,864,751 shares (20 Feb 2018) x $36.22 close (recalled) = 215.61. FinHacker 204.61 / 0.9446 = 216.6. UnitedHealth (213.64, FinHacker #19) is 0.9% behind at #21.",True
+2018,1,Microsoft,MSFT,780.36,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 780.52.,False
+2018,2,Apple,AAPL,746.11,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 748.68. Ranks 2-4 are within 2.6% of each other.,False
+2018,3,Amazon,AMZN,737.47,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 735.90.,False
+2018,4,Alphabet,GOOGL,726.77,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,"All classes, counted once. FT 728.36.",False
+2018,5,Berkshire Hathaway,BRK-B,502.49,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,A+B combined. FT 499.59.,False
+2018,6,Facebook,META,374.13,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,Traded as FB; the dataset file is META. FT 375.89.,False
+2018,7,Johnson & Johnson,JNJ,343.53,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 346.11.,False
+2018,8,JPMorgan Chase,JPM,319.8,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/;https://en.wikipedia.org/wiki/List_of_public_corporations_by_market_capitalization,high,FT 324.66.,False
+2018,9,Visa,V,289.21,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Whole company, as-converted (implies about 2.19bn class-A-equivalent shares at $131.94). Tied with XOM (0.1%). On class A alone (about 231bn) Visa would rank about #15 and WMT would enter the top 10. GICS IT at the time.",False
+2018,10,Exxon Mobil,XOM,288.92,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,Walmart (#11) is 6.3% behind.,False
+2018,11,Walmart,WMT,270.63,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2018,12,Pfizer,PFE,250.4,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker's 236.49 divided by 0.9446 (Viatris spin factor) gives 250.4. Cross-check: $43.65 x about 5.75bn shares (recalled) = about 251. That moves it above UNH and BAC.,True
+2018,13,UnitedHealth Group,UNH,239.16,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2018,14,Bank of America,BAC,238.24,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2018,15,Verizon,VZ,232.3,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,Telecom carrier.,False
+2018,16,Procter & Gamble,PG,229.98,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2018,17,Intel,INTC,211.94,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,The seed had WFC above INTC; FinHacker has INTC 0.4% ahead.,False
+2018,18,Wells Fargo,WFC,211.09,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,,False
+2018,19,AT&T,T,207.9,False,https://www.sec.gov/Archives/edgar/data/732717/000119312519045608/d705958d10k.htm,medium,"FY2018 10-K cover: 7,284,589,883 shares (12 Feb 2019) x $28.54 close (recalled) = 207.90. Missing from FinHacker's top 20 (spin-adjusted to about 157). Telecom carrier. Near-tie with CVX (0.4%).",True
+2018,20,Chevron,CVX,207.03,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"Rank-20 boundary: Coca-Cola (202.09, FinHacker #20) is 2.4% behind; Merck (about 198, recalled $76.41 x about 2.59bn shares) is 4.4% behind.",False
+2019,1,Apple,AAPL,1288.0,True,finhacker,high,"FinHacker value. Price 293.65 x 10-K share count (~4.44B) gives about 1,305.",False
+2019,2,Microsoft,MSFT,1200.0,True,finhacker,high,FinHacker value.,False
+2019,3,Alphabet,GOOGL,922.17,True,finhacker,high,"All share classes, counted once. Ranks 3 and 4 are 0.2% apart.",False
+2019,4,Amazon,AMZN,920.22,True,finhacker,high,FinHacker value.,False
+2019,5,Facebook,META,585.37,True,finhacker,high,"FinHacker value. Traded as FB. The dataset's FB.csv is an unrelated later ticker, so META is used.",False
+2019,6,Berkshire Hathaway,BRK-B,553.65,False,stockanalysis,high,"StockAnalysis value, A and B classes combined. FinHacker rank not retrieved.",False
+2019,7,JPMorgan Chase,JPM,429.9,False,JPM 2019 10-K;stockanalysis,high,Company 10-K gives 429.913. StockAnalysis gives 437.23.,False
+2019,8,Visa,V,405.19,True,stockanalysis;companiesmarketcap,high,"Whole company, as-converted. StockAnalysis 405.19, companiesmarketcap 416.79. GICS IT at the date.",False
+2019,9,Johnson & Johnson,JNJ,384.0,False,recall,medium,Estimate: price 145.87 x ~2.63B shares. Not sourced. The rank is safe: about 14% above #10 and 12% below #8.,True
+2019,10,Walmart,WMT,337.19,False,finhacker,high,FinHacker #10. #11 (BAC 316.81) is about 6% lower.,False
+2019,11,Bank of America,BAC,316.81,False,stockanalysis,medium,"StockAnalysis value. Price 35.22 x year-end 8.84B shares gives about 311, which ties P&G. Ranks 11 and 12 are uncertain.",False
+2019,12,Procter & Gamble,PG,312.0,False,recall,medium,Estimate: price 124.90 x ~2.50B shares.,True
+2019,13,Mastercard,MA,301.0,True,recall,medium,Estimate: price 298.59 x ~1.007B shares (A+B). GICS IT at the date.,True
+2019,14,Exxon Mobil,XOM,295.0,False,recall,medium,Estimate: price 69.78 x ~4.23B shares.,True
+2019,15,AT&T,T,285.5,False,stockanalysis,high,"True value from StockAnalysis (39.08 x ~7.3B shares). The FinHacker figure (~190.2) is distorted by the 2022 WarnerMedia spin adjustment, so AT&T is missing from FinHacker's top 20. Telecom carrier, so not tech.",False
+2019,16,UnitedHealth Group,UNH,279.0,False,recall,medium,Estimate: price 293.98 x ~0.948B shares.,True
+2019,17,Walt Disney,DIS,261.0,False,recall,medium,Estimate: price 144.63 x ~1.807B shares. Ranks 17 to 19 are within about 3%.,True
+2019,18,Intel,INTC,256.0,True,recall,medium,Estimate: price 59.85 x ~4.27B shares. Could swap with Verizon.,True
+2019,19,Verizon,VZ,253.95,False,finhacker,high,"FinHacker value (its #18, because it omits AT&T). Telecom carrier, so not tech.",False
+2019,20,Home Depot,HD,238.25,False,finhacker;stockanalysis,medium,"FinHacker 238.25, StockAnalysis 238.22. Coca-Cola at #21 (236.90 FinHacker, 237.15 StockAnalysis) is only 0.5% lower.",False
+2020,1,Apple,AAPL,2230.0,True,finhacker,high,"FinHacker about 2.23T. Other providers show up to about 2,255.",False
+2020,2,Microsoft,MSFT,1680.0,True,finhacker,high,FinHacker about 1.68T. Ranks 2 and 3 are within 3%.,False
+2020,3,Amazon,AMZN,1640.0,True,finhacker,high,FinHacker about 1.64T.,False
+2020,4,Alphabet,GOOGL,1180.0,True,finhacker,high,"FinHacker about 1.18T, all classes, counted once.",False
+2020,5,Facebook,META,778.0,True,finhacker,high,FinHacker about 778B. Traded as FB.,False
+2020,6,Tesla,TSLA,669.0,False,finhacker (rank only);recall,medium,"FinHacker #6, value not retrieved. Estimate: price 705.67 x ~948-960M shares = 669-677. StatMuse's 793.2 uses a later share count and is rejected. S&P 500 member from 2020-12-21. Not tech, per the rule.",True
+2020,7,Berkshire Hathaway,BRK-B,537.0,False,finhacker,high,FinHacker 537.0. Recall about 543.,False
+2020,8,Visa,V,466.7,True,stockanalysis;companiesmarketcap;finhacker (rank only),high,"StockAnalysis 466.70, companiesmarketcap 482.17. FinHacker #8. GICS IT at the date.",False
+2020,9,Johnson & Johnson,JNJ,414.3,False,stockanalysis;finhacker,high,"StockAnalysis 414.3, FinHacker 414.38.",False
+2020,10,Walmart,WMT,407.85,False,finhacker,high,FinHacker #10. 1.6% below J&J; JPM (#11) is 5.0% lower.,False
+2020,11,JPMorgan Chase,JPM,387.34,False,stockanalysis;JPM 2020 annual report;companiesmarketcap,high,"StockAnalysis 387.34, annual report 387.492, companiesmarketcap 387.33.",False
+2020,12,Mastercard,MA,355.0,True,recall,medium,Estimate: price 356.94 x ~0.994B shares (A+B). marketcapranked's 303.3 has an unclear date basis and is rejected. GICS IT at the date.,True
+2020,13,Procter & Gamble,PG,343.0,False,recall,medium,Estimate: price 139.14 x ~2.46B shares.,True
+2020,14,UnitedHealth Group,UNH,332.0,False,recall,medium,Estimate: price 350.68 x ~0.947B shares. Ranks 14-16 are within about 3%.,True
+2020,15,Walt Disney,DIS,329.0,False,recall,medium,Estimate: price 181.18 x ~1.814B shares.,True
+2020,16,Nvidia,NVDA,323.0,True,recall,medium,Estimate: pre-split price 522.20 x ~0.619B shares.,True
+2020,17,Home Depot,HD,286.0,False,recall,medium,Estimate: price 265.62 x ~1.077B shares.,True
+2020,18,PayPal,PYPL,274.0,True,recall,medium,Estimate: price 234.20 x ~1.172B shares. GICS IT at the date.,True
+2020,19,Bank of America,BAC,262.0,False,finhacker,high,"FinHacker #19, about 262.",False
+2020,20,Verizon,VZ,243.11,False,stockanalysis,medium,"StockAnalysis 243.11. FinHacker #20 was not retrieved. Its top-20 total (13.141T) minus the other 19 leaves about 243-249, consistent with Verizon. Netflix, Adobe and Comcast are within 1.5%. Telecom carrier, so not tech.",False
+2021,1,Apple,AAPL,2902.0,True,finhacker,high,FinHacker 2.902T.,False
+2021,2,Microsoft,MSFT,2522.0,True,finhacker,high,FinHacker 2.522T.,False
+2021,3,Alphabet,GOOGL,1920.0,True,finhacker (rank only);recall,high,"FinHacker #3, value not retrieved. Estimate: ~2,895 x ~663M shares, all classes, counted once.",True
+2021,4,Amazon,AMZN,1691.0,True,finhacker (rank only);recall,high,FinHacker #4. Estimate: price 3334.34 x ~507M shares.,True
+2021,5,Tesla,TSLA,1061.0,False,finhacker (rank only);recall,high,"FinHacker #5. Estimate: price 1056.78 x ~1.004B shares; up to about 1,090 on the Jan-2022 share count. Not tech, per the rule.",True
+2021,6,Meta Platforms,META,936.0,True,finhacker (rank only);recall,high,FinHacker #6. Estimate: price 336.35 x ~2.78B shares. Still traded as FB.,True
+2021,7,Nvidia,NVDA,735.0,True,finhacker (rank only);recall,high,FinHacker #7. Estimate: price 294.11 x ~2.50B shares.,True
+2021,8,Berkshire Hathaway,BRK-B,667.0,False,finhacker (rank only);recall,high,"FinHacker #8. Estimate: BRK.A 450,662 x ~1.48M A-equivalent shares.",True
+2021,9,UnitedHealth Group,UNH,472.94,False,stockanalysis;finhacker (rank only),high,StockAnalysis 472.94. FinHacker #9.,False
+2021,10,JPMorgan Chase,JPM,467.97,False,stockanalysis;marketcaplens;finhacker (rank only),medium,"StockAnalysis 467.97, MarketCapLens 471.41, FinHacker #10. Visa is only 2.4% below on StockAnalysis and slightly above on companiesmarketcap (469.42).",False
+2021,11,Visa,V,456.88,True,stockanalysis;companiesmarketcap,medium,"StockAnalysis 456.88, companiesmarketcap 469.42. Ranks 10 and 11 could swap. GICS IT at the date.",False
+2021,12,Johnson & Johnson,JNJ,450.36,False,stockanalysis,high,StockAnalysis 450.36. StatMuse's 399.9 uses a Kenvue/dividend-adjusted price and is rejected.,False
+2021,13,Home Depot,HD,434.0,False,recall,medium,Estimate: price 415.01 x ~1.045B shares.,True
+2021,14,Walmart,WMT,401.0,False,recall,medium,Estimate: price 144.69 x ~2.77B shares.,True
+2021,15,Procter & Gamble,PG,392.0,False,recall,medium,Estimate: price 163.58 x ~2.40B shares.,True
+2021,16,Bank of America,BAC,359.0,False,recall,medium,Estimate: price 44.49 x ~8.08B shares.,True
+2021,17,Mastercard,MA,351.0,True,recall,medium,Estimate: price 359.32 x ~0.977B shares (A+B). GICS IT at the date.,True
+2021,18,Pfizer,PFE,331.0,False,recall,medium,"Estimate: price 59.05 x ~5.61B shares. Undistorted, as this is after the Viatris spin.",True
+2021,19,Walt Disney,DIS,281.5,False,recall,medium,Estimate: price 154.89 x ~1.818B shares. About 2.5% above Broadcom.,True
+2021,20,Broadcom,AVGO,274.75,True,finhacker;stockanalysis,high,"FinHacker #20 at 274.75; StockAnalysis 274.73. Adobe (#21, 269.81) is 1.8% lower.",False
+2022,1,Apple,AAPL,2067.0,True,https://www.spglobal.com/market-intelligence/en/news-insights/articles/2023/1/s-p-500-s-top-10-stocks-lose-37-of-market-cap-in-2022-amid-tech-decline-73827612,high,"S&P Global: $2.067T at year-end 2022, largest constituent.",False
+2022,2,Microsoft,MSFT,1786.0,True,,high,Recall: close 239.82 x ~7.447B shares. Rank not in doubt.,True
+2022,3,Alphabet,GOOGL,1133.0,True,,high,Recall: GOOGL 88.23 x (A 5.956B + B 0.883B) + GOOG 88.73 x C 5.968B. Counted once. GFD says Alphabet kept its rank.,True
+2022,4,Amazon,AMZN,857.0,True,,high,Recall: close 84.00 x ~10.20B shares.,True
+2022,5,Berkshire Hathaway,BRK-B,676.0,False,,high,"Recall: A+B combined (BRK-B 308.90, BRK-A ~468,711).",True
+2022,6,UnitedHealth Group,UNH,495.0,False,,high,Recall: close 530.18 x ~0.934B shares.,True
+2022,7,Johnson & Johnson,JNJ,462.0,False,https://globalfinancialdata.com/the-decline-of-the-top-ten-stocks-in-2022,high,"Recall: close 176.65 x ~2.614B shares (pre-Kenvue, true unadjusted value). GFD confirms J&J entered the top 10. FinHacker's own 2022 J&J value (could be understated by the 2023 Kenvue adjustment) was not retrievable.",True
+2022,8,Exxon Mobil,XOM,454.0,False,https://globalfinancialdata.com/the-decline-of-the-top-ten-stocks-in-2022,high,Recall: close 110.30 x ~4.118B shares. GFD: biggest gainer among the top ten.,True
+2022,9,Visa,V,428.34,True,https://public.com/stocks/v/market-cap,high,public.com end-2022 value. GICS IT at the date (moved to Financials March 2023). GFD: Visa entered the top 10.,False
+2022,10,JPMorgan Chase,JPM,393.0,False,https://public.com/stocks/jpm/market-cap,medium,public.com end-2022 about $393B (close 134.10 x ~2.93B). Only about 1% above Tesla: top-10 boundary.,False
+2022,11,Tesla,TSLA,389.0,False,https://public.com/stocks/tsla/market-cap,medium,public.com end-2022 about $389B (tickerleague's $428B uses another date/share basis). S&P Global says Tesla fell out of the top 10. Not tech per rule.,False
+2022,12,Walmart,WMT,382.0,False,,medium,Recall: close 141.79 x ~2.696B shares (pre-2024 split).,True
+2022,13,Nvidia,NVDA,360.0,True,,medium,Recall: close 146.14 x ~2.466B shares. Effectively tied with P&G.,True
+2022,14,Procter & Gamble,PG,358.0,False,,medium,Recall: close 151.56 x ~2.359B shares.,True
+2022,15,Eli Lilly,LLY,348.0,False,,medium,Recall: close 365.84 x ~0.95B shares. Tied with Chevron.,True
+2022,16,Chevron,CVX,347.0,False,,medium,Recall: close 179.49 x ~1.935B shares.,True
+2022,17,Mastercard,MA,332.0,True,,medium,Recall: close 347.73 x ~0.955B shares (A+B). GICS IT at the date.,True
+2022,18,Home Depot,HD,322.0,False,,medium,Recall: close 315.86 x ~1.019B shares.,True
+2022,19,Meta Platforms,META,315.0,True,,medium,Recall: close 120.34 x ~2.62B shares (A+B). Ticker FB->META June 2022.,True
+2022,20,Pfizer,PFE,287.61,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,"FinHacker row 'Pfizer 287.61B' (matches 51.24 x 5.61B at end-2022; post-Viatris, so no spin distortion). Snippet year label was jumbled. AbbVie (~286, est.) is only 0.6% lower and Merck (~282) 2% lower: #20 boundary.",False
+2023,1,Apple,AAPL,2990.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker ~2.99T (snippet rounded); recall 192.53 x 15.55B = 2994.,False
+2023,2,Microsoft,MSFT,2800.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker ~2.80T (rounded); recall 376.04 x 7.43B = 2794.,False
+2023,3,Alphabet,GOOGL,1760.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker ~1.76T, all classes; recall 1753. Counted once.",False
+2023,4,Amazon,AMZN,1570.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker ~1.57T.,False
+2023,5,Nvidia,NVDA,1220.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker ~1.22T.,False
+2023,6,Meta Platforms,META,909.6,True,https://manifold.markets/mattyb/how-many-trillion-dollar-companies-4d34ab22cab5,medium,Manifold thread ~$909.62B (date not explicit); recall 353.96 x 2.56B = 906.,False
+2023,7,Tesla,TSLA,790.0,False,,medium,Recall: close 248.48 x ~3.18B. Within ~1-2% of Berkshire (order only).,True
+2023,8,Berkshire Hathaway,BRK-B,780.0,False,,medium,Recall: A+B combined (BRK-B 356.66 x ~2.18B B-equivalents).,True
+2023,9,Eli Lilly,LLY,553.0,False,,high,Recall: close 582.92 x ~0.949B.,True
+2023,10,Visa,V,523.33,False,https://public.com/stocks/v/market-cap,low,public.com end-2023 $523.33B (implies ~2.01B shares). A full as-converted count (~2.06B: A + B x1.5875 + C x4 + preferred) gives ~536B. Tied with Broadcom on the top-10 boundary. Tech=false (GICS Financials since March 2023).,False
+2023,11,Broadcom,AVGO,522.0,True,https://public.com/stocks/avgo/market-cap,low,Estimate: close 1116.25 x ~0.467B post-VMware shares (Nov 2023). public.com's $462.13B uses the pre-deal ~414M shares and is understated. Could be #10 instead of Visa.,True
+2023,12,JPMorgan Chase,JPM,492.0,False,https://public.com/stocks/jpm/market-cap,high,public.com end-2023 ~$492B. Within ~1% of UNH (order only).,False
+2023,13,UnitedHealth Group,UNH,487.0,False,,medium,Recall: close 526.47 x ~0.925B.,True
+2023,14,Walmart,WMT,424.0,False,,medium,Recall: close 157.65 x ~2.69B (pre-split).,True
+2023,15,Mastercard,MA,399.0,False,,medium,Recall: close 426.51 x ~0.936B. Tech=false (GICS Financials since March 2023).,True
+2023,16,Exxon Mobil,XOM,396.0,False,,medium,Recall: close 99.98 x ~3.96B (pre-Pioneer).,True
+2023,17,Johnson & Johnson,JNJ,377.0,False,,medium,Recall: close 156.74 x ~2.407B (after the Aug 2023 Kenvue exchange).,True
+2023,18,Procter & Gamble,PG,345.39,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker #18 345.39B.,False
+2023,19,Home Depot,HD,344.91,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker #19 344.91B.,False
+2023,20,Costco,COST,292.9,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,"FinHacker #20 292.90B. Oracle (~290, est.) is ~1% lower.",False
+2024,1,Apple,AAPL,3766.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker 3.766T.,False
+2024,2,Nvidia,NVDA,3289.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker 3.289T.,False
+2024,3,Microsoft,MSFT,3134.0,True,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,high,FinHacker 3.134T.,False
+2024,4,Alphabet,GOOGL,2310.0,True,,high,"Recall: GOOGL 189.30 x (A+B 6.69B) + GOOG 190.44 x 5.48B. Tied with Amazon (order uncertain, both top 5).",True
+2024,5,Amazon,AMZN,2307.0,True,,high,Recall: close 219.39 x ~10.515B.,True
+2024,6,Meta Platforms,META,1477.0,True,,high,Recall: close 585.51 x ~2.523B.,True
+2024,7,Tesla,TSLA,1299.0,False,https://voronoiapp.com/markets/-Top-10-Stocks-Command-39-of-SP-500-Market-Cap-in-2024-3437,high,Recall: close 403.84 x ~3.216B. Voronoi top-10 member.,True
+2024,8,Broadcom,AVGO,1087.0,True,https://voronoiapp.com/markets/-Top-10-Stocks-Command-39-of-SP-500-Market-Cap-in-2024-3437,high,Recall: close 231.84 x ~4.69B.,True
+2024,9,Berkshire Hathaway,BRK-B,978.0,False,https://voronoiapp.com/markets/-Top-10-Stocks-Command-39-of-SP-500-Market-Cap-in-2024-3437,high,Recall: A+B combined (BRK-B 453.28 x ~2.157B B-equivalents).,True
+2024,10,Eli Lilly,LLY,732.0,False,https://voronoiapp.com/markets/-Top-10-Stocks-Command-39-of-SP-500-Market-Cap-in-2024-3437,medium,"Recall: close 772.00 x ~0.948B (cover-page shares). Voronoi lists Lilly, not Walmart, in the 2024 top 10. Only ~1% above Walmart.",True
+2024,11,Walmart,WMT,726.0,False,,medium,Recall: close 90.35 x ~8.03B. Within ~1% of #10.,True
+2024,12,JPMorgan Chase,JPM,675.0,False,https://public.com/stocks/jpm/market-cap,high,public.com end-2024 ~$675B.,False
+2024,13,Visa,V,616.0,False,,medium,Recall: close 316.04 x ~1.95B as-converted (whole company). GICS Financials.,True
+2024,14,Mastercard,MA,483.0,False,,medium,Recall: close 526.57 x ~0.9175B. GICS Financials.,True
+2024,15,Exxon Mobil,XOM,473.0,False,,medium,Recall: close 107.57 x ~4.395B (post-Pioneer).,True
+2024,16,Oracle,ORCL,467.0,True,,medium,Recall: close 166.64 x ~2.80B. Within ~1% of UNH (order only).,True
+2024,17,UnitedHealth Group,UNH,462.86,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker row 462.86B (year label unclear in snippet; matches 505.86 x ~0.915B at end-2024).,False
+2024,18,Costco,COST,406.73,False,https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/,medium,FinHacker row 406.73B (year label unclear; matches 916.27 x 0.4439B at end-2024).,False
+2024,19,Procter & Gamble,PG,395.0,False,,medium,Recall: close 167.65 x ~2.355B.,True
+2024,20,Home Depot,HD,386.41,False,https://public.com/stocks/hd/market-cap;https://tradersunion.com/currencies/price-history/hd-usd/,medium,"public.com $386.41B, tradersunion $385.49B. Netflix (~381, est. 891.32 x 0.4278B) is ~1.3% lower.",False
+2025,1,Nvidia,NVDA,4532.0,True,,high,Recall: close ~186.50 x ~24.3B. Fool's 'Nvidia $4.24T' was not a year-end figure.,True
+2025,2,Apple,AAPL,4018.0,True,,high,Recall: close ~271.86 x ~14.78B.,True
+2025,3,Alphabet,GOOGL,3780.0,True,,medium,Recall: GOOGL ~313 x ~12.07B all classes. Counted once. Ahead of Microsoft by ~5%.,True
+2025,4,Microsoft,MSFT,3594.0,True,,high,Recall: close ~483.62 x ~7.43B.,True
+2025,5,Amazon,AMZN,2467.0,True,,high,Recall: close ~230.82 x ~10.69B.,True
+2025,6,Meta Platforms,META,1663.0,True,,medium,Recall: close ~660.09 x ~2.52B. Within ~2% of Broadcom (order only).,True
+2025,7,Broadcom,AVGO,1634.0,True,,medium,Recall: close ~346.10 x ~4.72B.,True
+2025,8,Tesla,TSLA,1500.0,False,https://public.com/stocks/tsla/market-cap,high,public.com end-2025 $1.50T (tickerleague $1.59T on another basis). Implies ~3.33B shares at ~449.72.,False
+2025,9,Berkshire Hathaway,BRK-B,1084.0,False,,high,Recall: A+B combined (BRK-B ~502.65 x ~2.157B B-equivalents).,True
+2025,10,Eli Lilly,LLY,1016.0,False,,high,Recall: close ~1074.68 x ~0.9455B (crossed $1T in Nov 2025). ~14% above #11.,True
+2025,11,Walmart,WMT,888.0,False,,medium,Recall: close ~111.41 x ~7.97B. Listing moved to Nasdaq Dec 2025. Within ~1.5% of JPM (order only).,True
+2025,12,JPMorgan Chase,JPM,876.0,False,,medium,Recall: close ~322.22 x ~2.72B.,True
+2025,13,Visa,V,677.0,False,,medium,Recall: close ~350.71 x ~1.93B as-converted. GICS Financials.,True
+2025,14,Oracle,ORCL,560.0,True,,medium,Recall: close ~194.91 x ~2.87B.,True
+2025,15,Mastercard,MA,513.0,False,,medium,Recall: close ~570.85 x ~0.90B. GICS Financials.,True
+2025,16,Exxon Mobil,XOM,507.0,False,,medium,Recall: close ~120.34 x ~4.21B.,True
+2025,17,Johnson & Johnson,JNJ,499.0,False,,medium,Recall: close ~206.95 x ~2.41B.,True
+2025,18,Palantir Technologies,PLTR,421.0,True,,medium,Recall: close ~177.75 x ~2.37B. S&P member since 2024-09-23.,True
+2025,19,AbbVie,ABBV,403.83,False,https://public.com/stocks/abbv/market-cap;https://www.marketscreener.com/quote/stock/ABBVIE-INC-12136589/valuation/,medium,public.com and MarketScreener both $403.83B at end-2025. Tied with BAC.,False
+2025,20,Bank of America,BAC,403.0,False,https://marketchameleon.com/Overview/BAC/VwapTable/AfterHours,low,"Estimate: Market Chameleon $411.69B at $56.17 (Dec 26, 2025, ~7.33B shares), scaled to a ~$55.00 year-end close = ~403. One aggregator lists $410.6B (higher share count). Netflix (397.29) is ~1.5% lower.",True
