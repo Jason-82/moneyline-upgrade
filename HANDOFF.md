@@ -641,6 +641,34 @@ Pre-registered (`analysis_2026/SPLIT_DELAY_PREREG.md`) and audited; FINDINGS 202
   - Consistent with 5.15. These are reference rows, not pre-registered candidates.
 - **Crypto:** immediate 1.071, split 0.976, confirm5 0.812. Keep split or immediate.
 
+### 5.21 Buying mega-caps after a 25% drop — `analysis_2026/megacap_dip.py`
+
+Pre-registered (`analysis_2026/MEGACAP_DIP_PREREG.md`) and audited by six lenses; FINDINGS 2026-10-30 has the tables.
+
+- **Rule tested.** Buy the next open after a stock closes 25% below its 52-week high; hold 366 days; compare with SPY.
+  - Universes: the top 10 / top 20 S&P 500 members by market cap at the prior year-end (point-in-time lists for
+    1995-2025, compiled and price-checked, `results_megacap_dip/topcap_lists.csv`), and every S&P 500 member.
+- **All three primary tests fail.**
+
+  | | arithmetic | compounded | p |
+  |---|---|---|---|
+  | top 10 | +0.98%/yr | −1.38 | 0.37 |
+  | top 20 | −4.07%/yr | | 0.89 |
+  | all members | −0.21%/yr | | 0.54 |
+
+  - The top-10 sign flips with knife-edge list calls: −2.9 to +2.8 across 512 resolutions.
+  - Buying the same stocks on random days did as well as the dips.
+  - 10-slot portfolio after tax: 8.2% / 6.3% / 4.7% vs SPY's 9.7%. Maximum drawdown −66% to −76% vs −55%.
+- **Today's Mag 7 (hindsight): +25%/yr.** Holding them all the time gives +21%/yr and random entries do as well, so it
+  is survivorship. The rule bought Lucent, AOL, Cisco and Intel in 2000, and Citigroup, AIG, BofA and GE in 2007-08.
+- **Index dips:** after a 25% drawdown the S&P 500's next 12 months are no better than any 12 months (+13.5% vs
+  +12.1%).
+- **Lead, not result.** Holding 2.5-5 years: top 10 +5 to +6%/yr, nominal p about 0.01. This is not pre-registered,
+  the grid reality check gives p 0.095, it rests on the 1996 MSFT trade, and list coin tosses move it. It needs a new
+  pre-registration and unseen data (mega-caps before 1995 or outside the US, or a forward test).
+- **Data caveat:** U3 lacks most companies that died by 2001 (coverage 342/499 in 1996; complete from 2002). T3 on
+  2002-2026: −0.33%/yr.
+
 ### 5.9 Costs, vehicle and tax — `costs.py`, `gate.py`
 
 CAGR edge vs B&H, full history; B&H pays the cost once.
@@ -867,6 +895,7 @@ CAGR edge vs B&H, full history; B&H pays the cost once.
 | `analysis_2026/split_delay.py`, `analysis_2026/results_split_delay/`, `analysis_2026/SPLIT_DELAY_PREREG.md` | Split-mode second-tranche delay sweep (section 5.20). Takes about 6 min on 4 workers. Daily basket returns (`basket_returns_P*.csv.gz`) are regenerated, not committed. |
 | `agentic/`, `.claude/settings.json`, `.claude/commands/moneyline.md`, `analysis_2026/results_agentic_modes/` | Execution of the MoneyLine on the Robinhood Agentic account (section 8): signals, data feeds, planner, Claude Code safety hooks, `/moneyline` command; `python3 -m agentic --help`; tests `python3 -m pytest tests/test_agentic_*.py -q`. State in `private/agentic/` (gitignored). |
 | `analysis_2026/larsson.py`, `analysis_2026/results_larsson/`, `analysis_2026/LARSSON_PREREG.md` | Larsson Line (EMA32/58) long-history study (section 5.19): S&P 500 1929-2026 and the pre-1928 Dow, 13 ETFs, 21 coins, point-in-time S&P and crypto top-20 baskets (daily-rebalanced and held), old MoneyLine and SMA200 comparators, realisation-based tax via `sso_gold.simulate`. `python3 -m analysis_2026.larsson` (about 30 min). Uses `data/sso_gold/`, `data/etf/`, `data/crypto_4h/`, `data/crypto_binance/` and `data/universe_pit_all/` (all gitignored). |
+| `analysis_2026/megacap_dip.py`, `analysis_2026/megacap_lists.py`, `analysis_2026/results_megacap_dip/`, `analysis_2026/MEGACAP_DIP_PREREG.md` | Mega-cap dip study (section 5.21): buy a top-10/top-20 or any S&P 500 stock after a 25% drop, calendar-time dip book vs SPY, 10-slot portfolio with lot-level tax, placebo, grid with reality check, list coin tosses, hold-length curve. `python3 -m analysis_2026.megacap_dip --dv-parquet <Johnbrick prices.parquet>` (about 10 min). Year-end top-20 market-cap lists 1995-2025 with sources (`topcap_lists.csv`, `topcap_sources.json`) and checker flags with resolutions (`megacap_lists.py check`). Uses `data/universe_pit_all/`, `data/sso_gold/` and `data/etf/QQQ.csv` (gitignored). |
 | `analysis_2026/theory_strategies.py`, `analysis_2026/results_theory/`, `analysis_2026/THEORY_PREREG.md` | Ten theory-driven strategies S1-S10 (section 5.16), run with `python3 analysis_2026/theory_strategies.py` (about 2 min). Needs `data/ff/ff3_daily.csv`: Ken French daily FF3 + Mom 1926-2026, built from the GitHub mirror ZachTheAnalyst/trend-following-crash-insurance. It also uses `data/etf/`, `data/universe_pit_all/`, `data/crypto_binance/` and `data/crypto_funding/` (all gitignored). |
 | `analysis_2026/results_strictness/` | Strictness-study outputs, audited v3: per-window rows (incl. picks) and chained tables for development, holdout A and forward B; calibration rows. |
 | `analysis_2026/FINDINGS.md` | Chronological log (see the audit-correction sections at the end). |
