@@ -20,19 +20,30 @@ def make_D(stocks, spy_close=None, start="1995-01-02", end="1999-12-31"):
 
 def test_crossings_one_event_per_decline_and_rearm():
     dd = np.array([np.nan, 0, -0.1, -0.26, -0.3, -0.2, -0.27, 0.0, -0.1, -0.25, -0.4])
-    assert M.crossings(dd, 0.25) == [3, 9]          # -0.27 at 6 is the same decline; re-armed at the new high (7)
+    assert M.crossings(dd, 0.25, first=0) == [3, 9]  # -0.27 at 6 is the same decline; re-armed at the new high (7)
 
 
-def test_crossings_first_valid_bar_never_triggers():
-    dd = np.array([np.nan, np.nan, -0.3, -0.35, 0.0, -0.26])
-    assert M.crossings(dd, 0.25) == [5]
+def test_crossings_before_first_disarm_without_event():
+    # crossed at bar 3, before triggers are allowed (first=5): the same decline gives no event at bar 6
+    dd = np.array([0.0, -0.1, -0.2, -0.3, -0.2, -0.2, -0.3, 0.0, -0.1, -0.3])
+    assert M.crossings(dd, 0.25, first=5) == [9]     # only the next decline, after the new high at bar 7
 
 
-def test_drawdown_needs_252_bars():
+def test_drawdown_uses_loaded_bars_before_252():
     c = pd.Series(np.linspace(100, 50, 300))
     dd, peak = M.drawdown(c, "52w")
-    assert np.isnan(dd[:251]).all() and not np.isnan(dd[251])
-    assert dd[299] == pytest.approx(50 / c.iloc[299 - 251] - 1)
+    assert not np.isnan(dd).any()
+    assert dd[100] == pytest.approx(c.iloc[100] / 100 - 1)           # expanding high before the window is full
+    assert dd[299] == pytest.approx(c.iloc[299] / c.iloc[299 - 251] - 1)
+
+
+def test_decline_crossed_in_warmup_never_triggers():
+    n = 1300
+    c = np.full(n, 100.0)
+    c[100:] = 70.0                                   # crossed at bar 100, before the 252-bar warm-up ends
+    c[600:] = 72.0                                   # still the same decline later (the rolling high has fallen to 70,
+    D = make_D({"AAA": (c.copy(), c.copy())})        # so 70 -> 72 is a new 52-week high: re-armed, but no new drop)
+    assert M.find_events(D, M.Universe("always", syms=["AAA"])) == []
 
 
 def flat_then_drop(n, drop_at, level=100.0, low=70.0):
@@ -155,3 +166,33 @@ def test_tax_netting_and_carry():
     ev = M.find_events(D, U)
     v, after, _, _ = M.slot_portfolio(D, ev, tax=True)
     assert after == pytest.approx(v.iloc[-1])        # only losses: no tax at all
+
+
+def test_long_term_needs_more_than_a_year():
+    assert not M.long_term(pd.Timestamp("1999-06-01"), pd.Timestamp("2000-06-01"))   # the anniversary: short-term
+    assert M.long_term(pd.Timestamp("1999-06-01"), pd.Timestamp("2000-06-02"))
+
+
+def test_leap_year_366_day_exit_is_short_term():
+    n = 1800
+    o, c = flat_then_drop(n, 1150)                    # entry mid-1999: entry + 366 days is the 2000 anniversary
+    c2 = c.copy(); c2[1151:] = 84.0
+    D = make_D({"AAA": (o, c2)}, end="2001-12-31")
+    ev = M.find_events(D, M.Universe("always", syms=["AAA"]))
+    df = D["data"]["AAA"]
+    j = ev[0]["i"] + 1
+    k = M.exit_index(df, j, M.HOLD)
+    assert df.index[k] == df.index[j] + pd.DateOffset(years=1)
+    _, after, _, _ = M.slot_portfolio(D, ev, tax=True)
+    proceeds = 0.1 * (1 - M.COST) * (84.0 / 70.0) * (1 - M.COST)
+    assert after == pytest.approx(0.9 + proceeds - M.ST_RATE * (proceeds - 0.1))
+    assert M.exit_index(df, j, "anniv") == k + 1      # the variant sells the next day: long-term
+
+
+def test_duplicate_predecessor_detected():
+    days = pd.bdate_range("1996-01-01", periods=300)
+    rng = np.random.default_rng(1)
+    base = pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0, 0.01, 300))}, index=days)
+    other = pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0, 0.01, 300))}, index=days)
+    raw = {"XYZ": base, "XYZ-199811": base * 1.7, "ABC": base, "ABC-199901": other}
+    assert set(M.duplicate_predecessors(raw)) == {"XYZ-199811"}

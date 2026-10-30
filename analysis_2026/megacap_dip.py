@@ -16,6 +16,19 @@ sits in SPY until the open). Costs 0.03% per side.
 
 Data (gitignored): data/universe_pit_all/ (point-in-time S&P 500 incl. failed companies, total-return OHLC, SPY,
 members.csv), data/sso_gold/ (T-bills and the S&P 500 since 1928), data/etf/QQQ.csv.
+
+Audit fixes (2026-10-30, after the first full run; FINDINGS.md lists each with its effect):
+- arming starts from the first loaded bar, so a decline that crossed -25% before a stock's 252nd bar gives no event
+  later (the first run started every stock armed);
+- predecessor price files that carry their successor's prices are dropped (C-199811, BAC-199809, WFC-199811, ...);
+- 10-slot portfolio: an entry gets what SPY is left instead of being skipped (taxed and untaxed runs now take the same
+  trades); long-term means sold after the one-year anniversary; carried losses keep their character; tax that cannot
+  be paid stays owed; SPY buy & hold starts at the same close;
+- U6 uses members on 1996-01-02 for 1996 and counts Alphabet once;
+- the reality check uses 10,000 draws;
+- reporting: compounded excess next to the arithmetic one, U3 coverage, T3 on 2002-2026, year-clustered event CIs,
+  held universes for U3 and U5, and a robustness section (literal entry, anniversary exit, list coin tosses, hold
+  length). The corrected lists (AIG #10 at end-2006, Royal Dutch #19 at end-2001) come from megacap_lists.CORRECTIONS.
 """
 from __future__ import annotations
 
@@ -41,7 +54,7 @@ LOOK = 252
 HOLD = 366                      # calendar days: first close at least this long after entry
 BLOCK = 250
 N_BOOT = 10_000
-N_RC = 2_000
+N_RC = 10_000                   # audit: the pre-registration says "the same stationary bootstrap" (first run 2,000)
 SEED = 20261030
 MAG7 = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"]
 COINED = pd.Timestamp("2023-04-01")
@@ -58,12 +71,33 @@ ST_RATE, LT_RATE = 0.35, 0.20
 
 # ------------------------------------------------------------------ data
 
+def duplicate_predecessors(raw, min_corr=0.9, min_days=60):
+    """Predecessor files (SYMBOL-YYYYMM) whose daily returns track the current SYMBOL file (correlation > min_corr over
+    the overlap): they carry the successor's prices (audit: C-199811 holds Travelers', BAC-199809 NationsBank's)."""
+    import re
+    out = {}
+    for s in raw:
+        m = re.match(r"^(.+)-(\d{6})$", s)
+        if not m or m.group(1) not in raw:
+            continue
+        a, b = raw[s].close.pct_change(), raw[m.group(1)].close.pct_change()
+        j = pd.concat([a, b], axis=1, sort=True).dropna()
+        j = j[(j.iloc[:, 0] != 0) | (j.iloc[:, 1] != 0)]
+        if len(j) >= min_days:
+            c = float(j.corr().iloc[0, 1])
+            if c > min_corr:
+                out[s] = f"tracks {m.group(1)} (correlation {c:.3f} over {len(j)} days)"
+    return out
+
+
 def load_data():
-    """Point-in-time S&P 500 OHLC (quality-filtered as in split_delay), SPY on the common calendar, T-bills."""
+    """Point-in-time S&P 500 OHLC (quality-filtered as in split_delay), SPY on the common calendar, T-bills.
+    Predecessor files that duplicate their successor's prices are dropped (audit fix)."""
     from screener.data import from_csv_folder, quality_filter
     from analysis_2026.sso_gold import base_daily
     raw = from_csv_folder(PIT)
-    sp, dropped = quality_filter(raw, keep_collapsed=True)
+    dups = duplicate_predecessors(raw)
+    sp, dropped = quality_filter({k: v for k, v in raw.items() if k not in dups}, keep_collapsed=True)
     spy = raw["SPY"][["open", "close"]].astype(float)
     data = {k: v[["open", "close"]].astype(float) for k, v in sp.items() if k != "SPY" and len(v) > LOOK}
     end = min(spy.index[-1], max(v.index[-1] for v in data.values()))
@@ -73,7 +107,7 @@ def load_data():
     rc = b["r_cash"].reindex(cal).fillna(0.0)
     mem = pd.read_csv(PIT / "members.csv", parse_dates=["start", "end"])
     mem["symbol"] = mem.symbol.str.upper()
-    return dict(data=data, spy=spy, cal=cal, rc=rc, mem=mem, base=b, dropped=dropped, end=end)
+    return dict(data=data, spy=spy, cal=cal, rc=rc, mem=mem, base=b, dropped=dropped, end=end, dups=dups)
 
 
 def load_lists(data):
@@ -104,9 +138,13 @@ def dollar_volume_universe(parquet, mem, years, k=10):
     d["dv"] = d.close * d.volume
     piv = d.pivot_table(index="date", columns="ticker", values="dv", aggfunc="last").sort_index()
     out, info = {}, []
+    first = mem.start.min()
     for y in years:
         jan1 = pd.Timestamp(f"{y}-01-01")
-        m = mem[(mem.start <= jan1) & (mem.end.isna() | (mem.end >= jan1))].symbol.unique()
+        day = max(jan1, first)          # audit fix: members.csv starts 1996-01-02, so 1996 had no members
+        m = mem[(mem.start <= day) & (mem.end.isna() | (mem.end >= day))].symbol.unique()
+        if "GOOGL" in m:                # audit fix: Alphabet once, as in the lists
+            m = m[m != "GOOG"]
         hist = piv[piv.index < jan1].iloc[-LOOK:]
         cols = [s for s in m if s in hist.columns]
         med = hist[cols].median(skipna=True)
@@ -120,24 +158,25 @@ def dollar_volume_universe(parquet, mem, years, k=10):
 # ------------------------------------------------------------------ events and positions
 
 def drawdown(close, ref="52w"):
-    """close / reference high - 1; NaN until LOOK bars of history."""
+    """close / reference high - 1 on every bar. Before LOOK bars the reference is the high of the bars loaded so far
+    (the rolling window is not full yet); find_events only lets a stock trigger from its LOOK-th bar."""
     c = close.to_numpy(float)
     if ref == "52w":
-        peak = close.rolling(LOOK, min_periods=LOOK).max().to_numpy()
+        peak = close.rolling(LOOK, min_periods=1).max().to_numpy()
     elif ref == "63d":
-        peak = close.rolling(63, min_periods=63).max().to_numpy()
+        peak = close.rolling(63, min_periods=1).max().to_numpy()
     elif ref == "ath":
         peak = np.maximum.accumulate(c)
     else:
         raise ValueError(ref)
-    dd = c / peak - 1
-    dd[:LOOK - 1] = np.nan
-    return dd, peak
+    return c / peak - 1, peak
 
 
-def crossings(dd, thr):
-    """Indices of the first crossing to <= -thr in each decline: a crossing disarms, a new high (dd >= 0) re-arms.
-    The first valid bar is never a crossing. Crossings outside the universe still disarm (one event per decline)."""
+def crossings(dd, thr, first=LOOK - 1):
+    """Indices (>= first) of the first crossing to <= -thr in each decline: a crossing disarms, a new high (dd >= 0)
+    re-arms. The state runs from the first loaded bar, so a decline that crossed before bar `first` gives no event
+    later (audit fix: the first run started every stock armed at its LOOK-th bar). Crossings outside the universe
+    still disarm (one event per decline)."""
     out = []
     armed = True
     prev = np.nan
@@ -148,7 +187,8 @@ def crossings(dd, thr):
         if x >= -1e-12:
             armed = True
         if armed and not np.isnan(prev) and prev > -thr and x <= -thr:
-            out.append(i)
+            if i >= first:
+                out.append(i)
             armed = False
         prev = x
     return out
@@ -219,13 +259,17 @@ def exit_index(df, j, hold, peak=None):
         c = df.close.to_numpy()[j:k_lim + 1]
         hit = np.nonzero(c >= peak)[0]
         return j + int(hit[0]) if len(hit) else k_lim
+    if hold == "anniv":                 # first close strictly after the one-year anniversary (long-term by IRS rules)
+        k = int(dates.searchsorted(dates[j] + pd.DateOffset(years=1), side="right"))
+        return min(k, len(df) - 1)
     k = int(dates.searchsorted(dates[j] + pd.Timedelta(days=hold)))
     return min(k, len(df) - 1)
 
 
-def position(D, e, hold=HOLD, cost=COST):
+def position(D, e, hold=HOLD, cost=COST, overnight=True):
     """Daily returns of one event position on its own bars: entry at bar j = i + 1's open (plus SPY's overnight move,
-    since the money waits in SPY), exit at bar k's close."""
+    since the money waits in SPY; overnight=False is the pre-registration's literal close/open - 1), exit at bar k's
+    close."""
     df = D["data"][e["sym"]]
     j = e["i"] + 1
     k = exit_index(df, j, hold, e.get("peak"))
@@ -234,7 +278,7 @@ def position(D, e, hold=HOLD, cost=COST):
     spy = D["spy"]
     dj = df.index[j]
     g = 0.0
-    if dj in spy.index:
+    if overnight and dj in spy.index:
         p = spy.index.get_loc(dj)
         if p > 0:
             g = spy.open.iloc[p] / spy.close.iloc[p - 1] - 1
@@ -245,26 +289,43 @@ def position(D, e, hold=HOLD, cost=COST):
     return df.index[j:k + 1], r, j, k
 
 
-def book(D, events, hold=HOLD):
-    """Calendar-time dip book: (excess vs SPY, book return, open-position count) on D['cal']."""
+def contribution(D, e, hold=HOLD, overnight=True):
+    """One position on the calendar: (sums, counts) arrays of length T + 1 (returns added on its days; +1/-1 at its
+    first and after its last calendar day)."""
     cal = D["cal"]
     T = len(cal)
-    sums = np.zeros(T)
+    sums = np.zeros(T + 1)
     cnt = np.zeros(T + 1)
-    for e in events:
-        dates, r, _, _ = position(D, e, hold)
-        p = cal.searchsorted(dates)
-        keep = p < T
-        if not keep.any():
-            continue
+    dates, r, _, _ = position(D, e, hold, overnight=overnight)
+    p = cal.searchsorted(dates)
+    keep = p < T
+    if keep.any():
         np.add.at(sums, p[keep], r[keep])
         cnt[p[keep][0]] += 1
         cnt[p[keep][-1] + 1] -= 1
+    return sums, cnt
+
+
+def book_from(D, sums, cnt):
+    """Book from summed contributions: equal weight across open positions, SPY on days with none."""
+    cal = D["cal"]
+    T = len(cal)
     n = np.cumsum(cnt)[:T]
-    spy_r = D["spy"].close.pct_change().reindex(cal).to_numpy()
-    spy_r = np.nan_to_num(spy_r)
-    br = np.where(n > 0, sums / np.maximum(n, 1), spy_r)
+    spy_r = np.nan_to_num(D["spy"].close.pct_change().reindex(cal).to_numpy())
+    br = np.where(n > 0, sums[:T] / np.maximum(n, 1), spy_r)
     return pd.Series(br - spy_r, cal), pd.Series(br, cal), pd.Series(n, cal)
+
+
+def book(D, events, hold=HOLD, overnight=True):
+    """Calendar-time dip book: (excess vs SPY, book return, open-position count) on D['cal']."""
+    T = len(D["cal"])
+    sums = np.zeros(T + 1)
+    cnt = np.zeros(T + 1)
+    for e in events:
+        a, b = contribution(D, e, hold, overnight)
+        sums += a
+        cnt += b
+    return book_from(D, sums, cnt)
 
 
 def event_table(D, events, hold=HOLD, ranks=None):
@@ -285,7 +346,7 @@ def event_table(D, events, hold=HOLD, ranks=None):
             sc = spy.close.asof(dk)
         r_spy = sc / so - 1
         low = df.close.iloc[j:k + 1].min() / df.open.iloc[j] - 1
-        hd = pd.Timedelta(days=hold if isinstance(hold, int) else RECOVER_MAX)
+        hd = pd.Timedelta(days=hold if isinstance(hold, int) else (366 if hold == "anniv" else RECOVER_MAX))
         ended_early = (k == len(df) - 1 and dk < dj + hd     # series ended (merger, delisting) before the hold
                        and dk < D["end"] - pd.Timedelta(days=7))
         complete = (dj + hd <= D["end"]) or ended_early     # the outcome is known
@@ -323,10 +384,10 @@ def reality_check(E, n=N_RC, seed=SEED, block=BLOCK):
     v = float(mu.max())
     rng = np.random.default_rng(seed)
     vs = np.empty(n)
-    for k0 in range(0, n, 100):
-        m = min(100, n - k0)
+    for k0 in range(0, n, 25):
+        m = min(25, n - k0)
         idx = boot_indices(T, block, m, rng)
-        mb = np.stack([E[:, k][idx].mean(1) for k in range(K)], 1)
+        mb = E[idx].mean(axis=1)                 # (m, K)
         vs[k0:k0 + m] = (mb - mu).max(1)
     return {"V_obs_%/yr": v * 252 * 100, "argmax": int(mu.argmax()), "p_rc": float((vs >= v).mean())}
 
@@ -458,12 +519,21 @@ def held_universe(D, by_year):
 
 # ------------------------------------------------------------------ 10-slot portfolio with tax (S9)
 
+def long_term(bought, sold):
+    """IRS: long-term only if sold after the one-year anniversary of the purchase."""
+    return sold > bought + pd.DateOffset(years=1)
+
+
 def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax=True):
-    """Start 100% SPY. Each event takes `frac` of the portfolio's value at the entry open, sold from SPY lots (FIFO),
-    and buys the stock; at exit the proceeds buy a new SPY lot. Events beyond `slots` open positions are skipped.
-    tax=True: realised gains taxed each year-end (LT 20% if held > 365 days, else 35%; ST and LT netted, losses
-    carried forward), paid by selling SPY (those sales count the next year); everything sold and taxed at the end.
-    Returns (daily value series, after-tax terminal value, skipped count, taken count)."""
+    """Start 100% SPY (bought at the first calendar day's close). Each event takes `frac` of the portfolio's value at
+    the entry open, sold from SPY lots (FIFO), and buys the stock; at exit the proceeds buy a new SPY lot. Events
+    beyond `slots` open positions are skipped; if SPY holds less than `frac` of the portfolio, the position gets what
+    SPY is left (audit fix: the first run skipped such events, so the taxed and untaxed runs took different trades).
+    tax=True: realised gains taxed each year-end at 20% if long-term (sold after the one-year anniversary), else 35%;
+    short- and long-term netted against each other, net losses carried forward with their character (audit fixes);
+    paid by selling SPY (those sales count the next year). Tax that cannot be paid because no SPY is left stays owed
+    and is paid from later SPY proceeds or deducted at the end (audit fix). Everything is sold and taxed at the end.
+    Returns (daily value series net of owed tax, after-tax terminal value, skipped count, taken count)."""
     cal = D["cal"]
     spy = D["spy"].reindex(cal)
     spy_o, spy_c = spy.open.to_numpy(), spy.close.to_numpy()
@@ -488,43 +558,50 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
     lots = [[1.0 / spy_c[0], 1.0, cal[0]]]          # SPY lots: units, basis, date
     pos = []                                         # dicts: sym, units, basis, date, exit_t
     realised = {"st": 0.0, "lt": 0.0}
-    carry = 0.0
+    carry = {"st": 0.0, "lt": 0.0}
+    owed = 0.0
     val = np.empty(len(cal))
     skipped = taken = 0
 
+    def spy_value(price):
+        return sum(u for u, _, _ in lots) * price
+
     def sell_spy(amount, price, t):
+        """Sell `amount` of SPY (FIFO); returns the amount actually sold."""
         need = amount / price
+        sold = 0.0
         while need > 1e-15 and lots:
             u, b, d = lots[0]
             q = min(u, need)
-            gain = q * price - b * q / u
-            realised["lt" if (cal[t] - d).days > 365 else "st"] += gain
+            realised["lt" if long_term(d, cal[t]) else "st"] += q * price - b * q / u
             if q >= u - 1e-15:
                 lots.pop(0)
             else:
                 lots[0] = [u - q, b * (u - q) / u, d]
             need -= q
+            sold += q * price
+        return sold
 
-    def year_tax(final=False):
-        nonlocal carry
-        st, lt = realised["st"], realised["lt"]
+    def year_tax():
+        st = realised["st"] - carry["st"]
+        lt = realised["lt"] - carry["lt"]
         realised["st"] = realised["lt"] = 0.0
+        carry["st"] = carry["lt"] = 0.0
         if not tax:
             return 0.0
         if st < 0 < lt:                              # net short- and long-term against each other
             lt, st = lt + st, 0.0
         elif lt < 0 < st:
             st, lt = st + lt, 0.0
-        if st + lt < 0:                              # a net loss is carried forward
-            carry += -(min(st, 0.0) + min(lt, 0.0))
-            st, lt = max(st, 0.0), max(lt, 0.0)
-        a = min(carry, st); st -= a; carry -= a      # carried losses offset short-term gains first
-        a = min(carry, lt); lt -= a; carry -= a
+        if st < 0:                                   # net losses carried forward with their character
+            carry["st"], st = -st, 0.0
+        if lt < 0:
+            carry["lt"], lt = -lt, 0.0
         return ST_RATE * st + LT_RATE * lt
 
     for t in range(len(cal)):
         if t in entries:
-            v_open = sum(u for u, _, _ in lots) * spy_o[t] + sum(
+            v_open = spy_value(spy_o[t]) + sum(
                 p["units"] * (data[p["sym"]].open.get(cal[t], px_close(p["sym"], t))) for p in pos)
             for e, j, kt in entries[t]:
                 if len(pos) >= slots:
@@ -532,11 +609,11 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
                     continue
                 # 10% of the portfolio, or what SPY is left if positions have grown past 90%: the trades taken
                 # then depend only on open slots, the same with and without tax
-                amt = min(frac * v_open, sum(u for u, _, _ in lots) * spy_o[t])
+                amt = min(frac * v_open, spy_value(spy_o[t]))
                 if amt <= 0:
                     skipped += 1
                     continue
-                sell_spy(amt, spy_o[t], t)
+                amt = sell_spy(amt, spy_o[t], t)
                 o = data[e["sym"]].open.iloc[j]
                 pos.append({"sym": e["sym"], "units": amt * (1 - COST) / o, "basis": amt, "date": cal[t], "exit_t": kt})
                 taken += 1
@@ -544,26 +621,25 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
         for p in pos:
             if p["exit_t"] <= t:
                 proceeds = p["units"] * px_close(p["sym"], t) * (1 - COST)
-                realised["lt" if (cal[t] - p["date"]).days > 365 else "st"] += proceeds - p["basis"]
+                realised["lt" if long_term(p["date"], cal[t]) else "st"] += proceeds - p["basis"]
                 lots.append([proceeds / spy_c[t], proceeds, cal[t]])
             else:
                 keep.append(p)
         pos = keep
         last_of_year = t == len(cal) - 1 or cal[t + 1].year != cal[t].year
         if last_of_year and t < len(cal) - 1:
-            due = year_tax()
-            if due > 0:
-                sell_spy(due, spy_c[t], t)          # the cash leaves; this sale's own gain counts next year
-        val[t] = sum(u for u, _, _ in lots) * spy_c[t] + sum(p["units"] * px_close(p["sym"], t) for p in pos)
-    # liquidate at the end
+            owed += year_tax()
+        if owed > 0 and lots:
+            owed -= sell_spy(min(owed, spy_value(spy_c[t])), spy_c[t], t)   # the cash leaves; gain counts next year
+        val[t] = spy_value(spy_c[t]) + sum(p["units"] * px_close(p["sym"], t) for p in pos) - owed
+    # everything was sold at the last close (exits are capped there) except SPY: realise it and pay the final tax
     t = len(cal) - 1
     for p in pos:
         proceeds = p["units"] * px_close(p["sym"], t) * (1 - COST)
-        realised["lt" if (cal[t] - p["date"]).days > 365 else "st"] += proceeds - p["basis"]
+        realised["lt" if long_term(p["date"], cal[t]) else "st"] += proceeds - p["basis"]
     for u, b, d in lots:
-        realised["lt" if (cal[t] - d).days > 365 else "st"] += u * spy_c[t] - b
-    final_tax = year_tax(final=True)
-    after = val[-1] - final_tax
+        realised["lt" if long_term(d, cal[t]) else "st"] += u * spy_c[t] - b
+    after = val[-1] - year_tax()
     return pd.Series(val, cal), after, skipped, taken
 
 
@@ -588,6 +664,68 @@ def index_dips(level_px, level_tr, thr=THR, hold_days=HOLD):
     allw = fwd_all[full]
     return pd.DataFrame(rows), {"windows": int(full.sum()), "mean_all": float(np.mean(allw)),
                                 "median_all": float(np.median(allw)), "hit_all": float(np.mean(allw > 0))}
+
+
+# ------------------------------------------------------------------ audit additions
+
+def coverage(D, years=(1996, 1998, 2000, 2002, 2006, 2010, 2020)):
+    """Share of members.csv members (on the first trading day of each year) that have a price series."""
+    mem, out = D["mem"], []
+    for y in years:
+        day = max(pd.Timestamp(f"{y}-01-01"), mem.start.min())
+        m = mem[(mem.start <= day) & (mem.end.isna() | (mem.end >= day))].symbol.unique()
+        out.append((y, len(m), sum(s in D["data"] for s in m)))
+    return out
+
+
+def compounded(br, spy_r):
+    """Book CAGR minus SPY CAGR and the mean log excess, %/yr (the primary statistic is the arithmetic mean)."""
+    yrs = len(br) / 252
+    cg = lambda r: ((1 + r).prod() ** (1 / yrs) - 1) * 100
+    return cg(br) - cg(spy_r), float((np.log1p(br) - np.log1p(spy_r)).mean() * 25200)
+
+
+def coin_tosses(D, L, ev1, ev2, tol=0.025):
+    """T1 over every resolution of the year-end #10/#11 pairs whose market caps are within `tol` (both known): each
+    swap removes the #10 stock's U1 events of the next year and adds the #11 stock's (from U2). Returns the pairs that
+    change the event set and the T1 values of all 2^k combinations."""
+    pairs = []
+    for y, g in L.groupby("year_end"):
+        a, b = g[g["rank"] == 10], g[g["rank"] == 11]
+        if len(a) and len(b):
+            ca, cb = float(a.mcap_bn.iloc[0]), float(b.mcap_bn.iloc[0])
+            if ca > 0 and cb > 0 and abs(ca / cb - 1) < tol:
+                pairs.append((int(y) + 1, a.symbol.iloc[0], b.symbol.iloc[0], ca, cb))
+    T = len(D["cal"])
+    base_s, base_c = np.zeros(T + 1), np.zeros(T + 1)
+    for e in ev1:
+        x, c = contribution(D, e)
+        base_s += x
+        base_c += c
+    deltas = []
+    for y, s10, s11, ca, cb in pairs:
+        ds, dc = np.zeros(T + 1), np.zeros(T + 1)
+        for e in ev1:
+            if e["sym"] == s10 and e["date"].year == y:
+                x, c = contribution(D, e)
+                ds -= x
+                dc -= c
+        for e in ev2:
+            if e["sym"] == s11 and e["date"].year == y:
+                x, c = contribution(D, e)
+                ds += x
+                dc += c
+        if np.any(ds) or np.any(dc):
+            deltas.append(((y, s10, s11, ca, cb), ds, dc))
+    vals = []
+    for mask in range(2 ** len(deltas)):
+        x, c = base_s.copy(), base_c.copy()
+        for bit, (_, ds, dc) in enumerate(deltas):
+            if mask >> bit & 1:
+                x += ds
+                c += dc
+        vals.append(ann(book_from(D, x, c)[0]))
+    return [d[0] for d in deltas], np.array(vals)
 
 
 # ------------------------------------------------------------------ main
@@ -632,6 +770,12 @@ def main():
         say(f"list names without a price series (dropped): {len(missing)}")
         for r in missing.itertuples():
             say(f"  {r.year_end} #{r[2]} {r.company} ({r.symbol})")
+    if D["dups"]:
+        say(f"predecessor files dropped because they carry their successor's prices (audit): "
+            + "; ".join(f"{k} {v}" for k, v in sorted(D["dups"].items())))
+    say("U3 coverage, members with a price series on the first trading day of the year (audit: most companies that "
+        "died by 2001 have no prices, so U3 1996-2001 is close to a survivors-to-2001 sample): "
+        + ", ".join(f"{y} {k}/{n}" for y, n, k in coverage(D)))
     say()
 
     cache = {}
@@ -651,11 +795,14 @@ def main():
         f"{N_BOOT} draws, one-sided, Holm over T1-T3)")
     prim, ps = {}, {}
     for T_, u in (("T1", "U1"), ("T2", "U2"), ("T3", "U3")):
-        ex = BOOK[u][0]
-        bm = boot_mean(ex.to_numpy())
+        ex, br, _ = BOOK[u]
+        bm = boot_mean(ex.to_numpy(), n=N_BOOT)
         halves = {h: ann(ex.loc[a:b]) for h, a, b in HALVES}
+        cagr_gap, log_ex = compounded(br, spy_r)
         prim[T_] = {"universe": u, "excess_%/yr": ann(ex), "p": bm["p"], "boot_sd_%/yr": bm["sd"] * 25200,
-                    "mde80_%/yr": 2.49 * bm["sd"] * 25200, **{f"excess_{h}": v for h, v in halves.items()}}
+                    "mde80_%/yr": 2.49 * bm["sd"] * 25200, "mde80_holm_%/yr": 2.97 * bm["sd"] * 25200,
+                    "cagr_minus_spy_%/yr": cagr_gap, "mean_log_excess_%/yr": log_ex,
+                    **{f"excess_{h}": v for h, v in halves.items()}}
         ps[T_] = bm["p"]
     hp = holm(ps)
     slot_res = {}
@@ -664,15 +811,19 @@ def main():
         v0, _, skipped0, taken0 = slot_portfolio(D, EV[u], ranks=ranks, tax=False)
         if (skipped0, taken0) != (skipped, taken):
             raise AssertionError(f"{u}: the taxed and untaxed 10-slot runs took different trades")
-        spy_v = (1 + spy_r).cumprod()
+        spy_v = D["spy"].close.reindex(cal) / D["spy"].close.loc[cal[0]]   # bought at the same close (audit fix)
         yrs = len(cal) / 252
         spy_after = spy_v.iloc[-1] - LT_RATE * (spy_v.iloc[-1] - 1)
-        r0 = v0.pct_change().fillna(v0.iloc[0] - 1)
+        r0 = v0.pct_change().fillna(0.0)
+        r1 = v.pct_change().fillna(0.0)
+        rs = spy_v.pct_change().fillna(0.0)
         slot_res[u] = {"taken": taken, "skipped": skipped, **{f"pre_{k}": x for k, x in perf(r0, rc).items()},
                        "after_tax_CAGR_%": (after ** (1 / yrs) - 1) * 100,
+                       **{f"taxed_{k}": x for k, x in perf(r1, rc).items() if k in ("Sharpe", "maxDD_%")},
                        "spy_pre_CAGR_%": (spy_v.iloc[-1] ** (1 / yrs) - 1) * 100,
                        "spy_after_tax_CAGR_%": (spy_after ** (1 / yrs) - 1) * 100,
-                       "spy_maxDD_%": perf(spy_r, rc)["maxDD_%"], "after_tax_beats_spy": bool(after > spy_after)}
+                       "spy_maxDD_%": perf(rs, rc)["maxDD_%"], "spy_Sharpe": perf(rs, rc)["Sharpe"],
+                       "after_tax_beats_spy": bool(after > spy_after)}
     pd.DataFrame(slot_res).T.to_csv(OUT / "slot10.csv")
     rows = []
     for T_, d in prim.items():
@@ -683,17 +834,25 @@ def main():
                          and s["after_tax_beats_spy"])
         rows.append({"test": T_, **d})
         say(f"  {T_} {d['universe']}: excess {d['excess_%/yr']:+.2f}%/yr, p {d['p']:.4f}, Holm p {d['p_holm']:.4f}; "
-            f"halves {d['excess_1996-2010']:+.2f} / {d['excess_2011-2026']:+.2f}; MDE80 {d['mde80_%/yr']:.2f}%/yr; "
-            f"10-slot after-tax beats SPY: {s['after_tax_beats_spy']} -> {'PASS' if d['PASS'] else 'FAIL'}")
+            f"halves {d['excess_1996-2010']:+.2f} / {d['excess_2011-2026']:+.2f}; MDE80 {d['mde80_%/yr']:.2f}%/yr "
+            f"({d['mde80_holm_%/yr']:.2f} at the Holm level); 10-slot after-tax beats SPY: {s['after_tax_beats_spy']} "
+            f"-> {'PASS' if d['PASS'] else 'FAIL'}")
+        say(f"      compounded: book CAGR minus SPY CAGR {d['cagr_minus_spy_%/yr']:+.2f}%/yr, mean log excess "
+            f"{d['mean_log_excess_%/yr']:+.2f}%/yr (the pre-registered statistic is the arithmetic mean)")
     pd.DataFrame(rows).to_csv(OUT / "primary_tests.csv", index=False)
+    ex3 = BOOK["U3"][0].loc["2002-01-01":]
+    say(f"  T3 restricted to 2002-2026 (U3 coverage about 99%; audit): excess {ann(ex3):+.2f}%/yr, p "
+        f"{boot_mean(ex3.to_numpy(), n=N_BOOT)['p']:.4f}")
 
     # ---------------- secondary
     say()
     say("S9 10-SLOT PORTFOLIO (10% of value per event from SPY, at most 10 open; tax LT 20% / ST 35%)")
     for u, s in slot_res.items():
         say(f"  {u}: CAGR {s['pre_CAGR_%']:.2f}% pre-tax / {s['after_tax_CAGR_%']:.2f}% after; maxDD "
-            f"{s['pre_maxDD_%']:.1f}%; Sharpe {s['pre_Sharpe']:.3f}; taken {s['taken']}, skipped {s['skipped']} | SPY "
-            f"{s['spy_pre_CAGR_%']:.2f}% / {s['spy_after_tax_CAGR_%']:.2f}%, maxDD {s['spy_maxDD_%']:.1f}%")
+            f"{s['pre_maxDD_%']:.1f}% ({s['taxed_maxDD_%']:.1f}% taxed); Sharpe {s['pre_Sharpe']:.3f} "
+            f"({s['taxed_Sharpe']:.3f} taxed); taken {s['taken']}, skipped {s['skipped']} | SPY "
+            f"{s['spy_pre_CAGR_%']:.2f}% / {s['spy_after_tax_CAGR_%']:.2f}%, maxDD {s['spy_maxDD_%']:.1f}%, Sharpe "
+            f"{s['spy_Sharpe']:.3f}")
 
     say()
     say("S8 CAPM (monthly, Newey-West 12) and S11 eras: dip book excess %/yr")
@@ -716,13 +875,17 @@ def main():
             continue
         T["q"] = pd.to_datetime(T.trigger).dt.to_period("Q").astype(str)
         cb = cluster_boot(T, "excess", "q")
+        T["y"] = pd.to_datetime(T.trigger).dt.year
+        cy = cluster_boot(T, "excess", "y")
         ev_rows.append({"universe": u, "n": len(T), "mean_ret": T.ret.mean(), "mean_spy": T.spy_ret.mean(),
                         "mean_excess": cb["mean"], "ci_lo": cb["lo"], "ci_hi": cb["hi"], "p_le0": cb["p_le0"],
+                        "ci_lo_year": cy["lo"], "ci_hi_year": cy["hi"],
                         "median_excess": T.excess.median(), "hit_vs_spy": (T.excess > 0).mean(),
                         "hit_abs": (T.ret > 0).mean(), "median_further_drop": T.further_drop.median(),
                         "worst_ret": T.ret.min(), "quarters": cb["clusters"]})
         say(f"  {u}: n {len(T)} ({cb['clusters']} quarters); mean {T.ret.mean():+.1%} vs SPY {T.spy_ret.mean():+.1%}; "
-            f"excess {cb['mean']:+.1%} [{cb['lo']:+.1%}, {cb['hi']:+.1%}]; median excess {T.excess.median():+.1%}; "
+            f"excess {cb['mean']:+.1%} [{cb['lo']:+.1%}, {cb['hi']:+.1%}; by year {cy['lo']:+.1%}, {cy['hi']:+.1%}]; "
+            f"median excess {T.excess.median():+.1%}; "
             f"beat SPY {(T.excess > 0).mean():.0%}; median further drop {T.further_drop.median():.1%}; worst "
             f"{T.ret.min():+.1%}")
     pd.DataFrame(ev_rows).to_csv(OUT / "event_stats.csv", index=False)
@@ -738,13 +901,22 @@ def main():
         P.to_csv(OUT / f"placebo_{u}.csv", index=False)
         cb = cluster_boot(P, "diff", "year")
         row = {"universe": u, "n": len(P), "event_excess": P.event_excess.mean(), "placebo_excess": P.placebo_excess.mean(),
-               "diff": cb["mean"], "lo": cb["lo"], "hi": cb["hi"], "p_le0": cb["p_le0"]}
-        if u in ("U1", "U2", "U4"):
-            hr = held_universe(D, {"U1": u1, "U2": u2, "U4": u4}[u]).reindex(cal).fillna(0.0)
+               "all_days_excess": P.all_days_excess.mean(), "diff": cb["mean"], "lo": cb["lo"], "hi": cb["hi"],
+               "p_le0": cb["p_le0"]}
+        held_by_year = {"U1": u1, "U2": u2, "U4": u4}.get(u)
+        if u == "U3":
+            held_by_year = {y: [s for s in D["mem"][(D["mem"].start <= max(pd.Timestamp(f"{y}-01-01"), D["mem"].start.min()))
+                                                    & (D["mem"].end.isna() | (D["mem"].end >= pd.Timestamp(f"{y}-01-01")))]
+                                .symbol.unique() if s in data] for y in years}
+        if u == "U5":
+            held_by_year = {y: [s for s in MAG7 if s in data and (data[s].index < pd.Timestamp(f"{y}-01-01")).sum() >= LOOK]
+                            for y in years}
+        if held_by_year is not None:
+            hr = held_universe(D, held_by_year).reindex(cal).fillna(0.0)
             row["held_minus_spy_%/yr"] = ann(hr - spy_r)
         pl_rows.append(row)
-        say(f"  {u}: n {len(P)}; event {P.event_excess.mean():+.1%} vs placebo {P.placebo_excess.mean():+.1%} -> "
-            f"timing {cb['mean']:+.1%} [{cb['lo']:+.1%}, {cb['hi']:+.1%}]"
+        say(f"  {u}: n {len(P)}; event {P.event_excess.mean():+.1%} vs placebo {P.placebo_excess.mean():+.1%} (exact "
+            f"all-days mean {P.all_days_excess.mean():+.1%}) -> timing {cb['mean']:+.1%} [{cb['lo']:+.1%}, {cb['hi']:+.1%}]"
             + (f"; universe held all the time minus SPY {row['held_minus_spy_%/yr']:+.2f}%/yr"
                if "held_minus_spy_%/yr" in row else ""))
     pd.DataFrame(pl_rows).to_csv(OUT / "placebo.csv", index=False)
@@ -778,7 +950,7 @@ def main():
                     grid_rows.append({"universe": u, "thr": thr, "ref": ref, "hold": hn, "events": len(ev),
                                       "excess_%/yr": ann(ex), **{f"excess_{h_}": ann(ex.loc[a:b]) for h_, a, b in HALVES}})
         E = np.column_stack(cols)
-        r = reality_check(E)
+        r = reality_check(E, n=N_RC)
         best = names[r["argmax"]]
         rc_rows.append({"universe": u, "cells": len(names), "best": f"{best[0]:.0%} {best[1]} {best[2]}",
                         "best_excess_%/yr": r["V_obs_%/yr"], "p_rc": r["p_rc"]})
@@ -791,6 +963,44 @@ def main():
         g = G[(G.universe == u) & (G.ref == "52w")].pivot(index="thr", columns="hold", values="excess_%/yr")
         say(f"  {u}, 52-week high, excess %/yr by threshold (rows) and hold (columns):")
         say("    " + g[list(GRID_HOLD)].round(2).to_string().replace("\n", "\n    "))
+
+    say()
+    say("ROBUSTNESS (audit additions; none changes the pre-registered verdict)")
+    for lab, kw in (("entry without SPY's overnight move (the pre-registration's literal close/open)", {"overnight": False}),
+                    ("exit strictly after the one-year anniversary (long-term in leap years too)", {"hold": "anniv"})):
+        vals = []
+        for u in ("U1", "U2", "U3"):
+            ex = book(D, EV[u], **kw)[0]
+            vals.append(f"{u} {ann(ex):+.2f} (p {boot_mean(ex.to_numpy(), n=N_BOOT)['p']:.3f})")
+        say(f"  {lab}: " + ", ".join(vals))
+    pairs, vals = coin_tosses(D, L, EV["U1"], EV["U2"])
+    say(f"  T1 across the {len(vals)} resolutions of the {len(pairs)} event-changing #10/#11 near-ties (caps within 2.5%): "
+        f"min {vals.min():+.2f}, median {np.median(vals):+.2f}, max {vals.max():+.2f}%/yr; {np.mean(vals > 0):.0%} above "
+        f"zero (pairs: " + "; ".join(f"{y - 1} {a}/{b}" for y, a, b, _, _ in pairs) + ")")
+    say("  Hold length, 25% below the 52-week high (excess %/yr, p, halves; Holm across U1-U3 at each hold; 10-slot "
+        "after-tax CAGR vs SPY for U1/U2). Not pre-registered; the grid's reality check covers this search:")
+    hold_rows = []
+    for h in (366, 548, 731, 913, 1096, 1461, 1827):
+        res = {}
+        for u in ("U1", "U2", "U3"):
+            ex = book(D, EV[u], hold=h)[0]
+            res[u] = (ann(ex), boot_mean(ex.to_numpy(), n=N_BOOT)["p"], ann(ex.loc[:"2010-12-31"]),
+                      ann(ex.loc["2011-01-01":]))
+        hh = holm({u: res[u][1] for u in res})
+        line = []
+        for u in ("U1", "U2", "U3"):
+            e_, p_, h1, h2 = res[u]
+            row = {"hold_days": h, "universe": u, "excess_%/yr": e_, "p": p_, "p_holm": hh[u], "half1": h1, "half2": h2}
+            txt = f"{u} {e_:+.2f} (p {p_:.3f}, Holm {hh[u]:.3f}, {h1:+.1f}/{h2:+.1f})"
+            if u in ("U1", "U2"):
+                _, after_h, _, _ = slot_portfolio(D, EV[u], ranks=ranks, hold=h)
+                row["slot_after_tax_CAGR_%"] = (after_h ** (1 / (len(cal) / 252)) - 1) * 100
+                txt += f" slot {row['slot_after_tax_CAGR_%']:.2f}"
+            hold_rows.append(row)
+            line.append(txt)
+        say(f"    {h:>4}d: " + "; ".join(line))
+    pd.DataFrame(hold_rows).to_csv(OUT / "hold_curve.csv", index=False)
+    say(f"    (SPY after-tax CAGR {slot_res['U1']['spy_after_tax_CAGR_%']:.2f}%)")
 
     say()
     say("S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-week high (vs every 12-month "

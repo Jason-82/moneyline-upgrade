@@ -28,6 +28,56 @@ ROOT = Path(__file__).resolve().parent.parent
 PIT = ROOT / "data" / "universe_pit_all"
 OUT = ROOT / "analysis_2026" / "results_megacap_dip"
 TOL = 0.25
+AUDIT = "audit 2026-10-30: nominal year-end close x share count from filings"
+
+# Corrections applied to the compiled lists after the audit (year_end, symbol, changes; None drops the entry).
+CORRECTIONS = [
+    (2006, "AIG", {"rank": 10, "mcap_bn": 186.4, "estimated": False,
+                   "sources": "AIG 10-K FY2006 cover 2,601,583,676 sh x $71.66"},
+     "AIG, not Pfizer, was #10 at end-2006 (the Pfizer value used a stale Q3 share count)"),
+    (2006, "PFE", {"rank": 11, "mcap_bn": 183.7, "estimated": False,
+                   "sources": "Pfizer 10-K FY2006: about 7.10bn sh x $25.90"}, "see AIG 2006"),
+    (2001, "BMY", None, "Royal Dutch (104.2bn) belongs at #19; Bristol-Myers (98.7bn) is #21"),
+    (2001, "PG", {"rank": 20}, "moved down one place by Royal Dutch"),
+    (2001, "RDS-A", {"rank": 19, "company": "Royal Dutch Petroleum", "ticker_then": "RD", "mcap_bn": 104.2,
+                     "tech": False, "estimated": False, "confidence": "high",
+                     "sources": "Royal Dutch 20-F 2001: 2,126,647,800 sh x $49.02"},
+     "missing from the compiled list; S&P 500 member until 2002-07-22"),
+    (1995, "T-200511", {"mcap_bn": 103.6, "estimated": True, "sources": AUDIT}, "value filled"),
+    (1995, "MO", {"mcap_bn": 75.9, "estimated": True, "sources": AUDIT}, "value filled"),
+    (1995, "RDS-A", {"mcap_bn": 75.6, "estimated": True, "sources": AUDIT}, "value filled"),
+    (1996, "RDS-A", {"mcap_bn": 91.5, "estimated": True, "sources": AUDIT}, "value filled"),
+    (1997, "RDS-A", {"rank": 6, "mcap_bn": 116.2, "estimated": True, "sources": AUDIT}, "value filled; #6 ahead of Intel"),
+    (1997, "INTC", {"rank": 7}, "behind Royal Dutch"),
+    (2000, "RDS-A", {"mcap_bn": 129.6, "estimated": True, "sources": AUDIT}, "value filled"),
+]
+
+# Why each remaining checker flag does not change a list (topcap_flags.csv 'resolution').
+MERGERS = {
+    ("BAC", 1996): "carried from 1998, after the NationsBank-BankAmerica merger doubled the share count",
+    ("BAC", 1997): "carried from 1998, after the NationsBank-BankAmerica merger doubled the share count",
+    ("C", 1996): "carried from 1998, after the Travelers-Citicorp merger",
+    ("C", 1997): "carried from 1998, after the Travelers-Citicorp merger",
+    ("T", 1995): "carried from 1997, after SBC's Pacific Telesis merger",
+    ("VZ", 1995): "carried from 1997, after Bell Atlantic's NYNEX merger",
+    ("VZ", 1999): "carried from 2000, after the Bell Atlantic-GTE merger",
+    ("JCI", 2000): "Tyco lineage, carried from 2001, after the CIT acquisition",
+    ("JPM", 2002): "carried from 2004, after the Bank One merger",
+    ("JPM", 2003): "carried from 2004, after the Bank One merger",
+    ("T", 2005): "carried from 2006, after SBC bought AT&T (Nov 2005) and BellSouth (Dec 2006); about 95bn at end-2005",
+    ("MRK", 2007): "carried from 2009, after the Schering-Plough merger",
+    ("MRK", 2008): "carried from 2009, after the Schering-Plough merger",
+    ("MRK", 2010): "about 111bn at end-2010, below #20",
+    ("MO", 2008): "carried from 2007, before the PMI spin-off (Altria about 31bn at end-2008)",
+    ("MO", 2009): "carried from 2007, before the PMI spin-off (Altria about 41bn at end-2009)",
+    ("VZ", 2012): "carried from 2014, after Verizon bought Vodafone's stake; about 124bn at end-2012, a tie at #20",
+    ("VZ", 2013): "carried from 2014, after Verizon bought Vodafone's stake; about 141bn at end-2013",
+    ("BAC", 2004): "FleetBoston merger (April 2004)",
+    ("MO", 2007): "Kraft spin-off (March 2007)",
+    ("PG", 2005): "Gillette merger (October 2005)",
+    ("T", 1999): "Ameritech merger (October 1999)",
+    ("XOM", 1999): "Mobil merger (November 1999)",
+}
 MAX_CARRY = 2                   # years: share counts and dividends drift too far beyond that
 
 
@@ -52,6 +102,39 @@ def member_on(mem, sym, date):
     return bool(((g.start <= date) & (g.end.isna() | (g.end >= date))).any())
 
 
+def apply_corrections(F):
+    F = F.copy()
+    F["correction"] = ""
+    for y, sym, ch, why in CORRECTIONS:
+        m = (F.year_end == y) & (F.symbol == sym)
+        if ch is None:
+            F = F[~m]
+            continue
+        if not m.any():
+            row = {"year_end": y, "symbol": sym, "company": sym, "tech": False, "confidence": "", "note": "",
+                   "estimated": False, "sources": "", "rank": 0, "mcap_bn": -1.0}
+            F = pd.concat([F, pd.DataFrame([row])], ignore_index=True)
+            m = (F.year_end == y) & (F.symbol == sym)
+        for k, v in ch.items():
+            if k in F.columns:
+                F.loc[m, k] = v
+        F.loc[m, "correction"] = why
+    return F.sort_values(["year_end", "rank"]).reset_index(drop=True)
+
+
+def resolution(kind, year, symbol, detail):
+    if kind == "no-cap":
+        return "ranked on derived evidence (index-fund holding order, filings); see the entry's note"
+    if kind == "no-symbol":
+        return "no price series in the dataset: dropped and reported"
+    if (symbol, year) in MERGERS:
+        return MERGERS[(symbol, year)]
+    if kind.startswith("omission"):
+        return ("carried estimate drifts with dividends and buybacks; nominal close x filed shares puts it at or "
+                "below #20 (audit), a tie at most")
+    return ""
+
+
 def frame(raw):
     rows = []
     for Y in raw["years"]:
@@ -61,7 +144,7 @@ def frame(raw):
                          "tech": bool(e["tech"]), "sources": ";".join(e.get("sources") or []),
                          "confidence": e.get("confidence", ""), "note": e.get("note", ""),
                          "estimated": bool(e.get("estimated", False))})
-    return pd.DataFrame(rows).sort_values(["year_end", "rank"]).reset_index(drop=True)
+    return apply_corrections(pd.DataFrame(rows).sort_values(["year_end", "rank"]).reset_index(drop=True))
 
 
 def check(raw):
@@ -120,7 +203,9 @@ def check(raw):
             if est > c20 and member_on(mem, s, pd.Timestamp(f"{y}-12-30")):
                 lvl = "omission-top10" if est > c10 else "omission-top20"
                 flags.append((lvl, y, f"{s}: carried from {yy} = {est:.0f}bn vs #20 {c20:.0f}bn / #10 {c10:.0f}bn", s))
-    return F, pd.DataFrame(flags, columns=["kind", "year", "detail", "symbol"])
+    fl = pd.DataFrame(flags, columns=["kind", "year", "detail", "symbol"])
+    fl["resolution"] = [resolution(k, y, sym, d) for k, y, d, sym in zip(fl.kind, fl.year, fl.detail, fl.symbol)]
+    return F, fl
 
 
 def main():
