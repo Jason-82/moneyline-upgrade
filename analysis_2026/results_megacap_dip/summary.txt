@@ -5,7 +5,7 @@ list names without a price series (dropped): 4
   1995 #20 GTE (nan)
   1996 #19 Citicorp (C-199811)
   1996 #20 Mobil (nan)
-predecessor files dropped because they carry their successor's prices (audit): AN-199812 tracks AN (correlation 0.995 over 958 days); BAC-199809 tracks BAC (correlation 1.000 over 924 days); C-199811 tracks C (correlation 0.949 over 972 days); FTI-201701 tracks FTI (correlation 1.000 over 3892 days); GRA-199803 tracks GRA (correlation 1.000 over 798 days); ITT-199802 tracks ITT (correlation 1.000 over 511 days); WFC-199811 tracks WFC (correlation 0.969 over 935 days)
+predecessor files dropped because they carry their successor's prices (audit): AN-199812 tracks AN (correlation 0.995 over 958 days); Amoco's membership spell carries AutoNation's prices; BAC-199809 tracks BAC (correlation 1.000 over 924 days); memberships overlap; C-199811 tracks C (correlation 0.949 over 972 days); memberships overlap; FTI-201701 tracks FTI (correlation 1.000 over 3892 days); memberships overlap; GRA-199803 tracks GRA (correlation 1.000 over 798 days); memberships overlap; ITT-199802 tracks ITT (correlation 1.000 over 511 days); memberships overlap; WFC-199811 tracks WFC (correlation 0.969 over 935 days); memberships overlap
 U3 coverage, members with a price series on the first trading day of the year (audit: most companies that died by 2001 have no prices, so U3 1996-2001 is close to a survivors-to-2001 sample): 1996 342/499, 1998 372/500, 2000 434/501, 2002 500/500, 2006 500/500, 2010 499/500, 2020 505/505
 
 U1 top 10 by market cap (prior year-end): 96 events, 91 with a complete window; an event position is open on 77% of days
@@ -25,12 +25,12 @@ PRIMARY TESTS: dip book minus SPY, annualised mean daily excess (stationary boot
   T3 restricted to 2002-2026 (U3 coverage about 99%; audit): excess -0.33%/yr, p 0.5826
 
 S9 10-SLOT PORTFOLIO (10% of value per event from SPY, at most 10 open; tax LT 20% / ST 35%)
-  U1: CAGR 9.97% pre-tax / 8.24% after; maxDD -66.5% (-68.0% taxed); Sharpe 0.446 (0.385 taxed); taken 94, skipped 2 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
-  U2: CAGR 7.94% pre-tax / 6.34% after; maxDD -75.6% (-75.6% taxed); Sharpe 0.350 (0.292 taxed); taken 139, skipped 39 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
-  U3: CAGR 6.03% pre-tax / 4.65% after; maxDD -72.9% (-72.9% taxed); Sharpe 0.267 (0.220 taxed); taken 293, skipped 4678 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
-  U4: CAGR 10.28% pre-tax / 8.43% after; maxDD -70.1% (-73.0% taxed); Sharpe 0.450 (0.383 taxed); taken 75, skipped 4 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
-  U5: CAGR 15.92% pre-tax / 13.05% after; maxDD -61.8% (-66.3% taxed); Sharpe 0.626 (0.532 taxed); taken 77, skipped 0 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
-  U6: CAGR 11.28% pre-tax / 9.05% after; maxDD -68.5% (-70.0% taxed); Sharpe 0.472 (0.403 taxed); taken 112, skipped 3 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U1: CAGR 9.83% pre-tax / 8.06% after; maxDD -67.7% (-69.9% taxed); Sharpe 0.439 (0.376 taxed); taken 94, skipped 2 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U2: CAGR 8.12% pre-tax / 6.57% after; maxDD -74.8% (-75.2% taxed); Sharpe 0.358 (0.302 taxed); taken 139, skipped 39 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U3: CAGR 5.93% pre-tax / 4.56% after; maxDD -72.9% (-73.3% taxed); Sharpe 0.263 (0.217 taxed); taken 293, skipped 4678 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U4: CAGR 10.25% pre-tax / 8.40% after; maxDD -70.3% (-73.3% taxed); Sharpe 0.448 (0.381 taxed); taken 75, skipped 4 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U5: CAGR 15.92% pre-tax / 13.03% after; maxDD -61.8% (-66.3% taxed); Sharpe 0.626 (0.532 taxed); taken 77, skipped 0 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U6: CAGR 11.13% pre-tax / 8.88% after; maxDD -69.8% (-71.7% taxed); Sharpe 0.465 (0.396 taxed); taken 112, skipped 3 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
 
 S8 CAPM (monthly, Newey-West 12) and S11 eras: dip book excess %/yr
   U1: excess +0.98%/yr; alpha -0.30%/yr (t -0.10), beta 1.09; eras 1996-2002 +2.51, 2003-2009 -12.52, 2010-2019 +2.19, 2020-2026 +11.57
@@ -199,14 +199,15 @@ ROBUSTNESS (audit additions; none changes the pre-registered verdict)
   exit strictly after the one-year anniversary (long-term in leap years too): U1 +0.91 (p 0.380), U2 -4.09 (p 0.892), U3 -0.20 (p 0.541)
   T1 across the 512 resolutions of the 9 event-changing #10/#11 near-ties (caps within 2.5%): min -2.86, median -0.04, max +2.78%/yr; 49% above zero (pairs: 1995 MSFT/WMT; 1998 CSCO/LU-200611; 1999 TWX-201806/AIG; 2006 AIG/PFE; 2009 JPM/GE; 2016 WFC/GE; 2021 JPM/V; 2023 V/AVGO; 2024 LLY/WMT)
   Hold length, 25% below the 52-week high (excess %/yr, p, halves; Holm across U1-U3 at each hold; 10-slot after-tax CAGR vs SPY for U1/U2). Not pre-registered; the grid's reality check covers this search:
-     366d: U1 +0.98 (p 0.369, Holm 1.000, -4.4/+6.1) slot 8.24; U2 -4.07 (p 0.891, Holm 1.000, -7.1/-1.1) slot 6.34; U3 -0.21 (p 0.543, Holm 1.000, +2.8/-3.1)
-     548d: U1 +4.12 (p 0.111, Holm 0.334, -0.7/+8.7) slot 9.21; U2 -0.98 (p 0.612, Holm 0.891, -2.3/+0.3) slot 7.49; U3 +0.18 (p 0.446, Holm 0.891, +3.3/-2.8)
-     731d: U1 +3.71 (p 0.132, Holm 0.397, -3.3/+10.4) slot 9.05; U2 +1.86 (p 0.285, Holm 0.434, -2.6/+6.2) slot 7.23; U3 +1.19 (p 0.217, Holm 0.434, +4.3/-1.8)
-     913d: U1 +5.90 (p 0.011, Holm 0.035, +1.5/+10.1) slot 10.69; U2 +3.63 (p 0.069, Holm 0.138, +1.5/+5.6) slot 9.93; U3 +1.53 (p 0.171, Holm 0.171, +5.1/-1.9)
-    1096d: U1 +6.15 (p 0.006, Holm 0.017, +3.0/+9.2) slot 11.90; U2 +3.84 (p 0.027, Holm 0.054, +3.1/+4.5) slot 11.59; U3 +1.65 (p 0.164, Holm 0.164, +5.7/-2.2)
-    1461d: U1 +5.02 (p 0.018, Holm 0.054, +3.2/+6.7) slot 10.57; U2 +3.72 (p 0.021, Holm 0.054, +3.7/+3.7) slot 10.10; U3 +1.79 (p 0.146, Holm 0.146, +5.9/-2.2)
-    1827d: U1 +5.09 (p 0.012, Holm 0.037, +3.6/+6.5) slot 10.97; U2 +3.01 (p 0.041, Holm 0.082, +3.6/+2.4) slot 9.28; U3 +2.07 (p 0.111, Holm 0.111, +6.0/-1.6)
+     366d: U1 +0.98 (p 0.369, Holm 1.000, -4.4/+6.1) slot 8.06; U2 -4.07 (p 0.891, Holm 1.000, -7.1/-1.1) slot 6.57; U3 -0.21 (p 0.543, Holm 1.000, +2.8/-3.1)
+     548d: U1 +4.12 (p 0.111, Holm 0.334, -0.7/+8.7) slot 9.06; U2 -0.98 (p 0.612, Holm 0.891, -2.3/+0.3) slot 7.56; U3 +0.18 (p 0.446, Holm 0.891, +3.3/-2.8)
+     731d: U1 +3.71 (p 0.132, Holm 0.397, -3.3/+10.4) slot 8.99; U2 +1.86 (p 0.285, Holm 0.434, -2.6/+6.2) slot 7.18; U3 +1.19 (p 0.217, Holm 0.434, +4.3/-1.8)
+     913d: U1 +5.90 (p 0.011, Holm 0.035, +1.5/+10.1) slot 10.59; U2 +3.63 (p 0.069, Holm 0.138, +1.5/+5.6) slot 9.77; U3 +1.53 (p 0.171, Holm 0.171, +5.1/-1.9)
+    1096d: U1 +6.15 (p 0.006, Holm 0.017, +3.0/+9.2) slot 11.80; U2 +3.84 (p 0.027, Holm 0.054, +3.1/+4.5) slot 11.60; U3 +1.65 (p 0.164, Holm 0.164, +5.7/-2.2)
+    1461d: U1 +5.02 (p 0.018, Holm 0.054, +3.2/+6.7) slot 10.56; U2 +3.72 (p 0.021, Holm 0.054, +3.7/+3.7) slot 9.44; U3 +1.79 (p 0.146, Holm 0.146, +5.9/-2.2)
+    1827d: U1 +5.09 (p 0.012, Holm 0.037, +3.6/+6.5) slot 11.19; U2 +3.01 (p 0.041, Holm 0.082, +3.6/+2.4) slot 9.09; U3 +2.07 (p 0.111, Holm 0.111, +6.0/-1.6)
     (SPY after-tax CAGR 9.70%)
+  U1 at a 3-year hold across the same 512 list resolutions: min +3.48, median +5.19, max +6.91%/yr; 100% above zero; nominal p < 0.05 in 97%; Holm p < 0.05 (with U2/U3's 3-year p) in 63%, and with both halves positive too in 62% (p from 1,000 draws each). The 1997 IBM/old AT&T near-tie is not in the set (no year-end value for AT&T).
 
 S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-week high (vs every 12-month window)
   S&P 500 1928-2026: 13 events, mean +13.5%, median +10.4%, up 69% | all windows mean +12.1%, median +13.1%, up 75%
@@ -214,4 +215,4 @@ S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-wee
 
 U6 note: members without volume in the parquet (CRSP-sourced dead companies), per year: 0-258; they cannot enter U6, a survivorship bias in this proxy
 
-runtime 621s
+runtime 775s
