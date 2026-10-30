@@ -1,52 +1,59 @@
 MEGA-CAP DIP STUDY (pre-registration: analysis_2026/MEGACAP_DIP_PREREG.md)
-sample 1996-01-02..2026-10-12 (7745 days); 1186 price series after the quality filter (12 dropped or cut); rule: 25% below the 252-day high, buy next open, hold 366 calendar days, 0.03% per side
-list names without a price series (dropped): 3
+sample 1996-01-02..2026-10-12 (7745 days); 1179 price series after the quality filter (12 dropped or cut); rule: 25% below the 252-day high, buy next open, hold 366 calendar days, 0.03% per side
+list names without a price series (dropped): 4
   1995 #15 Mobil (nan)
   1995 #20 GTE (nan)
+  1996 #19 Citicorp (C-199811)
   1996 #20 Mobil (nan)
+predecessor files dropped because they carry their successor's prices (audit): AN-199812 tracks AN (correlation 0.995 over 958 days); BAC-199809 tracks BAC (correlation 1.000 over 924 days); C-199811 tracks C (correlation 0.949 over 972 days); FTI-201701 tracks FTI (correlation 1.000 over 3892 days); GRA-199803 tracks GRA (correlation 1.000 over 798 days); ITT-199802 tracks ITT (correlation 1.000 over 511 days); WFC-199811 tracks WFC (correlation 0.969 over 935 days)
+U3 coverage, members with a price series on the first trading day of the year (audit: most companies that died by 2001 have no prices, so U3 1996-2001 is close to a survivors-to-2001 sample): 1996 342/499, 1998 372/500, 2000 434/501, 2002 500/500, 2006 500/500, 2010 499/500, 2020 505/505
 
-U1 top 10 by market cap (prior year-end): 95 events, 90 with a complete window; an event position is open on 77% of days
-U2 top 20 by market cap (prior year-end): 179 events, 173 with a complete window; an event position is open on 90% of days
-U3 every S&P 500 member on the day: 5041 events, 4826 with a complete window; an event position is open on 100% of days
-U4 tech names in the top 20: 80 events, 75 with a complete window; an event position is open on 76% of days
-U5 today's Magnificent 7 (hindsight, biased): 79 events, 76 with a complete window; an event position is open on 85% of days
-U6 top 10 by median dollar volume (prior year): 112 events, 105 with a complete window; an event position is open on 82% of days
+U1 top 10 by market cap (prior year-end): 96 events, 91 with a complete window; an event position is open on 77% of days
+U2 top 20 by market cap (prior year-end): 178 events, 172 with a complete window; an event position is open on 90% of days
+U3 every S&P 500 member on the day: 4971 events, 4756 with a complete window; an event position is open on 100% of days
+U4 tech names in the top 20: 79 events, 74 with a complete window; an event position is open on 76% of days
+U5 today's Magnificent 7 (hindsight, biased): 77 events, 74 with a complete window; an event position is open on 85% of days
+U6 top 10 by median dollar volume (prior year): 115 events, 108 with a complete window; an event position is open on 86% of days
 
 PRIMARY TESTS: dip book minus SPY, annualised mean daily excess (stationary bootstrap, block 250, 10000 draws, one-sided, Holm over T1-T3)
-  T1 U1: excess +1.52%/yr, p 0.2920, Holm p 0.8760; halves -3.33 / +6.14; MDE80 7.15%/yr; 10-slot after-tax beats SPY: False -> FAIL
-  T2 U2: excess -3.92%/yr, p 0.8810, Holm p 1.0000; halves -6.83 / -1.14; MDE80 8.34%/yr; 10-slot after-tax beats SPY: False -> FAIL
-  T3 U3: excess -0.45%/yr, p 0.6069, Holm p 1.0000; halves +2.32 / -3.10; MDE80 4.05%/yr; 10-slot after-tax beats SPY: False -> FAIL
+  T1 U1: excess +0.98%/yr, p 0.3693, Holm p 1.0000; halves -4.45 / +6.14; MDE80 7.56%/yr (9.02 at the Holm level); 10-slot after-tax beats SPY: False -> FAIL
+      compounded: book CAGR minus SPY CAGR -1.38%/yr, mean log excess -1.26%/yr (the pre-registered statistic is the arithmetic mean)
+  T2 U2: excess -4.07%/yr, p 0.8907, Holm p 1.0000; halves -7.14 / -1.14; MDE80 8.27%/yr (9.87 at the Holm level); 10-slot after-tax beats SPY: False -> FAIL
+      compounded: book CAGR minus SPY CAGR -6.43%/yr, mean log excess -5.99%/yr (the pre-registered statistic is the arithmetic mean)
+  T3 U3: excess -0.21%/yr, p 0.5428, Holm p 1.0000; halves +2.85 / -3.12; MDE80 4.14%/yr (4.94 at the Holm level); 10-slot after-tax beats SPY: False -> FAIL
+      compounded: book CAGR minus SPY CAGR -0.98%/yr, mean log excess -0.89%/yr (the pre-registered statistic is the arithmetic mean)
+  T3 restricted to 2002-2026 (U3 coverage about 99%; audit): excess -0.33%/yr, p 0.5826
 
 S9 10-SLOT PORTFOLIO (10% of value per event from SPY, at most 10 open; tax LT 20% / ST 35%)
-  U1: CAGR 10.49% pre-tax / 8.70% after; maxDD -61.2%; Sharpe 0.471; taken 91, skipped 4 | SPY 10.49% / 9.73%, maxDD -55.2%
-  U2: CAGR 8.62% pre-tax / 6.97% after; maxDD -73.1%; Sharpe 0.379; taken 135, skipped 44 | SPY 10.49% / 9.73%, maxDD -55.2%
-  U3: CAGR 5.18% pre-tax / 5.55% after; maxDD -68.7%; Sharpe 0.234; taken 286, skipped 4755 | SPY 10.49% / 9.73%, maxDD -55.2%
-  U4: CAGR 10.23% pre-tax / 8.40% after; maxDD -72.9%; Sharpe 0.447; taken 75, skipped 5 | SPY 10.49% / 9.73%, maxDD -55.2%
-  U5: CAGR 16.33% pre-tax / 13.71% after; maxDD -61.8%; Sharpe 0.638; taken 79, skipped 0 | SPY 10.49% / 9.73%, maxDD -55.2%
-  U6: CAGR 10.66% pre-tax / 8.54% after; maxDD -67.4%; Sharpe 0.450; taken 107, skipped 5 | SPY 10.49% / 9.73%, maxDD -55.2%
+  U1: CAGR 9.97% pre-tax / 8.24% after; maxDD -66.5% (-68.0% taxed); Sharpe 0.446 (0.385 taxed); taken 94, skipped 2 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U2: CAGR 7.94% pre-tax / 6.34% after; maxDD -75.6% (-75.6% taxed); Sharpe 0.350 (0.292 taxed); taken 139, skipped 39 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U3: CAGR 6.03% pre-tax / 4.65% after; maxDD -72.9% (-72.9% taxed); Sharpe 0.267 (0.220 taxed); taken 293, skipped 4678 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U4: CAGR 10.28% pre-tax / 8.43% after; maxDD -70.1% (-73.0% taxed); Sharpe 0.450 (0.383 taxed); taken 75, skipped 4 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U5: CAGR 15.92% pre-tax / 13.05% after; maxDD -61.8% (-66.3% taxed); Sharpe 0.626 (0.532 taxed); taken 77, skipped 0 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
+  U6: CAGR 11.28% pre-tax / 9.05% after; maxDD -68.5% (-70.0% taxed); Sharpe 0.472 (0.403 taxed); taken 112, skipped 3 | SPY 10.45% / 9.70%, maxDD -55.2%, Sharpe 0.494
 
 S8 CAPM (monthly, Newey-West 12) and S11 eras: dip book excess %/yr
-  U1: excess +1.52%/yr; alpha +0.58%/yr (t 0.20), beta 1.06; eras 1996-2002 +2.51, 2003-2009 -10.13, 2010-2019 +2.19, 2020-2026 +11.57
-  U2: excess -3.92%/yr; alpha -5.08%/yr (t -1.49), beta 1.07; eras 1996-2002 +1.37, 2003-2009 -15.34, 2010-2019 -4.00, 2020-2026 +2.56
-  U3: excess -0.45%/yr; alpha -1.69%/yr (t -1.00), beta 1.15; eras 1996-2002 +0.30, 2003-2009 +3.18, 2010-2019 -1.86, 2020-2026 -2.92
-  U4: excess +2.33%/yr; alpha -0.06%/yr (t -0.01), beta 1.25; eras 1996-2002 +4.85, 2003-2009 -2.05, 2010-2019 +5.26, 2020-2026 -0.08
-  U5: excess +25.92%/yr; alpha +21.27%/yr (t 3.35), beta 1.59; eras 1996-2002 +39.11, 2003-2009 +30.30, 2010-2019 +17.96, 2020-2026 +19.51
-  U6: excess +3.50%/yr; alpha -0.22%/yr (t -0.06), beta 1.36; eras 1996-2002 +0.93, 2003-2009 +1.46, 2010-2019 -5.34, 2020-2026 +21.33
+  U1: excess +0.98%/yr; alpha -0.30%/yr (t -0.10), beta 1.09; eras 1996-2002 +2.51, 2003-2009 -12.52, 2010-2019 +2.19, 2020-2026 +11.57
+  U2: excess -4.07%/yr; alpha -5.21%/yr (t -1.53), beta 1.07; eras 1996-2002 +0.72, 2003-2009 -15.34, 2010-2019 -4.00, 2020-2026 +2.56
+  U3: excess -0.21%/yr; alpha -1.43%/yr (t -0.81), beta 1.15; eras 1996-2002 +1.66, 2003-2009 +3.12, 2010-2019 -2.00, 2020-2026 -2.93
+  U4: excess +2.17%/yr; alpha -0.20%/yr (t -0.04), beta 1.25; eras 1996-2002 +4.13, 2003-2009 -2.05, 2010-2019 +5.26, 2020-2026 -0.08
+  U5: excess +25.29%/yr; alpha +20.67%/yr (t 3.33), beta 1.58; eras 1996-2002 +39.11, 2003-2009 +30.30, 2010-2019 +16.02, 2020-2026 +19.51
+  U6: excess +5.07%/yr; alpha +1.34%/yr (t 0.31), beta 1.37; eras 1996-2002 +6.95, 2003-2009 +1.46, 2010-2019 -5.34, 2020-2026 +22.24
 
 S10 EVENTS with a complete window: 12-month return minus SPY's (bootstrap by calendar quarter)
-  U1: n 90 (44 quarters); mean +16.5% vs SPY +15.3%; excess +1.2% [-6.3%, +8.7%]; median excess +2.0%; beat SPY 53%; median further drop -11.1%; worst -72.0%
-  U2: n 173 (56 quarters); mean +13.5% vs SPY +14.8%; excess -1.3% [-7.3%, +4.8%]; median excess -0.2%; beat SPY 49%; median further drop -14.2%; worst -96.5%
-  U3: n 4826 (120 quarters); mean +12.9% vs SPY +13.5%; excess -0.6% [-2.8%, +1.6%]; median excess -3.6%; beat SPY 45%; median further drop -18.0%; worst -99.9%
-  U4: n 75 (37 quarters); mean +16.5% vs SPY +12.2%; excess +4.3% [-8.4%, +17.7%]; median excess +0.3%; beat SPY 51%; median further drop -15.4%; worst -90.8%
-  U5: n 76 (45 quarters); mean +44.5% vs SPY +12.0%; excess +32.5% [+13.1%, +52.4%]; median excess +7.1%; beat SPY 64%; median further drop -15.8%; worst -82.5%
-  U6: n 105 (50 quarters); mean +14.6% vs SPY +13.0%; excess +1.6% [-8.2%, +11.2%]; median excess -0.0%; beat SPY 50%; median further drop -17.6%; worst -84.6%
+  U1: n 91 (44 quarters); mean +15.2% vs SPY +14.7%; excess +0.5% [-7.1%, +8.1%; by year -8.1%, +8.5%]; median excess +1.4%; beat SPY 53%; median further drop -11.5%; worst -96.5%
+  U2: n 172 (56 quarters); mean +12.6% vs SPY +14.8%; excess -2.2% [-7.7%, +3.3%; by year -8.6%, +3.9%]; median excess -0.3%; beat SPY 49%; median further drop -14.2%; worst -96.5%
+  U3: n 4756 (119 quarters); mean +12.7% vs SPY +13.3%; excess -0.6% [-2.9%, +1.5%; by year -3.1%, +1.9%]; median excess -3.5%; beat SPY 45%; median further drop -18.1%; worst -99.9%
+  U4: n 74 (37 quarters); mean +14.5% vs SPY +12.0%; excess +2.5% [-8.9%, +14.4%; by year -12.5%, +17.7%]; median excess +0.1%; beat SPY 50%; median further drop -15.7%; worst -90.8%
+  U5: n 74 (43 quarters); mean +43.4% vs SPY +11.9%; excess +31.5% [+12.0%, +52.2%; by year +13.1%, +53.2%]; median excess +7.1%; beat SPY 65%; median further drop -17.4%; worst -82.5%
+  U6: n 108 (52 quarters); mean +18.0% vs SPY +13.7%; excess +4.3% [-6.0%, +14.9%; by year -7.1%, +16.4%]; median excess +0.8%; beat SPY 51%; median further drop -17.3%; worst -84.6%
 
 S1 TIMING vs OWNING THE SAME STOCKS: event 12-month excess minus 200 random entries in the same stock and universe (bootstrap by calendar year); and the universe held all the time vs SPY
-  U1: n 90; event +1.2% vs placebo +3.7% -> timing -2.5% [-9.4%, +4.3%]; universe held all the time minus SPY +0.33%/yr
-  U2: n 173; event -1.3% vs placebo -0.3% -> timing -1.0% [-5.9%, +4.8%]; universe held all the time minus SPY -0.04%/yr
-  U3: n 4826; event -0.6% vs placebo +1.2% -> timing -1.8% [-4.2%, +0.6%]
-  U4: n 75; event +4.3% vs placebo +5.3% -> timing -1.0% [-11.6%, +13.8%]; universe held all the time minus SPY +7.41%/yr
-  U5: n 76; event +32.5% vs placebo +32.9% -> timing -0.4% [-19.0%, +20.9%]
+  U1: n 91; event +0.5% vs placebo +3.0% (exact all-days mean +2.9%) -> timing -2.5% [-9.5%, +4.4%]; universe held all the time minus SPY +0.30%/yr
+  U2: n 172; event -2.2% vs placebo -0.5% (exact all-days mean -0.1%) -> timing -1.7% [-5.8%, +2.9%]; universe held all the time minus SPY +0.01%/yr
+  U3: n 4756; event -0.6% vs placebo +1.2% (exact all-days mean +1.3%) -> timing -1.8% [-4.2%, +0.7%]; universe held all the time minus SPY +0.68%/yr
+  U4: n 74; event +2.5% vs placebo +4.8% (exact all-days mean +4.9%) -> timing -2.4% [-11.5%, +9.5%]; universe held all the time minus SPY +7.41%/yr
+  U5: n 74; event +31.5% vs placebo +33.2% (exact all-days mean +33.4%) -> timing -1.7% [-20.6%, +18.9%]; universe held all the time minus SPY +20.93%/yr
 
 S2 TODAY'S MAGNIFICENT 7 (hindsight). Events since the name was coined (2023-04-01):
   NVDA 2024-08-05 (dd -26%): +74.0% vs SPY +23.3%
@@ -66,7 +73,7 @@ S7 TOP-10 EVENTS (U1), complete or not:
   1997-10-27 INTC           #4:  +12.7% vs SPY  +31.4% (excess  -18.7%; further drop -17%)
   1997-10-27 KO             #2:  +27.6% vs SPY  +31.4% (excess   -3.8%; further drop +4%)
   1998-05-15 MO             #8:  +19.6% vs SPY  +23.4% (excess   -3.7%; further drop -3%)
-  1998-08-14 RDS-A          #7:  +50.0% vs SPY  +27.6% (excess  +22.4%; further drop -9%)
+  1998-08-14 RDS-A          #6:  +50.0% vs SPY  +27.6% (excess  +22.4%; further drop -9%)
   1998-08-31 KO             #2:   -8.7% vs SPY  +39.2% (excess  -47.9%; further drop -14%)
   1998-09-10 PG             #9:  +48.9% vs SPY  +39.1% (excess   +9.7%; further drop -3%)
   1998-10-08 GE             #1:  +73.1% vs SPY  +39.4% (excess  +33.8%; further drop +1%)
@@ -99,6 +106,7 @@ S7 TOP-10 EVENTS (U1), complete or not:
   2005-04-20 IBM            #10:  +13.5% vs SPY  +16.1% (excess   -2.5%; further drop -0%)
   2005-09-21 WMT            #5:  +16.6% vs SPY  +11.5% (excess   +5.0%; further drop +2%)
   2007-11-01 C              #4:  -61.9% vs SPY  -34.6% (excess  -27.3%; further drop -68%)
+  2007-11-21 AIG            #10:  -96.5% vs SPY  -39.3% (excess  -57.2%; further drop -97%)
   2008-01-08 BAC            #10:  -63.4% vs SPY  -34.4% (excess  -29.0%; further drop -69%)
   2008-01-23 GOOGL          #6:  -42.1% vs SPY  -36.3% (excess   -5.8%; further drop -54%)
   2008-02-29 MSFT           #3:  -39.6% vs SPY  -44.8% (excess   +5.2%; further drop -41%)
@@ -157,39 +165,53 @@ S7 TOP-10 EVENTS (U1), complete or not:
   2026-03-27 TSLA           #8:   +3.3% vs SPY  +22.2% (excess  -18.9%; further drop -18%) *open
   2026-07-02 AVGO           #7:   -4.9% vs SPY   +4.2% (excess   -9.1%; further drop -9%) *open
 
-S3 GRID (5 thresholds x 3 references x 6 holds) with White's reality check vs SPY (2000 draws)
-  U1: best cell 30% below the 52w high, hold recover: +9.84%/yr; reality-check p 0.088
-  U2: best cell 50% below the 63d high, hold 2y: +8.98%/yr; reality-check p 0.195
-  U3: best cell 50% below the 63d high, hold 63d: +9.05%/yr; reality-check p 0.421
+S3 GRID (5 thresholds x 3 references x 6 holds) with White's reality check vs SPY (10000 draws)
+  U1: best cell 30% below the 52w high, hold recover: +9.84%/yr; reality-check p 0.095
+  U2: best cell 50% below the 63d high, hold 2y: +8.98%/yr; reality-check p 0.197
+  U3: best cell 50% below the 63d high, hold 63d: +9.52%/yr; reality-check p 0.382
   U1, 52-week high, excess %/yr by threshold (rows) and hold (columns):
     hold   63d  126d  366d    2y    3y  recover
     thr                                        
-    0.20  0.85  1.14  0.12  2.54  4.66     4.28
-    0.25  3.25  2.84  1.52  4.02  6.54     8.91
+    0.20  0.84  0.48 -1.77  0.41  2.44     3.35
+    0.25  3.44  3.07  0.98  3.71  6.15     8.60
     0.30  6.84  7.15  4.69  5.89  7.07     9.84
     0.40  2.31  0.90  3.53  3.00  3.02     6.24
     0.50  1.33  2.30  4.27  4.75  2.91     6.89
   U2, 52-week high, excess %/yr by threshold (rows) and hold (columns):
     hold   63d  126d  366d    2y    3y  recover
     thr                                        
-    0.20  2.10 -0.70 -3.99  1.15  3.36     2.23
-    0.25 -1.48 -1.93 -3.92  1.91  3.90     1.60
-    0.30  4.32  0.40  0.22  2.44  4.72     1.64
-    0.40  3.29  1.97 -3.95 -0.95  0.71    -2.05
-    0.50  0.80 -1.23  0.82  5.77  4.70     2.36
+    0.20  1.38 -1.18 -4.30  0.59  2.67     1.40
+    0.25 -1.25 -1.86 -4.07  1.86  3.84     1.73
+    0.30  4.58  1.37  0.55  2.46  4.73     1.67
+    0.40  3.56  1.73 -4.14 -0.90  0.75    -2.05
+    0.50  0.88 -1.93  0.93  5.90  4.75     2.36
   U3, 52-week high, excess %/yr by threshold (rows) and hold (columns):
     hold   63d  126d  366d    2y    3y  recover
     thr                                        
-    0.20 -0.53  0.32  0.12  1.03  1.64     0.67
-    0.25  0.90  0.15 -0.45  0.84  1.30     0.30
-    0.30  1.28 -1.17 -1.65  0.35  0.81    -0.45
-    0.40  2.54 -3.62 -2.87  0.67  0.78     0.42
-    0.50  6.79  0.92 -0.25  1.65  1.21     1.07
+    0.20  0.12  0.16  0.14  1.01  1.61     0.60
+    0.25  2.27  0.43 -0.21  1.19  1.65     0.48
+    0.30  3.63 -1.30 -0.90  1.12  1.52     0.14
+    0.40  3.04 -3.23 -3.22  0.41  0.48     0.15
+    0.50  7.48  0.70 -0.05  1.62  1.11     0.93
+
+ROBUSTNESS (audit additions; none changes the pre-registered verdict)
+  entry without SPY's overnight move (the pre-registration's literal close/open): U1 +0.95 (p 0.373), U2 -4.07 (p 0.890), U3 -0.32 (p 0.571)
+  exit strictly after the one-year anniversary (long-term in leap years too): U1 +0.91 (p 0.380), U2 -4.09 (p 0.892), U3 -0.20 (p 0.541)
+  T1 across the 512 resolutions of the 9 event-changing #10/#11 near-ties (caps within 2.5%): min -2.86, median -0.04, max +2.78%/yr; 49% above zero (pairs: 1995 MSFT/WMT; 1998 CSCO/LU-200611; 1999 TWX-201806/AIG; 2006 AIG/PFE; 2009 JPM/GE; 2016 WFC/GE; 2021 JPM/V; 2023 V/AVGO; 2024 LLY/WMT)
+  Hold length, 25% below the 52-week high (excess %/yr, p, halves; Holm across U1-U3 at each hold; 10-slot after-tax CAGR vs SPY for U1/U2). Not pre-registered; the grid's reality check covers this search:
+     366d: U1 +0.98 (p 0.369, Holm 1.000, -4.4/+6.1) slot 8.24; U2 -4.07 (p 0.891, Holm 1.000, -7.1/-1.1) slot 6.34; U3 -0.21 (p 0.543, Holm 1.000, +2.8/-3.1)
+     548d: U1 +4.12 (p 0.111, Holm 0.334, -0.7/+8.7) slot 9.21; U2 -0.98 (p 0.612, Holm 0.891, -2.3/+0.3) slot 7.49; U3 +0.18 (p 0.446, Holm 0.891, +3.3/-2.8)
+     731d: U1 +3.71 (p 0.132, Holm 0.397, -3.3/+10.4) slot 9.05; U2 +1.86 (p 0.285, Holm 0.434, -2.6/+6.2) slot 7.23; U3 +1.19 (p 0.217, Holm 0.434, +4.3/-1.8)
+     913d: U1 +5.90 (p 0.011, Holm 0.035, +1.5/+10.1) slot 10.69; U2 +3.63 (p 0.069, Holm 0.138, +1.5/+5.6) slot 9.93; U3 +1.53 (p 0.171, Holm 0.171, +5.1/-1.9)
+    1096d: U1 +6.15 (p 0.006, Holm 0.017, +3.0/+9.2) slot 11.90; U2 +3.84 (p 0.027, Holm 0.054, +3.1/+4.5) slot 11.59; U3 +1.65 (p 0.164, Holm 0.164, +5.7/-2.2)
+    1461d: U1 +5.02 (p 0.018, Holm 0.054, +3.2/+6.7) slot 10.57; U2 +3.72 (p 0.021, Holm 0.054, +3.7/+3.7) slot 10.10; U3 +1.79 (p 0.146, Holm 0.146, +5.9/-2.2)
+    1827d: U1 +5.09 (p 0.012, Holm 0.037, +3.6/+6.5) slot 10.97; U2 +3.01 (p 0.041, Holm 0.082, +3.6/+2.4) slot 9.28; U3 +2.07 (p 0.111, Holm 0.111, +6.0/-1.6)
+    (SPY after-tax CAGR 9.70%)
 
 S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-week high (vs every 12-month window)
   S&P 500 1928-2026: 13 events, mean +13.5%, median +10.4%, up 69% | all windows mean +12.1%, median +13.1%, up 75%
   QQQ 1999-2026: 4 events, mean +7.3%, median +6.2%, up 75% | all windows mean +13.5%, median +16.8%, up 79%
 
-U6 note: members without volume in the parquet (CRSP-sourced dead companies), per year: 0-252; they cannot enter U6, a survivorship bias in this proxy
+U6 note: members without volume in the parquet (CRSP-sourced dead companies), per year: 0-258; they cannot enter U6, a survivorship bias in this proxy
 
-runtime 362s
+runtime 621s
