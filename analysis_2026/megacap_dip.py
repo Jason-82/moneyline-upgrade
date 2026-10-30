@@ -93,7 +93,7 @@ def load_lists(data):
 
 
 def rank_of(L):
-    return {(int(r.year_end) + 1, r.symbol): int(r["rank"]) for r in L.itertuples()}
+    return {(int(y) + 1, s): int(k) for y, s, k in zip(L.year_end, L.symbol, L["rank"])}
 
 
 def dollar_volume_universe(parquet, mem, years, k=10):
@@ -629,7 +629,7 @@ def main():
     if len(missing):
         say(f"list names without a price series (dropped): {len(missing)}")
         for r in missing.itertuples():
-            say(f"  {r.year_end} #{r.rank} {r.company} ({r.symbol})")
+            say(f"  {r.year_end} #{r[2]} {r.company} ({r.symbol})")
     say()
 
     cache = {}
