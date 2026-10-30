@@ -17,13 +17,14 @@ sits in SPY until the open). Costs 0.03% per side.
 Data (gitignored): data/universe_pit_all/ (point-in-time S&P 500 incl. failed companies, total-return OHLC, SPY,
 members.csv), data/sso_gold/ (T-bills and the S&P 500 since 1928), data/etf/QQQ.csv.
 
-Audit fixes (2026-10-30, after the first full run; FINDINGS.md lists each with its effect):
+Audit and verification fixes (2026-10-30, after the first full run; FINDINGS.md lists each with its effect):
 - arming starts from the first loaded bar, so a decline that crossed -25% before a stock's 252nd bar gives no event
   later (the first run started every stock armed);
-- predecessor price files that carry their successor's prices are dropped (C-199811, BAC-199809, WFC-199811, ...);
-- 10-slot portfolio: an entry gets what SPY is left instead of being skipped (taxed and untaxed runs now take the same
-  trades); long-term means sold after the one-year anniversary; carried losses keep their character; tax that cannot
-  be paid stays owed; SPY buy & hold starts at the same close;
+- predecessor price files that carry their successor's prices are dropped when their memberships overlap
+  (C-199811, BAC-199809, WFC-199811, ITT-199802) or the file is known to be wrong (AN-199812, Amoco);
+- 10-slot portfolio: cash for an entry or a tax bill comes from SPY, then from the open positions pro rata, so taxed
+  and untaxed runs take the same trades (asserted); long-term means sold after the one-year anniversary; carried
+  losses keep the character of the larger loss (net_tax); SPY buy & hold starts at the same close;
 - U6 uses members on 1996-01-02 for 1996 and counts Alphabet once;
 - the reality check uses 10,000 draws;
 - reporting: compounded excess next to the arithmetic one, U3 coverage, T3 on 2002-2026, year-clustered event CIs,
@@ -71,22 +72,36 @@ ST_RATE, LT_RATE = 0.35, 0.20
 
 # ------------------------------------------------------------------ data
 
-def duplicate_predecessors(raw, min_corr=0.9, min_days=60):
+WRONG_PREDECESSORS = {"AN-199812": "Amoco's membership spell carries AutoNation's prices"}
+
+
+def duplicate_predecessors(raw, mem=None, min_corr=0.9, min_days=60):
     """Predecessor files (SYMBOL-YYYYMM) whose daily returns track the current SYMBOL file (correlation > min_corr over
-    the overlap): they carry the successor's prices (audit: C-199811 holds Travelers', BAC-199809 NationsBank's)."""
+    the overlap) and whose membership overlaps the current SYMBOL's (two members cannot be one company at the same
+    time): they carry the successor's prices (audit: C-199811 holds Travelers', BAC-199809 NationsBank's). Without an
+    overlap the successor file usually continues the predecessor's own history (FTI after FMC Technologies), so the
+    predecessor is kept, except the known cases in WRONG_PREDECESSORS (verification fix)."""
     import re
     out = {}
     for s in raw:
         m = re.match(r"^(.+)-(\d{6})$", s)
         if not m or m.group(1) not in raw:
             continue
+        if mem is not None and s not in WRONG_PREDECESSORS:
+            a_, b_ = mem[mem.symbol == s], mem[mem.symbol == m.group(1)]
+            far = pd.Timestamp("2100-01-01")
+            overlap = any(x.start <= (y.end if pd.notna(y.end) else far) and y.start <= (x.end if pd.notna(x.end) else far)
+                          for x in a_.itertuples() for y in b_.itertuples())
+            if not overlap:
+                continue
         a, b = raw[s].close.pct_change(), raw[m.group(1)].close.pct_change()
         j = pd.concat([a, b], axis=1, sort=True).dropna()
         j = j[(j.iloc[:, 0] != 0) | (j.iloc[:, 1] != 0)]
         if len(j) >= min_days:
             c = float(j.corr().iloc[0, 1])
             if c > min_corr:
-                out[s] = f"tracks {m.group(1)} (correlation {c:.3f} over {len(j)} days)"
+                out[s] = (f"tracks {m.group(1)} (correlation {c:.3f} over {len(j)} days)"
+                          + (f"; {WRONG_PREDECESSORS[s]}" if s in WRONG_PREDECESSORS else "; memberships overlap"))
     return out
 
 
@@ -96,7 +111,9 @@ def load_data():
     from screener.data import from_csv_folder, quality_filter
     from analysis_2026.sso_gold import base_daily
     raw = from_csv_folder(PIT)
-    dups = duplicate_predecessors(raw)
+    mem = pd.read_csv(PIT / "members.csv", parse_dates=["start", "end"])
+    mem["symbol"] = mem.symbol.str.upper()
+    dups = duplicate_predecessors(raw, mem)
     sp, dropped = quality_filter({k: v for k, v in raw.items() if k not in dups}, keep_collapsed=True)
     spy = raw["SPY"][["open", "close"]].astype(float)
     data = {k: v[["open", "close"]].astype(float) for k, v in sp.items() if k != "SPY" and len(v) > LOOK}
@@ -105,8 +122,6 @@ def load_data():
     spy = spy.loc[:end]
     b = base_daily(end=str(end.date()))
     rc = b["r_cash"].reindex(cal).fillna(0.0)
-    mem = pd.read_csv(PIT / "members.csv", parse_dates=["start", "end"])
-    mem["symbol"] = mem.symbol.str.upper()
     return dict(data=data, spy=spy, cal=cal, rc=rc, mem=mem, base=b, dropped=dropped, end=end, dups=dups)
 
 
@@ -524,16 +539,29 @@ def long_term(bought, sold):
     return sold > bought + pd.DateOffset(years=1)
 
 
+def net_tax(st, lt, carry_st=0.0, carry_lt=0.0):
+    """One year's tax on realised short- and long-term gains plus carried losses (IRS carryover worksheet, without the
+    $3,000 ordinary offset): each carryover offsets its own kind first, then the two net against each other, and a
+    leftover loss keeps the character of the larger loss. Returns (tax, new ST carryover, new LT carryover)."""
+    st, lt = st - carry_st, lt - carry_lt
+    if st < 0 < lt:
+        st, lt = (0.0, lt + st) if lt + st >= 0 else (lt + st, 0.0)
+    elif lt < 0 < st:
+        st, lt = (st + lt, 0.0) if st + lt >= 0 else (0.0, st + lt)
+    c_st, c_lt = max(-st, 0.0), max(-lt, 0.0)
+    return ST_RATE * max(st, 0.0) + LT_RATE * max(lt, 0.0), c_st, c_lt
+
+
 def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax=True):
     """Start 100% SPY (bought at the first calendar day's close). Each event takes `frac` of the portfolio's value at
-    the entry open, sold from SPY lots (FIFO), and buys the stock; at exit the proceeds buy a new SPY lot. Events
-    beyond `slots` open positions are skipped; if SPY holds less than `frac` of the portfolio, the position gets what
-    SPY is left (audit fix: the first run skipped such events, so the taxed and untaxed runs took different trades).
-    tax=True: realised gains taxed each year-end at 20% if long-term (sold after the one-year anniversary), else 35%;
-    short- and long-term netted against each other, net losses carried forward with their character (audit fixes);
-    paid by selling SPY (those sales count the next year). Tax that cannot be paid because no SPY is left stays owed
-    and is paid from later SPY proceeds or deducted at the end (audit fix). Everything is sold and taxed at the end.
-    Returns (daily value series net of owed tax, after-tax terminal value, skipped count, taken count)."""
+    the entry open and buys the stock; at exit the proceeds buy a new SPY lot. Events beyond `slots` open positions are
+    skipped. Cash for an entry or a tax bill comes from SPY lots (FIFO); if SPY runs out, the rest comes from the open
+    positions pro rata (verification fix: the first run skipped the event, the audit fix took what SPY was left and
+    deferred unpayable tax, and both could make the taxed and untaxed runs take different trades).
+    tax=True: realised gains taxed each year-end at 20% if long-term (sold after the one-year anniversary), else 35%.
+    Short- and long-term are netted against each other; a net loss is carried forward with the character of the
+    larger loss, as on the IRS carryover worksheet (audit and verification fixes). Everything is sold and taxed at
+    the end. Returns (daily value series, after-tax terminal value, skipped count, taken count)."""
     cal = D["cal"]
     spy = D["spy"].reindex(cal)
     spy_o, spy_c = spy.open.to_numpy(), spy.close.to_numpy()
@@ -544,6 +572,10 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
         if s not in closes:
             closes[s] = data[s].close.reindex(cal).ffill().to_numpy()
         return closes[s][t]
+
+    def px_open(s, t):
+        o = data[s].open.get(cal[t])
+        return px_close(s, t - 1) if o is None or np.isnan(o) else o
 
     order = sorted(events, key=lambda e: (e["date"], (ranks or {}).get((e["date"].year, e["sym"]), 999), e["sym"]))
     entries = {}
@@ -559,61 +591,55 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
     pos = []                                         # dicts: sym, units, basis, date, exit_t
     realised = {"st": 0.0, "lt": 0.0}
     carry = {"st": 0.0, "lt": 0.0}
-    owed = 0.0
     val = np.empty(len(cal))
     skipped = taken = 0
 
     def spy_value(price):
         return sum(u for u, _, _ in lots) * price
 
-    def sell_spy(amount, price, t):
-        """Sell `amount` of SPY (FIFO); returns the amount actually sold."""
-        need = amount / price
-        sold = 0.0
+    def raise_cash(amount, t, spy_px, stock_px):
+        """Sell `amount`: SPY lots first (FIFO), then every open position pro rata (cost 0.03% on stock sales)."""
+        need = amount / spy_px
+        got = 0.0
         while need > 1e-15 and lots:
             u, b, d = lots[0]
             q = min(u, need)
-            realised["lt" if long_term(d, cal[t]) else "st"] += q * price - b * q / u
+            realised["lt" if long_term(d, cal[t]) else "st"] += q * spy_px - b * q / u
             if q >= u - 1e-15:
                 lots.pop(0)
             else:
                 lots[0] = [u - q, b * (u - q) / u, d]
             need -= q
-            sold += q * price
-        return sold
+            got += q * spy_px
+        rest = amount - got
+        if rest > 1e-12 and pos:
+            pv = sum(p["units"] * stock_px(p["sym"], t) for p in pos) * (1 - COST)
+            f = min(rest / pv, 1.0) if pv > 0 else 0.0
+            for p in pos:
+                proceeds = f * p["units"] * stock_px(p["sym"], t) * (1 - COST)
+                realised["lt" if long_term(p["date"], cal[t]) else "st"] += proceeds - f * p["basis"]
+                p["units"] *= 1 - f
+                p["basis"] *= 1 - f
+                got += proceeds
+        return got
 
     def year_tax():
-        st = realised["st"] - carry["st"]
-        lt = realised["lt"] - carry["lt"]
+        st, lt = realised["st"], realised["lt"]
         realised["st"] = realised["lt"] = 0.0
-        carry["st"] = carry["lt"] = 0.0
         if not tax:
+            carry["st"] = carry["lt"] = 0.0
             return 0.0
-        if st < 0 < lt:                              # net short- and long-term against each other
-            lt, st = lt + st, 0.0
-        elif lt < 0 < st:
-            st, lt = st + lt, 0.0
-        if st < 0:                                   # net losses carried forward with their character
-            carry["st"], st = -st, 0.0
-        if lt < 0:
-            carry["lt"], lt = -lt, 0.0
-        return ST_RATE * st + LT_RATE * lt
+        due, carry["st"], carry["lt"] = net_tax(st, lt, carry["st"], carry["lt"])
+        return due
 
     for t in range(len(cal)):
         if t in entries:
-            v_open = spy_value(spy_o[t]) + sum(
-                p["units"] * (data[p["sym"]].open.get(cal[t], px_close(p["sym"], t))) for p in pos)
+            v_open = spy_value(spy_o[t]) + sum(p["units"] * px_open(p["sym"], t) for p in pos)
             for e, j, kt in entries[t]:
                 if len(pos) >= slots:
                     skipped += 1
                     continue
-                # 10% of the portfolio, or what SPY is left if positions have grown past 90%: the trades taken
-                # then depend only on open slots, the same with and without tax
-                amt = min(frac * v_open, spy_value(spy_o[t]))
-                if amt <= 0:
-                    skipped += 1
-                    continue
-                amt = sell_spy(amt, spy_o[t], t)
+                amt = raise_cash(frac * v_open, t, spy_o[t], px_open)
                 o = data[e["sym"]].open.iloc[j]
                 pos.append({"sym": e["sym"], "units": amt * (1 - COST) / o, "basis": amt, "date": cal[t], "exit_t": kt})
                 taken += 1
@@ -628,10 +654,10 @@ def slot_portfolio(D, events, ranks=None, hold=HOLD, slots=SLOTS, frac=0.10, tax
         pos = keep
         last_of_year = t == len(cal) - 1 or cal[t + 1].year != cal[t].year
         if last_of_year and t < len(cal) - 1:
-            owed += year_tax()
-        if owed > 0 and lots:
-            owed -= sell_spy(min(owed, spy_value(spy_c[t])), spy_c[t], t)   # the cash leaves; gain counts next year
-        val[t] = spy_value(spy_c[t]) + sum(p["units"] * px_close(p["sym"], t) for p in pos) - owed
+            due = year_tax()
+            if due > 0:
+                raise_cash(due, t, spy_c[t], px_close)   # the cash leaves; these sales count next year
+        val[t] = spy_value(spy_c[t]) + sum(p["units"] * px_close(p["sym"], t) for p in pos)
     # everything was sold at the last close (exits are capped there) except SPY: realise it and pay the final tax
     t = len(cal) - 1
     for p in pos:
@@ -685,7 +711,7 @@ def compounded(br, spy_r):
     return cg(br) - cg(spy_r), float((np.log1p(br) - np.log1p(spy_r)).mean() * 25200)
 
 
-def coin_tosses(D, L, ev1, ev2, tol=0.025):
+def coin_tosses(D, L, ev1, ev2, tol=0.025, hold=HOLD, with_p=False):
     """T1 over every resolution of the year-end #10/#11 pairs whose market caps are within `tol` (both known): each
     swap removes the #10 stock's U1 events of the next year and adds the #11 stock's (from U2). Returns the pairs that
     change the event set and the T1 values of all 2^k combinations."""
@@ -699,7 +725,7 @@ def coin_tosses(D, L, ev1, ev2, tol=0.025):
     T = len(D["cal"])
     base_s, base_c = np.zeros(T + 1), np.zeros(T + 1)
     for e in ev1:
-        x, c = contribution(D, e)
+        x, c = contribution(D, e, hold)
         base_s += x
         base_c += c
     deltas = []
@@ -707,24 +733,30 @@ def coin_tosses(D, L, ev1, ev2, tol=0.025):
         ds, dc = np.zeros(T + 1), np.zeros(T + 1)
         for e in ev1:
             if e["sym"] == s10 and e["date"].year == y:
-                x, c = contribution(D, e)
+                x, c = contribution(D, e, hold)
                 ds -= x
                 dc -= c
         for e in ev2:
             if e["sym"] == s11 and e["date"].year == y:
-                x, c = contribution(D, e)
+                x, c = contribution(D, e, hold)
                 ds += x
                 dc += c
         if np.any(ds) or np.any(dc):
             deltas.append(((y, s10, s11, ca, cb), ds, dc))
-    vals = []
+    vals, ps, halves = [], [], []
     for mask in range(2 ** len(deltas)):
         x, c = base_s.copy(), base_c.copy()
         for bit, (_, ds, dc) in enumerate(deltas):
             if mask >> bit & 1:
                 x += ds
                 c += dc
-        vals.append(ann(book_from(D, x, c)[0]))
+        ex = book_from(D, x, c)[0]
+        vals.append(ann(ex))
+        if with_p:
+            ps.append(boot_mean(ex.to_numpy(), n=1000, seed=SEED + mask)["p"])
+            halves.append(all(ann(ex.loc[a_:b_]) > 0 for _, a_, b_ in HALVES))
+    if with_p:
+        return [d[0] for d in deltas], np.array(vals), np.array(ps), np.array(halves)
     return [d[0] for d in deltas], np.array(vals)
 
 
@@ -993,7 +1025,9 @@ def main():
             row = {"hold_days": h, "universe": u, "excess_%/yr": e_, "p": p_, "p_holm": hh[u], "half1": h1, "half2": h2}
             txt = f"{u} {e_:+.2f} (p {p_:.3f}, Holm {hh[u]:.3f}, {h1:+.1f}/{h2:+.1f})"
             if u in ("U1", "U2"):
-                _, after_h, _, _ = slot_portfolio(D, EV[u], ranks=ranks, hold=h)
+                _, after_h, sk_h, tk_h = slot_portfolio(D, EV[u], ranks=ranks, hold=h)
+                if slot_portfolio(D, EV[u], ranks=ranks, hold=h, tax=False)[2:] != (sk_h, tk_h):
+                    raise AssertionError(f"{u} {h}d: the taxed and untaxed 10-slot runs took different trades")
                 row["slot_after_tax_CAGR_%"] = (after_h ** (1 / (len(cal) / 252)) - 1) * 100
                 txt += f" slot {row['slot_after_tax_CAGR_%']:.2f}"
             hold_rows.append(row)
@@ -1001,6 +1035,15 @@ def main():
         say(f"    {h:>4}d: " + "; ".join(line))
     pd.DataFrame(hold_rows).to_csv(OUT / "hold_curve.csv", index=False)
     say(f"    (SPY after-tax CAGR {slot_res['U1']['spy_after_tax_CAGR_%']:.2f}%)")
+    p_u2_3y = [r["p"] for r in hold_rows if r["hold_days"] == 1096 and r["universe"] == "U2"][0]
+    p_u3_3y = [r["p"] for r in hold_rows if r["hold_days"] == 1096 and r["universe"] == "U3"][0]
+    pairs3, vals3, ps3, halves3 = coin_tosses(D, L, EV["U1"], EV["U2"], hold=1096, with_p=True)
+    holm3 = [holm({"U1": p_, "U2": p_u2_3y, "U3": p_u3_3y})["U1"] for p_ in ps3]
+    say(f"  U1 at a 3-year hold across the same {len(vals3)} list resolutions: min {vals3.min():+.2f}, median "
+        f"{np.median(vals3):+.2f}, max {vals3.max():+.2f}%/yr; {np.mean(vals3 > 0):.0%} above zero; nominal p < 0.05 in "
+        f"{np.mean(ps3 < 0.05):.0%}; Holm p < 0.05 (with U2/U3's 3-year p) in {np.mean(np.array(holm3) < 0.05):.0%}, "
+        f"and with both halves positive too in {np.mean((np.array(holm3) < 0.05) & halves3):.0%} (p from 1,000 draws "
+        f"each). The 1997 IBM/old AT&T near-tie is not in the set (no year-end value for AT&T).")
 
     say()
     say("S6 INDEX DIPS: 12-month total return after the index closes 25% below its 52-week high (vs every 12-month "

@@ -127,6 +127,8 @@ def resolution(kind, year, symbol, detail):
         return "ranked on derived evidence (index-fund holding order, filings); see the entry's note"
     if kind == "no-symbol":
         return "no price series in the dataset: dropped and reported"
+    if kind == "rank-order":
+        return "near-ties inside the top 10 (2000: PFE/CSCO, AIG/MRK within 0.1%): no universe changes"
     if (symbol, year) in MERGERS:
         return MERGERS[(symbol, year)]
     if kind.startswith("omission"):

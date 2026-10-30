@@ -196,3 +196,39 @@ def test_duplicate_predecessor_detected():
     other = pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0, 0.01, 300))}, index=days)
     raw = {"XYZ": base, "XYZ-199811": base * 1.7, "ABC": base, "ABC-199901": other}
     assert set(M.duplicate_predecessors(raw)) == {"XYZ-199811"}
+
+
+def test_net_tax_carryover_keeps_character():
+    # ST loss larger than LT gain: the leftover is a short-term carryover
+    assert M.net_tax(-0.0637, 0.0399) == pytest.approx((0.0, 0.0238, 0.0))
+    # LT loss larger than ST gain: the leftover is a long-term carryover
+    assert M.net_tax(0.03, -0.05) == pytest.approx((0.0, 0.0, 0.02))
+    # a short-term carryover offsets next year's short-term gain first
+    assert M.net_tax(0.0199, 0.0207, 0.0238, 0.0) == pytest.approx((M.LT_RATE * (0.0207 - 0.0039), 0.0, 0.0))
+    assert M.net_tax(0.10, 0.20) == pytest.approx((M.ST_RATE * 0.10 + M.LT_RATE * 0.20, 0.0, 0.0))
+
+
+def test_slot_entries_funded_from_positions_when_spy_runs_out():
+    n = 1300
+    stocks = {}
+    for i in range(10):                              # ten drops a week apart; each position then rises 5x
+        o, c = flat_then_drop(n, 400 + 5 * i)
+        c[401 + 5 * i:] = np.linspace(70, 350, n - 401 - 5 * i)
+        stocks[f"S{i:02d}"] = (o, c)
+    D = make_D(stocks)
+    ev = M.find_events(D, M.Universe("always", syms=list(stocks)))
+    v0, _, sk0, tk0 = M.slot_portfolio(D, ev, tax=False)
+    v1, _, sk1, tk1 = M.slot_portfolio(D, ev, tax=True)
+    assert (sk0, tk0) == (sk1, tk1) == (0, 10)
+
+
+def test_duplicate_detector_needs_overlapping_memberships():
+    days = pd.bdate_range("1996-01-01", periods=300)
+    rng = np.random.default_rng(1)
+    base = pd.DataFrame({"close": 100 * np.cumprod(1 + rng.normal(0, 0.01, 300))}, index=days)
+    raw = {"XYZ": base, "XYZ-199811": base * 1.7, "QQQQ": base, "QQQQ-199901": base * 2}
+    mem = pd.DataFrame({"symbol": ["XYZ", "XYZ-199811", "QQQQ-199901", "QQQQ"],
+                        "start": pd.to_datetime(["1996-01-02", "1996-01-02", "1996-01-02", "1999-02-01"]),
+                        "end": pd.to_datetime([None, "1998-11-13", "1999-01-29", None])})
+    # XYZ's spells overlap (a copy); QQQQ continues QQQQ-199901's history after it left (kept)
+    assert set(M.duplicate_predecessors(raw, mem)) == {"XYZ-199811"}
