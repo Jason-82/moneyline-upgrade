@@ -1,0 +1,1189 @@
+{
+ "source": "Robinhood get_currency_pairs (read-only catalog), 2026-11-18",
+ "results": [
+  {
+   "symbol": "XDC-USD",
+   "asset_currency": "XDC",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "8800000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "BILL-USD",
+   "asset_currency": "BILL",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "9900000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "CASHCAT-USD",
+   "asset_currency": "CASHCAT",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "700000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "RE-USD",
+   "asset_currency": "RE",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "FLR-USD",
+   "asset_currency": "FLR",
+   "tradability": "tradable",
+   "min_order_size": "20",
+   "max_order_size": "30000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.0000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "CHIP-USD",
+   "asset_currency": "CHIP",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "4500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "CC-USD",
+   "asset_currency": "CC",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1500000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "MON-USD",
+   "asset_currency": "MON",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "11260000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SENT-USD",
+   "asset_currency": "SENT",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "16000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "USDG-USD",
+   "asset_currency": "USDG",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "1000000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": true,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "MEGA-USD",
+   "asset_currency": "MEGA",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "3000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SKR-USD",
+   "asset_currency": "SKR",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "15000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "LIT-USD",
+   "asset_currency": "LIT",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "100000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SYRUP-USD",
+   "asset_currency": "SYRUP",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "900000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "AVNT-USD",
+   "asset_currency": "AVNT",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1200000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "HYPE-USD",
+   "asset_currency": "HYPE",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "7000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "XPL-USD",
+   "asset_currency": "XPL",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "ASTER-USD",
+   "asset_currency": "ASTER",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "175000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SEI-USD",
+   "asset_currency": "SEI",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "2500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ZORA-USD",
+   "asset_currency": "ZORA",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "20000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "WLFI-USD",
+   "asset_currency": "WLFI",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1750000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "XCN-USD",
+   "asset_currency": "XCN",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "50000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.0000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "SKY-USD",
+   "asset_currency": "SKY",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "4000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SUI-USD",
+   "asset_currency": "SUI",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "150000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "MOODENG-USD",
+   "asset_currency": "MOODENG",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "2750000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "VVV-USD",
+   "asset_currency": "VVV",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "32000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ORCA-USD",
+   "asset_currency": "ORCA",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "265000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "MNT-USD",
+   "asset_currency": "MNT",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "250000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "PNUT-USD",
+   "asset_currency": "PNUT",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "2500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "MEW-USD",
+   "asset_currency": "MEW",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "300000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "BIO-USD",
+   "asset_currency": "BIO",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "6000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "POPCAT-USD",
+   "asset_currency": "POPCAT",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "2500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SNX-USD",
+   "asset_currency": "SNX",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "W-USD",
+   "asset_currency": "W",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "13000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "EIGEN-USD",
+   "asset_currency": "EIGEN",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1300000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "MORPHO-USD",
+   "asset_currency": "MORPHO",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "125000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "JTO-USD",
+   "asset_currency": "JTO",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "470000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "AERO-USD",
+   "asset_currency": "AERO",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "350000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "STRK-USD",
+   "asset_currency": "STRK",
+   "tradability": "tradable",
+   "min_order_size": "5",
+   "max_order_size": "7000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "PYTH-USD",
+   "asset_currency": "PYTH",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "3500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "FLOKI-USD",
+   "asset_currency": "FLOKI",
+   "tradability": "tradable",
+   "min_order_size": "1000",
+   "max_order_size": "2500000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.00000001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "PENGU-USD",
+   "asset_currency": "PENGU",
+   "tradability": "tradable",
+   "min_order_size": "10",
+   "max_order_size": "20000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "QNT-USD",
+   "asset_currency": "QNT",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "3900",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "LDO-USD",
+   "asset_currency": "LDO",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "400000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "INJ-USD",
+   "asset_currency": "INJ",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "55000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "WLD-USD",
+   "asset_currency": "WLD",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "IMX-USD",
+   "asset_currency": "IMX",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "RAY-USD",
+   "asset_currency": "RAY",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "400000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "VIRTUAL-USD",
+   "asset_currency": "VIRTUAL",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "200000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ENA-USD",
+   "asset_currency": "ENA",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1150000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "FET-USD",
+   "asset_currency": "FET",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1250000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ONDO-USD",
+   "asset_currency": "ONDO",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "350000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "TRUMP-USD",
+   "asset_currency": "TRUMP",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "75000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "BONK-USD",
+   "asset_currency": "BONK",
+   "tradability": "tradable",
+   "min_order_size": "1000",
+   "max_order_size": "15000000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.00000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "OP-USD",
+   "asset_currency": "OP",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1150000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ARB-USD",
+   "asset_currency": "ARB",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1350000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "GRAM-USD",
+   "asset_currency": "GRAM",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "375000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "WIF-USD",
+   "asset_currency": "WIF",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "700000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "RENDER-USD",
+   "asset_currency": "RENDER",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "115000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ZRO-USD",
+   "asset_currency": "ZRO",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "125000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "PEPE-USD",
+   "asset_currency": "PEPE",
+   "tradability": "tradable",
+   "min_order_size": "10000",
+   "max_order_size": "65000000000",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.00000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "AXS-USD",
+   "asset_currency": "AXS",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "200000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "XTZ-USD",
+   "asset_currency": "XTZ",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "500000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "AAVE-USD",
+   "asset_currency": "AAVE",
+   "tradability": "tradable",
+   "min_order_size": "0.0001",
+   "max_order_size": "3300",
+   "min_order_quantity_increment": "0.00001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "GRT-USD",
+   "asset_currency": "GRT",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "13000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "PAXG-USD",
+   "asset_currency": "PAXG",
+   "tradability": "tradable",
+   "min_order_size": "0.00001",
+   "max_order_size": "50",
+   "min_order_quantity_increment": "0.000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "CRV-USD",
+   "asset_currency": "CRV",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "400000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ZRX-USD",
+   "asset_currency": "ZRX",
+   "tradability": "tradable",
+   "min_order_size": "5",
+   "max_order_size": "2000000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "BAT-USD",
+   "asset_currency": "BAT",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "2500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "HBAR-USD",
+   "asset_currency": "HBAR",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "1500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ALGO-USD",
+   "asset_currency": "ALGO",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "1500000",
+   "min_order_quantity_increment": "0.1",
+   "min_order_price_increment": "0.00001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "UNI-USD",
+   "asset_currency": "UNI",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "50000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "LINK-USD",
+   "asset_currency": "LINK",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "35000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "COMP-USD",
+   "asset_currency": "COMP",
+   "tradability": "tradable",
+   "min_order_size": "0.0001",
+   "max_order_size": "6083",
+   "min_order_quantity_increment": "0.00001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "NEAR-USD",
+   "asset_currency": "NEAR",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "200000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ATOM-USD",
+   "asset_currency": "ATOM",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "125000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "POL-USD",
+   "asset_currency": "POL",
+   "tradability": "untradable",
+   "min_order_size": "0.1",
+   "max_order_size": "800000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "SHIB-USD",
+   "asset_currency": "SHIB",
+   "tradability": "tradable",
+   "min_order_size": "800",
+   "max_order_size": "26821636120",
+   "min_order_quantity_increment": "1",
+   "min_order_price_increment": "0.00000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "DOT-USD",
+   "asset_currency": "DOT",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "130000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.0001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "AVAX-USD",
+   "asset_currency": "AVAX",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "20000",
+   "min_order_quantity_increment": "0.0001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "SOL-USD",
+   "asset_currency": "SOL",
+   "tradability": "tradable",
+   "min_order_size": "0.0001",
+   "max_order_size": "7500",
+   "min_order_quantity_increment": "0.00001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ADA-USD",
+   "asset_currency": "ADA",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "600000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.0000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "USDC-USD",
+   "asset_currency": "USDC",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "1000000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": true,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "BNB-USD",
+   "asset_currency": "BNB",
+   "tradability": "tradable",
+   "min_order_size": "0.0001",
+   "max_order_size": "250",
+   "min_order_quantity_increment": "0.00001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": true,
+   "halted_regions": [
+    "NY"
+   ]
+  },
+  {
+   "symbol": "XLM-USD",
+   "asset_currency": "XLM",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "2250000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ZEC-USD",
+   "asset_currency": "ZEC",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "650",
+   "min_order_quantity_increment": "0.00001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "XRP-USD",
+   "asset_currency": "XRP",
+   "tradability": "tradable",
+   "min_order_size": "0.1",
+   "max_order_size": "600000",
+   "min_order_quantity_increment": "0.001",
+   "min_order_price_increment": "0.001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "LTC-USD",
+   "asset_currency": "LTC",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "2200",
+   "min_order_quantity_increment": "0.00000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ETC-USD",
+   "asset_currency": "ETC",
+   "tradability": "tradable",
+   "min_order_size": "0.01",
+   "max_order_size": "15000",
+   "min_order_quantity_increment": "0.000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "DOGE-USD",
+   "asset_currency": "DOGE",
+   "tradability": "tradable",
+   "min_order_size": "1",
+   "max_order_size": "6500000",
+   "min_order_quantity_increment": "0.01",
+   "min_order_price_increment": "0.000001",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "BCH-USD",
+   "asset_currency": "BCH",
+   "tradability": "tradable",
+   "min_order_size": "0.001",
+   "max_order_size": "750",
+   "min_order_quantity_increment": "0.00000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "ETH-USD",
+   "asset_currency": "ETH",
+   "tradability": "tradable",
+   "min_order_size": "0.0001",
+   "max_order_size": "280",
+   "min_order_quantity_increment": "0.000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  },
+  {
+   "symbol": "BTC-USD",
+   "asset_currency": "BTC",
+   "tradability": "tradable",
+   "min_order_size": "0.000001",
+   "max_order_size": "20",
+   "min_order_quantity_increment": "0.00000001",
+   "min_order_price_increment": "0.01",
+   "market_orders_only": false,
+   "halted": false,
+   "halted_regions": null
+  }
+ ]
+}
