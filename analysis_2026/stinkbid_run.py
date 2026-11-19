@@ -629,6 +629,28 @@ def universe_available(ctx: Ctx, univ: str) -> bool:
     return univ in _members(ctx)
 
 
+def _run_retrying(ctx: Ctx, run_program, prog: str, univ: str, cfg: dict) -> dict:
+    """run_program with one worker process fewer after a worker is killed (BrokenProcessPool: on this machine, the
+    kernel's out-of-memory killer; the fcount stage lost one on 2026-11-19 with four workers of about 3 GB each). The
+    engine's results do not depend on the number of workers (tasks run independently and come back in task order),
+    and the job count is not part of the cache signature. With one worker left, the error is raised."""
+    import concurrent.futures as cf
+    jobs = int(cfg.get("n_jobs", 1) or 1)
+    while True:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                return run_program(prog, univ, data=ctx.data, cfg=cfg)
+        except cf.BrokenExecutor as e:                    # BrokenProcessPool: a worker process was killed
+            if jobs <= 1:
+                raise
+            jobs -= 1
+            ctx.log(f"  {prog}/{univ}: a worker process was lost ({e!r}); retrying with {jobs} worker(s)")
+            _append_log(ctx, "log.jsonl", dict(event="retry", program=f"{prog}/{univ}", workers=jobs,
+                                               error=repr(e)[:200]))
+            cfg = dict(cfg, n_jobs=jobs)
+
+
 def run_engine(ctx: Ctx, prog: str, univ: str, plan: str, counts_only: bool = False, rules=None,
                reuse: bool = True) -> dict | None:
     """Run (or reload from the cache) one engine program; None when the universe is not in the universes table."""
@@ -645,9 +667,7 @@ def run_engine(ctx: Ctx, prog: str, univ: str, plan: str, counts_only: bool = Fa
     sbe = _engine()
     t = time.time()
     ctx.log(f"  {prog}/{univ} ({'counts only' if counts_only else plan}) ...")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        res = sbe.run_program(prog, univ, data=ctx.data, cfg=cfg)
+    res = _run_retrying(ctx, sbe.run_program, prog, univ, cfg)
     add_membership(ctx, res)
     save_run(path, res, sig)
     ctx.log(f"  {prog}/{univ}: done in {time.time() - t:.0f}s -> {path}")
@@ -2551,6 +2571,33 @@ def _t_review_units(say):
     """Regressions for review findings 3 (aggTrades only where capacity is reported), 5 (HYPE's levels from the index
     through d0 - 1), 6 (fcount with a program that has bids but no fill) and 9 (H1's E sensitivity)."""
     sbe = _engine()
+    # a killed worker process (out of memory, 2026-11-19): the program reruns with one worker fewer, the retry is
+    # logged, and with one worker left the error is raised
+    import concurrent.futures as cf
+    from concurrent.futures.process import BrokenProcessPool
+    rx = Ctx(out=SCRATCH / "retry_unit", n_jobs=3, verbose=False)
+    shutil.rmtree(rx.out, ignore_errors=True)
+    calls = []
+
+    def flaky(prog, univ, data=None, cfg=None):
+        calls.append(cfg["n_jobs"])
+        if len(calls) < 3:
+            raise BrokenProcessPool("a worker was killed")
+        return {"ok": True}
+
+    def dead(prog, univ, data=None, cfg=None):
+        calls.append(cfg["n_jobs"])
+        raise BrokenProcessPool("a worker was killed")
+    assert _run_retrying(rx, flaky, "P1", "U_C", dict(n_jobs=3)) == {"ok": True} and calls == [3, 2, 1], calls
+    assert sum(1 for x in (rx.out / "stages" / "log.jsonl").read_text().splitlines() if '"retry"' in x) == 2
+    calls.clear()
+    try:
+        _run_retrying(rx, dead, "P1", "U_C", dict(n_jobs=1))
+        raise AssertionError("a lost worker with one job left must raise")
+    except cf.BrokenExecutor:
+        assert calls == [1], calls
+    shutil.rmtree(rx.out, ignore_errors=True)
+    say("  units: a killed worker reruns the program with one worker fewer (logged); with one left the error is raised")
     # (3) capacity modes: 'auto' (aggTrades on real U-Q1) only for P1 on U-Q1, C1 for every other run and stage
     for injected in (False, True):
         cx = Ctx(data={} if injected else None, n_jobs=1, verbose=False)
