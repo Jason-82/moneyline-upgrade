@@ -1,0 +1,106 @@
+{
+ "sources": [
+  {
+   "source": "synthetic K1a",
+   "violations": 0,
+   "gaps": 0,
+   "checks": 285825,
+   "first": []
+  },
+  {
+   "source": "synthetic K1b",
+   "violations": 0,
+   "gaps": 1219,
+   "checks": 553419,
+   "first": []
+  },
+  {
+   "source": "synthetic K1c",
+   "violations": 0,
+   "gaps": 1278,
+   "checks": 564852,
+   "first": []
+  },
+  {
+   "source": "synthetic K1c0",
+   "violations": 0,
+   "gaps": 1250,
+   "checks": 563307,
+   "first": []
+  },
+  {
+   "source": "synthetic K1d",
+   "violations": 0,
+   "gaps": 1287,
+   "checks": 587718,
+   "first": []
+  },
+  {
+   "source": "synthetic K2",
+   "violations": 0,
+   "gaps": 1366,
+   "checks": 579993,
+   "first": []
+  },
+  {
+   "source": "synthetic K4 base runs",
+   "violations": 0,
+   "gaps": 1804,
+   "checks": 282350,
+   "first": []
+  },
+  {
+   "source": "synthetic K4 scale runs",
+   "violations": 0,
+   "gaps": 88864,
+   "checks": 13256061,
+   "first": []
+  },
+  {
+   "source": "synthetic K4 delete runs",
+   "violations": 0,
+   "gaps": 79982,
+   "checks": 11669942,
+   "first": []
+  },
+  {
+   "source": "synthetic K4 gap runs",
+   "violations": 0,
+   "gaps": 88253,
+   "checks": 13544506,
+   "first": []
+  },
+  {
+   "source": "real K4 fill runs (base and perturbed)",
+   "violations": 0,
+   "gaps": 6,
+   "checks": 5993,
+   "first": []
+  },
+  {
+   "source": "real P1 calendar",
+   "violations": 0,
+   "gaps": 6,
+   "checks": 8472,
+   "first": []
+  },
+  {
+   "source": "real H4 calendar",
+   "violations": 0,
+   "gaps": 25,
+   "checks": 7061,
+   "first": []
+  }
+ ],
+ "violations": 0,
+ "gaps": 265340,
+ "checks": 41909499,
+ "real_reaudit": {
+  "fills": 1544,
+  "violations": 0,
+  "first": [],
+  "gap_through": 0,
+  "gap_list": []
+ },
+ "passed": true
+}
