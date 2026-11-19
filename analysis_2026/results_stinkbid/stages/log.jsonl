@@ -17,3 +17,5 @@
 {"time": "2026-11-19 11:07:03 UTC", "mode": "real", "event": "start", "stage": "fcount"}
 {"time": "2026-11-19 12:34:13 UTC", "mode": "real", "event": "complete", "stage": "fcount"}
 {"time": "2026-11-19 12:37:18 UTC", "mode": "real", "event": "start", "stage": "primary"}
+{"time": "2026-11-19 14:36:29 UTC", "mode": "real", "event": "note", "note": "primary stage killed by the out-of-memory killer at 14:34:50 UTC (exit 137; the runner's main process, 4.2 GB, with three engine workers) while computing P1/U_C; P1/U_Q1, P1/U_B and H4/U_Q1 were complete and cached; no test statistic had been computed (the tests run after all four runs exist). Restarted with two workers; not a rerun (the stage had not completed), nothing changed."}
+{"time": "2026-11-19 14:36:32 UTC", "mode": "real", "event": "start", "stage": "primary"}
