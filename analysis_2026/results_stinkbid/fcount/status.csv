@@ -1,9 +1,9 @@
 program,universe,status,placements
 P1,U_Q1,inputs,9
 P1,U_B,inputs,55
-H4,U_Q1,level:abstain,15490
+H4,U_Q1,level:abstain,15587
 H4,U_Q1,level:before_start,2952
-H4,U_Q1,level:no_data,173
+H4,U_Q1,level:no_data,11
 H4,U_Q1,inputs,9
 P1,U_Q1_12,inputs,20
 P1,U_Q1_xm,inputs,9
@@ -19,8 +19,8 @@ M1,U_Q1,inputs,9
 M2a,U_Q1,level:non_positive,508
 M2a,U_Q1,inputs,9
 M3,U_Q1,inputs,9
-H4-all,U_Q1,level:abstain,59446
+H4-all,U_Q1,level:abstain,59543
 H4-all,U_Q1,level:before_start,2952
-H4-all,U_Q1,level:no_data,173
+H4-all,U_Q1,level:no_data,11
 H4-all,U_Q1,inputs,9
 M8,U_Q1,inputs,9

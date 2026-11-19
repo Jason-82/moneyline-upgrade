@@ -1,0 +1,22 @@
+{
+ "stage": "fcount",
+ "complete": true,
+ "mode": "real",
+ "started": "2026-11-19 11:07:03 UTC",
+ "finished": "2026-11-19 12:34:13 UTC",
+ "seconds": 5229.2,
+ "outputs": [
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/counts.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/by_month.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/status.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/audit.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/p1_episodes.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/fcount.txt",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/fcount/summary.json"
+ ],
+ "programs": 20,
+ "violations": 0,
+ "src": "fc711c46a4977ff9",
+ "data": "cb1f4c157d310844",
+ "hype": true
+}

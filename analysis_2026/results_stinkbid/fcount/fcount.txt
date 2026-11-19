@@ -1,9 +1,9 @@
 Fill counts per program (counts only; no outcome was computed), STINKBID_PREREG.md §14 stage 3
-mode: real; written 2026-11-19 08:43:46 UTC
+mode: real; written 2026-11-19 12:34:13 UTC
 
 P1        U_Q1     bids   33,486  F1 fills  1,544  months  62  G*  14.5  episodes  96
 P1        U_B      bids  106,410  F1 fills  4,712  months  78  G*  13.4  episodes 142
-H4        U_Q1     bids  130,165  F1 fills  7,061  months  81  G*  12.5  episodes 184
+H4        U_Q1     bids  130,490  F1 fills  7,093  months  81  G*  12.6  episodes 184
 P1        U_C      bids   38,637  F1 fills  1,668  months  63  G*  11.9  episodes  97
 P1        U_Q1_12  bids   42,723  F1 fills  1,983  months  66  G*  14.5  episodes 107
 P1        U_Q1_xm  bids   31,383  F1 fills  1,457  months  61  G*  14.1  episodes  91
@@ -18,7 +18,8 @@ P1-k5-12  U_Q1     bids   22,324  F1 fills  1,423  months  72  G*  20.6  episode
 M1        U_Q1     bids   66,972  F1 fills  5,361  months  80  G*  11.5  episodes 193
 M2a       U_Q1     bids   32,978  F1 fills    809  months  43  G*   7.8  episodes  54
 M3        U_Q1     bids   33,486  F1 fills  2,069  months  73  G*  17.8  episodes 125
-H4-all    U_Q1     bids  524,295  F1 fills 27,797  months  82  G*  13.4  episodes 196
+H4-all    U_Q1     bids  524,620  F1 fills 27,829  months  82  G*  13.4  episodes 196
 M8        U_Q1     bids   11,162  F1 fills  4,129  months  83  G*  20.3  episodes 230
+P1        HYPE_index bids      216  F1 fills      5  months   3  G*   1.5  episodes   3
 
 U-B: fills counted under the spot rules F1, F2 only; the index and perpetual rules were not computed on U-B (disk; prereg A1.7, A2.2).
