@@ -6,15 +6,15 @@
   "index1d"
  ],
  "m1_coins": 154,
- "bids": 910881,
- "candidate_days": 45048,
- "index_months": 3457,
- "perp_months": 3457,
+ "bids": 921886,
+ "candidate_days": 45514,
+ "index_months": 3480,
+ "perp_months": 3480,
  "hype_index_months": 19,
- "index_history_months": 5350,
- "index_history_estimate_gb": 9.4,
- "free_disk_gb_before": 14.8,
- "agg_coin_days_cached": 2414,
+ "index_history_months": 5619,
+ "index_history_estimate_gb": 9.9,
+ "free_disk_gb_before": 4.4,
+ "agg_coin_days_cached": 2453,
  "ub_f3": false,
  "aggtrades_runs": [
   "P1/U_Q1"
