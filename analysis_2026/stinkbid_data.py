@@ -98,7 +98,8 @@ Rules implemented (prereg section in brackets):
   continue when the successor's USDT pair opened within 30 days and the data ratio is within +-5% of the stated
   ratio (SWAPS adds XZC->FIRO, BZRX->OOKI, NANO->XNO, EPS->EPX, COCOS->COMBO, FRONT->SLF, STPT->AWE, LOKA->A2Z,
   OMNI->NOM); otherwise the successor inherits listing age and ranks only and the end stays a delisting (INHERIT:
-  VEN->VET, LUNA->LUNC, GXS->REI). Forks (BCC -> BCHABC + BCHSV) pass nothing. A merger into a coin that already
+  VEN->VET, LUNA->LUNC, GXS->REI, BCC->BCHABC, whose balances Binance removed and replaced 1:1 by BCHABC and BCHSV).
+  A fork that credits a new coin while holders keep the old one passes nothing. A merger into a coin that already
   traded passes nothing to its earlier months (checked: AGIX/OCEAN->FET; STG->ZRO is not linked).
 - Delisting value (§4.1, V9): VWAP (quote volume / volume) of the last full trading day (a UTC day with trading,
   i.e. a bar with trades > 0, in its first and last hour) x (1 - 0.30); the last trade x 0.70, 0% and 100% haircuts
@@ -289,9 +290,9 @@ SWAPS = {
     # successor's USDT pair opened within 30 days, and the data ratio is within +-5% of the stated ratio.
     "XZC": ("FIRO", 1.0, BA + "binance-will-update-the-ticker-of-xzc-to-firo-4a06d6ab6abb4f08b12bb93d6fec30ec (ticker "
                          "XZC -> FIRO 1:1, FIRO trading 2021-01-29; data ratio 1.000)"),
-    "BZRX": ("OOKI", 10.0, "Binance notice of 2021-12-16, 'Binance Will Support the bZx Protocol Token (BZRX) Token Swap "
-                           "& Redenomination Plan to OokiDAO Token (OOKI)', as quoted (1 BZRX = 10 OOKI, OOKI/USDT "
-                           "2021-12-24); https://ooki.gitbook.io/ooki/tokenomics/token-migration; data ratio 10.000"),
+    "BZRX": ("OOKI", 10.0, BA + "binance-will-support-the-bzx-protocol-token-bzrx-token-swap-redenomination-plan-to-"
+                                "ookidao-token-ooki-dff27dc6bcbb432c902bcbea5e24ddfa (2021-12-16: 1 BZRX = 10 OOKI, BZRX "
+                                "pairs removed 2021-12-20, OOKI/USDT 2021-12-24; data ratio 10.000 on the opening print)"),
     "NANO": ("XNO", 1.0, BA + "binance-will-update-the-ticker-of-nano-to-xno-3dc8f6de281f4781a246a1658a21cb80 (ticker "
                          "NANO -> XNO 1:1, XNO trading 2022-01-28; Binance.US the same; data ratio 1.000)"),
     "EPS": ("EPX", 88.0, BA + "binance-will-support-the-ellipsis-eps-token-migration-redenomination-and-ticker-change-"
@@ -304,10 +305,13 @@ SWAPS = {
                           "3ab5488a00e04d4fb338c77ea28326a8 (1 FRONT = 1 SLF, SLF trading 2024-08-30; data ratio 1.000)"),
     "STPT": ("AWE", 1.0, "https://www.binance.com/en-AE/support/announcement/detail/ad0f6c6b7d6640eea285538c96e2cd42 "
                          "(completed: 1 STPT = 1 AWE, AWE trading 2025-05-21; data ratio 1.000)"),
-    "LOKA": ("A2Z", 20.0, "https://support.binance.us/en/articles/12011555 (Binance.US, 1 LOKA = 20 A2Z) and reports of "
-                          "Binance's completion, A2Z trading 2025-07-30; data ratio 20.000"),
-    "OMNI": ("NOM", 75.0, "https://www.binance.com/en-AE/support/announcement/detail/5838bf69f36b4838b5c5fdebc0969b95 "
-                          "(completed: 1 OMNI = 75 NOM, NOM trading 2025-10-01; data ratio 74.99)"),
+    "LOKA": ("A2Z", 20.0, "https://support.binance.us/en/articles/12011555 (Binance.US, 1 LOKA = 20 A2Z), Binance TH's "
+                          "notice and PANews quoting Binance's completion (1:20, A2Z trading 2025-07-30); early reports "
+                          "of 1:1 are contradicted by these and by the data ratio 20.000"),
+    "OMNI": ("NOM", 75.0, "PANews 2025-09-10 and ChainCatcher 2025-10-01 quoting Binance (1 OMNI = 75 NOM, NOM/USDT "
+                          "2025-10-01), Binance TH's notice, and Binance Dubai's completion notice "
+                          "(binance.com/en-AE/support/announcement/detail/5838bf69f36b4838b5c5fdebc0969b95); data ratio "
+                          "74.99"),
 }
 # Inheritance only (prereg Addendum 2, A2.1): Binance converted the predecessor into a successor that first traded at
 # the conversion, so the successor inherits the predecessor's listing age and monthly ranks (§4.1, "successors
@@ -322,6 +326,12 @@ INHERIT = {
                           "days after LUNA/USDT halted on 2022-05-13, so the halt stays a delisting)"),
     "GXS": ("REI", 10.0, BA + "bdfb52830f2f4bfcba496f3f92876b5c (1 GXS = 10 REI, GXS pairs removed 2022-04-25, REI/USDT "
                          "2022-05-04; data ratio 11.90, +19% after the 9-day halt: outside +-5%, a delisting)"),
+    "BCC": ("BCHABC", 1.0, "Binance's completion notice of 2018-11-16 as quoted by CoinDesk and Coinspeaker: all BCC "
+                           "balances removed and all BCC pairs delisted, 1 BCC = 1 BCHABC and 1 BCC = 1 BCHSV from the "
+                           "2018-11-15 16:40 UTC snapshot (pre-fork notice binance.com/uk-UA/amp/support/articles/"
+                           "360019790191). A conversion of the old coin into two (not a fork in which holders keep it); "
+                           "before the study, so only age and ranks matter. BCHSV received the same conversion but left "
+                           "Binance on 2019-04-22, before the study"),
 }
 # Ticker reuse: symbol -> [(coin, first day)]: the same Binance pair holds different assets.
 REUSE = {"LUNAUSDT": [("LUNA", None), ("LUNA2", "2022-05-31")]}
@@ -745,7 +755,8 @@ def _segments_from(k: pd.DataFrame, coin: str, hb: pd.DataFrame | None = None,
     """One row per segment of a coin's spot series (§4.1): seg, first_day, last_day, days, first_open, last_close,
     end (last day + 1 day, UTC: no bar of this segment opens at or after it), kind, continues (a position open at the
     end continues: joined redenomination, swap, jump, or data end), units (new units per old unit when it continues), successor, next_first_day, next_open, data_ratio (next
-    open / last close; for swaps the predecessor's last close / the successor's price at the same time), band_dev,
+    open / last close; for swaps the predecessor's last close / the successor's close that day when it traded that
+    day, else its first open after), band_dev,
     source (announcement), and the delisting values used when continues is False: last_full_day (the last day with
     trading, i.e. a bar with trades > 0, in hours 00 and 23), vwap_last_full_day (quote volume / volume of that day),
     last_trade (close of the last daily bar: the last trade's price), last_trade_time (open of the last bar with

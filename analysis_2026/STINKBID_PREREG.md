@@ -715,8 +715,8 @@ first open over the predecessor's last close, within 2% of the announced ratio, 
   U-B membership uses each coin's own volume rank.
 - **Not swaps:** LUNA → LUNC is a halt followed by a relisting after a gap (§4.1's FTT rule). BZRX → OOKI (no Binance
   USDT pair for OOKI) and XZC → FIRO (no Binance notice found) stay delistings, as §4.1 requires for unverified ratios.
-  *Corrected by A2.1: the screen was not complete, BZRX → OOKI and XZC → FIRO are continuations, and LUNC inherits
-  LUNA classic's age and ranks.*
+  *Corrected by A2.1: the screen was not complete, BZRX → OOKI and XZC → FIRO are continuations, and LUNC, BCH and
+  VET inherit their predecessors' age and ranks.*
 
 **A1.2 The cash series (§4).** `regime_switch.rf_annual_pct()` follows FRED DTB3 (discount basis), and its source ends
 2025-12-19. `stinkbid_data.tbill_daily` continues the same series through 2026-11-17, in place of the function's flat
@@ -796,8 +796,9 @@ history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
 **Status.** Addendum 1's code changes were reviewed adversarially before the controls ran (four reviewers; each
 finding checked by two verifiers). The rebrand screen of A1.1 was then redone systematically: three independent
 finders (price data, Binance's announcements, listing-age inheritance), a second check of the candidates that need a
-judgment, and a completeness critic. Still no post-fill price, return, P&L or strategy outcome has been computed on
-real data. The data stage had run once on Addendum 1's registry (levels, bids, fill windows and prefetch; no outcome).
+judgment, and a completeness critic, which matched the remaining 96 delistings of U-B coins to Binance's delisting
+notices and found no further continuation. Still no post-fill price, return, P&L or strategy outcome has been computed
+on real data. The data stage had run once on Addendum 1's registry (levels, bids, fill windows and prefetch; no outcome).
 Because the registry and the universes change, it runs again before the controls (logged in
 `stages/deviations.jsonl`), and the controls run from scratch on the final code (A1.9).
 
@@ -808,11 +809,12 @@ Because the registry and the universes change, it runs again before the controls
 - **The rule, for every case found after the freeze:**
   - A continuation needs Binance to have converted the holders' balances into the successor at a stated ratio:
     Binance's notice, Binance.US's, or a report quoting Binance's. A fork that credits a new coin while holders keep
-    the old one is not a continuation (BCC → BCHABC + BCHSV, 2018-11).
+    the old one is not a continuation (BCH → BCHA, 2020-11).
   - **Positions continue** at the ratio only when the successor's USDT pair opened within 30 days of the
-    predecessor's last USDT day and the data ratio (last close / the successor's first open) is within ±5% of the
-    stated ratio, §4.1's redenomination band. Otherwise the end is a delisting (§4.1: relistings after a gap and
-    unverified ratios are delistings).
+    predecessor's last USDT day and the data ratio is within ±5% of the stated ratio, §4.1's redenomination band.
+    The data ratio is the predecessor's last close over the successor's first open (or over its close that day, when
+    it already traded). Otherwise the end is a delisting (§4.1: relistings after a gap and unverified ratios are
+    delistings).
   - **The successor inherits** listing age and ranks whenever Binance converted the balances (§4.1, "successors
     inherit"). A merger into a coin that already traded passes nothing to that coin's earlier months: that would date
     the merger before it happened.
@@ -837,10 +839,16 @@ Because the registry and the universes change, it runs again before the controls
     2022-09-09, so the halt stays a delisting, as A1.1 said. LUNC is the same asset, and it keeps its age and ranks,
     as FTT does after its gap.
   - GXS → REI (1 GXS = 10 REI): the data ratio is +19% after a 9-day halt.
+  - BCC → BCHABC (2018-11): Binance removed every BCC balance and issued 1 BCHABC and 1 BCHSV per BCC. That is a
+    conversion into two coins, not a fork in which holders keep the old coin. BCHABC is BCH since 2019-11-28 (A1.1),
+    so BCH inherits Bitcoin Cash's 2017-08 listing. BCHSV left Binance in 2019-04, before the study. (The first draft
+    of this addendum called the case a fork; the second check showed that holders did not keep BCC.)
 - **Not linked:**
-  - STG → ZRO (2026-10): a merger into a coin that had traded since 2024-06, and the same-day ratio is −5.4%.
+  - STG → ZRO (2026-10): a merger into a coin that had traded since 2024-06. Nothing may pass to ZRO's earlier
+    months, and from 2026-10 its own age and ranks already decide its membership, so a link changes nothing. No
+    position of STG can reach the end: its last U-B month is 2024-01. (The ratio is −0.6% at STG's last trade; the
+    −5.4% against ZRO's close that day reflects ZRO's move in the 21 hours after STG stopped.)
   - GTO → GFT: GTO's USDT pair ended 2022-11-28, before the swap.
-  - BCC → BCHABC and BCHSV: a fork.
   - Other renames the screen found had a predecessor that was never in U-B, and linking them changes no universe:
     KEEP and NU → T, RGT → TRIBE, ANY → MULTI, RAMP → LEVER, POLY → POLYX, TVK → VANRY, PLA → PDA, ORN → LUMIA,
     ERN → EPIC, VELODROME → AERO, and older tickers that never had a USDT pair. Stablecoin renames (UST → USTC,
@@ -849,8 +857,8 @@ Because the registry and the universes change, it runs again before the controls
   after an 8-day halt; AGIX and OCEAN → FET +9% on FET's same-day close, about −1% on FET's open (AGIX stopped early
   that day). The merger passes nothing to FET's earlier months: FET's own listing and ranks are older and complete.
 - **Effect on the universes:**
-  - U-Q1 gains 23 coin-months, 2,559 → 2,582: LUNC 2022-11..2024-03 (17) and VET 2020-01..06 (6). U-Q1-xm gains the
-    same 23 (2,395 → 2,418).
+  - U-Q1 gains 33 coin-months, 2,559 → 2,592: LUNC 2022-11..2024-03 (17), BCH 2020-01..10 (10) and VET 2020-01..06
+    (6). U-Q1-xm gains the same 33 (2,395 → 2,428).
   - U-Q1-12 gains LUNC 2022-11..2023-04 (3,303 → 3,309).
   - U-B, U-A and U-C are unchanged.
   - U-B fills whose positions reach an added end (COCOS, FRONT, NANO, EPS, XZC, BZRX, OMNI) now continue instead of
