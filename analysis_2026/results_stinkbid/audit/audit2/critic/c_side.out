@@ -1,0 +1,11 @@
+C) common fills 1360 | twin_mean F1 -0.01544 F3 -0.0161 | diff mean -0.00066 sd 0.00947 corr 0.5634
+   twin_n F3 min/median 99 100 | pooled F1 125 pooled F3 126 | pooled flags equal False
+   |diff| quantiles [0.00509 0.01551 0.02874 0.04829]
+   r on common fills: F1 0.04214 F3 0.04829 | exit kinds F1/F3 target share 0.276 0.224
+D) rung x half (F1, C-RH): r_f and Delta with CR1 month-block 95% CIs
+   k 6.0 half 1 r_f {'n': 347, 'mean': np.float64(0.02956), 'lo': np.float64(-0.02455), 'hi': np.float64(0.08368), 'G': 25, 'gstar': np.float64(8.22)} | Delta {'n': 347, 'mean': np.float64(0.04262), 'lo': np.float64(-0.01199), 'hi': np.float64(0.09722), 'G': 25, 'gstar': np.float64(8.22)}
+   k 6.0 half 2 r_f {'n': 471, 'mean': np.float64(0.01143), 'lo': np.float64(-0.01295), 'hi': np.float64(0.0358), 'G': 33, 'gstar': np.float64(8.59)} | Delta {'n': 471, 'mean': np.float64(0.02906), 'lo': np.float64(0.00522), 'hi': np.float64(0.0529), 'G': 33, 'gstar': np.float64(8.59)}
+   k 8.0 half 1 r_f {'n': 203, 'mean': np.float64(0.09126), 'lo': np.float64(-0.02043), 'hi': np.float64(0.20296), 'G': 18, 'gstar': np.float64(5.69)} | Delta {'n': 203, 'mean': np.float64(0.10386), 'lo': np.float64(-0.00933), 'hi': np.float64(0.21705), 'G': 18, 'gstar': np.float64(5.69)}
+   k 8.0 half 2 r_f {'n': 237, 'mean': np.float64(0.03348), 'lo': np.float64(-0.01052), 'hi': np.float64(0.07749), 'G': 23, 'gstar': np.float64(7.65)} | Delta {'n': 237, 'mean': np.float64(0.05051), 'lo': np.float64(0.00688), 'hi': np.float64(0.09414), 'G': 23, 'gstar': np.float64(7.65)}
+   k 10.0 half 1 r_f {'n': 137, 'mean': np.float64(0.16507), 'lo': np.float64(0.00423), 'hi': np.float64(0.32591), 'G': 12, 'gstar': np.float64(4.57)} | Delta {'n': 137, 'mean': np.float64(0.17615), 'lo': np.float64(0.01604), 'hi': np.float64(0.33626), 'G': 12, 'gstar': np.float64(4.57)}
+   k 10.0 half 2 r_f {'n': 146, 'mean': np.float64(0.06584), 'lo': np.float64(-0.02359), 'hi': np.float64(0.15527), 'G': 14, 'gstar': np.float64(4.87)} | Delta {'n': 146, 'mean': np.float64(0.0827), 'lo': np.float64(-0.00614), 'hi': np.float64(0.17154), 'G': 14, 'gstar': np.float64(4.87)}

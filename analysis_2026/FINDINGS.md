@@ -2670,3 +2670,181 @@ i.e. −306 / −196 / −108 / −50 bp per $ bought.
   H2 cannot separate them.
 - To judge the trader: exchange statements for both accounts, with fees and funding, against holding the same
   coins at the same leverage.
+
+---
+
+# 2026-11-19 — Stink bids: resting limit buys far below the price on volatile crypto
+
+**The user's question:**
+- A strategy for "highly volatile yet 'solid' cryptos that I wouldn't mind owning, like HYPE, like NEAR, projects
+  with real revenues", that "looks at the charts and through some process figures out good levels to place 'stink
+  bids'; that is, bids that are way below current price, in the hopes of catching a momentary down wick".
+- "maybe it wouldn't even need to place any trades for me, just analyze each chart and give me solid choices for the
+  levels of the stink bids and I could place the limit trade myself. can you help me elucidate/test?"
+- Turned into four questions (prereg §1): **flip** (are fills, sold into the rebound by hand, better buys than random
+  buys of the same coin with the same exit?), **rest vs alert** (does a resting bid buy more coin per dollar than an
+  alert at the same level followed by a manual buy?), **levels** (do chart levels beat plain volatility-scaled levels
+  at the same depth?), and a **usable level sheet**.
+
+**What was done:**
+- **Research.** Notes in `analysis_2026/research_notes/Stink bids/` (Robinhood mechanics, evidence, data inventory,
+  design draft ae5425c, three adversarial critiques with 49 proposals d44046d).
+- **Pre-registration.** `analysis_2026/STINKBID_PREREG.md`, frozen 2026-11-18 (72ac2a4); Addenda 1 and 2 (A2.1-A2.7)
+  before any outcome.
+  - Three tests in one Holm family, in the answer's order: H2R RESTING (E +2% per fill), H1 FLIP (E +3.75%), H4
+    LEVELS (E +1%). Verdicts PASS / NO EDGE / INCONCLUSIVE; the answer's sentences were fixed in §11.
+  - Everything else descriptive; exploratory p-values BH-adjusted.
+- **Design.** P1: every Monday 03:30 UTC, bids at rung k = 6, 8, 10 (L = P0 × exp(−k × sigma30) on the tick; sigma30
+  = the SD of the last 30 daily log returns) on every coin of U-Q1, "large, long-listed (Binance volume)"; 7-day
+  life; 2020-01-06..2026-11-09; 33,486 bids, 1,544 F1 fills (F3 proxy 1,364) in 62 months and 96 crash episodes.
+  - Fill F1: Binance spot 1-minute low a tick below L. F3, the Robinhood-route proxy: Binance index 1% below L
+    (Robinhood's ask sits about 1% above the mid). No Robinhood crypto history exists, so every F3 number is a proxy.
+  - Flip X-FLIP: limit sell at R1/2 (halfway back to the reference), else market after 72 h, on rule M (a person acts
+    60 minutes after an event, 07:00-22:59 New York, else at 07:00). Costs 0.95% each way.
+  - Δ = a fill's net return minus its twins' (100 random buys of the same coin outside ±182 days, same exit).
+    Month-block clusters; G* = effective number of independent clusters.
+  - Terms: U-B = the Binance top 100 including dead coins (a gate); U-C = coins tradable on Robinhood on 2026-11-18
+    (hindsight); B-MIX = the same coins held at the account's average invested fraction, the rest in T-bills; r_res =
+    interest on cash reserved for open bids; MDE = the smallest effect a test detects 80% of the time; Holm = the
+    three tests judged together (smallest p against 0.05/3, next 0.05/2, last 0.05); BH = Benjamini-Hochberg
+    correction across a table's exploratory rows (q = corrected p); M7 = the estimated liquidation-band chart method;
+    CAGR = compound growth a year; DD = maximum drawdown.
+- **Data.** `data/stinkbid/` (gitignored): Binance spot 1-minute bars, aggTrades, USD-M index and last-price 1-minute
+  bars, mark-price and open interest for M7, Robinhood's catalog of 2026-11-18. Coinbase (F6) and DefiLlama revenue
+  (U-Q2) were not built.
+- **Audit.** Seven independent lenses rechecked the record with their own code (one rebuilt every P1 bid, fill, exit
+  and alert price from raw Binance 1-minute bars). The workflow stopped after the lenses and the verification of five
+  findings (three verifiers each); a follow-up verified the rest. H1, H2R, H4, Holm and every gate reproduced; three
+  printed numbers were corrected (the size cap, 13-22 times too large; H4's MDE; H4's without-top-month-block row)
+  and F3 and hindsight labels were added; no verdict changed.
+- **Report:** `analysis_2026/reports/Stink bids.md`; level sheet `results_stinkbid/sheet/sheet_2026-11-19.txt` (74
+  Robinhood-tradable coins).
+
+**Controls (run first; all passed; `results_stinkbid/controls/summary.txt`):**
+- **K1 known answer.** Engine vs oracle r_f +0.0019 vs +0.0019 (925 fills) and −0.1337 vs −0.1337 (1,791 fills); two
+  wrong engines fail by +33.9 and +34.2 SE. K1c, regime timing alone: Δ −0.6% (flip), −6.1% per 90 days (hold; SE
+  5.1%).
+- **K2 positive control.** Δ +7.7%, t 6.69.
+- **K3 inference.** Nominal rule for every test in the rerun. MDE base / high / hetero: H1 4.51 / 5.42 / 4.77%; H2R
+  0.62 / 0.95 / 1.65%; H4 0.89 / 1.59 / 1.89%.
+- **K4 look-ahead** 2,250 comparisons, 0 failing. **K5 fill audit** 41,909,531 checks, 0 violations. **K6 capacity**
+  median ratio 0.99. **K7** 0 of 447,704 levels off tick; 796 Robinhood orders, 0 violations. **K8** F3 (1%) removes
+  11.7% of fills.
+
+**Results (Holm over three tests; `results_stinkbid/verdicts.txt`): 1 PASS, 0 NO EDGE, 2 INCONCLUSIVE.**
+
+| test | estimate per fill [95% CI]; n; month-block G / G* | F3 (proxy) | Holm p | 98.33% bound vs E; MDE | verdict |
+|---|---|---|---|---|---|
+| H2R rest vs alert | +2.23% [+0.08, +4.39]; 1,544; 58 / 14.5 | +1.88% [−0.3, +4.0]; 1,364; 54 / 13.8 | 0.0432 | +4.61% vs +2%; 3.24% | INCONCLUSIVE (2023-26 half −0.13%, F1; F3 halves not computed) |
+| H1 flip | +6.34% [+2.80, +9.88]; 1,541; 58 / 14.5 | +6.45% [+2.4, +10.5]; 1,361; 54 / 13.8 | 0.0028 | +10.24% vs +3.75%; 5.33% | PASS (all 7 gates) |
+| H4 levels (M7) | +0.23% [−0.62, +1.09]; 1,487; 33 / 10.4 | +0.02% [−0.7, +0.7]; 1,330; 37 / 10.5 | 0.8409 | +1.16% vs +1%; 1.17% | INCONCLUSIVE (2020-22 half failed) |
+
+H4's F1 interval is simultaneous over the four methods (M7 alone: −0.39% to +0.86%); its F3 interval is a plain 95%
+CI.
+
+- **The answer, in order** (quoted from `verdicts.txt`).
+  - H2R: "Resting bids and alerts can't be told apart (an edge under about 3.2% wouldn't show). Prefer alerts: your
+    cash stays free and earning."
+  - H1: "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI
+    +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average (+4.8% on the Robinhood-route proxy, F3). It
+    held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip
+    target. [1541 fills, month-block clusters G = 58, G* = 14.5]"
+  - H4: "Can't tell; the sheet uses plain volatility-scaled levels."
+  - "You could run it on Robinhood" is not said: the D7 flip account on F3 beat B-MIX by +4.42 CAGR points a year,
+    12-month block-bootstrap interval −0.83 to +11.25.
+- **How to read H1.** PASS means Δ > 0, not Δ > E: a one-sided test of Δ > 3.75% gives p 0.069 (audit; F1; F3 not
+  computed; F3's 95% interval starts at +2.4%). Mean r_f +4.82% (F3 +4.84%). Bot latency also PASS (+6.67%; F3
+  +6.48%). U-B +6.84% (F1 only); U-C (hindsight) +7.32% (F3 +7.28%). Not a Binance-only result (+5.76% on fills F3
+  also fills, p 0.0043).
+- **Concentration** (audit; F1, F3 not computed). By contribution, 2021-05-19, 2025-10-10 and 2021-12-04 (213 of 1,541
+  fills, 13.8%) carry 42.3% of the total Δ; without the top five episodes +3.75%; 2021 alone 45%. Slides into L
+  (previous minute closed under 1% above L) earn +2.85%, fast drops +13.4%. By fill count (pre-registered) the top
+  three give 14.2%; without 2025-10-10 +6.06% (F3 +6.04%).
+- **What one flip looks like** (descriptive; the follow-up's completeness critic; F1). Median +3.19% after costs (CI
+  +0.99% to +5.97%; F3 +2.55%); 61.8% made money; 69.4% ended at the 72-h market sell (mean −1.03%), 29.3% at the
+  target (mean +18.2%); 10th percentile −10.2%; the best 5% supply 45% of the total. By rung: k = 6 +1.91% (53% of
+  fills), k = 8 +6.01%, k = 10 +11.39%.
+- **Since 2023 much weaker** (descriptive; the critic; F1 unless stated). Mean flip +2.68% (CI −0.65% to +6.02%; G 33,
+  G* 8.5); H1's half-2 Δ +4.42% does not clear E (p 0.33); by year 2021 +20.3%, 2023 −2.5%, 2024 +4.2%, 2025 +7.9%,
+  2026 +1.1%. D7 − B-MIX: 2020-22 +11.41 [+3.46, +24.37] (F3 +9.80), 2023-26 +0.27 [−4.36, +4.81] (F3 +0.37). The
+  full-sample PASS rests heavily on 2020-22.
+- **Bid life.** The PASS is for 7-day bids re-placed weekly: 30-day bids Δ +2.8% [−1.5, +7.0], 90-day
+  (good-till-cancelled) +4.2% [−1.0, +9.4]; neither significant.
+- **Not tested together.** "Prefer alerts" and "flip the fills": the alert buyer paid 2.2% more per fill (F3 1.9%).
+  Descriptively (the critic), a flip entered by alert made +2.71% per fill (CI −0.30% to +5.72%) and beat the twins
+  by +4.23% [+1.20, +7.26] (F3 +3.06%, +4.67%); since 2023 the alert-entered flip account beat the resting-bid one by
+  3.86 points a year (12-month interval 1.88 to 6.38), because its cash kept earning; in 2020-22 the order reversed.
+- **A2.7.** H2R decided under both other K3 rules (critical t 2.537 and 2.315): Holm p 0.0496 and 0.0416; all
+  verdicts unchanged.
+
+**Descriptive (no verdict):**
+- **D12.** R1/2 reached within 72 h by 32.9% of fills vs 13.6% of twins (F3 22.9% vs 9.7%); 59.6% of fills first fell
+  a further 10% below L (F3 65.3%).
+- **D-H2** owning 90 days: −3.5% [−19.9, +13.0] vs twins, quarter-block G 27, G* 12.9 (F3 −5.2% [−20.9, +10.5], G 26,
+  G* 12.4). **D-H3** fast vs slow: +4.3% [−1.8, +10.2], month-block G 45, G* 11.1 (F3 +2.9% [−3.9, +9.6], G 44, G*
+  10.7). **D8** shared premium at 72 h +5.5% [+2.6, +8.4], G 58, G* 14.5 (F3 +5.7% [+2.4, +9.1], G 54, G* 13.8).
+- **Knife** (F1; F3 not computed): 27.3% of fills vs 28.4% of twins ≥ 50% under water a year later; D-H5 gap U-Q1 vs
+  other top-100 coins +12.9 points [+4.6, +21.2] (27.3% vs 46.5%; two-way coin × quarter clusters, G_coin 355,
+  G_quarter 26).
+- **D6 μ*** (waiting pays only if you expect the coin to beat cash by less than this a year): F1 13.4 / 17.4 / 18.3%;
+  F3 11.9 / 17.0 / 17.9% (k = 6 / 8 / 10).
+- **D7.** Flip account F1 CAGR 8.4% (max DD −3.2%; 0.9% invested), F3 7.8%; B-MIX 3.4%; B-HOLD 8.9% (DD −79.8%); B-ML
+  29.6%. D7 − B-MIX: F1 +5.04 [−0.47, +12.13], F3 +4.42 [−0.83, +11.25]: "a low-exposure crypto holding with extra
+  steps". If cash reserved for open bids earned 3.35% (undocumented for Robinhood; a sensitivity, the rule of record
+  is r_res = 0, so the answer does not change): F3 +6.28 [+1.14, +13.12]; capped at the T-bill rate +5.67 [+0.84,
+  +12.14]. F3 without 2021-05-19 +2.83 [−1.02, +6.79], without the top month-block +2.09 [−1.31, +5.31] (the critic;
+  the stage omitted these §10.4 rows). The T-bill accounts' Sharpe in `desc/d7_summary.csv` (2.07, −1.26) is a
+  compounding artifact; the true value is 0.
+- **B-ALERT delays** (§10.1; computed after the audit; `results_stinkbid/audit/alert_delays.json`): a resting bid
+  saved +2.23% against the rule-M alert buyer, +2.70% at 2 h, +3.43% at 8 h, +6.13% at 24 h and +5.52% at 72 h (F3
+  +1.88 / +2.39 / +3.06 / +6.06 / +5.73%).
+- **MoneyLine.** 62.8% of fills red at placement (F3 63.8%).
+- **Capacity** (Binance spot book; no F3 equivalent): cap $4,706 / $5,218 / $6,071 per order. **Worst day**
+  2025-10-10: 94 of 99 live bids filled (F3 the same).
+
+**Sensitivity rows** (`desc/sensitivity.csv`; each changes P1 one way; H1 Δ, F1): every row's estimate is above zero,
+from +1.43% (M1 at 15% depth) to +37.4% (M1 at 50%). The 95% interval includes zero only for the 30- and 90-day
+lives, P1-G on F3 and M2a at k_A = 6. Selected rows: P1-lazy +6.15% (F3 +6.23%); placement at 13:30 UTC +6.22% (F3
++6.37%); F5 (deeper-wick sensitivity: not fills this user could get) +7.28%; flip grid +3.74% to +6.97% (F1; F3 not
+computed); U-A (hindsight) +5.82% (F3 +5.88%). H2R on F3 dwell (s = 1-5%): +0.55% to +0.87%.
+
+**Exploratory (BH within tables):** depth gradient Δ +3.5 / +7.5 / +12.8% at k = 6 / 8 / 10 (F3 +3.4 / +7.5 /
++13.4%), q 0.004 (F3 q 0.009); market-wide fills +7.3% (q 0.007; F3 +7.3%, q 0.015), coin-specific +2.4% (q 0.14; F3
++2.1%); NEAR +3.4% [−2.2, +9.0], 37 fills, G 20, G* 11.2, q 0.15 (F3 +4.3%; hindsight); HYPE on its index 5 fills,
++17.3% (no verdict).
+
+**Corrections after the audit (reporting only; no verdict changed; commits f6c15f5, cff65d7, 0a87d41):**
+- **Size cap (major).** Q_max used seller dollars over the order's whole life, not the fill's capacity window: $4,706
+  / $5,218 / $6,071 per order (were $101,907 / $81,988 / $76,820).
+- **H4's MDE** 1.17% (was 0.94%; four-method Bonferroni). **H4 without the top month-block** +0.12% (was +0.28%;
+  shared partition).
+- **F3 beside every Binance number** of the answer; "F3 not computed" notes; G and G* with recommendation intervals;
+  U-C rows labelled hindsight; H4's missing U-C row stated.
+- **Deviations**: A2.4-A2.7 before any outcome (A2.4 data rerun; A2.5 K3 lookup bug; A2.6 M7 inputs fetched, stages
+  rerun; A2.7 H2R's K3 rule flip). Out-of-memory stops (stages/log.jsonl): fill counts (08:13 UTC, before any
+  outcome), primary (14:34 UTC, during the first outcome computation, before any test statistic) and desc (16:44 UTC,
+  after the verdicts); each resumed with fewer workers; none changed a result.
+- **The completeness critic** found two more minor defects, documented rather than fixed in code (the Sharpe sits in
+  the engine, whose change would invalidate every cached run): D7's missing single-event rows and the T-bill Sharpe
+  artifact. B-ALERT's 2-, 8- and 24-h rows were missing from the desc stage and were computed afterwards. The audit's
+  scripts and small outputs are in `results_stinkbid/audit/`.
+
+**Caveats:**
+- Binance spot is not Robinhood; F3 is a proxy; Robinhood in a crash is unknown here.
+- The edge sits in a few market-wide crashes and fast, deep wicks; K3's panels were less dispersed than H2R's real
+  data (real SE 1.8-4.7× the nulls'). Audit caveats (F1, F3 not computed): pooled twins for 149 fills (without them
+  +6.51%); rule-M boundary (49 fills, −1.24%); E at the realized fill rate would be 3.63%; the leave-out drift row is
+  not cost-matched (+4.35%; about +6.2% matched).
+
+**Practical reading:**
+- Prefer price alerts at the sheet's levels: the data cannot tell resting bids from alerts (H2R; an edge under about
+  3.2% per fill would not show). The flip (H1) was measured only on resting-bid fills; a flip entered by alert was
+  not tested.
+- If you rest bids, the level sheet is a manual tool (`.venv/Scripts/python.exe -m analysis_2026.stinkbid_sheet
+  --refresh --coins NEAR --price NEAR=<the app's mid>`, weekly after Monday 03:30 UTC): bids at k = 6 / 8 / 10, the
+  flip target and "sell at market after 72 h", each order within the pooled cap, cash for every rung on every coin at
+  once, cancelled and re-placed every Monday; `.gitignore` keeps your weekly sheets out of this public repo (never
+  force-add them).
+- Cancel a coin's bids on coin-specific news; decide in advance how a fill relates to the MoneyLine; HYPE has no
+  verdict and is not tradable on Robinhood for New York residents.
+- Not for the trading agent (AGENTIC_TRADING_PLAN section 4; HANDOFF section 5.23).

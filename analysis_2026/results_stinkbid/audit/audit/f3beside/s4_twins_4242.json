@@ -1,0 +1,28 @@
+{
+ "seed": 4242,
+ "fills": 1361,
+ "simulated": 1235,
+ "engine_pooled": 126,
+ "my_lt182_days": 126,
+ "pooled_agree": 1361,
+ "flip": {
+  "mean_twin_eng": -0.016003990511366747,
+  "mean_twin_mine": -0.015752853422867502,
+  "mean_diff": 0.0002511370884992451,
+  "mc_se_of_mean_diff": 0.00032859391634777003,
+  "corr": 0.334551351624359,
+  "mean_delta_eng": 0.06625553969058631,
+  "mean_delta_mine": 0.06600440260208706,
+  "max_abs_diff": 0.05534349983140207
+ },
+ "bot": {
+  "mean_twin_eng": -0.016004371832882853,
+  "mean_twin_mine": -0.01573990373600115,
+  "mean_diff": 0.0002644680968817045,
+  "mc_se_of_mean_diff": 0.00032849410530810764,
+  "corr": 0.3351767670508714,
+  "mean_delta_eng": 0.06650967742232809,
+  "mean_delta_mine": 0.06624520932544638,
+  "max_abs_diff": 0.05534349983140207
+ }
+}

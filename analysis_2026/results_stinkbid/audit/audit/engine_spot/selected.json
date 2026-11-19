@@ -1,0 +1,34 @@
+{
+ "chosen": [
+  1321,
+  255,
+  246,
+  252,
+  576,
+  462,
+  729,
+  1322,
+  628,
+  1284,
+  891,
+  1194,
+  1052,
+  1380
+ ],
+ "why": {
+  "1321": "largest y",
+  "255": "largest y",
+  "246": "largest y",
+  "252": "largest y",
+  "576": "smallest r",
+  "462": "smallest r",
+  "729": "smallest r",
+  "1322": "2025-10-10",
+  "628": "2022-11 FTT week",
+  "1284": "random (seed 7)",
+  "891": "random (seed 7)",
+  "1194": "random (seed 7)",
+  "1052": "random (seed 7)",
+  "1380": "random (seed 7)"
+ }
+}

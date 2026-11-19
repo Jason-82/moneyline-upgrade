@@ -33,3 +33,8 @@ analysis_2026/results_bb/routes/accounts.csv
 
 # stink-bid study data (rebuild: python3 -m analysis_2026.fetch_stinkbid_data)
 data/stinkbid/
+
+# The user's own weekly stink-bid sheets and order diffs (their coins and prices): never commit. The study's sheet
+# of record (sheet_2026-11-19.*, diff_2026-11-19.csv) stays tracked.
+analysis_2026/results_stinkbid/sheet/sheet_*
+analysis_2026/results_stinkbid/sheet/diff_*

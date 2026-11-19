@@ -1,0 +1,89 @@
+Stink bids: the answer (STINKBID_PREREG.md §11)
+
+Mode: real
+
+The verdicts (H2R, then H1, then H4):
+1. Rest vs alert (H2R RESTING): INCONCLUSIVE. The data cannot tell: an effect under about 3.2% per fill would not show (MDE at 80% power). The p-value cleared Holm but not every gate held. [estimate +2.2% per fill, 95% CI +0.1% to +4.4%; 1544 fills, month-block clusters G = 58, G* = 14.5; p = 0.0216, Holm-adjusted 0.0432 at level 0.0250]
+2. Flip (H1 FLIP): PASS. Yes: stink-bid fills sold into the rebound by hand beat random buys of the same coin with the same exit, by 6.3% per fill (95% CI +2.8% to +9.9%); every gate held. [estimate +6.3% per fill, 95% CI +2.8% to +9.9%; 1541 fills, month-block clusters G = 58, G* = 14.5; p = 0.0009, Holm-adjusted 0.0028 at level 0.0167]
+3. Levels (H4 LEVELS): INCONCLUSIVE. The data cannot tell: an effect under about 0.9% per fill would not show (MDE at 80% power). [estimate +0.2% per fill, 95% CI -0.6% to +1.1%; 1487 stacked fills, month-block clusters G = 33, G* = 10.4; p = 0.8409, Holm-adjusted 0.8409 at level 0.0500; method M7]
+
+What you are told (the pre-registered recommendation table, applied in order):
+- Resting bids and alerts can't be told apart (an edge under about 3.2% wouldn't show). Prefer alerts: your cash stays free and earning.
+- Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average. It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target.
+- Can't tell; the sheet uses plain volatility-scaled levels.
+
+Printed with every answer:
+- A bid's discount is not a gain by itself. If prices are unpredictable, a bid 30% below the price buys the same expected value as buying now, minus what the coin earns while you wait; in a crash that gaps through your price, it buys less. Only a quick rebound after the wick can pay for the wait.
+- Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1]
+- A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed]
+- Coin-specific collapses (LUNA, FTT, OM) look like ordinary wicks on the first day; a resting order cannot read the news. Cancel a coin's bids on news about the coin itself (a hack, exploit, depeg, delisting or regulatory action).
+- Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined)]
+- Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot): rung k = 6: 10th percentile $407,629, cap about $101,907 per order; rung k = 8: 10th percentile $327,952, cap about $81,988 per order; rung k = 10: 10th percentile $307,280, cap about $76,820 per order.
+
+Further rules:
+- The study does not say you could run it on Robinhood (the D7 flip account on F3 did not beat B-MIX with a 12-month block-bootstrap interval above zero (interval not above zero)).
+- The sheet shows the flip target R1/2 and 'sell at market after 72 h' (H1 PASS under rule M).
+- Wording: 'it does not work' is said only for NO EDGE; otherwise 'not shown' or 'the data cannot tell'.
+
+Descriptive sentences (no verdict):
+- Descriptive only. Over 90 days, coins bought through stink bids did 3.5% (95% CI -19.9% to +13.0% for the difference) worse than the same coins bought at random times outside the six months around each fill. An edge under about 20-40% could not be detected, and the comparison also reflects whether the crashes fell in bear or bull stretches. [1513 fills, quarter-block clusters G = 27, G* = 12.9; MDE computed here 24.7%]
+- Random buys here exclude the six months around each fill, so the comparison also reflects whether crashes fell in bear or bull stretches. (K1c, regime timing alone: -6.1% per 90 days)
+- Descriptive only. Fast wicks were 4.3% per fill (95% CI -1.8% to +10.2% for the difference) better than slow slides to the same depth. A difference under about 6-10% per fill could not be detected. [1054 fills, month-block clusters G = 45, G* = 11.1; episode fixed effects; MDE computed here 8.2%]
+- Descriptive only. A year after a fill, 27.3% of fills on large, long-listed coins and 46.5% on other top-100 coins were 50% or more below the fill price; at the same volatility the gap was +12.9 points (95% CI +4.6 to +21.2). Neither LUNA (kept out by listing age) nor FTT (kept out by Binance volume rank) was in the large, long-listed group, so this says nothing about fraud collapses of large coins. In the 12-month row, where LUNA is included, the gap was +8.4 points. The study did not test a real-revenue filter. [4230 fills; two-way coin x quarter clusters, G_coin = 355, G_quarter = 26, t at 25 df]
+- Flip or own is a choice about whether you want to hold the coin, not about stink-bid skill. The study's evidence on the bid is the same for both. [shared premium (the alert buyer's price 72 h later): +5.5% (95% CI +2.6% to +8.4%; 1541 fills, month-block clusters G = 58, G* = 14.5); return from 72 h to 90 days against T-bills: +10.6% (95% CI -7.0% to +28.2%; 1513 fills, quarter-block clusters G = 27, G* = 12.9)]
+
+====================================================================================================
+Details
+====================================================================================================
+
+D12 recovery curve (§10.4, reported before H1's table): the share of fills, and of their twins, trading at or above R1/2 (R_) and at or above P0 (P0_) within 15 min .. 30 days, and the share first trading a further 10% below L (dn10_first); F3_1 = the Robinhood-route proxy. Splits in desc/d12.csv.
+rule   who    n  R_15m  R_1h  R_4h  R_24h  R_72h  R_7d  R_30d  P0_15m  P0_1h  P0_4h  P0_24h  P0_72h  P0_7d  P0_30d  dn10_first
+  F1 fills 1544  0.038 0.062 0.095  0.229  0.329 0.431  0.696   0.003  0.009  0.009   0.023   0.049  0.081   0.293       0.596
+  F1 twins 1544  0.000 0.001 0.005  0.046  0.136 0.259  0.525   0.000  0.000  0.001   0.009   0.038  0.098   0.314       0.533
+F3_1 fills 1364  0.007 0.011 0.032  0.136  0.229 0.312  0.609   0.000  0.000  0.000   0.008   0.024  0.055   0.234       0.653
+F3_1 twins 1364  0.000 0.000 0.002  0.028  0.097 0.205  0.471   0.000  0.000  0.000   0.006   0.028  0.078   0.280       0.582
+
+Holm family of three one-sided tests at 5% (§10.3); p = max(p_WCR, p_G*); NO EDGE bound at 98.33%:
+test      verdict  estimate   ci95_lo  ci95_hi    n  G     gstar        unit  p_wcr  p_gstar  p_decide   p_holm  holm_level  holm_rejected  gates_ok       ub      E      mde  calibrated argmax
+ H2R INCONCLUSIVE  0.022348  0.000785 0.043911 1544 58 14.543491 month-block 0.0156 0.021619  0.021619 0.043238    0.025000           True     False 0.046084 0.0200 0.032445       False    NaN
+  H1         PASS  0.063425  0.028015 0.098835 1541 58 14.503169 month-block 0.0001 0.000931  0.000931 0.002793    0.016667           True      True 0.102406 0.0375 0.053280       False    NaN
+  H4 INCONCLUSIVE  0.002347 -0.006226 0.010920 1487 33 10.435462 month-block 0.5629 0.840908  0.840908 0.840908    0.050000          False     False 0.011606 0.0100 0.009391       False     M7
+
+Sensitivity (§10.3; not the verdict): with E = 2.26% per fill (reserved cash earning 3.35%, the Gold sweep), H1 would be PASS (the 98.33% upper bound +10.24% is not below 2.26%).
+
+Gates (every gate must hold for a PASS):
+  H2R: half1_pos held, half2_pos NOT held, no_worst_block_pos held, no_biggest_episode_pos held, u_b_pos held, f3_pos held
+  H1: mean_r_pos held, half1_pos held, half2_pos held, no_worst_block_pos held, no_biggest_episode_pos held, u_b_pos held, f3_pos held
+  H4: half1_pos NOT held, half2_pos held, no_worst_block_pos held, f3_pos held
+
+Beside every headline (F3 = Robinhood market-maker-route proxy; U-C = Robinhood-listed, hindsight):
+  H2R F3_1   : +1.88% (95% CI -0.3% to +4.0%; 1364 fills, month-block clusters G = 54, G* = 13.8) Robinhood-route proxy
+  H2R F3d_1  : +0.55% (95% CI -1.5% to +2.6%; 1239 fills, month-block clusters G = 52, G* = 13.1) Robinhood-route proxy
+  H2R F3_3   : +2.24% (95% CI -0.2% to +4.7%; 1170 fills, month-block clusters G = 48, G* = 12.7) Robinhood-route proxy
+  H2R U_B    : +2.44% (95% CI +0.2% to +4.6%; 4712 fills, month-block clusters G = 68, G* = 13.4) 
+  H2R U_C    : +1.93% (95% CI -0.3% to +4.2%; 1668 fills, month-block clusters G = 56, G* = 11.9) 
+  H2R U_C_F3 : +1.52% (95% CI -0.8% to +3.8%; 1459 fills, month-block clusters G = 55, G* = 10.5) Robinhood-route proxy
+  H1 F3_1   : +6.45% (95% CI +2.4% to +10.5%; 1361 fills, month-block clusters G = 54, G* = 13.8) Robinhood-route proxy
+  H1 F3d_1  : +5.60% (95% CI +1.4% to +9.8%; 1236 fills, month-block clusters G = 52, G* = 13.0) Robinhood-route proxy
+  H1 F3_3   : +7.56% (95% CI +3.1% to +12.0%; 1167 fills, month-block clusters G = 48, G* = 12.7) Robinhood-route proxy
+  H1 U_B    : +6.84% (95% CI +2.8% to +10.9%; 4709 fills, month-block clusters G = 68, G* = 13.3) 
+  H1 U_C    : +7.32% (95% CI +4.1% to +10.6%; 1665 fills, month-block clusters G = 56, G* = 11.9) 
+  H1 U_C_F3 : +7.28% (95% CI +3.7% to +10.8%; 1455 fills, month-block clusters G = 55, G* = 10.5) Robinhood-route proxy
+  H4 F3_1   : +0.02% (95% CI -0.7% to +0.7%; 1330 fills, month-block clusters G = 37, G* = 10.5) Robinhood-route proxy
+
+Concentration and single events (every headline):
+  H2R: top-3 episodes 2022-11-08..2022-11-09, 2025-10-10, 2023-08-15..2023-08-17 give -9.5% of the total; without them +3.00%; without 2025-10-10 +2.79%; without 2021-05-19 +1.58%; without the top month-block +2.17%
+  H1: top-3 episodes 2022-11-08..2022-11-09, 2025-10-10, 2023-08-15..2023-08-17 give 14.2% of the total; without them +6.67%; without 2025-10-10 +6.06%; without 2021-05-19 +5.34%; without the top month-block +6.57%
+  H4: top-3 episodes 2022-11-08..2022-11-14, 2025-10-09..2025-10-10, 2023-06-05..2023-06-10 give 21.0% of the fills; without them +0.33%; without 2025-10-10 +0.22%; without 2021-05-19 +0.23%; without the top month-block +0.28%
+
+Bot latency (X-FLIP-bot, H1): p 0.0008, Holm-adjusted in H1's place 0.0025, gates held, 98.33% upper bound +10.70%: PASS; passes only at bot latency: False
+K3 rule per test: {'H1': 'nominal', 'H2R': 'nominal', 'H4': 'nominal'}
+K3's rule for H2R turned on Monte Carlo noise (prereg Addendum 2, A2.7); the verdicts of record use the nominal rule. H2R decided under the other rules:
+  the first controls run's rule (simulation-calibrated, its null draws), critical t 2.537: H2R p 0.0248, Holm-adjusted 0.0496, 98.33% upper bound +4.61%, MDE 3.41%; verdicts H2R INCONCLUSIVE, H1 PASS, H4 INCONCLUSIVE (the same as of record)
+  the record's other rule (simulation-calibrated, the record's null draws), critical t 2.315: H2R p 0.0208, Holm-adjusted 0.0416, 98.33% upper bound +4.62%, MDE 3.19%; verdicts H2R INCONCLUSIVE, H1 PASS, H4 INCONCLUSIVE (the same as of record)
+K3 power re-run (synthetic nulls; MDE at 80% power under each test's rule, by scenario): H2R (nominal): empirical base 0.76%, high 1.14%, hetero 1.97%; formula base 0.62%, high 0.95%, hetero 1.65%; NO EDGE reached in base 100%, hetero 83%, high 98% of null replications; H1 (nominal): empirical base 4.75%, high 5.65%, hetero 5.03%; formula base 4.51%, high 5.42%, hetero 4.77%; NO EDGE reached in base 62%, hetero 52%, high 51% of null replications; H4 (nominal): empirical base 0.76%, high 1.41%, hetero 2.11%; formula base 0.89%, high 1.59%, hetero 1.89%; NO EDGE reached in base 14%, hetero 0%, high 0% of null replications
+Warnings: none
+
+Deviations (§12): [{"time": "2026-11-19 04:19:07 UTC", "mode": "real", "event": "rerun", "stages": ["data"], "reason": "prereg Addendum 2 (A2.1, A2.2): registry of rebrands completed and universes rebuilt (U-Q1 +23 coin-months), prefetch plan aligned with the engine's reads; before any outcome"}, {"time": "2026-11-19 04:19:23 UTC", "mode": "real", "event": "note", "stages": ["data"], "text": "The rerun's reason says U-Q1 +23 coin-months; it was written before the second check added BCC->BCHABC (commit 51476d8). The rerun runs on the committed registry, whose universes give U-Q1 +33 against Addendum 1 (LUNC 17, BCH 10, VET 6), as Addendum 2 A2.1 states."}, {"time": "2026-11-19 07:44:12 UTC", "mode": "real", "event": "note", "stages": ["controls"], "text": "Found after the controls stage, before any outcome (prereg Addendum 2, A2.5): the runner took the condensed K3 block of controls/summary.json for the K3 calibration, so H2R's simulation-calibrated rule would have been dropped. Fixed in stinkbid_run._find_calibration (only a full calibration, k3_calibration.json; a summary rule that disagrees closes the gate). The controls marker's calibrated_tests reads [] for the same reason; the gate recomputes it from the files at every later stage (H2R). No control result or file changed; nothing reran."}, {"time": "2026-11-19 09:34:31 UTC", "mode": "real", "event": "rerun", "stages": ["data", "controls", "fcount"], "reason": "prereg Addendum 2, A2.6: M7's inputs fetched for the U-Q1 coin-days Addenda 1 and 2 added (AAVE, EGLD, LUNC, GRAM); the run cache and the controls gate now follow the data and the code; data, controls and fill counts run again before any outcome"}]
+
+Robinhood fidelity: no Robinhood crypto history exists here, so every Robinhood-route number (F3, F4) is a proxy and says so.

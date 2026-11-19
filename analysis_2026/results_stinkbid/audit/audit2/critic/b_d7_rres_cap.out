@@ -1,0 +1,32 @@
+{
+ "flat 3.35% (record's rule)": {
+  "cagr": 0.09602,
+  "vs_BMIX_12m": {
+   "est": 0.06275,
+   "lo": 0.01155,
+   "hi": 0.1328
+  },
+  "vs_BMIX_6m": {
+   "est": 0.06275,
+   "lo": 0.01129,
+   "hi": 0.13273
+  },
+  "share_days_rres_above_tbill": 0.402,
+  "subsidy_per_year_share_of_K_2020_2022": 0.01936
+ },
+ "min(3.35%, T-bill)": {
+  "cagr": 0.09,
+  "vs_BMIX_12m": {
+   "est": 0.05673,
+   "lo": 0.00839,
+   "hi": 0.12143
+  },
+  "vs_BMIX_6m": {
+   "est": 0.05673,
+   "lo": 0.00723,
+   "hi": 0.12361
+  },
+  "share_days_rres_above_tbill": 0.402,
+  "subsidy_per_year_share_of_K_2020_2022": 0.0
+ }
+}

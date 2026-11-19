@@ -198,6 +198,29 @@ Do **not** add these (all tested):
   more often than chance would give, but not acted on: 11-20 trades each, AVAX, DOT and UNI recurring
   in every variant, and a hindsight coin list) (HANDOFF section 5.22). Binance perpetuals and grid bots
   are generally not available to US residents.
+- stink bids (resting limit buys 6, 8 and 10 × sigma30, the coin's recent daily volatility,
+  below the price on large, long-listed coins, re-placed weekly, each fill sold by hand at a
+  target halfway back to the reference or at market after 72 h): whether a resting bid buys more
+  coin than a price alert at the same level, the data cannot tell (INCONCLUSIVE: +2.2% per fill,
+  95% CI +0.1% to +4.4%, 1,544 fills, month-block clusters G = 58, G* = 14.5; Robinhood-route
+  proxy +1.9%, 95% CI −0.3% to +4.0%, G = 54, G* = 13.8; the 2023-26 half was −0.1%, Binance
+  only; an edge under about 3.2% would not show); fills sold this way beat random buys of the
+  same coin by +6.3% per fill (PASS: 95% CI +2.8% to +9.9%, 1,541 fills, G = 58, G* = 14.5;
+  Robinhood-route proxy +6.5%, 95% CI +2.4% to +10.5%, 1,361 fills, G = 54, G* = 13.8), but that
+  is not shown to clear the 3.75% per fill that pays for the round trip and the reserved cash (p
+  0.069), and since 2023 the flip was much weaker (+2.7% per fill after costs, 95% CI −0.7% to
+  +6.0%; Binance only); whether chart levels beat plain volatility-scaled levels, the data cannot tell
+  (INCONCLUSIVE: +0.2% per fill, 95% interval over the four chart methods −0.6% to +1.1%, G =
+  33, G* = 10.4; Robinhood-route proxy +0.0%; an edge under about 1.2% would not show). Not for
+  the agent: the pre-registered account test did not pass (the flip account on the
+  Robinhood-route proxy beat a matched T-bill/crypto mix by +4.42 CAGR points a year, 12-month
+  block-bootstrap interval −0.83 to +11.25), the edge is per fill and concentrated in a few
+  market-wide crashes and fast wicks, every Robinhood number is a proxy (no Robinhood crypto
+  history exists here), "prefer alerts" and "flip the fills" were not tested together, and fills
+  come together on crash days (on 2025-10-10, 94 of 99 live bids filled; also 94 of 99 on the
+  Robinhood-route proxy). The level sheet (`analysis_2026/stinkbid_sheet.py`) is a manual tool
+  the user runs and enters by hand; the agent never places, previews or cancels its orders
+  (HANDOFF section 5.23).
 
 ---
 

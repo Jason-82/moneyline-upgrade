@@ -1,0 +1,85 @@
+==================== F1_r0.0 83 2020-01 2026-11
+ cagr_full {'D7': 0.0839, 'B-ALERT': 0.0699, 'B-TBILL': 0.029, 'B-MIX': 0.0335}
+  boot_D7_vs_B-MIX_6m {'est': 0.0504, 'lo': -0.0039, 'hi': 0.1233, 'p_le0': 0.0383}
+  boot_D7_vs_B-MIX_12m {'est': 0.0504, 'lo': -0.0048, 'hi': 0.1227, 'p_le0': 0.0432}
+  record_D7_vs_B-MIX {'est': 0.0504, 'lo6': -0.0044, 'hi6': 0.1237, 'lo12': -0.0047, 'hi12': 0.1213}
+  boot_D7_vs_B-TBILL_6m {'est': 0.0549, 'lo': -0.0013, 'hi': 0.1309, 'p_le0': 0.0294}
+  boot_D7_vs_B-TBILL_12m {'est': 0.0549, 'lo': -0.0025, 'hi': 0.1315, 'p_le0': 0.0344}
+  record_D7_vs_B-TBILL {'est': 0.0549, 'lo6': -0.001, 'hi6': 0.1321, 'lo12': -0.0022, 'hi12': 0.1312}
+  boot_BALERT_vs_BTBILL_12m {'est': 0.0409, 'lo': -0.002, 'hi': 0.0856, 'p_le0': 0.0327}
+  period 2020-01..2022-12 {'months': 36, 'D7': 0.1306, 'B-ALERT': 0.0468, 'B-TBILL': 0.008, 'B-MIX': 0.0165, 'D7_minus_TBILL': 0.1226, 'D7_minus_MIX': 0.1141, 'ALERT_minus_TBILL': 0.0387}
+     boot12 {'est': 0.1141, 'lo': 0.0346, 'hi': 0.2437, 'p_le0': 0.0} boot6 {'est': 0.1141, 'lo': 0.0307, 'hi': 0.2534, 'p_le0': 0.0003}
+  period 2023-01..2026-11 {'months': 47, 'D7': 0.0495, 'B-ALERT': 0.0881, 'B-TBILL': 0.0454, 'B-MIX': 0.0468, 'D7_minus_TBILL': 0.0041, 'D7_minus_MIX': 0.0027, 'ALERT_minus_TBILL': 0.0427}
+     boot12 {'est': 0.0027, 'lo': -0.0436, 'hi': 0.0481, 'p_le0': 0.4371} boot6 {'est': 0.0027, 'lo': -0.0422, 'hi': 0.0484, 'p_le0': 0.4484}
+  year 2020 {'months': 12, 'D7': 0.0755, 'B-ALERT': 0.0429, 'B-TBILL': 0.0034, 'B-MIX': 0.0172, 'D7_minus_TBILL': 0.0722}
+  year 2021 {'months': 12, 'D7': 0.3285, 'B-ALERT': 0.1435, 'B-TBILL': 0.0005, 'B-MIX': 0.0222, 'D7_minus_TBILL': 0.328}
+  year 2022 {'months': 12, 'D7': 0.0116, 'B-ALERT': -0.0382, 'B-TBILL': 0.0204, 'B-MIX': 0.0101, 'D7_minus_TBILL': -0.0088}
+  year 2023 {'months': 12, 'D7': -0.0149, 'B-ALERT': 0.0201, 'B-TBILL': 0.0519, 'B-MIX': 0.0603, 'D7_minus_TBILL': -0.0668}
+  year 2024 {'months': 12, 'D7': 0.0759, 'B-ALERT': 0.1066, 'B-TBILL': 0.0511, 'B-MIX': 0.0583, 'D7_minus_TBILL': 0.0248}
+  year 2025 {'months': 12, 'D7': 0.1161, 'B-ALERT': 0.2087, 'B-TBILL': 0.0415, 'B-MIX': 0.034, 'D7_minus_TBILL': 0.0747}
+  year 2026 {'months': 11, 'D7': 0.0213, 'B-ALERT': 0.02, 'B-TBILL': 0.0333, 'B-MIX': 0.0309, 'D7_minus_TBILL': -0.012}
+  top5 months {'2021-05': 0.1667, '2021-12': 0.048, '2025-10': 0.0445, '2020-03': 0.0345, '2025-02': 0.0312} top3 share 0.686 months below TBILL 0.59 CAGR w/o top3 months 0.0463
+==================== F1_r0.0335 83 2020-01 2026-11
+ cagr_full {'D7': 0.1016, 'B-ALERT': 0.0699, 'B-TBILL': 0.029, 'B-MIX': 0.0333}
+  boot_D7_vs_B-MIX_6m {'est': 0.0683, 'lo': 0.0148, 'hi': 0.1409, 'p_le0': 0.0026}
+  boot_D7_vs_B-MIX_12m {'est': 0.0683, 'lo': 0.0139, 'hi': 0.1411, 'p_le0': 0.0035}
+  record_D7_vs_B-MIX {'est': 0.0683, 'lo6': 0.0146, 'hi6': 0.142, 'lo12': 0.0141, 'hi12': 0.14}
+  boot_D7_vs_B-TBILL_6m {'est': 0.0725, 'lo': 0.0173, 'hi': 0.1482, 'p_le0': 0.0014}
+  boot_D7_vs_B-TBILL_12m {'est': 0.0725, 'lo': 0.016, 'hi': 0.1498, 'p_le0': 0.0026}
+  record_D7_vs_B-TBILL {'est': 0.0725, 'lo6': 0.0175, 'hi6': 0.1497, 'lo12': 0.0164, 'hi12': 0.149}
+  boot_BALERT_vs_BTBILL_12m {'est': 0.0409, 'lo': -0.002, 'hi': 0.0856, 'p_le0': 0.0327}
+  period 2020-01..2022-12 {'months': 36, 'D7': 0.1503, 'B-ALERT': 0.0468, 'B-TBILL': 0.008, 'B-MIX': 0.0161, 'D7_minus_TBILL': 0.1423, 'D7_minus_MIX': 0.1343, 'ALERT_minus_TBILL': 0.0387}
+     boot12 {'est': 0.1343, 'lo': 0.0547, 'hi': 0.2622, 'p_le0': 0.0} boot6 {'est': 0.1343, 'lo': 0.0511, 'hi': 0.2726, 'p_le0': 0.0}
+  period 2023-01..2026-11 {'months': 47, 'D7': 0.0656, 'B-ALERT': 0.0881, 'B-TBILL': 0.0454, 'B-MIX': 0.0467, 'D7_minus_TBILL': 0.0202, 'D7_minus_MIX': 0.0189, 'ALERT_minus_TBILL': 0.0427}
+     boot12 {'est': 0.0189, 'lo': -0.0231, 'hi': 0.06, 'p_le0': 0.1888} boot6 {'est': 0.0189, 'lo': -0.0219, 'hi': 0.0604, 'p_le0': 0.1918}
+  year 2020 {'months': 12, 'D7': 0.0996, 'B-ALERT': 0.0429, 'B-TBILL': 0.0034, 'B-MIX': 0.0164, 'D7_minus_TBILL': 0.0962}
+  year 2021 {'months': 12, 'D7': 0.3452, 'B-ALERT': 0.1435, 'B-TBILL': 0.0005, 'B-MIX': 0.021, 'D7_minus_TBILL': 0.3447}
+  year 2022 {'months': 12, 'D7': 0.0292, 'B-ALERT': -0.0382, 'B-TBILL': 0.0204, 'B-MIX': 0.0107, 'D7_minus_TBILL': 0.0088}
+  year 2023 {'months': 12, 'D7': 0.0084, 'B-ALERT': 0.0201, 'B-TBILL': 0.0519, 'B-MIX': 0.0598, 'D7_minus_TBILL': -0.0436}
+  year 2024 {'months': 12, 'D7': 0.0906, 'B-ALERT': 0.1066, 'B-TBILL': 0.0511, 'B-MIX': 0.0579, 'D7_minus_TBILL': 0.0395}
+  year 2025 {'months': 12, 'D7': 0.1251, 'B-ALERT': 0.2087, 'B-TBILL': 0.0415, 'B-MIX': 0.0344, 'D7_minus_TBILL': 0.0836}
+  year 2026 {'months': 11, 'D7': 0.0365, 'B-ALERT': 0.02, 'B-TBILL': 0.0333, 'B-MIX': 0.031, 'D7_minus_TBILL': 0.0032}
+  top5 months {'2021-05': 0.1636, '2021-12': 0.0478, '2025-10': 0.0414, '2020-03': 0.0362, '2025-02': 0.0294} top3 share 0.517 months below TBILL 0.313 CAGR w/o top3 months 0.0642
+==================== F3_1_r0.0 83 2020-01 2026-11
+ cagr_full {'D7': 0.0778, 'B-ALERT': 0.0705, 'B-TBILL': 0.029, 'B-MIX': 0.0335}
+  boot_D7_vs_B-MIX_6m {'est': 0.0442, 'lo': -0.0081, 'hi': 0.1156, 'p_le0': 0.0629}
+  boot_D7_vs_B-MIX_12m {'est': 0.0442, 'lo': -0.0087, 'hi': 0.1135, 'p_le0': 0.0652}
+  record_D7_vs_B-MIX {'est': 0.0442, 'lo6': -0.0083, 'hi6': 0.116, 'lo12': -0.0083, 'hi12': 0.1125}
+  boot_D7_vs_B-TBILL_6m {'est': 0.0487, 'lo': -0.005, 'hi': 0.1232, 'p_le0': 0.045}
+  boot_D7_vs_B-TBILL_12m {'est': 0.0487, 'lo': -0.0058, 'hi': 0.1228, 'p_le0': 0.0509}
+  record_D7_vs_B-TBILL {'est': 0.0487, 'lo6': -0.0053, 'hi6': 0.1229, 'lo12': -0.0058, 'hi12': 0.1212}
+  boot_BALERT_vs_BTBILL_12m {'est': 0.0415, 'lo': -0.0004, 'hi': 0.0864, 'p_le0': 0.0263}
+  period 2020-01..2022-12 {'months': 36, 'D7': 0.1145, 'B-ALERT': 0.0445, 'B-TBILL': 0.008, 'B-MIX': 0.0165, 'D7_minus_TBILL': 0.1065, 'D7_minus_MIX': 0.098, 'ALERT_minus_TBILL': 0.0364}
+     boot12 {'est': 0.098, 'lo': 0.0165, 'hi': 0.2306, 'p_le0': 0.0005} boot6 {'est': 0.098, 'lo': 0.0147, 'hi': 0.2401, 'p_le0': 0.0019}
+  period 2023-01..2026-11 {'months': 47, 'D7': 0.0504, 'B-ALERT': 0.0909, 'B-TBILL': 0.0454, 'B-MIX': 0.0468, 'D7_minus_TBILL': 0.005, 'D7_minus_MIX': 0.0037, 'ALERT_minus_TBILL': 0.0456}
+     boot12 {'est': 0.0037, 'lo': -0.0411, 'hi': 0.0493, 'p_le0': 0.4197} boot6 {'est': 0.0037, 'lo': -0.0399, 'hi': 0.0502, 'p_le0': 0.4367}
+  year 2020 {'months': 12, 'D7': 0.0499, 'B-ALERT': 0.0302, 'B-TBILL': 0.0034, 'B-MIX': 0.0172, 'D7_minus_TBILL': 0.0466}
+  year 2021 {'months': 12, 'D7': 0.3117, 'B-ALERT': 0.1499, 'B-TBILL': 0.0005, 'B-MIX': 0.0222, 'D7_minus_TBILL': 0.3112}
+  year 2022 {'months': 12, 'D7': 0.0053, 'B-ALERT': -0.0382, 'B-TBILL': 0.0204, 'B-MIX': 0.0102, 'D7_minus_TBILL': -0.0151}
+  year 2023 {'months': 12, 'D7': -0.0109, 'B-ALERT': 0.0301, 'B-TBILL': 0.0519, 'B-MIX': 0.0603, 'D7_minus_TBILL': -0.0629}
+  year 2024 {'months': 12, 'D7': 0.066, 'B-ALERT': 0.1023, 'B-TBILL': 0.0511, 'B-MIX': 0.0583, 'D7_minus_TBILL': 0.0149}
+  year 2025 {'months': 12, 'D7': 0.1203, 'B-ALERT': 0.205, 'B-TBILL': 0.0415, 'B-MIX': 0.034, 'D7_minus_TBILL': 0.0788}
+  year 2026 {'months': 11, 'D7': 0.0266, 'B-ALERT': 0.0278, 'B-TBILL': 0.0333, 'B-MIX': 0.0309, 'D7_minus_TBILL': -0.0068}
+  top5 months {'2021-05': 0.1784, '2025-10': 0.053, '2021-12': 0.0494, '2025-02': 0.0318, '2020-12': 0.0181} top3 share 0.828 months below TBILL 0.602 CAGR w/o top3 months 0.0374
+==================== F3_1_r0.0335 83 2020-01 2026-11
+ cagr_full {'D7': 0.096, 'B-ALERT': 0.0705, 'B-TBILL': 0.029, 'B-MIX': 0.0333}
+  boot_D7_vs_B-MIX_6m {'est': 0.0628, 'lo': 0.012, 'hi': 0.1336, 'p_le0': 0.0036}
+  boot_D7_vs_B-MIX_12m {'est': 0.0628, 'lo': 0.0109, 'hi': 0.1327, 'p_le0': 0.0045}
+  record_D7_vs_B-MIX {'est': 0.0628, 'lo6': 0.0114, 'hi6': 0.1336, 'lo12': 0.0114, 'hi12': 0.1312}
+  boot_D7_vs_B-TBILL_6m {'est': 0.067, 'lo': 0.0148, 'hi': 0.1413, 'p_le0': 0.0018}
+  boot_D7_vs_B-TBILL_12m {'est': 0.067, 'lo': 0.0137, 'hi': 0.1412, 'p_le0': 0.0029}
+  record_D7_vs_B-TBILL {'est': 0.067, 'lo6': 0.0142, 'hi6': 0.1411, 'lo12': 0.0136, 'hi12': 0.14}
+  boot_BALERT_vs_BTBILL_12m {'est': 0.0415, 'lo': -0.0004, 'hi': 0.0864, 'p_le0': 0.0263}
+  period 2020-01..2022-12 {'months': 36, 'D7': 0.1349, 'B-ALERT': 0.0445, 'B-TBILL': 0.008, 'B-MIX': 0.016, 'D7_minus_TBILL': 0.1268, 'D7_minus_MIX': 0.1188, 'ALERT_minus_TBILL': 0.0364}
+     boot12 {'est': 0.1188, 'lo': 0.0385, 'hi': 0.2514, 'p_le0': 0.0} boot6 {'est': 0.1188, 'lo': 0.0365, 'hi': 0.2601, 'p_le0': 0.0}
+  period 2023-01..2026-11 {'months': 47, 'D7': 0.0672, 'B-ALERT': 0.0909, 'B-TBILL': 0.0454, 'B-MIX': 0.0467, 'D7_minus_TBILL': 0.0218, 'D7_minus_MIX': 0.0205, 'ALERT_minus_TBILL': 0.0456}
+     boot12 {'est': 0.0205, 'lo': -0.02, 'hi': 0.0615, 'p_le0': 0.1708} boot6 {'est': 0.0205, 'lo': -0.0191, 'hi': 0.0625, 'p_le0': 0.1688}
+  year 2020 {'months': 12, 'D7': 0.0741, 'B-ALERT': 0.0302, 'B-TBILL': 0.0034, 'B-MIX': 0.0164, 'D7_minus_TBILL': 0.0707}
+  year 2021 {'months': 12, 'D7': 0.3292, 'B-ALERT': 0.1499, 'B-TBILL': 0.0005, 'B-MIX': 0.021, 'D7_minus_TBILL': 0.3287}
+  year 2022 {'months': 12, 'D7': 0.0238, 'B-ALERT': -0.0382, 'B-TBILL': 0.0204, 'B-MIX': 0.0107, 'D7_minus_TBILL': 0.0034}
+  year 2023 {'months': 12, 'D7': 0.0132, 'B-ALERT': 0.0301, 'B-TBILL': 0.0519, 'B-MIX': 0.0598, 'D7_minus_TBILL': -0.0387}
+  year 2024 {'months': 12, 'D7': 0.082, 'B-ALERT': 0.1023, 'B-TBILL': 0.0511, 'B-MIX': 0.0579, 'D7_minus_TBILL': 0.031}
+  year 2025 {'months': 12, 'D7': 0.1293, 'B-ALERT': 0.205, 'B-TBILL': 0.0415, 'B-MIX': 0.0344, 'D7_minus_TBILL': 0.0878}
+  year 2026 {'months': 11, 'D7': 0.042, 'B-ALERT': 0.0278, 'B-TBILL': 0.0333, 'B-MIX': 0.031, 'D7_minus_TBILL': 0.0087}
+  top5 months {'2021-05': 0.1748, '2021-12': 0.0492, '2025-10': 0.0489, '2025-02': 0.0298, '2020-12': 0.0198} top3 share 0.6 months below TBILL 0.361 CAGR w/o top3 months 0.0561
+MAXRSS_MB 126.57421875

@@ -1,0 +1,9 @@
+loaded run: 33486 bids, 1645 fills; rss 432 MB
+  full (control): 119s, rss 966 MB -> D7 end $1,913,664.82, CAGR 0.07776, 1325 positions; D7 - B-MIX +0.0442 (12m -0.0083 .. +0.1125; 6m -0.0083 .. +0.1160); D7 - B-TBILL +0.0487 (12m -0.0058 .. +0.1212)
+  control vs record (7949037 d7_compare F3_1 r_res 0 D7 vs B-MIX): {'record_cagr_diff': 0.044237033854064, 'record_lo_12m': -0.008264114602992, 'record_hi_12m': 0.1125101677786373, 'record_lo_6m': -0.0082545931975768, 'record_hi_6m': 0.1159608626133366, 'match': True}
+  top month-block by fills (module convention): periods ['2022-11'], 98 account fills, 1.6% of the account's flip gains; next: ['2025-10'] 94; ['2023-08'] 87; ['2023-06'] 81
+  without 2021-05-19 (55 F3 fills dropped): 83s, rss 966 MB -> D7 end $1,726,056.90, CAGR 0.06181, 1271 positions; D7 - B-MIX +0.0280 (12m -0.0105 .. +0.0671; 6m -0.0111 .. +0.0682); D7 - B-TBILL +0.0328 (12m -0.0077 .. +0.0752)
+  without 2025-10-10 (94 F3 fills dropped): 85s, rss 966 MB -> D7 end $1,813,334.71, CAGR 0.06941, 1231 positions; D7 - B-MIX +0.0361 (12m -0.0141 .. +0.1078; 6m -0.0142 .. +0.1084); D7 - B-TBILL +0.0404 (12m -0.0122 .. +0.1156)
+  without the top month-block (most fills) (98 F3 fills dropped): 87s, rss 966 MB -> D7 end $1,901,388.74, CAGR 0.07676, 1227 positions; D7 - B-MIX +0.0435 (12m -0.0097 .. +0.1126; 6m -0.0095 .. +0.1157); D7 - B-TBILL +0.0477 (12m -0.0077 .. +0.1209)
+  without 2021-05 (the critic's block, by gains) (71 F3 fills dropped): 82s, rss 966 MB -> D7 end $1,645,047.49, CAGR 0.05445, 1255 positions; D7 - B-MIX +0.0205 (12m -0.0139 .. +0.0536; 6m -0.0150 .. +0.0550); D7 - B-TBILL +0.0254 (12m -0.0102 .. +0.0586)
+data files changed: []; max rss 966 MB; 457s

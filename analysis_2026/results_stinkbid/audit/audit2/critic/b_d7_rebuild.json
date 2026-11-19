@@ -1,0 +1,39 @@
+{
+ "K": 1140000.0,
+ "r_res=0.0": {
+  "positions": 1325,
+  "sum_gains": 630202.2423099596,
+  "end_value": 1913664.8243221499,
+  "cagr": 0.07776395302671046,
+  "record_cagr": 0.07776395302671002,
+  "months": 83,
+  "monthly_corr": 0.9993580044911218,
+  "monthly_max_abs_diff": 0.003965074546818029,
+  "mean_reserved_share": 0.5878390290000667,
+  "reserved_share_2023on": 0.5471989527170673
+ },
+ "tbill": {
+  "cagr": 0.02901672472565564,
+  "record_cagr": 0.029016724725655196,
+  "max_abs_monthly_diff_vs_record": 2.59884615997491e-15,
+  "sharpe_as_coded": 2.0675391095745876,
+  "mean_monthly_excess": 3.6629870855468707e-06,
+  "sd_monthly_excess": 6.137228273221155e-06
+ },
+ "carry_per_year_share_of_K": {
+  "2020-2022": 0.0064607164680721045,
+  "2023-2026": 0.036405099109806986
+ },
+ "r_res=0.0335": {
+  "positions": 1325,
+  "sum_gains": 630202.2423099596,
+  "end_value": 2149576.933263639,
+  "cagr": 0.09602145003233797,
+  "record_cagr": 0.09602145003233753,
+  "months": 83,
+  "monthly_corr": 0.9994110161427976,
+  "monthly_max_abs_diff": 0.0035782552379249946,
+  "mean_reserved_share": 0.5543715353966233,
+  "reserved_share_2023on": 0.5013427712633937
+ }
+}

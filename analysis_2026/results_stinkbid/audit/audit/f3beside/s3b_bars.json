@@ -1,0 +1,31 @@
+{
+ "FLIP": {
+  "n": 1361,
+  "target_mismatch": 0,
+  "exit_mismatch": 0,
+  "mean_r_mine": 0.04841075345084207,
+  "mean_r_engine": 0.04841075345084207,
+  "mean_delta_with_my_r": 0.06452045451936304,
+  "mean_r_mine_strict_later_minute": 0.04841075345084207,
+  "strict_differs": 0,
+  "kinds_mine": {
+   "stop": 1052,
+   "target": 305,
+   "marketable": 4
+  }
+ },
+ "FLIP_bot": {
+  "n": 1361,
+  "target_mismatch": 0,
+  "exit_mismatch": 0,
+  "mean_r_mine": 0.04864101734990797,
+  "mean_r_engine": 0.04864101734990797,
+  "mean_delta_with_my_r": 0.06475029247996725,
+  "mean_r_mine_strict_later_minute": 0.04864101734990797,
+  "strict_differs": 0,
+  "kinds_mine": {
+   "stop": 1048,
+   "target": 313
+  }
+ }
+}
