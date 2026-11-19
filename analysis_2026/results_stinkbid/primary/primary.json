@@ -299,7 +299,7 @@
     "without_2025-10-10": 0.06727264555063575,
     "without_2021-05-19": 0.06756986691057079,
     "without_top_block": 0.06727264555063575,
-    "label": ""
+    "label": "U-C: Robinhood-listed coins (hindsight)"
    },
    "U_C_F3": {
     "n": 1455,
@@ -314,7 +314,7 @@
     "without_2025-10-10": 0.06451735219076996,
     "without_2021-05-19": 0.06821723943362328,
     "without_top_block": 0.06451735219076996,
-    "label": "Robinhood-route proxy"
+    "label": "Robinhood-route proxy; U-C: Robinhood-listed coins (hindsight)"
    }
   },
   "H2R": {
@@ -390,7 +390,7 @@
     "without_2025-10-10": 0.027356614985763243,
     "without_2021-05-19": 0.014143590296602903,
     "without_top_block": 0.027356614985763243,
-    "label": ""
+    "label": "U-C: Robinhood-listed coins (hindsight)"
    },
    "U_C_F3": {
     "n": 1459,
@@ -405,7 +405,7 @@
     "without_2025-10-10": 0.023166599160579723,
     "without_2021-05-19": 0.010498983960709562,
     "without_top_block": 0.023166599160579723,
-    "label": "Robinhood-route proxy"
+    "label": "Robinhood-route proxy; U-C: Robinhood-listed coins (hindsight)"
    }
   },
   "H4": {
@@ -477,8 +477,8 @@
     "2023-06-05..2023-06-10"
    ],
    "top3_above_half": false,
-   "top_block": 16,
-   "without_top_block": 0.0028425528677533687,
+   "top_block": 50,
+   "without_top_block": 0.001185803316177599,
    "without_2025-10-10": 0.002188652705633217,
    "n_2025-10-10": 115,
    "without_2021-05-19": 0.0023467465761791303,

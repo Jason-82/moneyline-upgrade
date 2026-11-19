@@ -2,9 +2,9 @@
  "stage": "report",
  "complete": true,
  "mode": "real",
- "started": "2026-11-19 14:49:47 UTC",
- "finished": "2026-11-19 14:51:44 UTC",
- "seconds": 117.0,
+ "started": "2026-11-19 17:28:23 UTC",
+ "finished": "2026-11-19 17:30:37 UTC",
+ "seconds": 133.8,
  "outputs": [
   "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/verdicts.txt",
   "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/verdicts.csv",

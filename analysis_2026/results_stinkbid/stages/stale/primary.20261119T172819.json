@@ -1,0 +1,15 @@
+{
+ "stage": "primary",
+ "complete": true,
+ "mode": "real",
+ "started": "2026-11-19 14:36:32 UTC",
+ "finished": "2026-11-19 14:49:44 UTC",
+ "seconds": 791.9,
+ "outputs": [
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/primary.json",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/gates.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/h4_methods.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/samples_H1.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/samples_H2R.csv"
+ ]
+}

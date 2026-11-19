@@ -1,6 +1,6 @@
 {
  "mode": "real",
- "generated": "2026-11-19 14:51:44 UTC",
+ "generated": "2026-11-19 17:30:37 UTC",
  "order": [
   "H2R",
   "H1",
@@ -18,7 +18,7 @@
   },
   {
    "key": "H1_PASS",
-   "text": "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average. It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target."
+   "text": "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average (+4.8% on the Robinhood-route proxy, F3). It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target. [1541 fills, month-block clusters G = 58, G* = 14.5]"
   },
   {
    "key": "H4_INCONCLUSIVE",
@@ -32,11 +32,11 @@
   },
   {
    "key": "TAIL_TOGETHER",
-   "text": "Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1]"
+   "text": "Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1; on the Robinhood-route proxy (F3): 95% on 2025-10-10 (94 of 99)]"
   },
   {
    "key": "TAIL_BOTTOM",
-   "text": "A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed]"
+   "text": "A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed; Binance spot fills, F3 not computed]"
   },
   {
    "key": "TAIL_NEWS",
@@ -44,19 +44,19 @@
   },
   {
    "key": "MONEYLINE",
-   "text": "Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined)]"
+   "text": "Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined); F3 fills: 63.8% red (870 red, 494 green)]"
   },
   {
    "key": "CAPACITY",
-   "text": "Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot): rung k = 6: 10th percentile $407,629, cap about $101,907 per order; rung k = 8: 10th percentile $327,952, cap about $81,988 per order; rung k = 10: 10th percentile $307,280, cap about $76,820 per order."
+   "text": "Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot during the wick, from the first trade below it until it trades back above or 60 minutes pass): rung k = 6: 10th percentile $18,823, cap about $4,706 per order; rung k = 8: 10th percentile $20,872, cap about $5,218 per order; rung k = 10: 10th percentile $24,282, cap about $6,071 per order."
   }
  ],
  "descriptive_sentences": [
-  "Descriptive only. Over 90 days, coins bought through stink bids did 3.5% (95% CI -19.9% to +13.0% for the difference) worse than the same coins bought at random times outside the six months around each fill. An edge under about 20-40% could not be detected, and the comparison also reflects whether the crashes fell in bear or bull stretches. [1513 fills, quarter-block clusters G = 27, G* = 12.9; MDE computed here 24.7%]",
+  "Descriptive only. Over 90 days, coins bought through stink bids did 3.5% (95% CI -19.9% to +13.0% for the difference) worse than the same coins bought at random times outside the six months around each fill. An edge under about 20-40% could not be detected, and the comparison also reflects whether the crashes fell in bear or bull stretches. [1513 fills, quarter-block clusters G = 27, G* = 12.9; MDE computed here 24.7%; on the Robinhood-route proxy (F3): -5.2% (95% CI -20.9% to +10.5%; 1339 fills, quarter-block clusters G = 26, G* = 12.4)]",
   "Random buys here exclude the six months around each fill, so the comparison also reflects whether crashes fell in bear or bull stretches. (K1c, regime timing alone: -6.1% per 90 days)",
-  "Descriptive only. Fast wicks were 4.3% per fill (95% CI -1.8% to +10.2% for the difference) better than slow slides to the same depth. A difference under about 6-10% per fill could not be detected. [1054 fills, month-block clusters G = 45, G* = 11.1; episode fixed effects; MDE computed here 8.2%]",
-  "Descriptive only. A year after a fill, 27.3% of fills on large, long-listed coins and 46.5% on other top-100 coins were 50% or more below the fill price; at the same volatility the gap was +12.9 points (95% CI +4.6 to +21.2). Neither LUNA (kept out by listing age) nor FTT (kept out by Binance volume rank) was in the large, long-listed group, so this says nothing about fraud collapses of large coins. In the 12-month row, where LUNA is included, the gap was +8.4 points. The study did not test a real-revenue filter. [4230 fills; two-way coin x quarter clusters, G_coin = 355, G_quarter = 26, t at 25 df]",
-  "Flip or own is a choice about whether you want to hold the coin, not about stink-bid skill. The study's evidence on the bid is the same for both. [shared premium (the alert buyer's price 72 h later): +5.5% (95% CI +2.6% to +8.4%; 1541 fills, month-block clusters G = 58, G* = 14.5); return from 72 h to 90 days against T-bills: +10.6% (95% CI -7.0% to +28.2%; 1513 fills, quarter-block clusters G = 27, G* = 12.9)]"
+  "Descriptive only. Fast wicks were 4.3% per fill (95% CI -1.8% to +10.2% for the difference) better than slow slides to the same depth. A difference under about 6-10% per fill could not be detected. [1054 fills, month-block clusters G = 45, G* = 11.1; episode fixed effects; MDE computed here 8.2%; on the Robinhood-route proxy (F3): +2.9% (95% CI -3.9% to +9.6%; 946 fills, month-block clusters G = 44, G* = 10.7)]",
+  "Descriptive only. A year after a fill, 27.3% of fills on large, long-listed coins and 46.5% on other top-100 coins were 50% or more below the fill price; at the same volatility the gap was +12.9 points (95% CI +4.6 to +21.2). Neither LUNA (kept out by listing age) nor FTT (kept out by Binance volume rank) was in the large, long-listed group, so this says nothing about fraud collapses of large coins. In the 12-month row, where LUNA is included, the gap was +8.4 points. The study did not test a real-revenue filter. [4230 fills; two-way coin x quarter clusters, G_coin = 355, G_quarter = 26, t at 25 df; Binance spot fills only, F3 not computed on U-B (prereg Addendum 1, A1.7)]",
+  "Flip or own is a choice about whether you want to hold the coin, not about stink-bid skill. The study's evidence on the bid is the same for both. [shared premium (the alert buyer's price 72 h later): +5.5% (95% CI +2.6% to +8.4%; 1541 fills, month-block clusters G = 58, G* = 14.5); on the Robinhood-route proxy (F3): +5.7% (95% CI +2.4% to +9.1%; 1361 fills, month-block clusters G = 54, G* = 13.8); return from 72 h to 90 days against T-bills: +10.6% (95% CI -7.0% to +28.2%; 1513 fills, quarter-block clusters G = 27, G* = 12.9); on the Robinhood-route proxy (F3): +8.7% (95% CI -6.1% to +23.5%; 1339 fills, quarter-block clusters G = 26, G* = 12.4)]"
  ],
  "numbers": {
   "tests": {
@@ -68,7 +68,8 @@
     "G": 58,
     "gstar": 14.503168645422507,
     "M": 0.05327963239542828,
-    "R": 0.04823470535451593
+    "R": 0.04823470535451593,
+    "R_F3": 0.04841075345084207
    },
    "H2R": {
     "X": 0.02234791526797896,
@@ -86,7 +87,7 @@
     "N": 1487,
     "G": 33,
     "gstar": 10.435461649279732,
-    "M": 0.009391078044604512,
+    "M": 0.011715013192457342,
     "j": "M7"
    }
   },
@@ -117,25 +118,38 @@
    {
     "rung": 6.0,
     "fills": 818,
-    "C_p50": 14669771.575419,
-    "C_p10": 407629.025579,
-    "Q_max": 101907.25639475
+    "C_p50": 633357.9202,
+    "C_p10": 18822.7314254,
+    "Q_max": 4705.68285635
    },
    {
     "rung": 8.0,
     "fills": 441,
-    "C_p50": 16759293.825596001,
-    "C_p10": 327952.2003,
-    "Q_max": 81988.050075
+    "C_p50": 958489.782183,
+    "C_p10": 20871.742326000003,
+    "Q_max": 5217.935581500001
    },
    {
     "rung": 10.0,
     "fills": 285,
-    "C_p50": 9825798.082214,
-    "C_p10": 307279.64028560003,
-    "Q_max": 76819.91007140001
+    "C_p50": 947756.9437,
+    "C_p10": 24282.08428400001,
+    "Q_max": 6070.521071000003
    }
-  ]
+  ],
+  "worst_day_F3": {
+   "share": 0.9494949494949495,
+   "day": "2025-10-10",
+   "filled": 94,
+   "live": 99
+  },
+  "moneyline_F3": {
+   "n": 1364,
+   "green": 494,
+   "red": 870,
+   "undefined": 0,
+   "red_share_of_defined": 0.6378299120234604
+  }
  },
  "flags": {
   "show_flip_target": true,
@@ -372,6 +386,18 @@
     "fcount"
    ],
    "reason": "prereg Addendum 2, A2.6: M7's inputs fetched for the U-Q1 coin-days Addenda 1 and 2 added (AAVE, EGLD, LUNC, GRAM); the run cache and the controls gate now follow the data and the code; data, controls and fill counts run again before any outcome"
+  },
+  {
+   "time": "2026-11-19 17:28:19 UTC",
+   "mode": "real",
+   "event": "rerun",
+   "stages": [
+    "primary",
+    "report",
+    "desc",
+    "explore"
+   ],
+   "reason": "post-results corrections found by the outcome audit and verified independently (reporting only; no verdict, test statistic or gate changes): (1) the size cap Q_max used seller dollars summed over the order's whole life instead of the fill's own capacity window (draft 7.3, 8.3), overstating it 17-22 times; (2) H4's printed MDE used a single test's critical value instead of its four-method Bonferroni (1.17%, not 0.94%); (3) H4's 'without the top month-block' row used M7's own month-blocks instead of the shared partition (A1.8); (4) prereg 12 and A1.7: F3 numbers beside the answer's Binance numbers, 'F3 not computed' notes, G and G* with recommendation intervals, U-C rows labelled hindsight, H4's missing U-C row stated. Code: commit f6c15f5"
   }
  ]
 }

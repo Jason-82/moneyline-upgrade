@@ -2,9 +2,9 @@
  "stage": "primary",
  "complete": true,
  "mode": "real",
- "started": "2026-11-19 14:36:32 UTC",
- "finished": "2026-11-19 14:49:44 UTC",
- "seconds": 791.9,
+ "started": "2026-11-19 17:28:19 UTC",
+ "finished": "2026-11-19 17:28:21 UTC",
+ "seconds": 2.4,
  "outputs": [
   "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/primary.json",
   "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/primary/gates.csv",
