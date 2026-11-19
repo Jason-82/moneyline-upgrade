@@ -1,0 +1,33 @@
+{
+ "stage": "explore",
+ "complete": true,
+ "mode": "real",
+ "started": "2026-11-19 17:38:33 UTC",
+ "finished": "2026-11-19 17:38:46 UTC",
+ "seconds": 13.2,
+ "outputs": [
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/depth_gradient.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/breadth.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/weekday.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/flow.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/m3_m8.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/user_coins.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/user_fills.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/hype.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/hype_fills.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/explore.json",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/explore/explore.txt",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/sheet_inputs.json"
+ ],
+ "tables": [
+  "breadth",
+  "depth_gradient",
+  "flow",
+  "hype",
+  "hype_fills",
+  "m3_m8",
+  "user_coins",
+  "user_fills",
+  "weekday"
+ ]
+}

@@ -1,6 +1,6 @@
 {
  "mode": "real",
- "generated": "2026-11-19 17:21:33 UTC",
+ "generated": "2026-11-19 17:38:46 UTC",
  "verdicts": {
   "H2R": "INCONCLUSIVE",
   "H1": "PASS",
@@ -707,23 +707,23 @@
   {
    "rung": 6.0,
    "fills": 818,
-   "C_p50": 14669771.575419,
-   "C_p10": 407629.025579,
-   "Q_max": 101907.25639475
+   "C_p50": 633357.9202,
+   "C_p10": 18822.7314254,
+   "Q_max": 4705.68285635
   },
   {
    "rung": 8.0,
    "fills": 441,
-   "C_p50": 16759293.825596001,
-   "C_p10": 327952.2003,
-   "Q_max": 81988.050075
+   "C_p50": 958489.782183,
+   "C_p10": 20871.742326000003,
+   "Q_max": 5217.935581500001
   },
   {
    "rung": 10.0,
    "fills": 285,
-   "C_p50": 9825798.082214,
-   "C_p10": 307279.64028560003,
-   "Q_max": 76819.91007140001
+   "C_p50": 947756.9437,
+   "C_p10": 24282.08428400001,
+   "Q_max": 6070.521071000003
   }
  ],
  "fixed_sentences": [
@@ -733,11 +733,11 @@
   },
   {
    "key": "TAIL_TOGETHER",
-   "text": "Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1]"
+   "text": "Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1; on the Robinhood-route proxy (F3): 95% on 2025-10-10 (94 of 99)]"
   },
   {
    "key": "TAIL_BOTTOM",
-   "text": "A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed]"
+   "text": "A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed; Binance spot fills, F3 not computed]"
   },
   {
    "key": "TAIL_NEWS",
@@ -745,11 +745,11 @@
   },
   {
    "key": "MONEYLINE",
-   "text": "Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined)]"
+   "text": "Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined); F3 fills: 63.8% red (870 red, 494 green)]"
   },
   {
    "key": "CAPACITY",
-   "text": "Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot): rung k = 6: 10th percentile $407,629, cap about $101,907 per order; rung k = 8: 10th percentile $327,952, cap about $81,988 per order; rung k = 10: 10th percentile $307,280, cap about $76,820 per order."
+   "text": "Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot during the wick, from the first trade below it until it trades back above or 60 minutes pass): rung k = 6: 10th percentile $18,823, cap about $4,706 per order; rung k = 8: 10th percentile $20,872, cap about $5,218 per order; rung k = 10: 10th percentile $24,282, cap about $6,071 per order."
   }
  ],
  "recommendation": [
@@ -759,7 +759,7 @@
   },
   {
    "key": "H1_PASS",
-   "text": "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average. It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target."
+   "text": "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average (+4.8% on the Robinhood-route proxy, F3). It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target. [1541 fills, month-block clusters G = 58, G* = 14.5]"
   },
   {
    "key": "H4_INCONCLUSIVE",
