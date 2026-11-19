@@ -326,16 +326,31 @@ def deviations(ctx: Ctx) -> list:
 
 
 # ============================================================================ the controls gate
+def _full_calibration(x) -> bool:
+    """True for stinkbid_stats.inference_calibration's output: a non-empty "tests" dict in which every test has a
+    boolean needs_calibration (the field stinkbid_stats.apply_calibration reads)."""
+    return (isinstance(x, dict) and isinstance(x.get("tests"), dict) and len(x["tests"]) > 0
+            and all(isinstance(v, dict) and isinstance(v.get("needs_calibration"), bool) for v in x["tests"].values()))
+
+
 def _find_calibration(S: dict, cdir: Path):
-    """The K3 calibration (stinkbid_stats.inference_calibration's output: a dict with "tests" and, for calibrated
-    tests, "null") from summary.json (K3 / k3 / calibration keys) or a k3*.json / *calib*.json file in the
-    controls directory."""
-    def ok(x):
-        return isinstance(x, dict) and isinstance(x.get("tests"), dict)
+    """The K3 calibration (stinkbid_stats.inference_calibration's output: "tests" with each test's boolean
+    needs_calibration and, for calibrated tests, the "null" draws). Looked up in this order: the file that the
+    summary's K3 block names (calibration_file, a bare file name inside the controls directory), a full calibration
+    embedded in summary.json (K3 / k3 / calibration keys), then k3*.json / *calib*.json files in the controls
+    directory. Only a full calibration is taken (_full_calibration). The controls module's summary.json carries a
+    condensed K3 block (each test's rule and rates; no needs_calibration, no null draws). Before 2026-11-19 this
+    function took that block for the calibration, which would have dropped H2R's simulation-calibrated rule (K3)
+    without a word; found after the controls stage and before any outcome (prereg Addendum 2, A2.5; deviation
+    log). controls_status also checks the summary's rule per test against the calibration."""
+    ok = _full_calibration
     cands = []
     for k in ("K3", "k3"):
         v = S.get(k)
         if isinstance(v, dict):
+            name = v.get("calibration_file")
+            if isinstance(name, str) and name and Path(name).name == name and (cdir / name).is_file():
+                cands.append(_jload(cdir / name))
             cands += [v.get("calibration"), v.get("calib"), v]
     cands += [S.get("calibration"), S.get("k3_calibration"), S.get("K3_calibration")]
     for c in cands:
@@ -352,6 +367,22 @@ def _find_calibration(S: dict, cdir: Path):
                     if ok(v.get(k)):
                         return v[k]
     return None
+
+
+K3_RULES = ("nominal", "simulation-calibrated")
+
+
+def _summary_rules(S: dict) -> dict:
+    """{test: rule} as summary.json's K3 block states it (stinkbid_controls writes "nominal" or
+    "simulation-calibrated" per test), when it states one."""
+    out = {}
+    for k in ("K3", "k3"):
+        v = S.get(k)
+        if isinstance(v, dict) and isinstance(v.get("tests"), dict):
+            for t, d in v["tests"].items():
+                if isinstance(d, dict) and "rule" in d:
+                    out.setdefault(t, d["rule"])
+    return out
 
 
 def controls_status(ctx: Ctx) -> dict:
@@ -376,12 +407,19 @@ def controls_status(ctx: Ctx) -> dict:
         return out
     C = _find_calibration(S, f.parent)
     if C is None:
-        out["why"] = (f"{f}: the K3 calibration (inference_calibration output with 'tests') was not found in "
-                      "summary.json or controls/k3*.json")
+        out["why"] = (f"{f}: the K3 calibration (inference_calibration output: 'tests' with a boolean "
+                      "needs_calibration per test) was not found in summary.json or controls/k3*.json")
         return out
     miss = [t for t in FAMILY if t not in C["tests"]]
     if miss:
         out["why"] = f"K3 calibration has no result for {miss} (§10.5: K3 reports H1, H2R and H4)"
+        return out
+    rules = _summary_rules(S)
+    clash = [t for t in FAMILY if t in rules and (rules[t] not in K3_RULES or
+                                                  (rules[t] == K3_RULES[1]) != C["tests"][t]["needs_calibration"])]
+    if clash:
+        out["why"] = (f"K3: summary.json's rule per test ({ {t: rules[t] for t in clash} }) disagrees with the "
+                      f"calibration's needs_calibration ({ {t: C['tests'][t]['needs_calibration'] for t in clash} })")
         return out
     need = [t for t in FAMILY if C["tests"][t].get("needs_calibration")]
     lack = [t for t in need if not (C.get("null", {}).get(t))]
@@ -2625,6 +2663,32 @@ def _t_gating(say, W: dict, out: Path, cache: Path) -> Ctx:
         _jdump(out / "controls" / "summary.json", bad)
         assert frag in controls_status(ctx)["why"], controls_status(ctx)
     kc = out / "controls" / "k3_calibration.json"
+    # 2026-11-19, found on the real controls output: summary.json's condensed K3 block (each test's rule and rates;
+    # no needs_calibration, no null draws) never stands in for the calibration. The calibration file decides which
+    # tests take the simulation-calibrated rule, and a summary rule that disagrees with it closes the gate.
+    Cf = _jload(kc)
+    want = [t for t in FAMILY if Cf["tests"][t]["needs_calibration"]]
+    assert want, "the toy calibration should flag at least one test (else this check cannot see the bug)"
+    cond = dict(n_reps=24, B=199, calibration_file="k3_calibration.json",
+                tests={t: dict(rule=K3_RULES[1] if Cf["tests"][t]["needs_calibration"] else K3_RULES[0],
+                               k3_nominal_ok=not Cf["tests"][t]["needs_calibration"]) for t in Cf["tests"]})
+    _jdump(out / "controls" / "summary.json", dict(S, all_passed=True, K3=cond))
+    cs_ = controls_status(ctx)
+    assert cs_["ok"] and cs_["calibrated_tests"] == want, (cs_["why"], cs_.get("calibrated_tests"), want)
+    assert _full_calibration(cs_["calib"]) and all(cs_["calib"]["null"].get(t) for t in want)
+    row_ = dict(p_decide=0.5, ub=0.5, estimate=0.0, se=0.01, t=0.0, E=sbs.E["H2R"])
+    if "H2R" in want:                                    # the calibrated rule reaches the primary stage's rows
+        assert sbs.apply_calibration(row_, "H2R", cs_["calib"]).get("calibrated") is True
+    flip = dict(cond, tests={t: dict(v, rule=K3_RULES[0] if v["rule"] == K3_RULES[1] else K3_RULES[1])
+                             for t, v in cond["tests"].items()})
+    _jdump(out / "controls" / "summary.json", dict(S, all_passed=True, K3=flip))
+    assert "disagrees" in controls_status(ctx)["why"], controls_status(ctx)
+    no_file = dict(cond, calibration_file="../k3_calibration.json")   # only a bare name inside the directory
+    _jdump(out / "controls" / "summary.json", dict(S, all_passed=True, K3=no_file))
+    assert controls_status(ctx)["calibrated_tests"] == want      # still found, by the k3*.json pattern
+    _jdump(out / "controls" / "summary.json", S)
+    say("  K3 lookup: a condensed K3 block in summary.json never stands in for the calibration; the calibration "
+        "file decides the calibrated tests, a disagreeing summary rule closes the gate")
     kc_b = kc.read_text()
     kc.unlink()
     _jdump(out / "controls" / "summary.json", dict(S, all_passed=True))

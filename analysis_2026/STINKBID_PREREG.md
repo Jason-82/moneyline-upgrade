@@ -887,3 +887,20 @@ Because the registry and the universes change, it runs again before the controls
 
 **A2.4 Runs.** The data stage runs again on the final registry (`--rerun`, logged as a deviation). The controls then
 run from scratch (A1.9), then the fill counts.
+
+**A2.5 The K3 calibration reaches the tests (found after the controls, before any outcome).**
+- Every control passed (§10.5). K3 gives H2R the simulation-calibrated rule. In the heterogeneous-effect scenario its
+  false-PASS rate at the 1.67% level was 2.08%, with a 95% interval up to 2.51%, above the 1.5× limit of 2.5%. H1 and
+  H4 keep the nominal rule.
+- **The defect.** The runner looked for the calibration in `controls/summary.json` first. There the controls module
+  writes a condensed K3 block: each test's rule and rates, without the per-test flag the statistics read and without
+  the null draws. The runner took that block for the calibration, so H2R would have been decided on its nominal p and
+  bound, with no error. The runner's selftest had used a stand-in controls file without a K3 block, so it could not
+  see this.
+- **The fix.** The runner now takes only a full calibration (`controls/k3_calibration.json`), and the gate closes if
+  the summary's rule for a test disagrees with the calibration. A selftest check on the condensed format was added.
+- **What changes.** No control result, controls file or hash changes, and nothing is rerun. The controls stage
+  marker's list of calibrated tests (informational) reads empty for the same reason; the gate recomputes the list
+  from the files at every later stage (now H2R).
+- Found by calling the runner's readers on the real controls files after the controls stage. A check of every other
+  hand-off between the stages' real outputs and their readers followed before the primary stage (A2.6).
