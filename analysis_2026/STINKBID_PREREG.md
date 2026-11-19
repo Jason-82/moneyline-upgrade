@@ -672,3 +672,115 @@ Each stage refuses to run until the one before it is complete.
 **Changes not proposed by a reviewer.**
 - The NO EDGE level 1 − 0.05/3 follows from the three-test family.
 - The draft's claim that the quote-asset age fix brings LUNA classic into U-Q1 is deleted; R4 showed it was false.
+
+---
+
+## Addendum 1 (2026-11-19): rulings on the build's open choices, before any outcome
+
+**Status.** Written after the eight modules were built, adversarially reviewed and fixed (one review and one fix pass
+per module), and after a first run of the controls; before any post-fill price, return, P&L or strategy outcome was
+computed on real data. On real data the build computed only universes, levels, bids, fill counts and timings,
+coverage, capacity windows and the fill audit. Each ruling below changes code before the study's real runs, so the
+controls are run again from scratch on the final code (A1.9).
+
+**A1.1 Rebrands and swaps (§4.1).** §4.1's sentence "Rebrands and swaps continue at the swap ratio" is read as a
+general rule; the frozen list named the cases the inventory had found. Every U-B coin whose Binance history ends in a
+delisting (124 coins) was screened. These ends are Binance rebrands, swaps or mergers into a ticker with a Binance
+USDT pair, each confirmed by Binance's announcement (or a report quoting it), and by the data ratio (the successor's
+first open over the predecessor's last close, within 2% of the announced ratio, exact for 13 of 16):
+
+| predecessor → successor | successor units per unit | date |
+|---|---|---|
+| BCHABC → BCH | 1 | 2019-11-28 |
+| STORM → STMX | 1 | 2020-06 |
+| ERD → EGLD | 0.001 | 2020-09-03 |
+| LEND → AAVE | 0.01 | 2020-10-15 |
+| STRAT → STRAX | 1 | 2020-11 |
+| NPXS → PUNDIX | 0.001 | 2021-04-09 |
+| MFT → HIFI | 0.01 | 2023-01 |
+| MC → BEAMX | 100 | 2023-11-14 |
+| TOMO → VIC | 1 | 2023-11 |
+| GAL → G | 60 | 2024-07-19 |
+| KLAY → KAIA | 1 | 2024-10-31 |
+| DAR → D | 1 | 2025-01-09 |
+| BNX → FORM | 1 | 2025-03-19 |
+| FXS → FRAX | 1 | 2026-01-15 |
+| OM → MANTRA | 4 | 2026-03-04 |
+| TON → GRAM | 1 | 2026-07-02 |
+
+- Sources are in `stinkbid_data.SWAPS`. Successors inherit listing age and monthly ranks (§4.1); a position open at
+  the swap continues at the ratio instead of taking the delisting haircut.
+- **Effect on the universes:** U-Q1 gains 46 coin-months (BCH 2020-11..2021-10, AAVE 2021-02..2022-09, EGLD
+  2021-07..2022-08, GRAM 2026-08..11; 2,513 → 2,559). U-Q1-12 gains 31. U-B, U-A and U-C are unchanged, because
+  U-B membership uses each coin's own volume rank.
+- **Not swaps:** LUNA → LUNC is a halt followed by a relisting after a gap (§4.1's FTT rule). BZRX → OOKI (no Binance
+  USDT pair for OOKI) and XZC → FIRO (no Binance notice found) stay delistings, as §4.1 requires for unverified ratios.
+
+**A1.2 The cash series (§4).** `regime_switch.rf_annual_pct()` follows FRED DTB3 (discount basis), and its source ends
+2025-12-19. `stinkbid_data.tbill_daily` continues the same series through 2026-11-17, in place of the function's flat
+3.70% fallback. It reads 4.03% on 2026-11-02; §4's "4.21%" is FRED DGS3MO (investment basis). E = 3.75% (§10.3) is
+fixed and does not change.
+
+**A1.3 The tick (§6.1).** "τ, inferred from the decimal strings of the last 7 days' 1m prices" is read as the step of
+the venue's price grid: the coarsest decimal step that holds at least 99.9% of the window's prices. A few stale prints
+on an older, finer grid therefore do not set τ. This differs from "the smallest step seen" in 121 of 10,828 U-Q1
+coin-weeks.
+
+**A1.4 M7 (draft §6.2).** New open interest ΔOI⁺_j = max(0, OI_j − OI_{j−1}) is counted in contracts (coins) and
+valued at the hour's perpetual VWAP. A price rise with unchanged contracts is therefore not counted as new positions;
+the draft's "(USD)" is read as the unit of the histogram. The archive's placeholder rows with zero open interest are
+missing data. Against the reading that differences open interest in USD, this changes M7's level or abstention in
+1,970 of 8,040 U-Q1 placements from 2021-12.
+
+**A1.5 K3 replications (§10.5).** 5,000 null replications per scenario (the frozen minimum is 2,000).
+`stinkbid_stats` recommended this before any K3 run: at 2,000 replications, a test whose size is exactly nominal fails
+the 1.5× binomial rule at the 1.67% level 28% of the time (11% at 3,000; 1.5% at 5,000).
+
+**A1.6 Index months read on the outcome stage (§4, §7).** On real data the engine reads a coin's 1m index for its
+program-universe and U-Q1 member months and the 12 months after each, not for its whole history. Fetching the whole
+history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
+- Bids live in member months (at most 90 days), and twins enter in member months.
+- The longest index-route reach is about 7 months: a 90-day bid life, plus B-POST's 30 days, plus a 90-day hold.
+- The engine stops with an error if any index-route fill's horizon touches a month it did not read.
+
+**A1.7 Disk-bound shortfalls of §12's "every Binance number beside its F3 number".**
+- **U-B rows** (the H1/H2R U-B gate, D-H5's population, T1's U-B row) are computed on F1 only. F3 on U-B would read
+  about 36 GB of index history. The U-B gate compares like with like: §10.3's statistic is the F1 statistic.
+- **F3 versions are also not computed** for the flip grid, the ±30-day and pooled twins, the leave-out drift, T1,
+  D-H5, D6's θ_k, D8's second part and X-ML. Each row says so.
+- **Delisting sensitivities:** twins are valued under the primary delisting rule only, so these rows report the
+  fills' r_f under each valuation, not a Δ.
+
+**A1.8 Readings of the frozen text, fixed now (each documented in its module's docstring).**
+- **PASS and NO EDGE together.** When both hold, the verdict is NO EDGE: the effect is surely above zero but surely
+  below E, and E is the smallest effect worth acting on. §11's NO EDGE advice applies, and the report states both
+  facts (`pass_and_noedge`). For H2R this matches §11's table order, which lists NO EDGE first. The build had
+  coded the opposite precedence; no outcome existed when it was changed.
+- **"Passes only at bot latency"** (§11): the rule-M H1 is not PASS, while the X-FLIP-bot version, entered into the
+  same Holm family with every gate recomputed on bot rows, is PASS.
+- **"A Binance-only result"** (§11): re-run on the F1 fills that F3 (s = 1%) also fills, the passing test is no longer
+  significant at the Holm level at which it passed.
+- **"You could run it on Robinhood"** (§11) needs all three:
+  - the D7 flip account (r_res = 0) on F3 beats B-MIX in CAGR, with a 12-month stationary-block 95% interval above
+    zero;
+  - the passing test's statistic is above zero for P1 run on U-C under F3;
+  - H1 or H2R is PASS.
+- **Chart levels on the sheet** (§13) need H4 PASS and the method's Romano-Wolf adjusted p below H4's Holm level, or
+  D10's family. A Holm rejection whose gates fail is INCONCLUSIVE, and §11 then prints plain levels.
+- **H4's p_WCR** is the recentred Romano-Wolf max-t wild bootstrap with Webb weights on month-block score sums (S2's
+  wording). The four methods share one month-block partition. Coin-weeks with a single stacked fill drop out under
+  the fixed effect.
+- **The sheet's "Kaplan-Meier, shrunk to the U-Q1 rung"** uses weight w = n/(n + 52) on the coin's own estimate.
+
+**A1.9 Controls.**
+- **The first run passed every control.** It ran before A1.1 and on the earlier code, so it is superseded.
+  - K1b's engine matched the oracle.
+  - Both wrong engines failed K1b, as required (+33.9 and +34.2 SE).
+  - K2's t was 6.7 under rule M and under the bot latency.
+  - K4: 0 of 2,250 comparisons failed.
+  - K5: 0 violations in 41.3 million checks.
+  - K3 flagged H1 at the 1.67% level. Its false-PASS rate was 2.1% (base) and 2.0% (high dispersion), with 95%
+    upper ends 2.83% and 2.71% against the 2.5% limit. On that run, H1 would have used its simulation-calibrated p.
+- **The controls run again from scratch on the final code and universes**, with A1.5's replications. That run decides
+  the gate and K3's rules. Its outputs replace `results_stinkbid/controls/`; the first run's summary is kept outside
+  the repository.
