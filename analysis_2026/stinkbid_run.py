@@ -144,7 +144,10 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     coin-months or 36 GB, against about 18 GB free on this machine). §12's "every Binance number beside its F3
     number" is therefore not met for the U-B rows unless --ub-f3 is passed; those F3 rows are labelled "F3 not
     computed for this run" (prereg Addendum 1, A1.7). The fill and outcome stages read only months the data stage
-    prefetched (fut_months_missing; stinkbid_engine coding choices 14 and 27).
+    prefetched (fut_months_missing; stinkbid_engine coding choices 14 and 27). For the same reason fcount counts
+    U-B's fills under the spot rules only (UB_COUNT_RULES: F1, F2; prereg Addendum 2, A2.2): its index and perpetual
+    rules would read the candidate months of about 480 coins, which the data stage does not prefetch and the disk
+    does not hold. --ub-f3 counts every rule on U-B.
 14. D12 is printed in verdicts.txt's details before the verdict table (§10.4: "Reported before H1's table"); the
     answer itself (verdicts and sentences) comes first, before any table (§11).
 15. aggTrades capacity (§4 "aggTrades, streamed for every U-Q1 coin-day with a fill (for capacity)"; §7 "The 1-minute
@@ -218,6 +221,7 @@ DESC_RUNS = (("P1", "U_Q1_12", "sens"), ("P1", "U_Q1_xm", "sens"), ("P1", "U_A",
 EXPLORE_RUNS = (("M8", "U_Q1", "sens"),)
 FCOUNT_RUNS = ANSWER_RUNS + DESC_RUNS + EXPLORE_RUNS
 AGG_RUNS = (("P1", "U_Q1"),)          # the runs whose capacity is reported; aggTrades only for these (choice 15)
+UB_COUNT_RULES = ("F1", "F2")         # fill counts on real U-B: the spot rules (coding choice 13; prereg A1.7, A2.2)
 SOURCES = ("stinkbid_engine.py", "stinkbid_levels.py", "stinkbid_data.py")
 
 
@@ -462,6 +466,8 @@ def plan_cfg(plan: str, universe: str, ctx: Ctx, counts_only: bool = False, rule
     """The engine cfg of a plan (see the module docstring); prog decides the capacity mode (coding choice 15)."""
     sbe = _engine()
     if counts_only:
+        if rules is None and universe == "U_B" and not ctx.injected and not ctx.ub_f3:
+            rules = UB_COUNT_RULES                     # spot rules only on real U-B (coding choice 13; A1.7, A2.2)
         cfg = dict(counts_only=True, rules=tuple(rules or sbe.RULES_ALL))
     elif plan == "full":
         ex = dict(sbe.default_exits(sbe.DEFAULT_CFG["rules"]))
@@ -1042,6 +1048,10 @@ def fcount_text(C: pd.DataFrame, mode: str) -> str:
                              f"{_int0(a.get('episodes')):>3}")
             else:
                 lines.append(f"{p:9s} {u:8s} bids {0:>8,}  (no bid placed)")
+        ub = C[C["universe"] == "U_B"]
+        if len(ub) and not mode.startswith("injected"):
+            lines += ["", "U-B: fills counted under the spot rules " + ", ".join(sorted(set(ub["rule"].astype(str))))
+                      + " only; the index and perpetual rules were not computed on U-B (disk; prereg A1.7, A2.2)."]
     return "\n".join(lines) + "\n"
 
 

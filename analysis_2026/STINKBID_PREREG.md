@@ -715,6 +715,8 @@ first open over the predecessor's last close, within 2% of the announced ratio, 
   U-B membership uses each coin's own volume rank.
 - **Not swaps:** LUNA → LUNC is a halt followed by a relisting after a gap (§4.1's FTT rule). BZRX → OOKI (no Binance
   USDT pair for OOKI) and XZC → FIRO (no Binance notice found) stay delistings, as §4.1 requires for unverified ratios.
+  *Corrected by A2.1: the screen was not complete, BZRX → OOKI and XZC → FIRO are continuations, and LUNC inherits
+  LUNA classic's age and ranks.*
 
 **A1.2 The cash series (§4).** `regime_switch.rf_annual_pct()` follows FRED DTB3 (discount basis), and its source ends
 2025-12-19. `stinkbid_data.tbill_daily` continues the same series through 2026-11-17, in place of the function's flat
@@ -741,11 +743,13 @@ program-universe and U-Q1 member months and the 12 months after each, not for it
 history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
 - Bids live in member months (at most 90 days), and twins enter in member months.
 - The longest index-route reach is about 7 months: a 90-day bid life, plus B-POST's 30 days, plus a 90-day hold.
-- The engine stops with an error if any index-route fill's horizon touches a month it did not read.
+- The engine stops with an error if any index-route fill's horizon touches a month it did not read. *(A2.2: what the
+  guard covers, and the prefetch.)*
 
 **A1.7 Disk-bound shortfalls of §12's "every Binance number beside its F3 number".**
 - **U-B rows** (the H1/H2R U-B gate, D-H5's population, T1's U-B row) are computed on F1 only. F3 on U-B would read
-  about 36 GB of index history. The U-B gate compares like with like: §10.3's statistic is the F1 statistic.
+  about 36 GB of index history. The U-B gate compares like with like: §10.3's statistic is the F1 statistic. *(A2.2:
+  U-B fill counts use the spot rules.)*
 - **F3 versions are also not computed** for the flip grid, the ±30-day and pooled twins, the leave-out drift, T1,
   D-H5, D6's θ_k, D8's second part and X-ML. Each row says so.
 - **Delisting sensitivities:** twins are valued under the primary delisting rule only, so these rows report the
@@ -754,10 +758,11 @@ history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
 **A1.8 Readings of the frozen text, fixed now (each documented in its module's docstring).**
 - **PASS and NO EDGE together.** When both hold, the verdict is NO EDGE: the effect is surely above zero but surely
   below E, and E is the smallest effect worth acting on. §11's NO EDGE advice applies, and the report states both
-  facts (`pass_and_noedge`). For H2R this matches §11's table order, which lists NO EDGE first. The build had
-  coded the opposite precedence; no outcome existed when it was changed.
+  facts (`pass_and_noedge`). For H2R this matches §11's table order, which lists NO EDGE first *(remark withdrawn in
+  A2.3)*. The build had coded the opposite precedence; no outcome existed when it was changed.
 - **"Passes only at bot latency"** (§11): the rule-M H1 is not PASS, while the X-FLIP-bot version, entered into the
-  same Holm family with every gate recomputed on bot rows, is PASS.
+  same Holm family with every gate recomputed on bot rows, is PASS *(A2.3: its verdict under the same rule, bound
+  included)*.
 - **"A Binance-only result"** (§11): re-run on the F1 fills that F3 (s = 1%) also fills, the passing test is no longer
   significant at the Holm level at which it passed.
 - **"You could run it on Robinhood"** (§11) needs all three:
@@ -766,7 +771,8 @@ history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
   - the passing test's statistic is above zero for P1 run on U-C under F3;
   - H1 or H2R is PASS.
 - **Chart levels on the sheet** (§13) need H4 PASS and the method's Romano-Wolf adjusted p below H4's Holm level, or
-  D10's family. A Holm rejection whose gates fail is INCONCLUSIVE, and §11 then prints plain levels.
+  D10's family. A Holm rejection whose gates fail is INCONCLUSIVE, and §11 then prints plain levels. *(Corrected in
+  A2.3: NO EDGE when its bound is below E.)*
 - **H4's p_WCR** is the recentred Romano-Wolf max-t wild bootstrap with Webb weights on month-block score sums (S2's
   wording). The four methods share one month-block partition. Coin-weeks with a single stacked fill drop out under
   the fixed effect.
@@ -784,3 +790,92 @@ history would take about 11.3 GB more disk; this rule takes about 6.8 GB.
 - **The controls run again from scratch on the final code and universes**, with A1.5's replications. That run decides
   the gate and K3's rules. Its outputs replace `results_stinkbid/controls/`; the first run's summary is kept outside
   the repository.
+
+## Addendum 2 (2026-11-19): corrections after the review of Addendum 1, before any outcome
+
+**Status.** Addendum 1's code changes were reviewed adversarially before the controls ran (four reviewers; each
+finding checked by two verifiers). The rebrand screen of A1.1 was then redone systematically: three independent
+finders (price data, Binance's announcements, listing-age inheritance), a second check of the candidates that need a
+judgment, and a completeness critic. Still no post-fill price, return, P&L or strategy outcome has been computed on
+real data. The data stage had run once on Addendum 1's registry (levels, bids, fill windows and prefetch; no outcome).
+Because the registry and the universes change, it runs again before the controls (logged in
+`stages/deviations.jsonl`), and the controls run from scratch on the final code (A1.9).
+
+**A2.1 Rebrands and swaps (corrects and completes A1.1).**
+- **A1.1's screen was not complete, and two of its reasons were false.** OOKI/USDT traded on Binance from 2021-12-24
+  (A1.1 said there was no pair), and Binance did announce the change of XZC's ticker to FIRO (A1.1 said no notice was
+  found).
+- **The rule, for every case found after the freeze:**
+  - A continuation needs Binance to have converted the holders' balances into the successor at a stated ratio:
+    Binance's notice, Binance.US's, or a report quoting Binance's. A fork that credits a new coin while holders keep
+    the old one is not a continuation (BCC → BCHABC + BCHSV, 2018-11).
+  - **Positions continue** at the ratio only when the successor's USDT pair opened within 30 days of the
+    predecessor's last USDT day and the data ratio (last close / the successor's first open) is within ±5% of the
+    stated ratio, §4.1's redenomination band. Otherwise the end is a delisting (§4.1: relistings after a gap and
+    unverified ratios are delistings).
+  - **The successor inherits** listing age and ranks whenever Binance converted the balances (§4.1, "successors
+    inherit"). A merger into a coin that already traded passes nothing to that coin's earlier months: that would date
+    the merger before it happened.
+  - The end of a coin's USDT pair is an end even when another quote pair kept trading (§4.1's FTT rule).
+- **Added continuations** (positions continue):
+
+| predecessor → successor | successor units per unit | successor's USDT pair opened | data ratio |
+|---|---|---|---|
+| XZC → FIRO | 1 | 2021-01-29 | 1.000 |
+| BZRX → OOKI | 10 | 2021-12-24 | 10.000 |
+| NANO → XNO | 1 | 2022-01-28 | 1.000 |
+| EPS → EPX | 88 | 2022-05-23 | 85.27 (−3.1%) |
+| COCOS → COMBO | 1 | 2023-06-02 | 1.014 |
+| FRONT → SLF | 1 | 2024-08-30 | 1.000 |
+| STPT → AWE | 1 | 2025-05-21 | 1.000 |
+| LOKA → A2Z | 20 | 2025-07-30 | 20.000 |
+| OMNI → NOM | 75 | 2025-10-01 | 74.99 |
+
+- **Inheritance only** (the end stays a delisting; `stinkbid_data.INHERIT`):
+  - VEN → VET (1 VEN = 100 VET, 2018-07): before the study, so only age and ranks matter.
+  - LUNA classic → LUNC: Binance renamed it on 2022-05-26, after halting it on 2022-05-13. LUNC/USDT opened only on
+    2022-09-09, so the halt stays a delisting, as A1.1 said. LUNC is the same asset, and it keeps its age and ranks,
+    as FTT does after its gap.
+  - GXS → REI (1 GXS = 10 REI): the data ratio is +19% after a 9-day halt.
+- **Not linked:**
+  - STG → ZRO (2026-10): a merger into a coin that had traded since 2024-06, and the same-day ratio is −5.4%.
+  - GTO → GFT: GTO's USDT pair ended 2022-11-28, before the swap.
+  - BCC → BCHABC and BCHSV: a fork.
+  - Other renames the screen found had a predecessor that was never in U-B, and linking them changes no universe:
+    KEEP and NU → T, RGT → TRIBE, ANY → MULTI, RAMP → LEVER, POLY → POLYX, TVK → VANRY, PLA → PDA, ORN → LUMIA,
+    ERN → EPIC, VELODROME → AERO, and older tickers that never had a USDT pair. Stablecoin renames (UST → USTC,
+    PAX → USDP, DAI → USDS) concern excluded coins.
+- **The frozen list stands as written.** Its data ratios are reported beside it: BTT → BTTC 1,424 against 1,000,
+  after an 8-day halt; AGIX and OCEAN → FET +9% on FET's same-day close, about −1% on FET's open (AGIX stopped early
+  that day). The merger passes nothing to FET's earlier months: FET's own listing and ranks are older and complete.
+- **Effect on the universes:**
+  - U-Q1 gains 23 coin-months, 2,559 → 2,582: LUNC 2022-11..2024-03 (17) and VET 2020-01..06 (6). U-Q1-xm gains the
+    same 23 (2,395 → 2,418).
+  - U-Q1-12 gains LUNC 2022-11..2023-04 (3,303 → 3,309).
+  - U-B, U-A and U-C are unchanged.
+  - U-B fills whose positions reach an added end (COCOS, FRONT, NANO, EPS, XZC, BZRX, OMNI) now continue instead of
+    taking the delisting haircut.
+
+**A2.2 Index months and fill counts (corrects A1.6 and A1.7).**
+- The engine reads each coin of a position's chain only for the requested months inside that coin's own spot
+  segments. Before, it also asked for a successor's index before its listing and a coin's index after its last spot
+  day, and downloaded those months during the outcome stages (about 0.1 GB, all discarded). No number changes.
+- The data stage prefetches exactly the months the fill and outcome stages read. That includes a successor's index in
+  the swap month, and months before a contract's first index day, which are recorded as empty. The fill and outcome
+  stages refuse to run while a planned month is missing, so they never download.
+- A1.6's guard checks each index-route fill's own exit horizon. Twins, D12, B-ALERT and B-POST are not checked one by
+  one: they reach at most about 8 months after a member month, inside the 12-month margin.
+- Fill counts on U-B use the spot rules F1 and F2 only. The index and perpetual rules would read the candidate months
+  of about 480 coins, which the disk does not hold (A1.7's reason for U-B's F1-only rows).
+
+**A2.3 Verdict wording (corrects A1.8).**
+- Within a test, §11's rows are alternatives chosen by the verdict, not an order of precedence. For all three tests
+  NO EDGE takes precedence over PASS (A1.8's first bullet). A1.8's remark about the table order for H2R is withdrawn.
+- "Passes only at bot latency" needs the X-FLIP-bot version's verdict, under the same rule, to be PASS: a Holm-adjusted
+  p below 0.05, every bot gate, and a 98.33% upper bound not below E. A bot version whose bound is below E is NO EDGE.
+  The build had decided this on Holm and the gates alone; no outcome existed when it was changed.
+- Chart levels: a Holm rejection whose gates fail is not PASS. It is NO EDGE if its bound is below E, else
+  INCONCLUSIVE, and §11 then prints plain levels.
+
+**A2.4 Runs.** The data stage runs again on the final registry (`--rerun`, logged as a deviation). The controls then
+run from scratch (A1.9), then the fill counts.

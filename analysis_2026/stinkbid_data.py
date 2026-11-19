@@ -93,7 +93,13 @@ Rules implemented (prereg section in brackets):
   Prereg Addendum 1 (A1.1, before any outcome) reads the rule as general and adds the confirmed rebrands found by
   screening every U-B coin whose history ends: BCHABC->BCH, ERD->EGLD, LEND->AAVE, STORM->STMX, STRAT->STRAX,
   NPXS->PUNDIX, MFT->HIFI, MC->BEAMX, TOMO->VIC, GAL->G, KLAY->KAIA, DAR->D, BNX->FORM, FXS->FRAX, OM->MANTRA,
-  TON->GRAM.
+  TON->GRAM. Prereg Addendum 2 (A2.1, before any outcome) found A1.1's screen incomplete and states the rule: Binance
+  converted the holders' balances at a stated ratio (its notice, Binance.US's, or a report quoting it); positions
+  continue when the successor's USDT pair opened within 30 days and the data ratio is within +-5% of the stated
+  ratio (SWAPS adds XZC->FIRO, BZRX->OOKI, NANO->XNO, EPS->EPX, COCOS->COMBO, FRONT->SLF, STPT->AWE, LOKA->A2Z,
+  OMNI->NOM); otherwise the successor inherits listing age and ranks only and the end stays a delisting (INHERIT:
+  VEN->VET, LUNA->LUNC, GXS->REI). Forks (BCC -> BCHABC + BCHSV) pass nothing. A merger into a coin that already
+  traded passes nothing to its earlier months (checked: AGIX/OCEAN->FET; STG->ZRO is not linked).
 - Delisting value (§4.1, V9): VWAP (quote volume / volume) of the last full trading day (a UTC day with trading,
   i.e. a bar with trades > 0, in its first and last hour) x (1 - 0.30); the last trade x 0.70, 0% and 100% haircuts
   are sensitivities. A relisting after a gap (FTT) starts a new segment and the gap is a delisting.
@@ -116,12 +122,16 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
  4. A boundary with a >25% open jump but no missing day (trading continued; only SCR 2024-10-22, before SCR could be
     in U-B) cancels bids and restarts sigma windows; an open position continues (join at 1), because trading never
     stopped and no §4.1 valuation rule applies to it.
- 5. Rebrands and swaps: the frozen list plus the confirmed ones of prereg Addendum 1 (A1.1; SWAPS) continue; any
-    other rename gets no inheritance (its old ticker's end is a delisting and the new ticker's age starts at its own
-    first listing). LUNA->LUNC (2022-09) is not a swap: Binance halted LUNA classic on 2022-05-13 and relisted it as
-    LUNC months later, a relisting after a gap (§4.1, as FTT). QUICK's 1:1000 redenomination (2023-07-21) is joined by the general rule (inside the band,
+ 5. Rebrands and swaps: the frozen list plus the confirmed ones of prereg Addenda 1 and 2 (A1.1, A2.1; SWAPS)
+    continue; INHERIT links pass listing age and ranks only. Any other rename gets no inheritance (its old ticker's end
+    is a delisting and the new ticker's age starts at its own first listing); renames found by the A2.1 screen whose
+    predecessor was never in U-B and whose successor's universes would not change are not registered. LUNA->LUNC:
+    Binance renamed LUNA classic to LUNC on 2022-05-26 after halting it on 2022-05-13, and LUNC/USDT opened only on
+    2022-09-09, so the halt is a delisting (§4.1, as FTT) while LUNC inherits LUNA classic's age and ranks (INHERIT).
+    QUICK's 1:1000 redenomination (2023-07-21) is joined by the general rule (inside the band,
     confirmed); QUICK was never in U-B. VIDT's confirmed 1:10 swap (2022-11-09) is 7.0% outside the band, so the
     literal rule makes it a delisting; VIDT's only U-B month (2023-02) is after it, so no bid or position is affected.
+    An end of a coin's USDT pair is an end even when another quote pair kept trading (§4.1's FTT rule).
  6. Stablecoin backstop: SD (ddof 1) of daily log close-to-close returns over consecutive traded days inside one
     segment whose day lies in the 90 days before M; needs >= 2 returns; applied before ranking (the excluded coin
     does not take a rank).
@@ -273,6 +283,45 @@ SWAPS = {
                           "quoted: 1 OM = 4 MANTRA, MANTRA trading 2026-03-04); data ratio 3.999"),
     "TON": ("GRAM", 1.0, "reports of Binance's notice (TON -> GRAM 1:1, TON pairs removed 2026-06-30, GRAM trading "
                          "2026-07-02 08:00 UTC); data ratio 1.000"),
+    # Prereg Addendum 2 (A2.1), ruled before any outcome: A1.1's screen was not complete. A systematic re-screen of
+    # every end of a U-B coin's USDT history (price data, Binance's announcements, listing-age inheritance; each
+    # candidate verified) found these. Each passes A2.1: Binance converted the balances at the stated ratio, the
+    # successor's USDT pair opened within 30 days, and the data ratio is within +-5% of the stated ratio.
+    "XZC": ("FIRO", 1.0, BA + "binance-will-update-the-ticker-of-xzc-to-firo-4a06d6ab6abb4f08b12bb93d6fec30ec (ticker "
+                         "XZC -> FIRO 1:1, FIRO trading 2021-01-29; data ratio 1.000)"),
+    "BZRX": ("OOKI", 10.0, "Binance notice of 2021-12-16, 'Binance Will Support the bZx Protocol Token (BZRX) Token Swap "
+                           "& Redenomination Plan to OokiDAO Token (OOKI)', as quoted (1 BZRX = 10 OOKI, OOKI/USDT "
+                           "2021-12-24); https://ooki.gitbook.io/ooki/tokenomics/token-migration; data ratio 10.000"),
+    "NANO": ("XNO", 1.0, BA + "binance-will-update-the-ticker-of-nano-to-xno-3dc8f6de281f4781a246a1658a21cb80 (ticker "
+                         "NANO -> XNO 1:1, XNO trading 2022-01-28; Binance.US the same; data ratio 1.000)"),
+    "EPS": ("EPX", 88.0, BA + "binance-will-support-the-ellipsis-eps-token-migration-redenomination-and-ticker-change-"
+                         "to-epx-cf9526489aa041508f4cd57612f34119 (1 EPS = 88 EPX, EPS pairs removed 2022-05-09, EPX "
+                         "trading 2022-05-23; data ratio 85.27, -3.1%)"),
+    "COCOS": ("COMBO", 1.0, BA + "binance-will-support-the-cocos-bcx-cocos-token-swap-rebranding-plan-to-combo-combo-"
+                            "45852dc155b641bc9e1c23bc41d8ded6 (1 COCOS = 1 COMBO, COMBO trading 2023-06-02; data ratio "
+                            "1.014)"),
+    "FRONT": ("SLF", 1.0, BA + "binance-will-support-the-frontier-front-token-swap-and-rebranding-to-self-chain-slf-"
+                          "3ab5488a00e04d4fb338c77ea28326a8 (1 FRONT = 1 SLF, SLF trading 2024-08-30; data ratio 1.000)"),
+    "STPT": ("AWE", 1.0, "https://www.binance.com/en-AE/support/announcement/detail/ad0f6c6b7d6640eea285538c96e2cd42 "
+                         "(completed: 1 STPT = 1 AWE, AWE trading 2025-05-21; data ratio 1.000)"),
+    "LOKA": ("A2Z", 20.0, "https://support.binance.us/en/articles/12011555 (Binance.US, 1 LOKA = 20 A2Z) and reports of "
+                          "Binance's completion, A2Z trading 2025-07-30; data ratio 20.000"),
+    "OMNI": ("NOM", 75.0, "https://www.binance.com/en-AE/support/announcement/detail/5838bf69f36b4838b5c5fdebc0969b95 "
+                          "(completed: 1 OMNI = 75 NOM, NOM trading 2025-10-01; data ratio 74.99)"),
+}
+# Inheritance only (prereg Addendum 2, A2.1): Binance converted the predecessor into a successor that first traded at
+# the conversion, so the successor inherits the predecessor's listing age and monthly ranks (§4.1, "successors
+# inherit"), but a position open at the end does not continue: the end stays a delisting (or a gap) because the
+# successor's USDT pair opened more than 30 days later (§4.1's gap rule), or the data ratio is outside +-5% of the
+# stated ratio (§4.1: unverified ratios are delistings), or the end is before the study (only age and ranks matter).
+INHERIT = {
+    "VEN": ("VET", 100.0, BA + "information-regarding-the-upcoming-ven-vet-mainnet-swap-360007439672 (snapshot "
+                         "2018-07-23, 1 VEN = 100 VET, VET trading 2018-07-25; before the study: age and ranks only)"),
+    "LUNA": ("LUNC", 1.0, BA + "c52fa3c686be4b2b9d5df50de15847ec ('Binance Will Support the Terra Network Airdrop', "
+                          "2022-05-26: the code of LUNA (old token) changes to LUNC; LUNC/USDT opened 2022-09-09, 119 "
+                          "days after LUNA/USDT halted on 2022-05-13, so the halt stays a delisting)"),
+    "GXS": ("REI", 10.0, BA + "bdfb52830f2f4bfcba496f3f92876b5c (1 GXS = 10 REI, GXS pairs removed 2022-04-25, REI/USDT "
+                         "2022-05-04; data ratio 11.90, +19% after the 9-day halt: outside +-5%, a delisting)"),
 }
 # Ticker reuse: symbol -> [(coin, first day)]: the same Binance pair holds different assets.
 REUSE = {"LUNAUSDT": [("LUNA", None), ("LUNA2", "2022-05-31")]}
@@ -369,11 +418,13 @@ def sym_coins(sym: str) -> list[str]:
 
 
 def predecessors(coin: str) -> list[str]:
-    """Direct and indirect predecessors under the frozen swap list."""
+    """Direct and indirect predecessors whose listing age and ranks the coin inherits (§4.1): SWAPS (positions
+    continue) and INHERIT (age and ranks only; prereg Addendum 2, A2.1)."""
+    links = [(p, s) for p, (s, _, _) in SWAPS.items()] + [(p, s) for p, (s, _, _) in INHERIT.items()]
     out, todo = [], [coin]
     while todo:
         c = todo.pop()
-        for p, (s, _, _) in SWAPS.items():
+        for p, s in links:
             if s == c and p not in out:
                 out.append(p); todo.append(p)
     return out
@@ -396,7 +447,11 @@ def lineage(coin: str) -> str:
 
 
 def swaps() -> pd.DataFrame:
-    return pd.DataFrame([dict(predecessor=p, successor=s, units=u, source=src) for p, (s, u, src) in SWAPS.items()])
+    """Every registered continuation: positions = 'continue' (SWAPS) or 'delisting' (INHERIT: age and ranks only)."""
+    return pd.DataFrame([dict(predecessor=p, successor=s, units=u, positions="continue", source=src)
+                         for p, (s, u, src) in SWAPS.items()] +
+                        [dict(predecessor=p, successor=s, units=u, positions="delisting", source=src)
+                         for p, (s, u, src) in INHERIT.items()])
 
 
 def redenominations() -> pd.DataFrame:
@@ -453,6 +508,11 @@ def first_listing() -> dict[str, str]:
     """coin -> first listing month across USDT, BTC, BNB, ETH, BUSD (the earliest monthly 1d file; the coin's own
     first daily bar where no monthly file exists yet). Reused tickers restart at the reuse month; listed successors
     inherit the earliest month of their predecessors (§4.1, V12)."""
+    return _inherit_listing(_own_listing())
+
+
+def _own_listing() -> dict[str, str]:
+    """first_listing before inheritance: each ticker's own first month (reused tickers handled)."""
     q = ages()
     q = q[q.first_month != ""]
     first = q.groupby("base").first_month.min().to_dict()
@@ -467,7 +527,10 @@ def first_listing() -> dict[str, str]:
     for c, m in own.items():
         if c not in first or m < first[c]:
             first[c] = min(first.get(c, m), m)
-    return _inherit_listing(first)
+    for sym, parts in REUSE.items():
+        for c, start in parts[1:]:
+            first[c] = start[:7]                                # the new asset's age restarts at the reuse month
+    return first
 
 
 def _inherit_listing(first: dict) -> dict:
@@ -2177,7 +2240,8 @@ def _t_joins():
         return k[KCOLS + ["seg"]]
     t = _segments_from(two("COCOS", 1000.0), "COCOS")
     assert t.kind.iloc[0] == "redenomination" and bool(t["continues"].iloc[0]) and abs(t.units.iloc[0] - 1e-3) < 1e-15
-    assert abs(t.band_dev.iloc[0]) < 1e-9 and t.kind.iloc[1] == "delisting"
+    # the synthetic second segment ends before END: COCOS's real end is a swap to COMBO (prereg A2.1)
+    assert abs(t.band_dev.iloc[0]) < 1e-9 and t.kind.iloc[1] == ("swap" if "COCOS" in SWAPS else "delisting")
     t = _segments_from(two("COCOS", 1100.0), "COCOS")
     assert t.kind.iloc[0] == "redenomination_outside_band" and not bool(t["continues"].iloc[0])
     t = _segments_from(two("COCOS", 1040.0), "COCOS")
@@ -2709,6 +2773,56 @@ def _t_real(lines):
                  f"code on all, last trade time at minute resolution on all (minute :59 for "
                  f"{int((lt.dt.minute == 59).sum())}); daily-only (second-to-last-day fallback): "
                  f"{', '.join(c for c, _ in now.index[daily]) or 'none'}; ref/segments.csv current")
+    _t_registry(lines)
+
+
+FROZEN_SWAPS = ("BTT", "AGIX", "OCEAN", "RNDR", "MATIC", "FTM", "LIT", "EOS", "MKR")   # §4.1's list, as written
+
+
+def _t_registry(lines):
+    """Registry rules of prereg Addendum 2, A2.1, on real data (counts and ratios at the ends only):
+    - every swap added after the freeze whose end is in the study period continues inside +-5% of its ratio (the
+      frozen list stands as written; its data ratios are reported beside it);
+    - no inheritance reaches back before a conversion: when a successor already had its own ranks while its
+      predecessor still traded (a merger into an existing coin), linking them changes neither its listing month nor
+      any month of its rank history before the predecessor's last ranked month;
+    - INHERIT ends are not continued: segments() keeps them as delistings or gaps."""
+    sg = pd.read_csv(OUT / "ref" / "segments.csv")
+    last = sg.sort_values("seg").groupby("coin").tail(1).set_index("coin")
+    added = [p for p in SWAPS if p not in FROZEN_SWAPS]
+    rows, bad = [], []
+    for p in added:
+        if p not in last.index or str(last.at[p, "last_day"]) < UNIV_FIRST + "-01":
+            continue
+        r = last.loc[p]
+        rows.append(f"{p}->{r.successor} {float(r.band_dev):+.1%}")
+        if r.kind != "swap" or not abs(float(r.band_dev)) <= BAND:
+            bad.append(p)
+    assert not bad, f"swaps added after the freeze outside +-{BAND:.0%} or not continued: {bad}"
+    fz = [f"{p}->{last.at[p, 'successor']} {float(last.at[p, 'band_dev']):+.1%}" for p in FROZEN_SWAPS
+          if p in last.index and last.at[p, "kind"] == "swap"]
+    for p in INHERIT:
+        if p in last.index:
+            assert last.at[p, "kind"] in ("delisting", "gap") and not bool(last.at[p, "continues"]), p
+    rk = ranks()
+    rk = rk[rk["rank"].notna()]
+    ranked = rk.groupby("coin").month.apply(set).to_dict()
+    own, fl = _own_listing(), first_listing()
+    links = [(p, s) for p, (s, _, _) in SWAPS.items()] + [(p, s) for p, (s, _, _) in INHERIT.items()]
+    mergers = []
+    for p, s in links:
+        both = ranked.get(p, set()) & ranked.get(s, set())
+        if len(both) < 2:
+            continue                                    # the successor started at the conversion: nothing to check
+        mergers.append(f"{p}->{s}")
+        pend = max(ranked[p])
+        assert fl.get(s) == own.get(s), (p, s, fl.get(s), own.get(s))          # no earlier listing month
+        filled = [m for m in ranked[p] if m <= pend and m not in ranked.get(s, set())]
+        assert not filled, (p, s, filled[:6])                                    # no inherited rank before it
+    lines.append(f"registry (A2.1): {len(added)} swaps added after the freeze, ends in the study period inside "
+                 f"+-{BAND:.0%}: {', '.join(rows)}; frozen swaps as written: {', '.join(fz)}; INHERIT ends kept as "
+                 f"delistings: {', '.join(p for p in INHERIT if p in last.index) or 'none in segments'}; mergers into "
+                 f"an existing coin with no backdated history: {', '.join(mergers) or 'none'}")
 
 
 def selftest():
