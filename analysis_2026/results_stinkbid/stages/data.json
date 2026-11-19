@@ -1,0 +1,36 @@
+{
+ "stage": "data",
+ "complete": true,
+ "mode": "real",
+ "started": "2026-11-19 00:53:28 UTC",
+ "finished": "2026-11-19 02:23:00 UTC",
+ "seconds": 5372.5,
+ "outputs": [
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/data/coverage.json",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/data/candidate_days.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/data/prefetch_index.csv",
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/data/prefetch_perp.csv"
+ ],
+ "coverage": {
+  "mode": "real",
+  "steps": [
+   "usd",
+   "tbill",
+   "index1d"
+  ],
+  "m1_coins": 154,
+  "bids": 910881,
+  "candidate_days": 45048,
+  "index_months": 3457,
+  "perp_months": 3457,
+  "hype_index_months": 19,
+  "index_history_months": 5350,
+  "index_history_estimate_gb": 9.4,
+  "free_disk_gb_before": 14.8,
+  "agg_coin_days_cached": 2414,
+  "ub_f3": false,
+  "aggtrades_runs": [
+   "P1/U_Q1"
+  ]
+ }
+}
