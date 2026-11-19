@@ -1,19 +1,22 @@
 {
  "mode": "real",
  "steps": [
+  "metrics (4 coins: AAVE, EGLD, GRAM, LUNC)",
+  "mark (2 coins: GRAM, LUNC)",
+  "perp1h (2 coins: GRAM, LUNC)",
   "usd",
   "tbill",
   "index1d"
  ],
  "m1_coins": 154,
- "bids": 921886,
- "candidate_days": 45514,
+ "bids": 922185,
+ "candidate_days": 45517,
  "index_months": 3480,
  "perp_months": 3480,
  "hype_index_months": 19,
  "index_history_months": 5619,
  "index_history_estimate_gb": 9.9,
- "free_disk_gb_before": 4.4,
+ "free_disk_gb_before": 2.7,
  "agg_coin_days_cached": 2453,
  "ub_f3": false,
  "aggtrades_runs": [

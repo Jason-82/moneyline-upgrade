@@ -11,3 +11,5 @@
 {"time": "2026-11-19 08:43:46 UTC", "mode": "real", "event": "complete", "stage": "fcount"}
 {"time": "2026-11-19 09:34:31 UTC", "mode": "real", "event": "moved", "what": "controls outputs", "to": "/home/user/moneyline-upgrade/data/stinkbid/runs/controls_stale_20261119T093431"}
 {"time": "2026-11-19 09:34:31 UTC", "mode": "real", "event": "start", "stage": "data"}
+{"time": "2026-11-19 10:06:08 UTC", "mode": "real", "event": "complete", "stage": "data"}
+{"time": "2026-11-19 10:06:10 UTC", "mode": "real", "event": "start", "stage": "controls"}
