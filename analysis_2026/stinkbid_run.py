@@ -16,7 +16,8 @@ edited; the controls (stinkbid_controls) and the sheet (stinkbid_sheet) are othe
     python3 -m analysis_2026.stinkbid_run report                      # 5. Holm, verdicts, the answer (§11)
     python3 -m analysis_2026.stinkbid_run desc      [--jobs 4]        # 6. descriptive estimands, sensitivity rows
     python3 -m analysis_2026.stinkbid_run explore   [--jobs 4]        # 7. exploratory splits (BH within tables)
-    python3 -m analysis_2026.stinkbid_run sheet     -- <sheet args>   # 8. the level sheet (stinkbid_sheet)
+    python3 -m analysis_2026.stinkbid_run sheet     -- <sheet args>   # 8. the level sheet (stinkbid_sheet); on real
+                                                                      #    data with --refresh or --price COIN=x
     python3 -m analysis_2026.stinkbid_run selftest                    # gating, answer map, synthetic end to end
   options: --out DIR      results (default analysis_2026/results_stinkbid; small tables only)
            --cache DIR    engine run cache (default data/stinkbid/runs; gitignored, large)
@@ -194,6 +195,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -222,7 +224,8 @@ EXPLORE_RUNS = (("M8", "U_Q1", "sens"),)
 FCOUNT_RUNS = ANSWER_RUNS + DESC_RUNS + EXPLORE_RUNS
 AGG_RUNS = (("P1", "U_Q1"),)          # the runs whose capacity is reported; aggTrades only for these (choice 15)
 UB_COUNT_RULES = ("F1", "F2")         # fill counts on real U-B: the spot rules (coding choice 13; prereg A1.7, A2.2)
-SOURCES = ("stinkbid_engine.py", "stinkbid_levels.py", "stinkbid_data.py")
+SOURCES = ("stinkbid_engine.py", "stinkbid_levels.py", "stinkbid_data.py", "stinkbid_stats.py", "moneyline_ref.py",
+           "fetch_stinkbid_data.py", "fetch_bb_data.py")   # A2.6: every module a run's results depend on
 
 
 # ============================================================================ context, markers, logs
@@ -414,6 +417,14 @@ def controls_status(ctx: Ctx) -> dict:
     if miss:
         out["why"] = f"K3 calibration has no result for {miss} (§10.5: K3 reports H1, H2R and H4)"
         return out
+    if not ctx.injected:
+        from analysis_2026 import stinkbid_controls as sbc
+        ck, cur = S.get("calendar_key"), calendar_key(ctx)
+        src_now, src_then = sbc.src_hash(), (S.get("code") or {}).get("src_hash")
+        if ck != cur["key"] or src_then != src_now:
+            out["why"] = (f"{f}: the controls ran on other data or code (calendar key {ck}, now {cur['key']}; controls "
+                          f"code {src_then}, now {src_now}): {RERUN_CONTROLS} (A2.6)")
+            return out
     rules = _summary_rules(S)
     clash = [t for t in FAMILY if t in rules and (rules[t] not in K3_RULES or
                                                   (rules[t] == K3_RULES[1]) != C["tests"][t]["needs_calibration"])]
@@ -543,9 +554,29 @@ def _cfg_key(cfg: dict) -> dict:
                 exits={r: [e.name for e in v] for r, v in sorted(ex.items())} if isinstance(ex, dict) else None)
 
 
+def calendar_key(ctx: Ctx) -> dict | None:
+    """The controls' calendar key on real data (stinkbid_controls.calendar_key: the calendars' code, configuration and
+    the stamps (path, size, modification time) of every data input under data/stinkbid/), computed once per stage
+    (one Ctx); None on an injected world."""
+    if ctx.injected:
+        return None
+    if getattr(ctx, "_calkey", None) is None:
+        from analysis_2026 import stinkbid_controls as sbc
+        ctx._calkey = sbc.calendar_key()
+    return ctx._calkey
+
+
+def _data_stamp(ctx: Ctx) -> str:
+    """The stamp of the data inputs a run reads (calendar_key's data part), or the world's label when injected. Part
+    of every run's signature: a data change (the M7 inputs fetched by A2.6, a data-stage rerun) makes every cached
+    run stale instead of reloading results built on the old data (A2.6)."""
+    k = calendar_key(ctx)
+    return k["data"] if k else ctx.mode
+
+
 def _sig(prog, univ, plan, counts_only, ctx: Ctx, rules=None, cfg: dict | None = None) -> str:
     return json.dumps(dict(program=prog, universe=univ, plan=plan, counts_only=counts_only, mode=ctx.mode,
-                           rules=list(rules) if rules else None, src=_src_hash(),
+                           rules=list(rules) if rules else None, src=_src_hash(), data=_data_stamp(ctx),
                            ub_f3=bool(ctx.ub_f3 and plan == "gate"), cfg=_cfg_key(cfg) if cfg else None),
                       sort_keys=True)
 
@@ -582,10 +613,14 @@ def save_run(path: Path, res: dict, sig: str):
     _jdump(path / "done.json", dict(sig=sig, saved=_now()))
 
 
-def load_run(path: Path) -> dict:
+def load_run(path: Path, skip=()) -> dict:
+    """A cached run (save_run). skip: tables left out (an empty frame stands in), e.g. the capacity curves, which only
+    the D7 accounts of P1 on U-Q1 read (memory: prereg Addendum 2, A2.6)."""
     path = Path(path)
     res = {}
     for f in path.glob("*.parquet"):
+        if f.stem in skip:
+            continue
         res[f.stem] = pd.read_parquet(f)
     m = _jload(path / "meta.json", {})
     res.update(program=m.get("program"), universe=m.get("universe"), meta=m.get("meta", {}))
@@ -612,8 +647,39 @@ def _members(ctx: Ctx) -> dict:
     return ctx._members_cache
 
 
+def _lineage_map(ctx: Ctx) -> dict:
+    """{coin: lineage} from the universes table (a renamed coin and its successors are one asset: RNDR -> RENDER,
+    MATIC -> POL, MKR -> SKY); {} on a world without a lineage column (each coin its own lineage)."""
+    if not hasattr(ctx, "_lineage_cache"):
+        u = _engine().World(ctx.data).universe()
+        lm = {}
+        if "lineage" in u.columns:
+            ms = u["month"].astype(str).str[:7]
+            first, last = ms.groupby(u["coin"].astype(str)).min(), ms.groupby(u["coin"].astype(str)).max()
+            for c, lin in set(zip(u["coin"].astype(str), u["lineage"].astype(str))):
+                # a rename (the successor appears only after the coin's last month) is one asset; a merger into a coin
+                # that already traded (AGIX, OCEAN -> FET) is not: it passes nothing to that coin's past (A2.1)
+                lm[c] = lin if (c == lin or (lin in first.index and first[lin] > last[c])) else c
+        ctx._lineage_cache = lm
+    return ctx._lineage_cache
+
+
+def add_lineage(ctx: Ctx, res: dict) -> dict:
+    """A lineage column on bids and fills (the coin itself where the universes name none), for the per-coin rows of
+    the sheet, D-H5's coin clusters and the user-coins table (prereg Addendum 2, A2.6)."""
+    lm = _lineage_map(ctx)
+    for k in ("bids", "fills"):
+        X = res.get(k)
+        if isinstance(X, pd.DataFrame) and len(X) and "coin" in X:
+            c = X["coin"].astype(str)
+            X["lineage"] = c.map(lm).fillna(c) if lm else c
+    return res
+
+
 def add_membership(ctx: Ctx, res: dict) -> dict:
-    """Flags in_<universe> on the fills (placement month), for D-H5 (U-Q1-12), D3/D4 (U-C) and the rows."""
+    """Flags in_<universe> on the fills (placement month), for D-H5 (U-Q1-12), D3/D4 (U-C) and the rows; and the
+    lineage of each bid's and fill's coin (add_lineage)."""
+    add_lineage(ctx, res)
     F = res.get("fills")
     if F is None or not len(F) or "month" not in F:
         return res
@@ -652,8 +718,10 @@ def _run_retrying(ctx: Ctx, run_program, prog: str, univ: str, cfg: dict) -> dic
 
 
 def run_engine(ctx: Ctx, prog: str, univ: str, plan: str, counts_only: bool = False, rules=None,
-               reuse: bool = True) -> dict | None:
-    """Run (or reload from the cache) one engine program; None when the universe is not in the universes table."""
+               reuse: bool = True, load: bool = True) -> dict | None:
+    """Run (or reload from the cache) one engine program; None when the universe is not in the universes table.
+    load=False: make sure the run is computed and cached, and return None without holding it in memory. A reloaded
+    run leaves out the capacity curves except for AGG_RUNS (P1 on U-Q1, whose D7 accounts read them)."""
     if not universe_available(ctx, univ):
         ctx.log(f"  {prog}/{univ}: universe column {univ} not available; skipped")
         return None
@@ -661,9 +729,12 @@ def run_engine(ctx: Ctx, prog: str, univ: str, plan: str, counts_only: bool = Fa
     cfg = plan_cfg(plan, univ, ctx, counts_only, rules, prog=prog)
     sig = _sig(prog, univ, plan, counts_only, ctx, rules, cfg)
     done = _jload(path / "done.json")
+    skip = () if (prog, univ) in AGG_RUNS else ("cap_curve",)
     if reuse and isinstance(done, dict) and done.get("sig") == sig:
+        if not load:
+            return None
         ctx.log(f"  {prog}/{univ} ({'counts' if counts_only else plan}): reloaded from {path}")
-        return load_run(path)
+        return load_run(path, skip=skip)
     sbe = _engine()
     t = time.time()
     ctx.log(f"  {prog}/{univ} ({'counts only' if counts_only else plan}) ...")
@@ -671,6 +742,10 @@ def run_engine(ctx: Ctx, prog: str, univ: str, plan: str, counts_only: bool = Fa
     add_membership(ctx, res)
     save_run(path, res, sig)
     ctx.log(f"  {prog}/{univ}: done in {time.time() - t:.0f}s -> {path}")
+    if not load:
+        return None
+    for k in skip:
+        res[k] = pd.DataFrame()
     return res
 
 
@@ -680,6 +755,12 @@ def outcome_runs_exist(ctx: Ctx) -> list:
 
 
 def runs_for(ctx: Ctx, plans) -> dict:
+    """Every run of the plans. Runs not in the cache are computed first, one at a time, and dropped once saved; then
+    all are loaded. So the main process never holds loaded runs while engine workers run: the out-of-memory killer
+    of this machine's shared memory limit would otherwise pick the main process, which no retry can catch
+    (prereg Addendum 2, A2.6)."""
+    for prog, univ, plan in plans:
+        run_engine(ctx, prog, univ, plan, load=False)
     out = {}
     for prog, univ, plan in plans:
         out[f"{prog}/{univ}"] = run_engine(ctx, prog, univ, plan)
@@ -722,6 +803,16 @@ def _begin(ctx: Ctx, stage: str) -> float:
             ex = "; ".join(f"{k}: {v[:3]}" for k, v in mf.items() if v)
             raise StageRefused(f"{stage} refuses: {n} futures months the data stage planned are not cached ({ex} "
                                "...); run the data stage again (--rerun) so that no later stage downloads")
+        gap = m7_inputs_missing()
+        if any(gap.values()):
+            raise StageRefused(f"{stage} refuses: M7 inputs are missing for U-Q1 coin-days ("
+                               + "; ".join(f"{k}: {sorted(v)[:4]}" for k, v in gap.items() if v)
+                               + "); run the data stage again (--rerun), which fetches them (prereg Addendum 2, A2.6)")
+        cov = (read_marker(ctx, "data") or {}).get("coverage") or {}
+        if bool(ctx.ub_f3) != bool(cov.get("ub_f3", False)):
+            raise StageRefused(f"{stage} refuses: --ub-f3 is {bool(ctx.ub_f3)} but the data stage planned the futures "
+                               f"months with ub_f3 = {bool(cov.get('ub_f3', False))}; U-B's index and perpetual months "
+                               "would be downloaded inside the run (coding choice 13; A2.6)")
     i = STAGES.index(stage)
     later = [s for s in STAGES[i + 1:] if read_marker(ctx, s) is not None]
     this = read_marker(ctx, stage) is not None
@@ -732,9 +823,17 @@ def _begin(ctx: Ctx, stage: str) -> float:
                                "; pass --rerun (logged as a deviation, with --reason) to run it again")
         moved = invalidate(ctx, [stage] + later, ctx.reason)
         ctx.log(f"  --rerun: invalidated {moved} (logged in {ctx.out / 'stages' / 'deviations.jsonl'})")
-        if stage == "fcount" and outcome_runs_exist(ctx):
-            stamp = pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%S")
+        stamp = pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%S")
+        if "controls" in [stage] + later and (ctx.out / "controls").exists() and stage in ("data", "controls"):
+            # else stage_controls would only re-validate the old summary.json (A2.6); the old outputs stay in the
+            # run cache (and in git)
+            dst = ctx.cache / f"controls_stale_{stamp}"
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(ctx.out / "controls"), str(dst))
+            _append_log(ctx, "log.jsonl", dict(event="moved", what="controls outputs", to=str(dst)))
+        if "fcount" in [stage] + later and outcome_runs_exist(ctx):
             os.replace(ctx.cache / "outcomes", ctx.cache / f"outcomes_stale_{stamp}")
+            _append_log(ctx, "log.jsonl", dict(event="moved", what="outcome runs", to=f"outcomes_stale_{stamp}"))
     if stage == "fcount":
         ex = outcome_runs_exist(ctx)
         if ex:
@@ -755,10 +854,29 @@ def fcount_status(ctx: Ctx) -> dict:
     c = pd.read_csv(f)
     have = set(zip(c["program"], c["universe"]))
     need = [(p, u) for p, u, _ in FCOUNT_RUNS if universe_available(ctx, u)]
+    if not ctx.injected and _hype_world_available():
+        need.append(("P1", HYPE_UNIV))
     miss = [x for x in need if x not in have]
     if miss:
         return dict(ok=False, why=f"fill counts are missing for {miss}")
+    m = read_marker(ctx, "fcount") or {}
+    if m.get("data") and m.get("data") != _data_stamp(ctx):
+        return dict(ok=False, why=(f"the data changed after the fill counts (fcount ran on data {m.get('data')}, now "
+                                   f"{_data_stamp(ctx)}); run the data stage and fcount again (--rerun, logged) (A2.6)"))
+    if m.get("src") and m.get("src") != _src_hash():
+        return dict(ok=False, why=("the engine, levels or data code changed after the fill counts (fcount ran on "
+                                   f"source {m.get('src')}, now {_src_hash()}): the counts would not describe the "
+                                   "outcome runs; run fcount again (--rerun, logged) (A2.6)"))
     return dict(ok=True, why="")
+
+
+HYPE_UNIV = "HYPE_index"                        # counts.csv's universe label of HYPE's index-proxy run (A2.6)
+
+
+def _hype_world_available() -> bool:
+    from analysis_2026 import stinkbid_data as sbd
+    d = sbd.OUT / "fut1m" / "index" / "HYPE"
+    return d.exists() and any(d.glob("*.parquet"))
 
 
 # ============================================================================ 1. data
@@ -793,10 +911,18 @@ def stage_data(ctx: Ctx) -> dict:
     if miss:
         sbd.m1_bulk(miss, False, max(1, ctx.n_jobs))
         steps.append(f"m1 ({len(miss)} coins)")
-    for what, sub in (("metrics", "metrics"), ("mark", "mark1h"), ("perp1h", "perp1h")):
-        if not any((sbd.OUT / sub).glob("*.parquet")):
-            sbd.m7_bulk(what)
-            steps.append(what)
+    # M7's inputs for every U-Q1 coin-day of the current universes. The first fetch ran before Addendum 1 and 2 grew
+    # U-Q1, and a check of "any file in the directory" left the added coin-months without inputs (A2.6)
+    gap = m7_inputs_missing()
+    for what in ("metrics", "mark", "perp1h"):
+        cw = sorted(gap[what])
+        if cw:
+            sbd.m7_bulk(what, coins=cw)
+            steps.append(f"{what} ({len(cw)} coins: {', '.join(cw[:8])})")
+    gap = m7_inputs_missing()
+    if any(gap.values()):
+        raise StageRefused("data refuses: M7 inputs are still missing after the fetch: "
+                           + "; ".join(f"{k}: {sorted(v)[:6]}" for k, v in gap.items() if v))
     sbd.usd_fetch(False)
     sbd.tbill_fetch(False)
     sbd.index1d_bulk(None)
@@ -937,6 +1063,27 @@ def index_history_months(ctx: Ctx) -> list:
     return sorted(out)
 
 
+def m7_inputs_missing() -> dict:
+    """M7's inputs (prereg §6.2: open interest from the USD-M futures metrics, 1h mark and perpetual bars) for every
+    U-Q1 coin-day of the current universes (stinkbid_data._q1_coin_days, coins with a USD-M contract):
+    {"metrics": {coin: [days never requested]}, "mark": {coins without a 1h mark file}, "perp1h": {...}}. A day
+    the archive does not hold is recorded as missing by the fetch and does not count (prereg Addendum 2, A2.6)."""
+    from analysis_2026 import stinkbid_data as sbd
+    out = {"metrics": {}, "mark": set(), "perp1h": set()}
+    for c, days in sbd._q1_coin_days().items():
+        if sbd.um_contract(c) is None:
+            continue
+        st = sbd._load_json(sbd.OUT / "metrics" / f"{c}.json") or {"days": {}}
+        seen = st.get("days", {})
+        never = [d for d in (pd.Timestamp(x).strftime("%Y-%m-%d") for x in days) if d not in seen]
+        if never:
+            out["metrics"][c] = never
+        for what, sub in (("mark", "mark1h"), ("perp1h", "perp1h")):
+            if not (sbd.OUT / sub / f"{c}.parquet").exists():
+                out[what].add(c)
+    return out
+
+
 def fut_months_missing(ctx: Ctx) -> dict:
     """Months the data stage planned (OUT/data/prefetch_index.csv, prefetch_perp.csv) that are not in stinkbid_data's
     month cache: {kind: [(coin, month)]}. The fill and outcome stages refuse while any is missing, so they never
@@ -987,6 +1134,32 @@ def _call_controls(ctx: Ctx):
     if r.returncode not in (0, 2):
         raise RuntimeError(f"{' '.join(cmd)} exited with {r.returncode}")
     return None
+
+
+def k3_power_line(ctx: Ctx, cs: dict) -> str:
+    """The report's K3 power line (§10.5 "K3 also re-runs the power study"): per test, the rule K3 assigns it and the
+    empirical MDE at 80% power by scenario under that rule (controls/power.json: mde_calibrated_empirical for a
+    calibrated test, else mde_empirical), with the formula MDE under the rule (mde_rule) and the share of null
+    replications that reach NO EDGE. Falls back to the calibration's nominal mde_empirical, labelled, when power.json
+    has no row (prereg Addendum 2, A2.6)."""
+    pw = _jload(ctx.out / "controls" / "power.json", {}) or {}
+    parts = []
+    for t in ORDER:
+        mt = (pw.get("mde") or {}).get(t) or {}
+        if mt:
+            rule = (pw.get("rule") or {}).get(t) or next(iter(mt.values())).get("rule", "?")
+            emp = ", ".join(f"{sc} {_pct(v.get('mde_calibrated_empirical' if rule != 'nominal' else 'mde_empirical'), 2)}"
+                            for sc, v in mt.items())
+            frm = ", ".join(f"{sc} {_pct(v.get('mde_rule'), 2)}" for sc, v in mt.items())
+            ne = (pw.get("noedge_reachable_null") or {}).get(t) or {}
+            parts.append(f"{t} ({rule}): empirical {emp}; formula {frm}"
+                         + (f"; NO EDGE reached in " + ", ".join(f"{sc} {_pct(v, 0)}" for sc, v in ne.items())
+                            + " of null replications" if ne else ""))
+        else:
+            v = ((cs.get("calib") or {}).get("tests", {}).get(t, {}).get("by_scenario") or {})
+            parts.append(f"{t} (nominal-rule MDE from the calibration; power.json has no row): "
+                         + ", ".join(f"{sc} {_pct(x.get('mde_empirical'), 2)}" for sc, x in v.items()))
+    return "K3 power re-run (synthetic nulls; MDE at 80% power under each test's rule, by scenario): " + "; ".join(parts)
 
 
 def k1c_delta90(ctx: Ctx, summary: dict | None):
@@ -1075,9 +1248,13 @@ def fill_counts(res: dict, prog: str, univ: str) -> tuple:
                         cls = sbdesc._speed_class(g["s24"].to_numpy(float))
                         for c in ("fast", "middle", "slow"):
                             row[f"{c}_share"] = float((cls == c).mean())
+                    has_idx = any(r_.startswith(("F3", "F4")) for r_ in rules)
                     for c in ("gap_through", "idx_missing"):
                         if c in g:
-                            row[c] = int(g[c].fillna(False).astype(bool).sum())
+                            # "F3-unverifiable" needs an index read: a run without an index rule (U-B, A2.2) has no
+                            # such fill, so the column is empty there (A2.6)
+                            row[c] = int(g[c].fillna(False).astype(bool).sum()) if (c != "idx_missing" or has_idx) \
+                                else NAN
                 if var != "all" or prog in ("P1",):
                     for m_, n_ in zip(*np.unique(mo, return_counts=True)):
                         months.append(dict(program=prog, universe=univ, variant=var, real=real_v, rule=rule,
@@ -1144,6 +1321,16 @@ def stage_fcount(ctx: Ctx) -> dict:
                 cn = f1["coin"].astype(str).to_numpy()
                 tab["coins"] = [len(np.unique(cn[ids == e])) for e in tab["episode"]]
                 p1_eps = tab
+    hw = None if ctx.injected else _hype_world(ctx)
+    if hw is not None:
+        # HYPE on its perpetual's index (exploratory, explore stage): its fill counts come first too (§14; prereg §3
+        # lists HYPE's fill counts among the counts; A2.6)
+        sbe = _engine()
+        hres = sbe.run_program("P1", "U_Q1", data=hw, cfg=dict(counts_only=True, rules=("F1",), capacity="c1",
+                                                                 verbose=False))
+        r, m = fill_counts(hres, "P1", HYPE_UNIV)
+        rows += r
+        months += m
     C = pd.DataFrame(rows)
     C.to_csv(d / "counts.csv", index=False)
     pd.DataFrame(months).to_csv(d / "by_month.csv", index=False)
@@ -1153,7 +1340,8 @@ def stage_fcount(ctx: Ctx) -> dict:
         p1_eps.to_csv(d / "p1_episodes.csv", index=False)
     (d / "fcount.txt").write_text(fcount_text(C, ctx.mode))
     summ = dict(programs=int(C[["program", "universe"]].drop_duplicates().shape[0]),
-                violations=int(sum(a["violations"] for a in audit)))
+                violations=int(sum(a["violations"] for a in audit)), src=_src_hash(), data=_data_stamp(ctx),
+                hype=hw is not None)
     _jdump(d / "summary.json", summ)
     info = dict(started=started, outputs=[str(d / f) for f in ("counts.csv", "by_month.csv", "status.csv",
                                                                   "audit.csv", "p1_episodes.csv", "fcount.txt",
@@ -1176,11 +1364,35 @@ def _mean(y) -> float:
     return float(y.mean()) if len(y) else NAN
 
 
+def calib_crit(test: str, calib: dict, alpha: float = sbs.ALPHA_B) -> float:
+    """The critical statistic of K3's simulation-calibrated rule at level alpha (stinkbid_controls._calib_crit, the
+    value power.json reports as crit_calibrated): calibrated_p(s) < alpha needs, in every scenario, at most
+    m = ceil(alpha (n + 1) - 1) - 1 null statistics at or above s; the largest such threshold over the scenarios."""
+    crit = -np.inf
+    for d in (calib.get("null", {}).get(test) or {}).values():
+        st = np.asarray(d.get("stat", []), float)
+        st = np.sort(st[np.isfinite(st)])[::-1]
+        m = math.ceil(alpha * (len(st) + 1) - 1) - 1
+        crit = max(crit, float(st[m]) if 0 <= m < len(st) else np.inf)
+    return float(crit) if np.isfinite(crit) else np.nan
+
+
 def _calibrate(row: dict, test: str, calib: dict | None) -> dict:
+    """K3's rule for a test (stinkbid_stats.apply_calibration). A calibrated test's MDE uses the calibrated critical
+    statistic in place of t_{1-0.05/3, G*-1}: (crit + t_{0.80, G*-1}) SE, the convention of the controls' power
+    re-run (power.json mde_rule); the nominal MDE is kept as mde_nominal (prereg Addendum 2, A2.6). For H4 the
+    critical value is that of the max-t statistic and the SE that of the argmax method."""
     if calib is None:
         return row
     r = sbs.apply_calibration(row, test, calib)
     r["rule"] = "simulation-calibrated" if r.get("calibrated") else "nominal"
+    if r.get("calibrated"):
+        crit = calib_crit(test, calib)
+        se, gs = sbdesc._f(r.get("se")), sbdesc._f(r.get("gstar"))
+        r["mde_nominal"] = r.get("mde")
+        r["crit_calibrated"] = crit
+        r["mde"] = (float((crit + stats.t.ppf(0.80, gs - 1)) * se)
+                    if np.isfinite(crit) and np.isfinite(se) and np.isfinite(gs) and gs > 1 else np.nan)
     return r
 
 
@@ -1363,6 +1575,37 @@ def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
     return out
 
 
+def ub_consistency(ctx: Ctx, res: dict | None) -> list:
+    """U-B's 1m data are streamed separately by fcount and by primary (download, run, delete), and a zip that fails
+    every attempt shortens a coin's series without an error. So the U-B gate run's bids and F1 fills are compared,
+    per coin, with fcount's counts-only run of the same program; any difference is a warning in primary.json and in
+    the report's details (prereg Addendum 2, A2.6)."""
+    if res is None or ctx.injected:
+        return []
+    p = run_dir(ctx, "P1", "U_B", True)
+    if not (p / "bids.parquet").exists():
+        return ["U-B consistency: fcount's P1/U_B run is not in the cache; not compared"]
+    fb = pd.read_parquet(p / "bids.parquet", columns=["coin", "bid_id"])
+    ff = pd.read_parquet(p / "fills.parquet", columns=["coin", "t_F1"]) if (p / "fills.parquet").exists() else \
+        pd.DataFrame(columns=["coin", "t_F1"])
+    B, F = res.get("bids", pd.DataFrame()), res.get("fills", pd.DataFrame())
+
+    def per_coin(bids, fills):
+        nb = bids.groupby(bids["coin"].astype(str)).size() if len(bids) else pd.Series(dtype=int)
+        f1 = fills[fills["t_F1"] >= 0] if len(fills) and "t_F1" in fills else fills.iloc[:0]
+        nf = f1.groupby(f1["coin"].astype(str)).size() if len(f1) else pd.Series(dtype=int)
+        return pd.DataFrame({"bids": nb, "f1": nf}).fillna(0).astype(int)
+    a, b = per_coin(fb, ff), per_coin(B, F)
+    j = a.join(b, how="outer", lsuffix="_fcount", rsuffix="_primary").fillna(0).astype(int)
+    diff = j[(j["bids_fcount"] != j["bids_primary"]) | (j["f1_fcount"] != j["f1_primary"])]
+    if not len(diff):
+        return []
+    ex = "; ".join(f"{c}: bids {r.bids_fcount}->{r.bids_primary}, F1 fills {r.f1_fcount}->{r.f1_primary}"
+                   for c, r in diff.head(8).iterrows())
+    return [f"U-B consistency: {len(diff)} coins differ between fcount's and primary's streamed U-B runs ({ex}"
+            f"{' ...' if len(diff) > 8 else ''})"]
+
+
 def stage_primary(ctx: Ctx) -> dict:
     t0 = _begin(ctx, "primary")
     started = _now()
@@ -1371,6 +1614,7 @@ def stage_primary(ctx: Ctx) -> dict:
     if runs.get("P1/U_Q1") is None:
         raise StageRefused("primary: P1 on U-Q1 could not be run")
     Pc = primary_compute(runs, cs["calib"], ctx)
+    Pc["warnings"] += ub_consistency(ctx, runs.get("P1/U_B"))
     d = ctx.out / "primary"
     d.mkdir(parents=True, exist_ok=True)
     meth = Pc["rows"]["H4"].get("methods")
@@ -1755,10 +1999,7 @@ def stage_report(ctx: Ctx) -> dict:
                 f"{_pct(flags.get('bot_ub'), 2, True)}: {flags.get('bot_verdict')}; passes only at bot latency: "
                 f"{flags['h1_bot_only']}",
             f"K3 rule per test: {P.get('calibration')}",
-            "K3 power re-run (synthetic nulls; empirical MDE at 80% power by scenario): " + "; ".join(
-                f"{t}: " + ", ".join(f"{sc} {_pct(v.get('mde_empirical'), 2)}" for sc, v in
-                                     ((cs.get('calib') or {}).get('tests', {}).get(t, {}).get('by_scenario') or
-                                      {}).items()) for t in ORDER),
+            k3_power_line(ctx, cs),
             f"Warnings: {P.get('warnings') or 'none'}", "",
             "Deviations (§12): " + ("none" if not deviations(ctx) else json.dumps(deviations(ctx))), "", RH_PROXY]
     txt = "\n".join(lines + det) + "\n"
@@ -1961,6 +2202,12 @@ def stage_sheet(ctx: Ctx) -> dict:
     if r.get("rc") == 2:
         raise StageRefused(f"sheet refuses: {r.get('why')}")
     outs = [str(p) for p in (r.get("outputs") or [])]
+    if r.get("rc") == 1:
+        # every coin refused (on real data usually a close more than 24 hours old): the files are written but hold no
+        # order, and the sheet's order diff skips them (A2.6); the stage is not complete
+        raise StageRefused(f"sheet refuses: every requested coin was refused ({r.get('refused')}); on real data give "
+                           "the app's prices (--price COIN=x, with --coins for a short list) or fetch the latest daily "
+                           "closes (--refresh)")
     if r.get("rc") != 0 or not outs:
         raise RuntimeError(f"sheet: rc {r.get('rc')} ({r.get('why')}); refused coins {r.get('refused')}; "
                            f"outputs {outs}")
@@ -2598,6 +2845,56 @@ def _t_review_units(say):
         assert calls == [1], calls
     shutil.rmtree(rx.out, ignore_errors=True)
     say("  units: a killed worker reruns the program with one worker fewer (logged); with one left the error is raised")
+    # A2.6 (contract check before primary): the calibrated rule's critical value and MDE, the K3 power line,
+    # F3-unverifiable only where an index was read, U-B's per-coin consistency check
+    from analysis_2026 import stinkbid_controls as sbc
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        Ct = sbs.inference_calibration(sbs._toy_k3_sim, n_reps=150, B=199, n_jobs=1)   # n >= 119: finite crit
+    for tt in FAMILY:
+        if Ct["null"].get(tt):
+            a_, b_ = calib_crit(tt, Ct), sbc._calib_crit(tt, Ct, sbs.ALPHA_B)
+            assert (np.isnan(a_) and not np.isfinite(b_)) or math.isclose(a_, b_), (tt, a_, b_)
+    tc = next(tt for tt in ("H2R", "H1") if Ct["tests"][tt]["needs_calibration"] and np.isfinite(calib_crit(tt, Ct)))
+    row0 = dict(p_decide=0.3, ub=0.5, estimate=0.001, se=0.004, t=0.25, gstar=14.5, E=sbs.E[tc],
+                mde=sbs.mde(0.004, 14.5))
+    rc = _calibrate(row0, tc, Ct)
+    want = (calib_crit(tc, Ct) + stats.t.ppf(0.80, 13.5)) * 0.004
+    assert rc["calibrated"] and math.isclose(rc["mde"], want) and math.isclose(rc["mde_nominal"], sbs.mde(0.004, 14.5))
+    po = Ctx(out=SCRATCH / "a26_unit", verbose=False)
+    shutil.rmtree(po.out, ignore_errors=True)
+    (po.out / "controls").mkdir(parents=True)
+    _jdump(po.out / "controls" / "power.json", dict(
+        rule={"H2R": "simulation-calibrated", "H1": "nominal", "H4": "nominal"},
+        mde={"H2R": {"base": dict(rule="simulation-calibrated", mde_empirical=0.0076, mde_calibrated_empirical=0.0080,
+                                  mde_rule=0.0065)},
+             "H1": {"base": dict(rule="nominal", mde_empirical=0.0475, mde_rule=0.0451)},
+             "H4": {"base": dict(rule="nominal", mde_empirical=0.0077, mde_rule=0.0090)}},
+        noedge_reachable_null={"H2R": {"base": 0.99}}))
+    ln = k3_power_line(po, {})
+    assert "H2R (simulation-calibrated): empirical base 0.80%" in ln and "H1 (nominal): empirical base 4.75%" in ln, ln
+    Fx = pd.DataFrame(dict(coin=["A", "A"], variant=["P1", "P1"], real=[True, True], t_F1=[5_000_000, 5_100_000],
+                           t_F2=[5_000_000, 5_100_000], idx_missing=[True, True], gap_through=[False, True]))
+    Bx = pd.DataFrame(dict(coin=["A", "A", "A"], variant=["P1"] * 3, real=[True] * 3))
+    rx, _ = fill_counts(dict(bids=Bx, fills=Fx), "P1", "U_B")
+    f1r = [r for r in rx if r["variant"] == "all" and r["rule"] == "F1"][0]
+    assert np.isnan(f1r["idx_missing"]) and f1r["gap_through"] == 1, f1r
+    rx, _ = fill_counts(dict(bids=Bx, fills=Fx.assign(t_F3_1=[5_000_000, -1])), "P1", "U_Q1")
+    assert [r for r in rx if r["variant"] == "all" and r["rule"] == "F1"][0]["idx_missing"] == 2
+    uc = Ctx(out=po.out, cache=SCRATCH / "a26_unit" / "cache", verbose=False)
+    pdir = run_dir(uc, "P1", "U_B", True)
+    pdir.mkdir(parents=True)
+    Bu = pd.DataFrame(dict(coin=["A", "A", "B"], bid_id=[1, 2, 3]))
+    Fu = pd.DataFrame(dict(coin=["A", "B"], t_F1=[10, 20], bid_id=[1, 3]))
+    Bu.to_parquet(pdir / "bids.parquet")
+    Fu.to_parquet(pdir / "fills.parquet")
+    assert ub_consistency(uc, dict(bids=Bu, fills=Fu)) == []
+    w_ = ub_consistency(uc, dict(bids=Bu.iloc[:2], fills=Fu.iloc[:1]))
+    assert len(w_) == 1 and "1 coins differ" in w_[0] and "B: bids 1->0, F1 fills 1->0" in w_[0], w_
+    shutil.rmtree(po.out, ignore_errors=True)
+    say(f"  units (A2.6): the calibrated rule's critical value equals the controls' ({tc}), its MDE uses it (the nominal "
+        "kept); the K3 power line reads power.json under each test's rule; F3-unverifiable only where an index was "
+        "read; U-B's streamed runs compared per coin")
     # (3) capacity modes: 'auto' (aggTrades on real U-Q1) only for P1 on U-Q1, C1 for every other run and stage
     for injected in (False, True):
         cx = Ctx(data={} if injected else None, n_jobs=1, verbose=False)
@@ -2748,10 +3045,15 @@ def _t_gating(say, W: dict, out: Path, cache: Path) -> Ctx:
         raise AssertionError("controls reran without --rerun")
     except StageRefused:
         pass
-    (out / "controls" / "summary.json").unlink()
+    # A2.6: the rerun moves the old controls outputs aside, so the controls module runs again (before, the stage only
+    # re-validated the old summary.json unless it was deleted by hand)
+    old_summary = (out / "controls" / "summary.json").read_bytes()
     ctx.rerun, ctx.reason = True, "selftest: the first controls run failed on purpose"
     stage_controls(ctx)
     ctx.rerun = False
+    stale_c = sorted(ctx.cache.glob("controls_stale_*"))
+    assert stale_c and (stale_c[-1] / "summary.json").read_bytes() == old_summary
+    assert _jload(out / "controls" / "summary.json")["all_passed"] is True       # the module ran again
     assert controls_status(ctx)["ok"], controls_status(ctx)["why"]
     assert controls_gate(ctx)["ok"], controls_gate(ctx)["why"]
     assert any(d.get("stages") == ["controls"] for d in deviations(ctx))

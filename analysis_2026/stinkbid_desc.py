@@ -272,6 +272,17 @@ def add_clusters(d: pd.DataFrame, tcol: str = "time") -> pd.DataFrame:
     return pd.concat([d, pd.DataFrame(new, index=d.index)], axis=1)
 
 
+def asset_key(d: pd.DataFrame) -> pd.Series:
+    """The asset of each row: its lineage (a renamed coin and its successors are one asset, prereg §4.1: RNDR and
+    RENDER, MATIC and POL, MKR and SKY) when the run carries one (stinkbid_run.add_lineage), else the coin. Used for
+    the sheet's per-coin rows, D-H5's coin clusters and the user-coins table (prereg Addendum 2, A2.6)."""
+    c = d["coin"].astype(str)
+    if "lineage" in d:
+        lin = d["lineage"]
+        return lin.astype(str).where(lin.notna() & (lin.astype(str) != ""), c)
+    return c
+
+
 def per_fill(res: dict, rule: str = "F1", exit: str = "FLIP", cost: str | None = None, value: str = "delta",
              complete: bool = True) -> pd.DataFrame:
     """One row per fill of `rule` with an outcome row (rule, exit, cost): the fill's columns, the outcome's columns
@@ -662,7 +673,7 @@ def dh5_rows(res_ub: dict, group_col: str = "in_U_Q1", B: int = B_DEFAULT) -> di
         return out
     notq = 1.0 - d[group_col].astype(bool).to_numpy().astype(float)
     args = (d["y"].to_numpy(float), notq, d["rung"].to_numpy(float), d["sigma30"].to_numpy(float),
-            d["coin"].astype(str).to_numpy(), d["qu"].to_numpy())
+            asset_key(d).to_numpy(), d["qu"].to_numpy())             # a renamed coin is one cluster (A2.6)
 
     def safe(fn, *a, **k):
         try:
@@ -1370,13 +1381,15 @@ def sheet_stats(res: dict) -> pd.DataFrame:
     F = res.get("fills")
     if not len(b):
         return pd.DataFrame()
-    b = b.assign(year=ts_min(b["t0"].to_numpy(np.int64)).year)
+    # rows per asset: a renamed coin's bids (RNDR) count in its successor's row (RENDER), the ticker the sheet asks
+    # for (A2.6); the Kaplan-Meier chains run per asset too
+    b = b.assign(year=ts_min(b["t0"].to_numpy(np.int64)).year, coin=asset_key(b).to_numpy())
     W = {r: km_waits(b, "t_" + r) for r in ("F1", "F3_1")}
     cap = pd.DataFrame()
     if F is not None and len(F) and "t_F1" in F:
         f = F[F["t_F1"] >= 0]
         cv = fill_capacity(f)
-        cap = pd.DataFrame({"coin": f["coin"].astype(str).to_numpy(), "rung": f["rung"].to_numpy(float), "C": cv})
+        cap = pd.DataFrame({"coin": asset_key(f).to_numpy(), "rung": f["rung"].to_numpy(float), "C": cv})
     rows = []
     for rg in sorted(pd.unique(b["rung"])):
         br = b[b["rung"] == rg]
@@ -1880,8 +1893,9 @@ def explore_tables(runs: dict, metrics_fn=None, B: int = B_DEFAULT, hype: dict |
         for rule in RULES_BESIDE:
             d = _h1(A, rule)
             lab = LABEL_HINDSIGHT + ("; " + LABEL_RH if rule != "F1" else "")
-            for c in sorted(pd.unique(d["coin"].astype(str))) if len(d) else []:
-                rows.append(_xrow("user coins", f"{c}: mean Delta", _sub(d, d["coin"].astype(str) == c), B,
+            ak = asset_key(d) if len(d) else pd.Series(dtype=str)
+            for c in sorted(pd.unique(ak)) if len(d) else []:            # one row per asset (MKR and SKY: SKY)
+                rows.append(_xrow("user coins", f"{c}: mean Delta", _sub(d, (ak == c).to_numpy()), B,
                                   extra=dict(coin=c, label=lab), rule=rule))
         d = _h1(A)
         a2 = _h2(A)
@@ -2323,6 +2337,31 @@ def _t_review_regressions(say, res: dict):
     assert np.isfinite(f3w).all() and (sc.loc[sc["rule"] == "F1", "label"] == "Binance spot (upper bound)").all()
     say(f"  sheet: Kaplan-Meier waits on F3 rows from F3 fills (median {f3w.round(2).tolist()} weeks), F1 rows "
         "labelled upper bound")
+    # (A2.6) a renamed coin and its successor are one asset: the earlier half of a coin's bids renamed (as RNDR before
+    # RENDER) still count in the successor's sheet rows and Kaplan-Meier chains when the lineage says so; without a
+    # lineage column the old name gets rows of its own
+    bb = res["bids"]
+    c0 = str(bb["coin"].astype(str).iloc[0])
+    sel = (bb["coin"].astype(str) == c0) & (bb["t0"] < bb.loc[bb["coin"].astype(str) == c0, "t0"].median())
+    old_ids = set(bb.loc[sel, "bid_id"].tolist())
+    r2, r3 = dict(res), dict(res)
+    for k in ("bids", "fills"):
+        X = res[k].copy()
+        X["coin"] = np.where(X["bid_id"].isin(old_ids), "OLDNAME", X["coin"].astype(str))
+        r3[k] = X.copy()
+        X["lineage"] = np.where(X["coin"] == "OLDNAME", c0, X["coin"])
+        r2[k] = X
+    s2, s3 = sheet_stats(r2), sheet_stats(r3)
+    assert not (s2["coin"] == "OLDNAME").any() and (s3["coin"] == "OLDNAME").any()
+    cols = ["rung", "rule", "bids", "fills", "rate", "median_wait_weeks", "p_no_fill_year"]
+    a = s2[s2["coin"] == c0][cols].reset_index(drop=True)
+    b0 = sc[sc["coin"] == c0][cols].reset_index(drop=True)
+    assert len(a) == len(b0) and np.allclose(a[["bids", "fills"]], b0[["bids", "fills"]]), (a, b0)
+    assert np.allclose(a["p_no_fill_year"], b0["p_no_fill_year"], equal_nan=True)
+    assert (s3.loc[s3["coin"] == c0, "bids"].sum() < b0["bids"].sum())
+    assert (asset_key(res["fills"]) == res["fills"]["coin"].astype(str)).all()
+    say(f"  lineage: a renamed coin's earlier bids count in its successor's sheet rows ({c0}: bids, fills and waits as "
+        "without the rename); without a lineage column the old name gets rows of its own")
     # (4, 8) D6 on F1 and F3 with single events; theta on F3 from TH72 rows at RH
     O = res["outcomes"]
     th = O[O["exit"] == "FLIP"].assign(exit="TH72")

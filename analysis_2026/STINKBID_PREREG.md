@@ -904,3 +904,46 @@ run from scratch (A1.9), then the fill counts.
   from the files at every later stage (now H2R).
 - Found by calling the runner's readers on the real controls files after the controls stage. A check of every other
   hand-off between the stages' real outputs and their readers followed before the primary stage (A2.6).
+
+**A2.6 A check of every hand-off between the stages (after the fill counts, before any outcome).**
+- **What was checked.** Five reviewers each took one interface between the stages' real outputs and the code that
+  reads them: the controls' files, the fill counts, the data and caches the outcome stages read, the selftests'
+  stand-ins against the real producers, and the level sheet on real inputs. A critic looked for interfaces they
+  missed. Three independent checks (reproduce, refute, impact) then tested each finding. Still no post-fill price,
+  return, P&L or strategy outcome has been computed on real data.
+- **M7's inputs (H4).** The futures metrics (open interest) and the 1h mark and perpetual bars were fetched before
+  Addenda 1 and 2 added coin-months to U-Q1. The data stage then only checked that the directories were not empty.
+  AAVE (2021-11..2022-08), EGLD (2021-11..2022-07), LUNC (2022-10..2024-03, contract 1000LUNCUSDT) and GRAM
+  (2026-07..11) had no inputs, so M7 abstained ("no data") at 162 placements from 2021-12 (LUNC 73, AAVE 39, EGLD 35,
+  GRAM 15). BTTC (7) and SLP (4) were requested and are missing from Binance's archive. About 86 real M7 levels,
+  their placebos and about 30 F1 fills were missing from H4's sample. The data stage now checks every U-Q1 coin-day
+  and fetches what is missing, and the fill and outcome stages refuse while anything is missing.
+- **The run cache and the controls gate follow the data and the code.** A cached engine run is now keyed by the stamp
+  of the data inputs (the controls' calendar key: path, size and modification time of every input file) and by every
+  module its results depend on (moneyline_ref, stinkbid_stats, the fetchers). Before, a data change would have
+  reloaded runs built on the old data. The controls gate closes when the controls ran on other data or code, and a
+  rerun of the data or controls stage moves the controls' outputs aside, so the controls module runs again (before,
+  the stage only re-validated the old summary). A rerun that invalidates the fill counts moves any outcome runs aside.
+  The fill counts record the data and code they ran on; the primary stage refuses if either changed.
+- **Reruns.** So the data stage runs again (logged as a deviation), then the controls from scratch (K3's null
+  replications use H4's fill calendar), then the fill counts of every program (the data stamp changed). Only H4 and
+  H4-all read M7's inputs, so the other programs' counts should come out unchanged.
+- **H2R's MDE under its rule.** K3 gave H2R the simulation-calibrated rule (A2.5), but its reported MDE still used the
+  nominal critical value. A calibrated test's MDE now uses the calibrated critical value: (2.537 + t_0.80) SE instead
+  of (2.369 + t_0.80) SE at the controls' G*, about 5% larger, the convention of the controls' power re-run. The
+  report's K3 power line now reads that power re-run (power.json) under each test's rule.
+- **Renamed coins are one asset** in the sheet's per-coin rows, D-H5's coin clusters and the user-coins table: RNDR's
+  weeks count in RENDER's row, MKR's in SKY's, and so on for the 31 renames in the universes. A merger into a coin
+  that already traded (AGIX and OCEAN into FET) is not joined, as A2.1 rules.
+- **Smaller fixes.**
+  - HYPE's fill counts (on its index) are written with the others, before its outcomes (§14, §3).
+  - counts.csv no longer calls U-B's fills "F3-unverifiable": no index is read on U-B (A2.2).
+  - --ub-f3 must match the data stage's plan.
+  - The primary stage compares its streamed U-B run with fcount's, coin by coin, and prints any difference.
+  - The outcome stages compute each run before loading the others, and leave out the capacity curves except P1 on
+    U-Q1's. The fill counts once lost a worker to the out-of-memory killer and resumed with three workers.
+  - The sheet:
+    - skips a sheet on which every coin was refused when it diffs orders, so resting orders keep their cancel lines;
+    - works on a clone without data/: the U-C list and the last 12 months' U-Q1 membership are committed in
+      `stinkbid_ref/`;
+    - the runner's sheet stage refuses, rather than crashes, when every coin is refused.

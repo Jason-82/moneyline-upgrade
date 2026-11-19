@@ -543,15 +543,29 @@ def parse_coins(s) -> list:
     return out
 
 
+REF_DIR = ROOT / "analysis_2026" / "stinkbid_ref"
+U_C_FILE = REF_DIR / "u_c_2026-11-18.csv"                 # the U-C list (committed, for clones without data/)
+UNIV_RECENT_FILE = REF_DIR / "universes_recent.csv"       # U-Q1 / U-B membership of the last 12 months (committed)
+
+
 def default_coins(cat: pd.DataFrame) -> list:
-    """U-C (§5: the sheet's default list): Robinhood-tradable coins with a Binance USDT spot pair (stinkbid_data),
-    else the catalog's tradable limit-order coins without the excluded stablecoins / gold and reused tickers."""
+    """U-C (§5: the sheet's default list): Robinhood-tradable coins with a Binance USDT spot pair (stinkbid_data);
+    on a clone without data/stinkbid (the user's machine), the committed U-C list of the 2026-11-18 catalog
+    (stinkbid_ref/u_c_2026-11-18.csv; A2.6); else the catalog's tradable limit-order coins without the excluded
+    stablecoins / gold and reused tickers."""
     try:
         return list(sbd.u_c_coins())
     except Exception:
-        skip = {"USDC", "USDT", "USDG", "PAXG", "DAI", "PYUSD"} | set(sbd.RH_REUSED)
-        return [c for c, t, m in zip(cat["coin"], cat["tradable"], cat["market_orders_only"])
-                if t and not m and c not in skip]
+        pass
+    try:
+        lst = pd.read_csv(U_C_FILE, dtype=str)["coin"].tolist()
+        if lst:
+            return lst
+    except (OSError, ValueError, KeyError):
+        pass
+    skip = {"USDC", "USDT", "USDG", "PAXG", "DAI", "PYUSD"} | set(sbd.RH_REUSED)
+    return [c for c, t, m in zip(cat["coin"], cat["tradable"], cat["market_orders_only"])
+            if t and not m and c not in skip]
 
 
 # ============================================================================ the runner's outputs
@@ -1728,18 +1742,24 @@ def _wrap(lines: list) -> list:
 
 
 def find_previous(sheet_dir: Path, today: pd.Timestamp) -> Path | None:
-    """The most recent sheet_YYYY-MM-DD.csv dated strictly before today (coding choice 10)."""
-    best = None
+    """The most recent sheet_YYYY-MM-DD.csv dated strictly before today that holds at least one order (coding choice
+    10). A sheet on which every coin was refused (a forgotten --price, a stale close) holds no order and is skipped,
+    so the orders still resting from the sheet before it keep their cancel lines (prereg Addendum 2, A2.6)."""
     if not Path(sheet_dir).exists():
         return None
+    cands = []
     for p in Path(sheet_dir).glob("sheet_*.csv"):
         m = re.fullmatch(r"sheet_(\d{4}-\d{2}-\d{2})\.csv", p.name)
-        if not m:
+        if m and pd.Timestamp(m.group(1)) < today:
+            cands.append((pd.Timestamp(m.group(1)), p))
+    for _, p in sorted(cands, reverse=True):
+        try:
+            prev = pd.read_csv(p, dtype=str).fillna("")
+        except (OSError, ValueError):
             continue
-        d = pd.Timestamp(m.group(1))
-        if d < today and (best is None or d > best[0]):
-            best = (d, p)
-    return best[1] if best else None
+        if _orders_of(prev) or _orders_of(prev, chart=True):
+            return p
+    return None
 
 
 def _is_chart(row) -> bool:
@@ -1855,6 +1875,14 @@ def build_sheet(coins=None, prices=None, asof=None, results_dir=RES, cache_dir=C
             universe = sbd.universes()
         except Exception:
             universe = None
+        if universe is None:
+            # a clone without data/stinkbid (the user's machine): the committed membership of the last 12 months
+            # (stinkbid_ref/universes_recent.csv); the flag names the month it used (A2.6)
+            try:
+                universe = pd.read_csv(UNIV_RECENT_FILE, dtype={"month": str, "coin": str})
+                universe["U_Q1"] = universe["U_Q1"].astype(str).str.lower().isin(("true", "1"))
+            except (OSError, ValueError, KeyError):
+                universe = None
     C.univ = universe if isinstance(universe, pd.DataFrame) else None
     dh5s = dh5_sentence(R)
     C.knife = dh5s or f"D-H5 knife rates {NOT_COMPUTED}"
@@ -2573,6 +2601,25 @@ def selftest(real: bool = True) -> bool:
     say("  catalog: committed copy first (data/stinkbid/ref identical); no catalog / unreadable catalog -> refused, "
         "CLI exit 2, nothing written; LIT (ticker reuse), POL (untradable), USDC (market orders only), unknown -> "
         "not priced")
+    # (A2.6) a clone without data/stinkbid (the user's machine): the committed U-C list and recent membership
+    real_uc = sbd.u_c_coins
+
+    def _no_data():
+        raise FileNotFoundError("data/stinkbid is not on this machine")
+    try:
+        sbd.u_c_coins = _no_data
+        dc = default_coins(cat)
+    finally:
+        sbd.u_c_coins = real_uc
+    committed = pd.read_csv(U_C_FILE, dtype=str)["coin"].tolist()
+    assert dc == committed and len(dc) == 74 and "LIT" not in dc and "USDC" not in dc, dc[:5]
+    ur = pd.read_csv(UNIV_RECENT_FILE, dtype={"month": str, "coin": str})
+    ur["U_Q1"] = ur["U_Q1"].astype(str).str.lower().isin(("true", "1"))
+    last_m = max(ur["month"])
+    some_q1 = ur[(ur["month"] == last_m) & ur["U_Q1"]]["coin"].iloc[0]
+    assert uq1_flag(ur, some_q1, "2027-01") == ("yes", last_m) and uq1_flag(ur, "NOSUCHCOIN", last_m)[0] == "no"
+    say(f"  clone without data/: default list = the committed U-C list ({len(dc)} coins), the U-Q1 flag from the "
+        f"committed membership (latest month {last_m})")
     timings["catalog"] = time.time() - t
 
     # ---- 3. orders: HYPE 0.001 / 7,000, increments, the split above the maximum, below the minimum
@@ -2923,6 +2970,11 @@ def selftest(real: bool = True) -> bool:
     new.to_csv(rdir / "sheet" / "sheet_2026-11-25.csv", index=False)                              # later: ignored
     pd.DataFrame().to_csv(rdir / "sheet" / "diff_2026-11-17.csv", index=False)                    # not a sheet
     assert find_previous(rdir / "sheet", _day(asof)).name == "sheet_2026-11-11.csv"
+    # (A2.6) a sheet on which every coin was refused holds no order: it is skipped, the one before it is "last week's"
+    allref = prev.assign(row="(refused)", limit_price="", orders="", refused="the latest close is 32 hours old")
+    allref.to_csv(rdir / "sheet" / "sheet_2026-11-16.csv", index=False)
+    assert find_previous(rdir / "sheet", _day(asof)).name == "sheet_2026-11-11.csv"
+    (rdir / "sheet" / "sheet_2026-11-16.csv").unlink()
     sh = build_sheet(["NEAR", "SOL", "HYPE"], {}, asof, rdir, base / "nocache", catalog=cat, data=W, universe=U,
                      history=False)
     dd = sh.diff
