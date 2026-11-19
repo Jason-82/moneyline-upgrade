@@ -32,12 +32,15 @@ Stages, their gates and their outputs (OUT = --out, CACHE = --cache; markers in 
             then, "once levels exist", every non-U-B program is run in counts-only mode on F1 (bids = levels; P1 on
             U-Q1 streams aggTrades for its fill windows into stinkbid_data's capacity cache, every other program uses
             C1: coding choice 15), V4's fetch rule
-            (stinkbid_data.index_fetch_days) gives the candidate days, and the 1m index and perpetual months holding
-            them are prefetched (stinkbid_data.fut_prefetch), plus HYPE's index months (§5) and the whole 1m index
-            history that the outcome runs' F3 / F4 twins read (index_history_months: U-Q1, U-Q1-12, U-Q1-xm, U-A and
-            U-C coins with a contract, about 13.7 GB as an upper bound; a warning when it exceeds the free disk less
-            4 GB). U-B coins are streamed by the engine itself in later stages. Writes OUT/data/{coverage.json,
-            candidate_days.csv, prefetch_index.csv, prefetch_perp.csv}. Injected data: the world is validated.
+            (stinkbid_data.index_fetch_days) gives the candidate days, and the 1m index and perpetual months the fill
+            stage reads for them are prefetched (fill_stage_months: every coin of the bid coin's chain, inside its own
+            spot segments; stinkbid_data.fut_prefetch), plus HYPE's index months (§5) and the index months the
+            outcome runs' F3 / F4 rows read (index_history_months: U-Q1, U-Q1-12, U-Q1-xm, U-A and U-C coins with a
+            contract, their member months and the 12 after each, prereg Addendum 1 A1.6; a warning when the estimate
+            exceeds the free disk less 4 GB). The fill and outcome stages refuse while a planned month is not cached
+            (fut_months_missing), so they never download. U-B coins are streamed by the engine itself in later
+            stages. Writes OUT/data/{coverage.json, candidate_days.csv, prefetch_index.csv, prefetch_perp.csv}.
+            Injected data: the world is validated.
   controls  refuses until data is complete. Runs stinkbid_controls (a module-level run() given the controls
             directory, else its documented CLI `python3 -m analysis_2026.stinkbid_controls run --jobs N`) unless
             OUT/controls/summary.json exists, then validates it: all_passed must be a JSON boolean. Reads
@@ -110,8 +113,10 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     bound (stinkbid_stats.apply_calibration), also for the bot-latency and F3-kept rows of the same test.
  5. "If it passes only at bot latency" (§11, H1 row): H1 under X-FLIP-bot (the same sample rules, gates and K3
     rule, U-B and F3 gates on their bot rows) with its p put in H1's place in the three-test Holm family; it
-    "passes" when that Holm-adjusted p < 0.05 and every bot gate holds. Then the H1 row of the rule-M verdict is
-    printed with the bot sentence and no flip target.
+    "passes" when its verdict under the rule of every verdict is PASS (stinkbid_stats.verdict: Holm-adjusted
+    p < 0.05, every bot gate holds, and its 98.33% upper bound is not below E; a bot version whose bound is below E
+    is NO EDGE, prereg Addendum 1 A1.8). Then the H1 row of the rule-M verdict is printed with the bot sentence and
+    no flip target.
  6. "A PASS that relies on events F3 removes is reported as 'a Binance-only result'": the test re-run on the F1
     fills that F3 (s = 1%) also fills (H4: the stacked fills whose own bid also filled under F3) has a p_decide not
     below the Holm level at which the test was rejected.
@@ -135,10 +140,11 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     OUT holds only tables. Injected worlds run single-process (the engine would pickle the whole world).
 13. U-B's outcome run is F1-only by default. Its pre-registered uses (the H1 / H2R gate "Delta > 0 / a > 0 on U-B",
     D-H5's population, T1's U-B row, the U-B sensitivity row) are F1 statistics; an F3 row would make the engine read
-    the whole 1m index history of every U-B coin with a fill (its coding choice 14: twins on the index route), about
-    20,600 coin-months or 36 GB against about 18 GB free on this machine. §12's "every Binance number beside its F3
+    the 1m index of every U-B coin with a fill (an estimate made when it read whole histories: about 20,600
+    coin-months or 36 GB, against about 18 GB free on this machine). §12's "every Binance number beside its F3
     number" is therefore not met for the U-B rows unless --ub-f3 is passed; those F3 rows are labelled "F3 not
-    computed for this run". (An open choice for the orchestrator.)
+    computed for this run" (prereg Addendum 1, A1.7). The fill and outcome stages read only months the data stage
+    prefetched (fut_months_missing; stinkbid_engine coding choices 14 and 27).
 14. D12 is printed in verdicts.txt's details before the verdict table (§10.4: "Reported before H1's table"); the
     answer itself (verdicts and sentences) comes first, before any table (§11).
 15. aggTrades capacity (§4 "aggTrades, streamed for every U-Q1 coin-day with a fill (for capacity)"; §7 "The 1-minute
@@ -645,6 +651,13 @@ def _begin(ctx: Ctx, stage: str) -> float:
         cg = controls_gate(ctx)
         if not cg["ok"]:
             raise StageRefused(f"{stage} refuses: {cg['why']}")
+    if stage in ("fcount", "primary", "desc", "explore") and not ctx.injected:
+        mf = fut_months_missing(ctx)                      # the engine stages never download (coding choice 13)
+        n = sum(len(v) for v in mf.values())
+        if n:
+            ex = "; ".join(f"{k}: {v[:3]}" for k, v in mf.items() if v)
+            raise StageRefused(f"{stage} refuses: {n} futures months the data stage planned are not cached ({ex} "
+                               "...); run the data stage again (--rerun) so that no later stage downloads")
     i = STAGES.index(stage)
     later = [s for s in STAGES[i + 1:] if read_marker(ctx, s) is not None]
     this = read_marker(ctx, stage) is not None
@@ -739,8 +752,8 @@ def stage_data(ctx: Ctx) -> dict:
         ctx.log(f"  data: {prog}/{univ} levels for {len(b):,} bids")
     allb = pd.concat(bids, ignore_index=True).drop_duplicates() if bids else pd.DataFrame(
         columns=["coin", "L", "live_from", "live_to"])
-    # the outcome runs' F3 / F4 rows read each coin's whole 1m index history (stinkbid_engine coding choice 14:
-    # twins on the index route): prefetch it for the coins of the F3 outcome universes, after a disk estimate
+    # the outcome runs' F3 / F4 rows read each coin's 1m index for its member months and the 12 after each
+    # (stinkbid_engine coding choice 27, prereg Addendum 1 A1.6): prefetch exactly those months, after a disk estimate
     hist = index_history_months(ctx)
     est_gb = len(hist) * 1.8 / 1024
     free_gb = shutil.disk_usage(sbd.OUT).free / 1e9
@@ -750,7 +763,7 @@ def stage_data(ctx: Ctx) -> dict:
     ph_full = sbd.fut_prefetch("index", hist)
     cand = sbd.index_fetch_days(allb) if len(allb) else pd.DataFrame(columns=["coin", "day"])
     cand.to_csv(d / "candidate_days.csv", index=False)
-    cd = [(c, x) for c, x in zip(cand["coin"], cand["day"])]
+    cd = fill_stage_months(cand)
     pi = sbd.fut_prefetch("index", cd)
     pp = sbd.fut_prefetch("perp", cd)
     hype = [("HYPE", m) for m in pd.period_range("2025-05", sbd.END[:7], freq="M").strftime("%Y-%m")]
@@ -771,12 +784,75 @@ def stage_data(ctx: Ctx) -> dict:
     return info
 
 
+def _chain(coin: str) -> list:
+    """The coin and its successors, in order: the spot chain a position follows (stinkbid_engine.build_spot)."""
+    from analysis_2026 import stinkbid_data as sbd
+    lin, x = [coin], coin
+    while sbd.successor(x):
+        x = sbd.successor(x)[0]
+        if x in lin:
+            break
+        lin.append(x)
+    return lin
+
+
+def _span_months(seg: pd.DataFrame, coin: str) -> set:
+    """'YYYY-MM' months of a coin's own spot segments (first day of its first segment, from the 1m cache's start, to
+    the last day of its last): the months stinkbid_engine.build_index reads a chain coin for (coding choice 27)."""
+    from analysis_2026 import stinkbid_data as sbd
+    sg = seg[seg["coin"] == coin]
+    if not len(sg):
+        return set()
+    a, b = pd.Timestamp(sg["first_day"].min()), pd.Timestamp(sg["last_day"].max())
+    a = max(a, pd.Timestamp(sbd.M1_FROM + "-01"))                         # the engine's spot series is the 1m cache
+    if a > b:
+        return set()
+    return set(pd.period_range(a, b, freq="M").strftime("%Y-%m"))
+
+
+def _chain_months(seg: pd.DataFrame, coin: str, months, spans: dict) -> set:
+    """(chain coin, month) the engine requests when it builds a coin's index or perpetual series for `months`: every
+    coin of the chain with a USD-M contract, for the months inside its own spot segments, up to END's month. Months
+    before a contract's first index day are included: the engine asks for them, and the data stage records them as
+    empty months, so no later stage downloads."""
+    from analysis_2026 import stinkbid_data as sbd
+    out = set()
+    end_m = sbd.END[:7]
+    for x in _chain(coin):
+        if sbd.um_contract(x) is None:
+            continue
+        if x not in spans:
+            spans[x] = _span_months(seg, x)
+        for m in months:
+            if m in spans[x] and m <= end_m:
+                out.add((x, m))
+    return out
+
+
+def fill_stage_months(cand: pd.DataFrame) -> list:
+    """(coin, 'YYYY-MM') the fill stage (pass 1, counts and outcome runs alike) reads: the months of V4's candidate
+    days (stinkbid_data.index_fetch_days, for the bid's coin) for every coin of the bid coin's chain, inside each
+    chain coin's own spot segments (_chain_months)."""
+    from analysis_2026 import stinkbid_data as sbd
+    if not len(cand):
+        return []
+    seg = pd.read_csv(sbd.OUT / "ref" / "segments.csv")
+    by = pd.DataFrame({"coin": cand["coin"].astype(str),
+                       "m": pd.to_datetime(cand["day"]).dt.strftime("%Y-%m")}).drop_duplicates()
+    out, spans = set(), {}
+    for c, g in by.groupby("coin"):
+        out |= _chain_months(seg, c, set(g["m"]), spans)
+    return sorted(out)
+
+
 def index_history_months(ctx: Ctx) -> list:
     """(coin, 'YYYY-MM') of every month the engine's outcome runs read on the index route: for each coin of the
-    universes whose outcome plans have F3 / F4 rows (U-Q1, U-Q1-12, U-Q1-xm, U-A, U-C; U-B only with --ub-f3) and a
-    USD-M contract, the months stinkbid_engine.index_months_for gives (its member months in any of those universes
-    or U-Q1, and the 12 months after each; engine coding choice 27), for the coin and its successors, inside their
-    spot segments. A superset of each run's reads; months before the contract existed hold no file."""
+    universes whose outcome plans have F3 / F4 rows (U-Q1, U-Q1-12, U-Q1-xm, U-A, U-C; U-B only with --ub-f3), the
+    months stinkbid_engine.index_months_for gives (its member months in any of those universes or U-Q1, and the 12
+    months after each; engine coding choice 27), for every coin of its chain with a USD-M contract, inside that
+    coin's own spot segments (_chain_months: what build_index requests). A superset of each run's requests (a run's
+    members are a subset of the union), so the outcome stages never download; months before a contract's first
+    index day are empty months."""
     from analysis_2026 import stinkbid_data as sbd
     sbe = _engine()
     cols = ["U_Q1", "U_Q1_12", "U_Q1_xm", "U_A", "U_C"] + (["U_B"] if ctx.ub_f3 else [])
@@ -785,7 +861,7 @@ def index_history_months(ctx: Ctx) -> list:
     for c in cols:
         coins |= set(mem.get(c, {}))
     seg = pd.read_csv(sbd.OUT / "ref" / "segments.csv")
-    out = set()
+    out, spans = set(), {}
     for c in sorted(coins):
         ms = set()
         for col in cols:
@@ -793,33 +869,27 @@ def index_history_months(ctx: Ctx) -> list:
         # _members counts months as (year - 1970) * 12 + month - 1, the engine's numpy month ints
         want = set(sbe.index_months_for(np.array(sorted(ms), np.int64),
                                         np.array(sorted(mem.get("U_Q1", {}).get(c, set())), np.int64)))
-        lin, x = [c], c
-        while sbd.successor(x):
-            x = sbd.successor(x)[0]
-            if x in lin:
-                break
-            lin.append(x)
-        for x in lin:
-            if sbd.um_contract(x) is None:
-                continue
-            sg = seg[seg["coin"] == x]
-            if not len(sg):
-                continue
-            a, b = pd.Timestamp(sg["first_day"].min()), pd.Timestamp(sg["last_day"].max())
-            a = max(a, pd.Timestamp(sbd.M1_FROM + "-01"))                 # the engine's spot series is the 1m cache
-            f1d = sbd.OUT / "fut1d" / "index" / f"{x}.parquet"          # the contract's own index start, if cached
-            if f1d.exists():
-                k = pd.read_parquet(f1d, columns=["open_time"])
-                if len(k):
-                    a = max(a, pd.Timestamp(pd.to_datetime(k["open_time"], utc=True).min()).tz_localize(None))
-                else:
-                    continue
-            if a > b:
-                continue
-            for m in pd.period_range(a, b, freq="M").strftime("%Y-%m"):
-                if m in want:
-                    out.add((x, m))
+        out |= _chain_months(seg, c, want, spans)
     return sorted(out)
+
+
+def fut_months_missing(ctx: Ctx) -> dict:
+    """Months the data stage planned (OUT/data/prefetch_index.csv, prefetch_perp.csv) that are not in stinkbid_data's
+    month cache: {kind: [(coin, month)]}. The fill and outcome stages refuse while any is missing, so they never
+    download (a download inside a run could fail mid-run or change what a run reads)."""
+    from analysis_2026 import stinkbid_data as sbd
+    out = {}
+    for kind, f in (("index", "prefetch_index.csv"), ("perp", "prefetch_perp.csv")):
+        p = ctx.out / "data" / f
+        if not p.exists():
+            out[kind] = [("*", f"{f} missing")]
+            continue
+        t = pd.read_csv(p, dtype={"coin": str, "month": str})
+        miss = [(c, m) for c, m in zip(t["coin"], t["month"])
+                if not sbd._fut_path(kind, c, m).exists() or not sbd._fut_path(kind, c, m).with_suffix(".json").exists()]
+        bad = t[t.get("error", pd.Series("", index=t.index)).fillna("").astype(str) != ""]
+        out[kind] = miss + [(c, f"{m}: {e}") for c, m, e in zip(bad["coin"], bad["month"], bad["error"])]
+    return out
 
 
 # ============================================================================ 2. controls
@@ -1389,7 +1459,12 @@ def answer_flags(fv: pd.DataFrame, P: dict) -> dict:
     p = [sbdesc._f(P["bot"]["row"].get("p_decide")), sbdesc._f(rows["H2R"].get("p_decide")),
          sbdesc._f(rows["H4"].get("p_decide"))]
     ph = sbs.holm(p)
-    bot_pass = bool(np.isfinite(ph[0]) and ph[0] < sbs.ALPHA and sbs._gates_ok(P["bot"]["gates"]))
+    # "is PASS" under the same rule as every verdict (prereg Addendum 1, A1.8): a bot version whose 98.33% bound is
+    # below E is NO EDGE, not PASS, even when its Holm-adjusted p and every bot gate pass
+    bot_ub = sbdesc._f(P["bot"]["row"].get("ub"))
+    e_h1 = dict(zip(fv["test"], fv["E"])).get("H1", sbs.E["H1"]) if "E" in fv else sbs.E["H1"]
+    bot_verdict = sbs.verdict(ph[0], P["bot"]["gates"], bot_ub, e_h1)
+    bot_pass = bool(bot_verdict == "PASS")
     h1_bot_only = bool(vd["H1"] != "PASS" and bot_pass)
     binance_only = {}
     for t in FAMILY:
@@ -1400,6 +1475,7 @@ def answer_flags(fv: pd.DataFrame, P: dict) -> dict:
     e3, e3d = sbdesc._f(b.get("F3_1", {}).get("estimate")), sbdesc._f(b.get("F3d_1", {}).get("estimate"))
     dips = bool(np.isfinite(e3) and np.isfinite(e3d) and np.sign(e3) != np.sign(e3d))
     return dict(verdicts=vd, holm_level=lv, bot_pass=bot_pass, h1_bot_only=h1_bot_only, bot_p_holm=float(ph[0]),
+                bot_verdict=bot_verdict, bot_ub=bot_ub,
                 binance_only=binance_only, index_dips_only=dips, show_flip_target=bool(vd["H1"] == "PASS"),
                 tests_passed=[t for t in FAMILY if vd[t] == "PASS"])
 
@@ -1607,7 +1683,8 @@ def stage_report(ctx: Ctx) -> dict:
                    f"{_pct(rb.get('without_top_block'), 2, True)}")
     det += ["", f"Bot latency (X-FLIP-bot, H1): p {sbdesc._f(P['bot']['row'].get('p_decide')):.4f}, Holm-adjusted in "
                 f"H1's place {flags['bot_p_holm']:.4f}, gates "
-                f"{'held' if sbs._gates_ok(P['bot']['gates']) else 'not all held'}; passes only at bot latency: "
+                f"{'held' if sbs._gates_ok(P['bot']['gates']) else 'not all held'}, 98.33% upper bound "
+                f"{_pct(flags.get('bot_ub'), 2, True)}: {flags.get('bot_verdict')}; passes only at bot latency: "
                 f"{flags['h1_bot_only']}",
             f"K3 rule per test: {P.get('calibration')}",
             "K3 power re-run (synthetic nulls; empirical MDE at 80% power by scenario): " + "; ".join(
@@ -2052,6 +2129,27 @@ def _t_verdict_lines(say):
         assert f"Not by {E_TXT[t]} or more" in s
     say("  verdict lines: NO EDGE 'not by E or more', HARMS below zero, INCONCLUSIVE with the MDE, G and G*; "
         "Binance-only, index-dips and top-three-episode sentences")
+    # "passes only at bot latency" follows the rule of every verdict (A1.8): a bot version that passes Holm and every
+    # bot gate but whose 98.33% bound is below E is NO EDGE, so it is not "PASS" (review of Addendum 1, finding F1)
+    fv = sbs.family_verdicts({"H1": dict(p_decide=0.3, ub=0.08, estimate=0.01),
+                              "H2R": dict(p_decide=0.5, ub=0.05, estimate=0.0),
+                              "H4": dict(p_decide=0.6, ub=0.03, estimate=0.0)},
+                             gates={"H1": {"g": True}, "H2R": {"g": True}, "H4": {"g": True}})
+    assert dict(zip(fv.test, fv.verdict))["H1"] == "INCONCLUSIVE"
+    gates_ok = {"half1_pos": True, "half2_pos": True}
+    P = dict(rows={"H2R": dict(p_decide=0.5), "H4": dict(p_decide=0.6)}, f3kept={},
+             beside={"H1": {}}, bot=dict(row=dict(p_decide=0.001, ub=0.030, estimate=0.025), gates=gates_ok))
+    fl = answer_flags(fv, P)
+    assert fl["bot_p_holm"] < sbs.ALPHA and fl["bot_verdict"] == "NO EDGE", fl
+    assert fl["bot_pass"] is False and fl["h1_bot_only"] is False, fl
+    P["bot"]["row"]["ub"] = 0.06                                     # bound not below E = 3.75%: PASS
+    fl = answer_flags(fv, P)
+    assert fl["bot_verdict"] == "PASS" and fl["bot_pass"] is True and fl["h1_bot_only"] is True, fl
+    P["bot"]["gates"] = dict(gates_ok, half2_pos=False)              # a failed bot gate: not PASS
+    fl = answer_flags(fv, P)
+    assert fl["bot_verdict"] == "INCONCLUSIVE" and fl["h1_bot_only"] is False, fl
+    say("  bot latency: a bot version below E is NO EDGE, not 'passes only at bot latency'; PASS needs Holm, gates "
+        "and a bound not below E")
 
 
 # ---------------------------------------------------------------- known answers for primary_compute (review finding 1)

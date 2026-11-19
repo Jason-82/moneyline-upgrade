@@ -144,9 +144,11 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     clip((L - low) / (high - low), 0, 1) (1 for a flat minute below L). capacity='auto' uses aggTrades on real U-Q1
     programs and C1 otherwise (U-B's U-Q1 coins included). Shares are at the end of the life; t_full_* is the minute
     the order completed. Capacity is measured for F1 fills (the Binance spot book).
-14. Index and perpetual months are read through stinkbid_data's month cache (its _fut_load: read only); the fill
-    stage reads the candidate months of V4's fetch rule (stinkbid_data.index_fetch_days); outcome runs read the
-    whole index history (twins on the F3 route need it).
+14. Index and perpetual months are read through stinkbid_data's month cache (its _fut_load, which builds a month
+    that is not cached yet; the runner's data stage prefetches every month the later stages read, so they do not
+    download). The fill stage reads the candidate months of V4's fetch rule (stinkbid_data.index_fetch_days); outcome
+    runs read the months of coding choice 27. build_index reads each coin of the chain only for the requested months
+    inside its own spot segments (its bars outside them are dropped anyway).
 15. Pooled twins use whole UTC days: days touching [tau_f - 182 d, tau_f + 182 d] and days ending after the horizon
     cutoff are left out; the draw is uniform over the remaining eligible minutes of every U-Q1 coin (the fill's own
     coin included), resolved minute-exactly on each coin.
@@ -207,7 +209,9 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     program-universe and U-Q1 member months and the IDX_BUFFER_M = 12 months after each (index_months_for), not for
     its whole history, so the 1m index archive fits on disk. Bids live in member months (at most 90 days), twins
     enter in member months and the longest index-route reach (a 90-day life, B-POST's 30 days and a 90-day hold) is
-    about 7 months; _pass2_coin raises if any index-route fill's horizon touches a month that was not read.
+    about 7 months. _pass2_coin raises if any index-route fill's own exit horizon touches a month that was not read;
+    the other index-route reads (twins, D12, B-ALERT, B-POST) are not checked one by one: the 12-month buffer against
+    their reach of at most about 8 months after a member month is what covers them.
 """
 from __future__ import annotations
 
@@ -1542,11 +1546,13 @@ def build_index(world: World, coin: str, spot: Ser, months=None, kind: str = "in
     for c in coins:
         ix = [i for i in range(seg.n) if seg.coin[i] == c]
         a, b = seg.t0[ix].min(), seg.t1[ix].max()
-        if months is None:
-            ms = pd.period_range(_mts(a).tz_localize(None), _mts(b - 1).tz_localize(None), freq="M").strftime("%Y-%m")
-        else:
-            ms = [m for m in months]
-        k = world.fut_months(kind, c, list(ms))
+        own = pd.period_range(_mts(a).tz_localize(None), _mts(b - 1).tz_localize(None), freq="M").strftime("%Y-%m")
+        # the months asked for, inside this coin's own spot segments (its bars outside them are dropped below): a
+        # successor is not read for its predecessor's months, nor a coin past its last spot day (coding choice 27)
+        ms = list(own) if months is None else [m for m in months if m in set(own)]
+        if not ms:
+            continue
+        k = world.fut_months(kind, c, ms)
         if not len(k):
             continue
         t = _tmin(k.open_time)
@@ -2234,7 +2240,8 @@ def index_months_for(members, q1_members, buffer: int = IDX_BUFFER_M) -> list:
     """The 'YYYY-MM' months the outcome stage reads on the index routes for one coin on real data (coding choice 27):
     every month m of the coin's program-universe or U-Q1 membership, and the `buffer` months after each. Bids live in
     member months (at most 90 days), twins enter in member months, and the longest index-route reach is a 90-day bid
-    life plus B-POST's 30 days plus a 90-day hold, about 7 months; _pass2_coin checks every index-route horizon."""
+    life plus B-POST's 30 days plus a 90-day hold, about 7 months. _pass2_coin checks each index-route fill's own exit
+    horizon; twins, D12, B-ALERT and B-POST are covered by the buffer's margin (coding choice 27)."""
     ms = np.union1d(np.asarray(members, np.int64).ravel(), np.asarray(q1_members, np.int64).ravel())
     if not len(ms):
         return []
@@ -3389,7 +3396,7 @@ def _pass2_coin(world: World, coin: str, F: pd.DataFrame, members_c, q1_c, plan:
     twin_log = [] if cfg["keep_twins"] else None
     cc = CoinCtx(world, coin, members_c, q1_c if q1_c is not None else np.zeros(0, np.int64), need_index=need_idx)
     o_rows, b_rows = coin_outcomes(world, cc, F, plan, cfg, pool_needs, audit, twin_log)
-    if cc.idx_months is not None and o_rows:                      # coding choice 27: every index-route horizon read
+    if cc.idx_months is not None and o_rows:      # coding choice 27: each index-route fill's own exit horizon
         t_fill = {}
         for r in {row["rule"] for row in o_rows if _rule_route(row["rule"]) != RT_SPOT}:
             if "t_" + r in F:
