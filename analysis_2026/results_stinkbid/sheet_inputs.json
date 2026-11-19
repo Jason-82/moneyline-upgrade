@@ -1,0 +1,769 @@
+{
+ "mode": "real",
+ "generated": "2026-11-19 17:21:33 UTC",
+ "verdicts": {
+  "H2R": "INCONCLUSIVE",
+  "H1": "PASS",
+  "H4": "INCONCLUSIVE"
+ },
+ "flags": {
+  "show_flip_target": true,
+  "h1_bot_only": false,
+  "binance_only": {
+   "H1": false
+  },
+  "index_dips_only": false,
+  "run_on_robinhood": false
+ },
+ "tests_passed": [
+  "H1"
+ ],
+ "h4": {
+  "argmax": "M7",
+  "holm_level": 0.05,
+  "verdict": "INCONCLUSIVE",
+  "methods": [
+   {
+    "method": "M4",
+    "n": 1687,
+    "n_cw": 434,
+    "G": 40,
+    "gstar": 11.4974998647,
+    "b": -0.0006123634,
+    "se": 0.0024147883,
+    "t": -0.2535888629,
+    "c": 0.0312266411,
+    "p_t": 0.5976445219,
+    "p_rw": 0.8197,
+    "p_bonf": 1.0,
+    "p_method": 1.0,
+    "ub_boot": 0.0065294777,
+    "ub_bonf": 0.0072132748,
+    "ub": 0.0072132748,
+    "ci95_lo": -0.0078762969,
+    "ci95_hi": 0.00665157,
+    "mde": 0.0080291815,
+    "mde_bonf": 0.0099439282
+   },
+   {
+    "method": "M5b",
+    "n": 1827,
+    "n_cw": 445,
+    "G": 38,
+    "gstar": 11.5364170846,
+    "b": -0.0005049661,
+    "se": 0.0029238849,
+    "t": -0.1727038051,
+    "c": 0.042681276,
+    "p_t": 0.566921549,
+    "p_rw": 0.8197,
+    "p_bonf": 1.0,
+    "p_method": 1.0,
+    "ub_boot": 0.0081425502,
+    "ub_bonf": 0.0089627436,
+    "ub": 0.0089627436,
+    "ci95_lo": -0.0092938312,
+    "ci95_hi": 0.0082838991,
+    "mde": 0.0097176089,
+    "mde_bonf": 0.0120321879
+   },
+   {
+    "method": "M6",
+    "n": 1355,
+    "n_cw": 403,
+    "G": 51,
+    "gstar": 13.8520625954,
+    "b": -0.0035162873,
+    "se": 0.0026428642,
+    "t": -1.3304835603,
+    "c": 0.038086474,
+    "p_t": 0.8967575518,
+    "p_rw": 0.8992,
+    "p_bonf": 1.0,
+    "p_method": 1.0,
+    "ub_boot": 0.0043000979,
+    "ub_bonf": 0.0047116448,
+    "ub": 0.0047116448,
+    "ci95_lo": -0.011184262,
+    "ci95_hi": 0.0041516873,
+    "mde": 0.0085980205,
+    "mde_bonf": 0.0105285197
+   },
+   {
+    "method": "M7",
+    "n": 1487,
+    "n_cw": 398,
+    "G": 33,
+    "gstar": 10.4354616493,
+    "b": 0.0023467466,
+    "se": 0.0027861002,
+    "t": 0.8423051748,
+    "c": 0.0263280814,
+    "p_t": 0.2102271219,
+    "p_rw": 0.5629,
+    "p_bonf": 0.8409084875,
+    "p_method": 0.8409084875,
+    "ub_boot": 0.0105867584,
+    "ub_bonf": 0.0116061094,
+    "ub": 0.0116061094,
+    "ci95_lo": -0.0062261622,
+    "ci95_hi": 0.0109196553,
+    "mde": 0.009391078,
+    "mde_bonf": 0.0117150132
+   }
+  ],
+  "chart_methods_shown": []
+ },
+ "d10_family": [
+  {
+   "test": "M4",
+   "estimate": -0.0027574509,
+   "p": 0.6147881919,
+   "p_holm": 1.0,
+   "holm_level": 0.0166666667,
+   "rejected": false,
+   "label": ""
+  },
+  {
+   "test": "M5b",
+   "estimate": -0.0008521461,
+   "p": 0.5433757422,
+   "p_holm": 1.0,
+   "holm_level": 0.0125,
+   "rejected": false,
+   "label": ""
+  },
+  {
+   "test": "M6",
+   "estimate": -0.007304088,
+   "p": 0.7378578483,
+   "p_holm": 1.0,
+   "holm_level": 0.05,
+   "rejected": false,
+   "label": ""
+  },
+  {
+   "test": "M7",
+   "estimate": -0.0073778957,
+   "p": 0.7028267589,
+   "p_holm": 1.0,
+   "holm_level": 0.025,
+   "rejected": false,
+   "label": ""
+  },
+  {
+   "test": "D9",
+   "estimate": 0.0002911665,
+   "p": 0.0659,
+   "p_holm": 0.3295,
+   "holm_level": 0.01,
+   "rejected": false,
+   "label": ""
+  }
+ ],
+ "chart_methods_by_d10": [],
+ "round_number_advice": false,
+ "depth_gradient_q": 0.003890357978124389,
+ "best_rung_allowed": true,
+ "d6": [
+  {
+   "rule": "F1",
+   "label": "Binance spot",
+   "rung": 6.0,
+   "starts": 11162,
+   "events": 10034,
+   "W": 0.2108027349,
+   "W_se": 0.0017859836,
+   "F": 0.995095913,
+   "p_no_fill": 0.004904087,
+   "median_wait_d": 59.90625,
+   "theta": 0.0283283989,
+   "theta_lo": 0.0037523403,
+   "theta_hi": 0.0529044574,
+   "theta_n": 818,
+   "theta_G": 59,
+   "theta_gstar": 20.9345794393,
+   "theta_unit": "month-block",
+   "mu_star": 0.1337244222,
+   "mu_star_lo": 0.017712951,
+   "mu_star_hi": 0.2497358935,
+   "W_without_2025-10-10": 0.2300152326,
+   "F_without_2025-10-10": 0.9922594992,
+   "theta_without_2025-10-10": 0.0275292794,
+   "mu_star_without_2025-10-10": 0.1187581737,
+   "W_without_2021-05-19": 0.2195348063,
+   "F_without_2021-05-19": 0.9961026043,
+   "theta_without_2021-05-19": 0.0270734079,
+   "mu_star_without_2021-05-19": 0.1228410774,
+   "W_without_top_block": 0.2243835083,
+   "F_without_top_block": 0.9941074375,
+   "theta_without_top_block": 0.0317308166,
+   "mu_star_without_top_block": 0.1405800321,
+   "bmkt_diff": -0.8734390009,
+   "bmkt_lo": -2.2521750088,
+   "bmkt_hi": 0.1251981205,
+   "bmkt_months": 71.0,
+   "bmkt_label": "the sample's drift",
+   "bmkt_note": null
+  },
+  {
+   "rule": "F1",
+   "label": "Binance spot",
+   "rung": 8.0,
+   "starts": 11162,
+   "events": 9183,
+   "W": 0.3422983755,
+   "W_se": 0.002706517,
+   "F": 0.9538695019,
+   "p_no_fill": 0.0461304981,
+   "median_wait_d": 102.6506944444,
+   "theta": 0.0625379681,
+   "theta_lo": 0.0208144078,
+   "theta_hi": 0.1042615284,
+   "theta_n": 440,
+   "theta_G": 42,
+   "theta_gstar": 12.9921308946,
+   "theta_unit": "month-block",
+   "mu_star": 0.1742721109,
+   "mu_star_lo": 0.0580026966,
+   "mu_star_hi": 0.2905415253,
+   "W_without_2025-10-10": 0.3861203642,
+   "F_without_2025-10-10": 0.9213357174,
+   "theta_without_2025-10-10": 0.0574420308,
+   "mu_star_without_2025-10-10": 0.1370645,
+   "W_without_2021-05-19": 0.374932904,
+   "F_without_2021-05-19": 0.908804661,
+   "theta_without_2021-05-19": 0.0555704681,
+   "mu_star_without_2021-05-19": 0.1346979684,
+   "W_without_top_block": 0.3797043578,
+   "F_without_top_block": 0.9432151192,
+   "theta_without_top_block": 0.0677978723,
+   "mu_star_without_top_block": 0.1684151813,
+   "bmkt_diff": -0.8874340452,
+   "bmkt_lo": -2.2976904919,
+   "bmkt_hi": 0.1328652789,
+   "bmkt_months": 71.0,
+   "bmkt_label": "the sample's drift",
+   "bmkt_note": null
+  },
+  {
+   "rule": "F1",
+   "label": "Binance spot",
+   "rung": 10.0,
+   "starts": 11162,
+   "events": 8253,
+   "W": 0.5012917723,
+   "W_se": 0.0034471599,
+   "F": 0.813504984,
+   "p_no_fill": 0.186495016,
+   "median_wait_d": 163.7444444444,
+   "theta": 0.1125699901,
+   "theta_lo": 0.0517457957,
+   "theta_hi": 0.1733941845,
+   "theta_n": 283,
+   "theta_G": 26,
+   "theta_gstar": 9.4328804732,
+   "theta_unit": "month-block",
+   "mu_star": 0.1826805327,
+   "mu_star_lo": 0.0839739749,
+   "mu_star_hi": 0.2813870905,
+   "W_without_2025-10-10": 0.5572864648,
+   "F_without_2025-10-10": 0.7445092852,
+   "theta_without_2025-10-10": 0.1027659737,
+   "mu_star_without_2025-10-10": 0.1372906511,
+   "W_without_2021-05-19": 0.5319136106,
+   "F_without_2021-05-19": 0.7585848802,
+   "theta_without_2021-05-19": 0.1025553331,
+   "mu_star_without_2021-05-19": 0.146258572,
+   "W_without_top_block": 0.5381472622,
+   "F_without_top_block": 0.7972480094,
+   "theta_without_top_block": 0.1198341398,
+   "mu_star_without_top_block": 0.1775304571,
+   "bmkt_diff": -0.8919263272,
+   "bmkt_lo": -2.3050813916,
+   "bmkt_hi": 0.1343834444,
+   "bmkt_months": 71.0,
+   "bmkt_label": "the sample's drift",
+   "bmkt_note": null
+  },
+  {
+   "rule": "F3_1",
+   "label": "Robinhood-route proxy",
+   "rung": 6.0,
+   "starts": 11162,
+   "events": 9872,
+   "W": 0.2373888613,
+   "W_se": 0.0019987503,
+   "F": 0.9910387632,
+   "p_no_fill": 0.0089612368,
+   "median_wait_d": 67.7284722222,
+   "theta": 0.0284378882,
+   "theta_lo": 0.0032604106,
+   "theta_hi": 0.0535110063,
+   "theta_n": 712,
+   "theta_G": 55,
+   "theta_gstar": 20.3650176023,
+   "theta_unit": "month-block",
+   "mu_star": 0.1187210274,
+   "mu_star_lo": 0.0136113938,
+   "mu_star_hi": 0.2233949865,
+   "W_without_2025-10-10": 0.2599196373,
+   "F_without_2025-10-10": 0.9884005131,
+   "theta_without_2025-10-10": 0.027120137,
+   "mu_star_without_2025-10-10": 0.1031301736,
+   "W_without_2021-05-19": 0.2480484129,
+   "F_without_2021-05-19": 0.9864812589,
+   "theta_without_2021-05-19": 0.0269303588,
+   "mu_star_without_2021-05-19": 0.1071012465,
+   "W_without_top_block": 0.2669583924,
+   "F_without_top_block": 0.9863018836,
+   "theta_without_top_block": 0.0323135704,
+   "mu_star_without_top_block": 0.1193854035,
+   "bmkt_diff": null,
+   "bmkt_lo": null,
+   "bmkt_hi": null,
+   "bmkt_months": null,
+   "bmkt_label": null,
+   "bmkt_note": "B-MKT is per placement on Binance spot: see the F1 rows"
+  },
+  {
+   "rule": "F3_1",
+   "label": "Robinhood-route proxy",
+   "rung": 8.0,
+   "starts": 11162,
+   "events": 9048,
+   "W": 0.3680549864,
+   "W_se": 0.0028331469,
+   "F": 0.9407429724,
+   "p_no_fill": 0.0592570276,
+   "median_wait_d": 110.7416666667,
+   "theta": 0.066346323,
+   "theta_lo": 0.0186607182,
+   "theta_hi": 0.1148097662,
+   "theta_n": 392,
+   "theta_G": 38,
+   "theta_gstar": 12.3072992079,
+   "theta_unit": "month-block",
+   "mu_star": 0.169580197,
+   "mu_star_lo": 0.0476965132,
+   "mu_star_hi": 0.293452024,
+   "W_without_2025-10-10": 0.4166337089,
+   "F_without_2025-10-10": 0.9003683845,
+   "theta_without_2025-10-10": 0.0603265587,
+   "mu_star_without_2025-10-10": 0.1303690149,
+   "W_without_2021-05-19": 0.4028085693,
+   "F_without_2021-05-19": 0.8942572138,
+   "theta_without_2021-05-19": 0.0595063171,
+   "mu_star_without_2021-05-19": 0.1321073019,
+   "W_without_top_block": 0.4014578433,
+   "F_without_top_block": 0.9303036251,
+   "theta_without_top_block": 0.0722612951,
+   "mu_star_without_top_block": 0.1674520648,
+   "bmkt_diff": null,
+   "bmkt_lo": null,
+   "bmkt_hi": null,
+   "bmkt_months": null,
+   "bmkt_label": null,
+   "bmkt_note": "B-MKT is per placement on Binance spot: see the F1 rows"
+  },
+  {
+   "rule": "F3_1",
+   "label": "Robinhood-route proxy",
+   "rung": 10.0,
+   "starts": 11162,
+   "events": 8086,
+   "W": 0.5269566421,
+   "W_se": 0.0035061287,
+   "F": 0.781406296,
+   "p_no_fill": 0.218593704,
+   "median_wait_d": 174.2215277778,
+   "theta": 0.1206739573,
+   "theta_lo": 0.053463029,
+   "theta_hi": 0.1878848857,
+   "theta_n": 257,
+   "theta_G": 21,
+   "theta_gstar": 8.8257560669,
+   "theta_unit": "month-block",
+   "mu_star": 0.178943356,
+   "mu_star_lo": 0.079278529,
+   "mu_star_hi": 0.278608183,
+   "W_without_2025-10-10": 0.5847156824,
+   "F_without_2025-10-10": 0.7086055995,
+   "theta_without_2025-10-10": 0.108293507,
+   "mu_star_without_2025-10-10": 0.1312388017,
+   "W_without_2021-05-19": 0.5532627259,
+   "F_without_2021-05-19": 0.7342455361,
+   "theta_without_2021-05-19": 0.1119473032,
+   "mu_star_without_2021-05-19": 0.1485674053,
+   "W_without_top_block": 0.5645575362,
+   "F_without_top_block": 0.7627513308,
+   "theta_without_top_block": 0.1289305955,
+   "mu_star_without_top_block": 0.1741930219,
+   "bmkt_diff": null,
+   "bmkt_lo": null,
+   "bmkt_hi": null,
+   "bmkt_months": null,
+   "bmkt_label": null,
+   "bmkt_note": "B-MKT is per placement on Binance spot: see the F1 rows"
+  }
+ ],
+ "dh5": {
+  "U_Q1": {
+   "group": "in_U_Q1",
+   "n": 4230,
+   "primary": {
+    "b": 0.1293657111726415,
+    "se": 0.040254103618788506,
+    "t": 3.2137272859868222,
+    "df": 25,
+    "ci95": [
+     0.04646083286322056,
+     0.21227058948206246
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.27313769751693,
+    "rate_rest": 0.4646673560841089,
+    "raw_diff": 0.1915296585671789,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "deciles": {
+    "b": 0.12127306390442939,
+    "se": 0.041429106982125714,
+    "t": 2.927243011942106,
+    "df": 25,
+    "ci95": [
+     0.03594822086860068,
+     0.2065979069402581
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.27313769751693,
+    "rate_rest": 0.4646673560841089,
+    "raw_diff": 0.1915296585671789,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "sigma_dec2",
+     "sigma_dec3",
+     "sigma_dec4",
+     "sigma_dec5",
+     "sigma_dec6",
+     "sigma_dec7",
+     "sigma_dec8",
+     "sigma_dec9",
+     "sigma_dec10"
+    ]
+   },
+   "im_years": {
+    "mean": 0.11627823102315386,
+    "se": 0.03423772012354881,
+    "t": 3.3962025100841147,
+    "p": 0.009665293649706745,
+    "p2": 0.01933058729941349,
+    "df": 5,
+    "q": 6,
+    "ci95": [
+     0.028267369579959373,
+     0.20428909246634835
+    ],
+    "estimates": {
+     "2020": 0.007238364602597025,
+     "2021": 0.12441900494514407,
+     "2022": 0.17158869845623997,
+     "2023": 0.03873117962272638,
+     "2024": 0.2351028998999993,
+     "2025": 0.1205892386122164
+    },
+    "dropped": [
+     "2026"
+    ]
+   },
+   "drop_worst_coin": {
+    "b": 0.12159910394532836,
+    "coin": "ETH"
+   },
+   "knife_dl0": {
+    "b": 0.1262546001681609,
+    "se": 0.039557111493186574,
+    "t": 3.191704232244241,
+    "df": 25,
+    "ci95": [
+     0.044785204012382604,
+     0.20772399632393918
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.2708803611738149,
+    "rate_rest": 0.4605308514305412,
+    "raw_diff": 0.18965049025672626,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "knife_dl100": {
+    "b": 0.12860013419147523,
+    "se": 0.04142550626447149,
+    "t": 3.1043708523550118,
+    "df": 25,
+    "ci95": [
+     0.04328270697247298,
+     0.21391756141047746
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.28216704288939054,
+    "rate_rest": 0.4698379869010686,
+    "raw_diff": 0.18767094401167805,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "n_q": 1329,
+   "n_rest": 2901,
+   "single_events": {
+    "without_2025-10-10": 0.13007658104626144,
+    "without_2021-05-19": 0.13622535162113666,
+    "without_top_block": 0.1214315623292748
+   }
+  },
+  "U_Q1_12": {
+   "group": "in_U_Q1_12",
+   "n": 4230,
+   "primary": {
+    "b": 0.0837688524637947,
+    "se": 0.034084670200176595,
+    "t": 2.4576694441174523,
+    "df": 25,
+    "ci95": [
+     0.013570160128649561,
+     0.15396754479893984
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.3240901213171577,
+    "rate_rest": 0.4601840736294518,
+    "raw_diff": 0.1360939523122941,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "deciles": {
+    "b": 0.08607773681259182,
+    "se": 0.03258820080146343,
+    "t": 2.6413773910686826,
+    "df": 25,
+    "ci95": [
+     0.018961080897111987,
+     0.15319439272807164
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.3240901213171577,
+    "rate_rest": 0.4601840736294518,
+    "raw_diff": 0.1360939523122941,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "sigma_dec2",
+     "sigma_dec3",
+     "sigma_dec4",
+     "sigma_dec5",
+     "sigma_dec6",
+     "sigma_dec7",
+     "sigma_dec8",
+     "sigma_dec9",
+     "sigma_dec10"
+    ]
+   },
+   "im_years": {
+    "mean": 0.08425498984195319,
+    "se": 0.030459138068794193,
+    "t": 2.766164612132396,
+    "p": 0.019772303581782863,
+    "p2": 0.039544607163565726,
+    "df": 5,
+    "q": 6,
+    "ci95": [
+     0.005957282793172258,
+     0.16255269689073412
+    ],
+    "estimates": {
+     "2020": 0.008269939167392599,
+     "2021": 0.1438245465484615,
+     "2022": 0.09816156193255811,
+     "2023": 0.005505160824998177,
+     "2024": 0.1912699515583908,
+     "2025": 0.05849877901991799
+    },
+    "dropped": [
+     "2026"
+    ]
+   },
+   "drop_worst_coin": {
+    "b": 0.07704824276554546,
+    "coin": "ETH"
+   },
+   "knife_dl0": {
+    "b": 0.07968402787248624,
+    "se": 0.03355661631842496,
+    "t": 2.3746145057162416,
+    "df": 25,
+    "ci95": [
+     0.010572882864739633,
+     0.14879517288023286
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.3223570190641248,
+    "rate_rest": 0.4553821528611445,
+    "raw_diff": 0.1330251337970197,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "knife_dl100": {
+    "b": 0.08540866980166185,
+    "se": 0.03491049127086452,
+    "t": 2.4465043799868247,
+    "df": 25,
+    "ci95": [
+     0.013509167133758923,
+     0.1573081724695648
+    ],
+    "G_coin": 355,
+    "G_quarter": 26,
+    "n": 4230,
+    "psd_fixed": false,
+    "oneway_fallback": false,
+    "rate_q1": 0.3310225303292894,
+    "rate_rest": 0.4661864745898359,
+    "raw_diff": 0.1351639442605465,
+    "names": [
+     "const",
+     "notQ",
+     "rung_8.0",
+     "rung_10.0",
+     "p0"
+    ]
+   },
+   "n_q": 1731,
+   "n_rest": 2499,
+   "single_events": {
+    "without_2025-10-10": 0.08543159645582328,
+    "without_2021-05-19": 0.08178106354862434,
+    "without_top_block": 0.08695137204189758
+   }
+  }
+ },
+ "capacity": [
+  {
+   "rung": 6.0,
+   "fills": 818,
+   "C_p50": 14669771.575419,
+   "C_p10": 407629.025579,
+   "Q_max": 101907.25639475
+  },
+  {
+   "rung": 8.0,
+   "fills": 441,
+   "C_p50": 16759293.825596001,
+   "C_p10": 327952.2003,
+   "Q_max": 81988.050075
+  },
+  {
+   "rung": 10.0,
+   "fills": 285,
+   "C_p50": 9825798.082214,
+   "C_p10": 307279.64028560003,
+   "Q_max": 76819.91007140001
+  }
+ ],
+ "fixed_sentences": [
+  {
+   "key": "DISCOUNT",
+   "text": "A bid's discount is not a gain by itself. If prices are unpredictable, a bid 30% below the price buys the same expected value as buying now, minus what the coin earns while you wait; in a crash that gaps through your price, it buys less. Only a quick rebound after the wick can pay for the wait."
+  },
+  {
+   "key": "TAIL_TOGETHER",
+   "text": "Bids fill together. On the worst day, 95% of the live bids in the study's main universe filled the same day. Size the whole ladder as one position you are willing to hold through a further 50-80% fall. [day 2025-10-10: 94 of 99 live P1 bids on U-Q1]"
+  },
+  {
+   "key": "TAIL_BOTTOM",
+   "text": "A fill is not a bottom: 27.3% of past fills were 50% or more below the fill price a year later, against 28.4% for random buys of the same coins. [1329 P1 fills with a year observed]"
+  },
+  {
+   "key": "TAIL_NEWS",
+   "text": "Coin-specific collapses (LUNA, FTT, OM) look like ordinary wicks on the first day; a resting order cannot read the news. Cancel a coin's bids on news about the coin itself (a hack, exploit, depeg, delisting or regulatory action)."
+  },
+  {
+   "key": "MONEYLINE",
+   "text": "Most past fills came when the coin's MoneyLine was already red; a fill buys against your own trend signal. Decide before the fill which rule governs the position. The sheet uses the replicated pre-October-2026 MoneyLine. [computed: 62.8% of P1 fills with a defined state were red at placement (970 red, 574 green, 0 undefined)]"
+  },
+  {
+   "key": "CAPACITY",
+   "text": "Capacity: assume every rung fills on the same day, and keep each order within the size cap (a quarter of the 10th percentile of past seller-initiated dollars printed below the level on Binance spot): rung k = 6: 10th percentile $407,629, cap about $101,907 per order; rung k = 8: 10th percentile $327,952, cap about $81,988 per order; rung k = 10: 10th percentile $307,280, cap about $76,820 per order."
+  }
+ ],
+ "recommendation": [
+  {
+   "key": "H2R_INCONCLUSIVE",
+   "text": "Resting bids and alerts can't be told apart (an edge under about 3.2% wouldn't show). Prefer alerts: your cash stays free and earning."
+  },
+  {
+   "key": "H1_PASS",
+   "text": "Selling stink-bid fills into the rebound by hand beat random buys of the same coin by 6.3% per fill (95% CI +2.8% to +9.9%). After Robinhood costs, a flip made +4.8% on average. It held in both halves, without the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip target."
+  },
+  {
+   "key": "H4_INCONCLUSIVE",
+   "text": "Can't tell; the sheet uses plain volatility-scaled levels."
+  }
+ ]
+}
