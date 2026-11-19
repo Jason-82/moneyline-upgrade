@@ -8,3 +8,4 @@
 {"time": "2026-11-19 07:36:25 UTC", "mode": "real", "event": "start", "stage": "fcount"}
 {"time": "2026-11-19 08:16:27 UTC", "mode": "real", "event": "note", "stage": "fcount", "text": "fcount stopped at 08:13 UTC: the kernel's out-of-memory killer ended one of four engine workers (about 3 GB each) during P1/U_C. P1/U_Q1, P1/U_B and H4/U_Q1 were complete and cached; the stage resumes with 3 workers, and run_engine now retries a program with one worker fewer after a lost worker. No result depends on the number of workers."}
 {"time": "2026-11-19 08:16:29 UTC", "mode": "real", "event": "start", "stage": "fcount"}
+{"time": "2026-11-19 08:43:46 UTC", "mode": "real", "event": "complete", "stage": "fcount"}
