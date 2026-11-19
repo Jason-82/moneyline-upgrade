@@ -2760,20 +2760,25 @@ CI.
   fills, 13.8%) carry 42.3% of the total Δ; without the top five episodes +3.75%; 2021 alone 45%. Slides into L
   (previous minute closed under 1% above L) earn +2.85%, fast drops +13.4%. By fill count (pre-registered) the top
   three give 14.2%; without 2025-10-10 +6.06% (F3 +6.04%).
-- **What one flip looks like** (descriptive; the follow-up's completeness critic; F1). Median +3.19% after costs (CI
-  +0.99% to +5.97%; F3 +2.55%); 61.8% made money; 69.4% ended at the 72-h market sell (mean −1.03%), 29.3% at the
-  target (mean +18.2%); 10th percentile −10.2%; the best 5% supply 45% of the total. By rung: k = 6 +1.91% (53% of
-  fills), k = 8 +6.01%, k = 10 +11.39%.
-- **Since 2023 much weaker** (descriptive; the critic; F1 unless stated). Mean flip +2.68% (CI −0.65% to +6.02%; G 33,
-  G* 8.5); H1's half-2 Δ +4.42% does not clear E (p 0.33); by year 2021 +20.3%, 2023 −2.5%, 2024 +4.2%, 2025 +7.9%,
-  2026 +1.1%. D7 − B-MIX: 2020-22 +11.41 [+3.46, +24.37] (F3 +9.80), 2023-26 +0.27 [−4.36, +4.81] (F3 +0.37). The
-  full-sample PASS rests heavily on 2020-22.
-- **Bid life.** The PASS is for 7-day bids re-placed weekly: 30-day bids Δ +2.8% [−1.5, +7.0], 90-day
-  (good-till-cancelled) +4.2% [−1.0, +9.4]; neither significant.
+- **What one flip looks like** (descriptive; the follow-up's completeness critic; F1, F3 beside). Median +3.19% after
+  costs (block-bootstrap CI +0.99% to +5.97%; F3 +2.55%); 61.8% made money (F3 59.8%); 69.4% ended at the 72-h market
+  sell, mean −1.03% (F3 77.3%, −0.11%), and 29.3% at the target, mean +18.2% (F3 22.4%, +21.8%); 10th percentile
+  −10.2% (F3 −10.0%); the best 5% supply 45% of the total (F3 47%). By rung: k = 6 +1.91% (53% of fills), k = 8
+  +6.01%, k = 10 +11.39% (F3 +1.72% / +5.98% / +11.75%).
+- **Since 2023 much weaker** (descriptive; the critic; F1 unless stated). Mean flip +2.68% (CI −0.65% to +6.02%;
+  month-block G 33, G* 8.5; F3 +3.03%, CI −0.71% to +6.78%, G 31, G* 7.7); H1's half-2 Δ +4.42% (F3 +4.80%) is not
+  shown to clear E (p 0.32; F1 only); by year 2021 +20.3%, 2023 −2.5%, 2024 +4.2%, 2025 +7.9%, 2026 +1.1% (F3 +21.0%,
+  −2.2%, +4.0%, +8.4%, +2.0%). D7 − B-MIX: 2020-22 +11.41 [+3.46, +24.37] (F3 +9.80), 2023-26 +0.27 [−4.36, +4.81] (F3
+  +0.37). The full-sample PASS rests heavily on 2020-22.
+- **Bid life.** The PASS is for 7-day bids re-placed weekly: 30-day bids Δ +2.8% [−1.5, +7.0] (month-block G 62, G*
+  17.7; F3 +2.7%), 90-day (good-till-cancelled) +4.2% [−1.0, +9.4] (G 50, G* 12.0; F3 +3.7%); both intervals include
+  zero (descriptive sensitivity rows).
 - **Not tested together.** "Prefer alerts" and "flip the fills": the alert buyer paid 2.2% more per fill (F3 1.9%).
   Descriptively (the critic), a flip entered by alert made +2.71% per fill (CI −0.30% to +5.72%) and beat the twins
-  by +4.23% [+1.20, +7.26] (F3 +3.06%, +4.67%); since 2023 the alert-entered flip account beat the resting-bid one by
-  3.86 points a year (12-month interval 1.88 to 6.38), because its cash kept earning; in 2020-22 the order reversed.
+  by +4.23% [+1.20, +7.26] (month-block G 58, G* 14.5; F3 +3.05% and +4.67%, G 55, G* 13.9); since 2023 the
+  alert-entered flip account beat the resting-bid one by 3.86 points a year (12-month interval 1.88 to 6.38; F1; F3
+  proxy 4.05), because its cash kept earning; in 2020-22 the order reversed (the resting account led by 8.4 points;
+  F3 7.0).
 - **A2.7.** H2R decided under both other K3 rules (critical t 2.537 and 2.315): Holm p 0.0496 and 0.0416; all
   verdicts unchanged.
 
@@ -2811,7 +2816,7 @@ computed); U-A (hindsight) +5.82% (F3 +5.88%). H2R on F3 dwell (s = 1-5%): +0.55
 **Exploratory (BH within tables):** depth gradient Δ +3.5 / +7.5 / +12.8% at k = 6 / 8 / 10 (F3 +3.4 / +7.5 /
 +13.4%), q 0.004 (F3 q 0.009); market-wide fills +7.3% (q 0.007; F3 +7.3%, q 0.015), coin-specific +2.4% (q 0.14; F3
 +2.1%); NEAR +3.4% [−2.2, +9.0], 37 fills, G 20, G* 11.2, q 0.15 (F3 +4.3%; hindsight); HYPE on its index 5 fills,
-+17.3% (no verdict).
++17.3%, +7.8% without 2025-10-10 ("short history, perpetual-index proxy, no verdict").
 
 **Corrections after the audit (reporting only; no verdict changed; commits f6c15f5, cff65d7, 0a87d41):**
 - **Size cap (major).** Q_max used seller dollars over the order's whole life, not the fill's capacity window: $4,706
@@ -2840,11 +2845,11 @@ computed); U-A (hindsight) +5.82% (F3 +5.88%). H2R on F3 dwell (s = 1-5%): +0.55
 - Prefer price alerts at the sheet's levels: the data cannot tell resting bids from alerts (H2R; an edge under about
   3.2% per fill would not show). The flip (H1) was measured only on resting-bid fills; a flip entered by alert was
   not tested.
-- If you rest bids, the level sheet is a manual tool (`.venv/Scripts/python.exe -m analysis_2026.stinkbid_sheet
-  --refresh --coins NEAR --price NEAR=<the app's mid>`, weekly after Monday 03:30 UTC): bids at k = 6 / 8 / 10, the
-  flip target and "sell at market after 72 h", each order within the pooled cap, cash for every rung on every coin at
-  once, cancelled and re-placed every Monday; `.gitignore` keeps your weekly sheets out of this public repo (never
-  force-add them).
+- If the user rests bids, the level sheet is a manual tool for the user alone; the agent never places, previews or
+  cancels orders (`.venv/Scripts/python.exe -m analysis_2026.stinkbid_sheet --refresh --coins NEAR --price
+  NEAR=<the app's mid>`, weekly after Monday 03:30 UTC): bids at k = 6 / 8 / 10, the flip target and "sell at market
+  after 72 h", each order within the pooled cap, cash for every rung on every coin at once, cancelled and re-placed
+  every Monday; `.gitignore` keeps the user's weekly sheets out of this public repo (never force-add them).
 - Cancel a coin's bids on coin-specific news; decide in advance how a fill relates to the MoneyLine; HYPE has no
   verdict and is not tradable on Robinhood for New York residents.
 - Not for the trading agent (AGENTIC_TRADING_PLAN section 4; HANDOFF section 5.23).

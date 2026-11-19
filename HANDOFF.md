@@ -12,7 +12,7 @@ commit account numbers, balances, positions, order logs or digests.
 **Working branch:** `claude/add-price-data-csvs-MTD46` (also the default branch).
 **Last updated:** 2026-11-19. Most recent additions:
 
-- stink bids (resting limit buys far below the price on volatile crypto, the user's HYPE/NEAR idea): flipping the fills beat random buys of the same coin (PASS, +6.3% per fill), but it is not shown to cover its costs and reserved cash, it was much weaker after 2022, and the account test did not pass; resting bids vs alerts and chart levels vs volatility levels: the data cannot tell; a manual level sheet (section 5.23)
+- stink bids (resting limit buys far below the price on volatile crypto, the user's HYPE/NEAR idea): flipping the fills beat random buys of the same coin (PASS, +6.3% per fill; +6.5% on the Robinhood-route proxy), but it is not shown to cover its costs and reserved cash, it was much weaker after 2022, and the account test did not pass; resting bids vs alerts and chart levels vs volatility levels: the data cannot tell; a manual level sheet (section 5.23)
 - replicating a Twitter "AI breakdown" of a Bollinger-breakout crypto trader: the rules cannot be recovered from the post; the breakout rules (daily stock version, 1x) do not work on stocks or ETFs (NO EDGE), and on crypto the data cannot tell (section 5.22)
 - scalping and bid-ask capture in low-volume markets: none of 36 pre-registered tests passes (section 5.21)
 - investing by countries' policy direction: economic freedom, taxes, energy/industry (section 5.20)
@@ -1471,24 +1471,28 @@ exploratory; intervals use month-block clusters unless stated).
   +6.76%). By contribution (audit; F1, F3 not computed): 2021-05-19, 2025-10-10 and 2021-12-04 (213 of 1,541 fills,
   13.8%) carry 42.3%; without them +4.24% (t 4.29); without the top five +3.75%; 2021 alone 45% (Δ +21.6% on 203
   fills); 2022 +1.5%, 2023 −0.7%.
-- **What one flip looks like** (descriptive; the follow-up's completeness critic; F1, C-RH, 1,541 flips; F3 where
-  stated). Median +3.19% (block-bootstrap 95% CI +0.99% to +5.97%; F3 +2.55%); 61.8% made money; 69.4% ended at the
-  72-h market sell (mean −1.03%) and 29.3% at the target (mean +18.2%); 10th percentile −10.2%; the best 5% of flips
-  supply 45% of the summed return (without them +2.78%). By rung: k = 6 +1.91% (53% of fills; 2023-26 +1.14%, CI −1.3%
-  to +3.6%), k = 8 +6.01%, k = 10 +11.39%. Δ is nearly cost-invariant (C-0 +6.46%, C-RH +6.34%; the twins' gross
-  return is about +0.36%): whether the flip pays for costs and carry is the test against E.
+- **What one flip looks like** (descriptive; the follow-up's completeness critic; F1, C-RH, 1,541 flips; F3, 1,361
+  flips, beside each). Median +3.19% (block-bootstrap 95% CI +0.99% to +5.97%; F3 +2.55%, +0.51% to +5.73%); 61.8% made
+  money (F3 59.8%); 69.4% ended at the 72-h market sell, mean −1.03% (F3 77.3%, −0.11%), and 29.3% at the target, mean
+  +18.2% (F3 22.4%, +21.8%); 10th percentile −10.2% (F3 −10.0%); the best 5% of flips supply 45% of the summed return,
+  without them +2.78% (F3 47.2%, +2.69%). By rung: k = 6 +1.91% (53% of fills), k = 8 +6.01%, k = 10 +11.39% (F3
+  +1.72% / +5.98% / +11.75%); k = 6 in 2023-26 +1.14% (CI −1.3% to +3.6%; month-block G 33, G* 8.6; F3 not computed).
+  Δ is nearly cost-invariant (C-0 +6.46%, C-RH +6.34%; the twins' gross return is about +0.37%): whether the flip pays
+  for costs and carry is the test against E.
 - **Since 2023** (descriptive; the critic; F1 unless stated). In the pre-registered second half (2023-01..2026-11) the
-  mean flip made +2.68% (95% CI −0.65% to +6.02%; G 33, G* 8.5); by year 2021 +20.3%, 2023 −2.5%, 2024 +4.2%, 2025
-  +7.9%, 2026 (to November) +1.1%. H1's half-2 Δ, +4.42%, does not clear E = 3.75% (one-sided t 0.47, p 0.33). D7 −
-  B-MIX (CAGR points a year, 12-month block-bootstrap interval): 2020-22 +11.41 [+3.46, +24.37] (F3 +9.80); 2023-26
-  +0.27 [−4.36, +4.81] (F3 +0.37 [−4.11, +4.93]). The T-bill carry of the cash the bids tie up rose from 0.65% to 3.64%
-  of capital a year.
+  mean flip made +2.68% (95% CI −0.65% to +6.02%; month-block G 33, G* 8.5; F3 +3.03% [−0.71, +6.78], G 31, G* 7.7);
+  by year 2021 +20.3%, 2023 −2.5%, 2024 +4.2%, 2025 +7.9%, 2026 (to November) +1.1% (F3 +21.0%, −2.2%, +4.0%, +8.4%,
+  +2.0%). H1's half-2 Δ, +4.42% (F3 +4.80%), is not shown to clear E = 3.75% (one-sided t 0.47, p 0.32; F1 only). D7 −
+  B-MIX (CAGR points a year, 12-month block-bootstrap interval): 2020-22 +11.41 [+3.46, +24.37] (F3 +9.80 [+1.65,
+  +23.06]); 2023-26 +0.27 [−4.36, +4.81] (F3 +0.37 [−4.11, +4.93]). The T-bill carry of the cash the bids tie up rose
+  from 0.65% to 3.64% of capital a year.
 - **Alert-entered flip** (descriptive; the critic; not pre-registered as a test): an alert at the level, a buy by hand
   at the rule-M time, then the same R1/2 target. Per fill +2.71% after costs (95% CI −0.30% to +5.72%); Δ against the
-  same twins +4.23% [+1.20, +7.26] (G 58, G* 14.5); half-2 Δ +4.91% [+0.14, +9.67]; F3 +3.06%, Δ +4.67%. As accounts,
-  in 2023-26 the alert-entered flip account beat the resting-bid flip account by 3.86 points a year (12-month interval
-  1.88 to 6.38; F1), because its cash stayed in T-bills; in 2020-22 the resting account led by 8.4 (+3.3 to +15.4).
-  Few 12-month blocks.
+  same twins +4.23% [+1.20, +7.26] (G 58, G* 14.5); half-2 Δ +4.91% [+0.14, +9.67] (G 33, G* 8.5). F3: +3.05% [−0.35,
+  +6.46], Δ +4.67% [+1.21, +8.12] (G 55, G* 13.9), half-2 Δ +5.53% [+0.31, +10.76] (G 31, G* 7.8). As accounts, in
+  2023-26 the alert-entered flip account beat the resting-bid flip account by 3.86 points a year (12-month interval
+  1.88 to 6.38; F1; F3 proxy 4.05), because its cash stayed in T-bills; in 2020-22 the resting account led by 8.4
+  (+3.3 to +15.4; F3 proxy 7.0). Few 12-month blocks.
 - **Where H1 comes from** (audit; F1, F3 not computed). Slides into L (previous minute closed under 1% above L):
   +2.85% [+0.06, +5.64] (770 fills; G and G* not reported by the audit); fast drops (previous close ≥ 3% above L):
   +13.4%; 26 single-minute spikes +18.6%. Target hit by 30.0% of fills and 13.8% of twins. Two-thirds of the gross
@@ -1573,8 +1577,8 @@ exploratory; intervals use month-block clusters unless stated).
   the 2-3 biggest crashes cannot be tested at any size. Twins drawn more than six months away also reflect bear/bull
   timing (K1c −6.1% per 90 days; −0.6% for the flip).
 - **Since 2023 the flip was much weaker** (Key numbers): the pre-registered test pools 2020-2026, and the full-sample
-  PASS rests heavily on 2020-22. **Bid life:** the PASS is for 7-day bids re-placed every Monday; 30- and 90-day bids
-  were not significant.
+  PASS rests heavily on 2020-22. **Bid life:** the PASS is for 7-day bids re-placed every Monday; the 30- and 90-day
+  bids' 95% intervals include zero (descriptive sensitivity rows).
 - **K3 vs H2R.** K3's synthetic panels were less dispersed than H2R's real data (real SE 1.8-4.7× the nulls').
 - **Pooled twins** (audit; F1, F3 not computed): 149 of 1,541 fills (9.7%); without them H1 is +6.51%. **Rule M
   boundary:** 49 fills had a go-live delay under 60 minutes (average −1.24%); a target filling inside the go-live
@@ -1585,25 +1589,28 @@ exploratory; intervals use month-block clusters unless stated).
   coins whose trading later ended keep all 157 fills.
 
 **Use.**
-- Prefer price alerts at the sheet's levels: the data cannot tell resting bids from alerts (H2R; an edge under about
-  3.2% per fill would not show), and alerts keep cash free and earning. The flip (H1) was measured only on
-  resting-bid fills; a flip entered by alert was not tested (the alert buyer paid 2.2% more per fill, F3 1.9%).
-  Descriptively (the critic), a flip entered by alert made +2.71% per fill after costs and beat the twins by +4.23%,
-  and since 2023 the alert-entered flip account beat the resting-bid one by 3.86 points a year, because its cash kept
-  earning.
-- If you rest bids anyway, the sheet is a manual tool: run it weekly after Monday 03:30 UTC with `--refresh` and the
-  Robinhood app's mids, enter the bids by hand, and after a fill enter the flip target as a limit sell, then sell at
-  market after 72 h. Cancel and re-place every Monday as the sheet's order diff says (the evidence is for weekly bids
-  at fresh levels; 30- and 90-day bids were not significant). Your weekly sheets list your orders: `.gitignore` keeps `sheet_*` and `diff_*` out of this public repo
-  (never force-add them).
-- Size each order within the cap (about $4.7k / $5.2k / $6.1k at k = 6 / 8 / 10); per-coin caps in the sheet rest on
-  few fills and can be far above the pooled cap (NEAR: $1,049 at k = 6 but $169k at k = 10 from 5 fills), so treat the
-  pooled cap as the ceiling. Hold cash for every rung on every coin at once: one crash fills the ladder.
+- The pre-registered answer is "prefer price alerts at the sheet's levels": the data cannot tell resting bids from
+  alerts (H2R; an edge under about 3.2% per fill would not show), and alerts keep cash free and earning. The flip (H1)
+  was measured only on resting-bid fills; a flip entered by alert was not tested (the alert buyer paid 2.2% more per
+  fill, F3 1.9%). Descriptively (the critic), a flip entered by alert made +2.71% per fill after costs and beat the
+  twins by +4.23% (F1; F3 proxy +3.05% and +4.67%), and since 2023 the alert-entered flip account beat the resting-bid
+  one by 3.86 points a year (F1; F3 proxy 4.05), because its cash kept earning.
+- If the user rests bids anyway, the sheet is a manual tool for the user alone (the agent never places, previews or
+  cancels orders; prereg §13): run it weekly after Monday 03:30 UTC with `--refresh` and the Robinhood app's mids,
+  enter the bids by hand, and after a fill enter the flip target as a limit sell, then sell at market after 72 h.
+  Cancel and re-place every Monday as the sheet's order diff says (the evidence is for weekly bids at fresh levels;
+  the 30- and 90-day bids' 95% intervals include zero, descriptive sensitivity rows). The user's weekly sheets list
+  their orders: `.gitignore` keeps `sheet_*` and `diff_*` out of this public repo (never force-add them).
+- Size each order within the cap (about $4.7k / $5.2k / $6.1k at k = 6 / 8 / 10). Per-coin caps in the sheet rest on
+  few fills and can be far below or far above the pooled cap (NEAR: $1,049 at k = 6 from 16 fills, but $169k at k =
+  10 from 5): treat the pooled cap as the ceiling and a lower per-coin cap as a reason to go lower. Hold cash for
+  every rung on every coin at once: one crash fills the ladder.
 - Cancel a coin's bids on coin-specific news. Decide before a fill how it relates to the MoneyLine (62.8% of fills
-  came while it was red, F3 63.8%; 72 of the sheet's 74 coins were red on 2026-11-19, counted from the sheet).
+  came from bids placed while it was red, F3 63.8%; 72 of the sheet's 74 coins were red on 2026-11-19, counted from
+  the sheet).
 - HYPE: no verdict (venue token; short history; not tradable on Robinhood for New York residents).
 - Deeper rungs earned more per fill but fill less often (exploratory). The shallowest rung, k = 6, holds 53% of fills,
-  and its flips made +1.91% on average (+1.14% in 2023-26; descriptive).
+  and its flips made +1.91% on average (F3 +1.72%; +1.14% in 2023-26, F1 only; descriptive).
 - **Do not add it to the agent** (AGENTIC_TRADING_PLAN section 4): the account test did not pass, the edge is per
   fill and concentrated in rare crashes, and Robinhood fidelity is unknown.
 

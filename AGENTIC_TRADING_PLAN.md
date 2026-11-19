@@ -208,8 +208,11 @@ Do **not** add these (all tested):
   same coin by +6.3% per fill (PASS: 95% CI +2.8% to +9.9%, 1,541 fills, G = 58, G* = 14.5;
   Robinhood-route proxy +6.5%, 95% CI +2.4% to +10.5%, 1,361 fills, G = 54, G* = 13.8), but that
   is not shown to clear the 3.75% per fill that pays for the round trip and the reserved cash (p
-  0.069), and since 2023 the flip was much weaker (+2.7% per fill after costs, 95% CI −0.7% to
-  +6.0%; Binance only); whether chart levels beat plain volatility-scaled levels, the data cannot tell
+  0.069 in the outcome audit's one-sided test after the results, Binance only; the
+  Robinhood-route proxy's 95% interval starts at +2.4%), and since 2023 the flip was much weaker
+  (descriptive, after the results: +2.7% per fill after costs, 95% CI −0.6% to +6.0%,
+  month-block clusters G = 33, G* = 8.5; Robinhood-route proxy +3.0%, 95% CI −0.7% to +6.8%,
+  G = 31, G* = 7.7); whether chart levels beat plain volatility-scaled levels, the data cannot tell
   (INCONCLUSIVE: +0.2% per fill, 95% interval over the four chart methods −0.6% to +1.1%, G =
   33, G* = 10.4; Robinhood-route proxy +0.0%; an edge under about 1.2% would not show). Not for
   the agent: the pre-registered account test did not pass (the flip account on the
