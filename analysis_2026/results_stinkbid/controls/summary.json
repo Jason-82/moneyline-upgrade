@@ -1,0 +1,1256 @@
+{
+ "prereg": "analysis_2026/STINKBID_PREREG.md (FROZEN 2026-11-18, commit 72ac2a4) \u00a710.5",
+ "quick": false,
+ "partial": false,
+ "valid_gate": true,
+ "jobs": 3,
+ "started": "2026-11-19T10:06:10.131654+00:00",
+ "timings": {
+  "calendars": 330.850430727005,
+  "K1": 0.07388520240783691,
+  "K3": 2977.5619883537292,
+  "K4": 195.6319682598114,
+  "K5": 16.841343641281128,
+  "K6": 38.92278432846069,
+  "K7": 90.52212262153625,
+  "K8": 0.04777979850769043
+ },
+ "code": {
+  "src_hash": "9142fa8d36c1470c",
+  "calendar_key": {
+   "key": "7610f24e4687a922",
+   "code": "cf4e3480e2573c3c",
+   "cfg": "9ff9c12ef1d4b589",
+   "data": "cb1f4c157d310844"
+  }
+ },
+ "calendars": {
+  "prefetch": {
+   "coin_days": 5258,
+   "index": {
+    "coin_months": 1329,
+    "missing_days": 629,
+    "errors": 0,
+    "seconds": 0.4271552562713623
+   },
+   "perp": {
+    "coin_months": 1329,
+    "missing_days": 830,
+    "errors": 0,
+    "seconds": 0.5026133060455322
+   }
+  },
+  "p1": {
+   "seconds": 119.91024708747864,
+   "bids": 33486,
+   "fills_F1": 1544,
+   "audit": {
+    "violations": 0,
+    "gaps": 6,
+    "checks": 8472
+   },
+   "rules": [
+    "F1",
+    "F2",
+    "F3_1",
+    "F3_3",
+    "F3d_1",
+    "F5"
+   ]
+  },
+  "h4": {
+   "seconds": 107.6088707447052,
+   "bids": 130490,
+   "fills_F1": 7093,
+   "audit": {
+    "violations": 0,
+    "gaps": 25,
+    "checks": 7093
+   }
+  },
+  "seconds": 329.66436529159546,
+  "key": "7610f24e4687a922",
+  "key_parts": {
+   "key": "7610f24e4687a922",
+   "code": "cf4e3480e2573c3c",
+   "cfg": "9ff9c12ef1d4b589",
+   "data": "cb1f4c157d310844"
+  },
+  "built": "2026-11-19T10:11:40.971053+00:00",
+  "reused": false
+ },
+ "calendar_key": "7610f24e4687a922",
+ "real_p1_rates": {
+  "6": 0.07328435764199964,
+  "8": 0.03950904855760616,
+  "10": 0.025533058591650244
+ },
+ "K1": {
+  "passed": true,
+  "K1a": {
+   "passed": true,
+   "exits": {
+    "FLIP": {
+     "n_fills": 925,
+     "n_compared": 925,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 925,
+     "oracle_r": 0.0019343228563867834,
+     "engine_r": 0.0019343228563867834,
+     "se_r": 0.003699616258992251,
+     "oracle_delta": 0.0016884523661448662,
+     "engine_delta": 0.002102968267308538,
+     "se_delta": 0.003719738175207657,
+     "diff_r_se": 0.0,
+     "diff_delta_se": 0.11143684894986758,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": 0.0020633878838723185,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    },
+    "FLIP_bot": {
+     "n_fills": 925,
+     "n_compared": 925,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 925,
+     "oracle_r": 0.0019343228563867834,
+     "engine_r": 0.0019343228563867834,
+     "se_r": 0.003699616258992251,
+     "oracle_delta": 0.002506519870625432,
+     "engine_delta": 0.0020986521123936455,
+     "se_delta": 0.00372400450566601,
+     "diff_r_se": 0.0,
+     "diff_delta_se": -0.10952397012710983,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": 0.002059152964166324,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    },
+    "HOLD90": {
+     "n_fills": 925,
+     "n_compared": 915,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 915,
+     "oracle_r": 0.051168304738305366,
+     "engine_r": 0.051168304738305366,
+     "se_r": 0.02574976148955524,
+     "oracle_delta": 0.033871543647417644,
+     "engine_delta": 0.03864887233590996,
+     "se_delta": 0.026883816871340983,
+     "diff_r_se": 0.0,
+     "diff_delta_se": 0.1777027685970106,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": 0.037921454233500546,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    }
+   },
+   "fills": 925,
+   "exact_ok": true
+  },
+  "K1b": {
+   "passed": true,
+   "exits": {
+    "FLIP": {
+     "n_fills": 1791,
+     "n_compared": 1791,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 1791,
+     "oracle_r": -0.1336870591511724,
+     "engine_r": -0.1336870591511724,
+     "se_r": 0.0041989956224858325,
+     "oracle_delta": -0.13285462153738264,
+     "engine_delta": -0.1326878542750583,
+     "se_delta": 0.004219340232686388,
+     "diff_r_se": 0.0,
+     "diff_delta_se": 0.03952448798331746,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": -0.13019050981619143,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    },
+    "FLIP_bot": {
+     "n_fills": 1791,
+     "n_compared": 1791,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 1791,
+     "oracle_r": -0.1336870591511724,
+     "engine_r": -0.1336870591511724,
+     "se_r": 0.0041989956224858325,
+     "oracle_delta": -0.13284687367152087,
+     "engine_delta": -0.13267173808488505,
+     "se_delta": 0.004209463070414087,
+     "diff_r_se": 0.0,
+     "diff_delta_se": 0.041605208005444747,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": -0.13017469695203432,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    },
+    "HOLD90": {
+     "n_fills": 1791,
+     "n_compared": 1740,
+     "r0_max_abs_diff": 0.0,
+     "rRH_max_abs_diff": 0.0,
+     "finite_differ": 0,
+     "kind_differ": 0,
+     "minute_differ": 0,
+     "n": 1740,
+     "oracle_r": -0.17768464579094656,
+     "engine_r": -0.17768464579094656,
+     "se_r": 0.01908143034993194,
+     "oracle_delta": -0.2025198356450305,
+     "engine_delta": -0.2004761120699736,
+     "se_delta": 0.01991693788130701,
+     "diff_r_se": 0.0,
+     "diff_delta_se": 0.10261233866552587,
+     "pass_r": true,
+     "pass_delta": true,
+     "engine_delta_RH": -0.19670291134750753,
+     "oracle_twin_delisted": 0.0,
+     "passed": true
+    }
+   },
+   "fills": 1791,
+   "exact_ok": true,
+   "fill_counts": {
+    "real_rates": {
+     "6": 0.07328435764199964,
+     "8": 0.03950904855760616,
+     "10": 0.025533058591650244
+    },
+    "synthetic": {
+     "6": {
+      "bids": 14199,
+      "fills": 884,
+      "rate": 0.062257905486301855
+     },
+     "8": {
+      "bids": 14195,
+      "fills": 518,
+      "rate": 0.03649172243747799
+     },
+     "10": {
+      "bids": 14186,
+      "fills": 389,
+      "rate": 0.027421401381643874
+     }
+    },
+    "rel_error": {
+     "6": -0.1504611967749373,
+     "8": -0.0763705082831534,
+     "10": 0.07395677972599612
+    },
+    "within_25pct": true
+   }
+  },
+  "K1c": {
+   "report": "what regime timing alone produces",
+   "measure": "paired: K1c minus K1c0 (the same seed, regime states, crash schedule and shocks; no regime drift and each regime's crashes compensated at its own intensity) over the fills both worlds share; month-block CR1 SE",
+   "regime_drift_per_day": 0.002,
+   "bear_mult": 3.0,
+   "regime_mean_days": 182.0,
+   "total": {
+    "FLIP": {
+     "engine_delta_RH": -0.15912402766111786,
+     "engine_delta": -0.16217638154861028,
+     "se": 0.015419593677417454,
+     "se_iid": 0.004366490220710814,
+     "n": 1826,
+     "G": 68,
+     "gstar": 22.176709432340964,
+     "engine_matches_oracle": true
+    },
+    "HOLD90": {
+     "engine_delta_RH": -0.14510138173839676,
+     "engine_delta": -0.14788474998981474,
+     "se": 0.0794892820026978,
+     "se_iid": 0.018568589386954965,
+     "n": 1713,
+     "G": 65,
+     "gstar": 20.58769141038038,
+     "engine_matches_oracle": true
+    }
+   },
+   "minute_level": {
+    "FLIP": {
+     "engine_delta_RH": -0.1521459835708869,
+     "engine_delta": -0.1550644830033421,
+     "se": 0.0157101609671839,
+     "se_iid": 0.004372439797405773,
+     "n": 1820,
+     "G": 68,
+     "gstar": 23.42563901462669,
+     "engine_matches_oracle": true
+    },
+    "HOLD90": {
+     "engine_delta_RH": -0.08376554373165852,
+     "engine_delta": -0.08537235375780844,
+     "se": 0.07466563292314805,
+     "se_iid": 0.017657306829536278,
+     "n": 1716,
+     "G": 65,
+     "gstar": 21.878093920422284,
+     "engine_matches_oracle": true
+    }
+   },
+   "FLIP": {
+    "engine_delta_RH": -0.005755198186343938,
+    "engine_delta": -0.005865595728535289,
+    "se": 0.0031442307495466427,
+    "se_C0": 0.003204544110719168,
+    "se_iid": 0.0008863120206133998,
+    "n": 1726,
+    "G": 64,
+    "gstar": 22.45659219497176,
+    "unit": "month-block",
+    "oracle_delta": -0.006383284583016738,
+    "oracle_delta_RH": -0.006263143516075364,
+    "n_K1c": 1826,
+    "n_K1c0": 1820,
+    "n_common": 1726
+   },
+   "HOLD90": {
+    "engine_delta_RH": -0.06077305297024459,
+    "engine_delta": -0.061938815722828784,
+    "se": 0.05058262479944832,
+    "se_C0": 0.051552912402870354,
+    "se_iid": 0.008872929994419956,
+    "n": 1622,
+    "G": 61,
+    "gstar": 20.899717028071965,
+    "unit": "month-block",
+    "oracle_delta": -0.061989554135206466,
+    "oracle_delta_RH": -0.06082283642488557,
+    "n_K1c": 1713,
+    "n_K1c0": 1716,
+    "n_common": 1622
+   },
+   "gap_through": {
+    "fills": 1828,
+    "share_open_below_L": 0.700218818380744,
+    "mean_close_over_L": -0.14771574825925965
+   },
+   "delta90": -0.06077305297024459,
+   "note": "delta90 = HOLD90.engine_delta_RH = the regime component (K1c minus K1c0, paired); total = K1c's own Delta, which includes the minute-level gap-through cost of K1b's jumps (minute_level = K1c0's Delta, that cost alone); a diagnostic, not what regime timing alone produces"
+  },
+  "K1d": {
+   "HOLD90": {
+    "fills": 1902,
+    "fills_delisted": 31,
+    "fills_share": 0.01629863301787592,
+    "twins": 190200,
+    "twins_delisted": 5028,
+    "twins_share": 0.026435331230283913,
+    "fills_open_at_end": 31,
+    "fills_open_at_end_haircut": 31,
+    "fills_haircut_not_open": 0,
+    "twins_open_at_end": 5028,
+    "twins_open_at_end_haircut": 5028,
+    "twins_haircut_not_open": 0,
+    "conditional_ok": true,
+    "engine_twins_delisted": 5028,
+    "oracle_twins_delisted": 5020,
+    "diff_se": 0.0831688458617439,
+    "rate_ok": true
+   },
+   "FLIP": {
+    "fills": 1902,
+    "fills_delisted": 0,
+    "fills_share": 0.0,
+    "twins": 190200,
+    "twins_delisted": 170,
+    "twins_share": 0.0008937960042060989
+   },
+   "passed": true,
+   "engine_matches_oracle": true
+  },
+  "wrong_engines": {
+   "close": {
+    "engine_r": 0.008496877933171155,
+    "engine_delta": 0.00949608280928524,
+    "oracle_r": -0.1336870591511724,
+    "oracle_delta": -0.13285462153738264,
+    "se_r": 0.0041989956224858325,
+    "se_delta": 0.004219340232686388,
+    "diff_r_se": 33.861415887871246,
+    "diff_delta_se": 33.73766904216573,
+    "fails": true,
+    "seconds": 360.52552461624146
+   },
+   "low": {
+    "engine_r": 0.009996118658001766,
+    "engine_delta": 0.010995323534115855,
+    "oracle_r": -0.1336870591511724,
+    "oracle_delta": -0.13285462153738264,
+    "se_r": 0.0041989956224858325,
+    "se_delta": 0.004219340232686388,
+    "diff_r_se": 34.21846334865022,
+    "diff_delta_se": 34.092994908806276,
+    "fails": true,
+    "seconds": 361.6355118751526
+   }
+  },
+  "exact_diagnostics": {
+   "K1a": true,
+   "K1b": true,
+   "K1c": true,
+   "K1c0": true,
+   "K1d": true,
+   "K2": true
+  },
+  "lines": [
+   "K1a: 925 fills; X-FLIP r_f engine +0.0019 vs oracle +0.0019 (2 SE = 0.0074); Delta engine +0.0021 vs oracle +0.0017 (2 SE = 0.0074); pass (all K1 exits)",
+   "K1b: 1791 fills; X-FLIP r_f engine -0.1337 vs oracle -0.1337 (2 SE = 0.0084); Delta engine -0.1327 vs oracle -0.1329 (2 SE = 0.0084); pass (all K1 exits)",
+   "wrong engine (fill at the minute's close): r_f +0.0085, +33.9 SE from the oracle: fails (as required)",
+   "wrong engine (fill at the minute's low): r_f +0.0100, +34.2 SE from the oracle: fails (as required)",
+   "K1b fill rates vs real P1: k=6 6.23% vs 7.33% (-15%), k=8 3.65% vs 3.95% (-8%), k=10 2.74% vs 2.55% (+7%) -> within +-25%",
+   "K1c (what regime timing alone produces: K1c minus its paired null K1c0, so the minute-level gap-through cost cancels): Delta X-FLIP -0.0058 (SE 0.0031), X-HOLD-90 -0.0608 (SE 0.0506) at C-RH, month-block CR1 SE (G* 20.9), 1622 paired X-HOLD-90 fills; oracle -0.0063 / -0.0608",
+   "K1c diagnostics (not regime timing): K1c's total Delta -0.1591 / -0.1451 (clustered SE 0.0154 / 0.0795); the minute-level cost alone (K1c0) -0.1521 / -0.0838; 70% of K1c's fill minutes opened below L",
+   "K1d: X-HOLD-90 fills closed at the delisting value 31/1902, twins 5028/190200; every position open at the end of trading took the haircut: True; engine vs oracle twin delistings +0.08 SE: pass"
+  ]
+ },
+ "K2": {
+  "passed": true,
+  "FLIP": {
+   "n": 1877,
+   "delta_RH": 0.07731161876079734,
+   "se": 0.01154789954364958,
+   "t": 6.694864158505132,
+   "G": 69,
+   "gstar": 17.769010979040083,
+   "p_decide": 0.0001,
+   "t_ok": true,
+   "oracle_match": true,
+   "oracle_delta": 0.07891839208858355,
+   "engine_delta": 0.07879462810603224,
+   "se_delta": 0.0038735437149227995
+  },
+  "FLIP_bot": {
+   "n": 1877,
+   "delta_RH": 0.07684267680991617,
+   "se": 0.011481491744507378,
+   "t": 6.692743288055482,
+   "G": 69,
+   "gstar": 17.769010979040083,
+   "p_decide": 0.0001,
+   "t_ok": true,
+   "oracle_match": true,
+   "oracle_delta": 0.07830924329968646,
+   "engine_delta": 0.0783166908022316,
+   "se_delta": 0.0038526091230329683
+  },
+  "lines": [
+   "FLIP: Delta (C-RH) +0.0773, t 6.69 (G* 17.8), oracle match True",
+   "FLIP_bot: Delta (C-RH) +0.0768, t 6.69 (G* 17.8), oracle match True"
+  ]
+ },
+ "K3": {
+  "n_reps": 5000,
+  "B": 9999,
+  "scenarios": [
+   "base",
+   "high",
+   "hetero"
+  ],
+  "all_nominal_ok": true,
+  "seconds": 2977.375956058502,
+  "tests": {
+   "H1": {
+    "rule": "nominal",
+    "k3_nominal_ok": true,
+    "worst_scenario": "high",
+    "by_scenario": {
+     "base": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0184,
+        "ci95": [
+         0.014858115856126699,
+         0.022518816602679063
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0288,
+        "ci95": [
+         0.024341114401727378,
+         0.033819660150501224
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.053,
+        "ci95": [
+         0.046952731024789696,
+         0.059575575707645996
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0104,
+       "ci95": [
+        0.007776698667748371,
+        0.013616103196664245
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": -0.0004539329111884788,
+      "mde_formula": 0.04511716044253962,
+      "gstar_median": 14.490637963737022
+     },
+     "high": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.019,
+        "ci95": [
+         0.015398641720779612,
+         0.023177272868713336
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0306,
+        "ci95": [
+         0.02600179122469882,
+         0.03575640270523291
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.055,
+        "ci95": [
+         0.048842168521267514,
+         0.0616835875409323
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0096,
+       "ci95": [
+        0.0070865259622987795,
+        0.012708273873810936
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": -0.001183685590463216,
+      "mde_formula": 0.05424753848391714,
+      "gstar_median": 14.490637963737022
+     },
+     "hetero": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.017,
+        "ci95": [
+         0.013600985375035646,
+         0.020978385411047636
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.027,
+        "ci95": [
+         0.022685248974155435,
+         0.03187815308299453
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0478,
+        "ci95": [
+         0.042052092058814876,
+         0.054082909809097246
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0108,
+       "ci95": [
+        0.008123416818640355,
+        0.014068429971882393
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": -0.0004936762017042848,
+      "mde_formula": 0.047731614567603844,
+      "gstar_median": 14.490637963737022
+     }
+    }
+   },
+   "H2R": {
+    "rule": "nominal",
+    "k3_nominal_ok": true,
+    "worst_scenario": "hetero",
+    "by_scenario": {
+     "base": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0116,
+        "ci95": [
+         0.008819824693111369,
+         0.014970187194096908
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0202,
+        "ci95": [
+         0.016482597461354852,
+         0.024491323780188506
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0458,
+        "ci95": [
+         0.04017222160147714,
+         0.051965383655008225
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0096,
+       "ci95": [
+        0.0070865259622987795,
+        0.012708273873810936
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": 3.141493434459835e-05,
+      "mde_formula": 0.006223063129894543,
+      "gstar_median": 14.490637963737022
+     },
+     "high": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0098,
+        "ci95": [
+         0.0072586408898721155,
+         0.012935647565961862
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0164,
+        "ci95": [
+         0.013064102533060088,
+         0.0203163438593156
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0416,
+        "ci95": [
+         0.03623462162851786,
+         0.047508513268730894
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0114,
+       "ci95": [
+        0.00864536768753444,
+        0.014745094198456793
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": -2.391482627540556e-05,
+      "mde_formula": 0.009532616366652973,
+      "gstar_median": 14.490637963737022
+     },
+     "hetero": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0136,
+        "ci95": [
+         0.01057599098793965,
+         0.017209785667083918
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0228,
+        "ci95": [
+         0.018843111160935292,
+         0.027326653650086546
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0512,
+        "ci95": [
+         0.045254343099512,
+         0.05767627018690152
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0164,
+       "ci95": [
+        0.013064102533060088,
+        0.0203163438593156
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": 0.00011391244320058215,
+      "mde_formula": 0.016500692699553163,
+      "gstar_median": 14.490637963737022
+     }
+    }
+   },
+   "H4": {
+    "rule": "nominal",
+    "k3_nominal_ok": true,
+    "worst_scenario": "hetero",
+    "by_scenario": {
+     "base": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.006,
+        "ci95": [
+         0.00405172827869462,
+         0.00855438013468656
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0122,
+        "ci95": [
+         0.009344532689387841,
+         0.015644160797851112
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0304,
+        "ci95": [
+         0.02581704715486215,
+         0.03554143141002901
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0068,
+       "ci95": [
+        0.004713660465491262,
+        0.009489470047401105
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": 0.0029887858901629853,
+      "mde_formula": 0.008928922972800566,
+      "gstar_median": 11.527735838179506
+     },
+     "high": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0056,
+        "ci95": [
+         0.0037242892661563365,
+         0.008083463298635194
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0108,
+        "ci95": [
+         0.008123416818640355,
+         0.014068429971882393
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.026,
+        "ci95": [
+         0.021767574583048552,
+         0.030797310361565574
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0048,
+       "ci95": [
+        0.003077799042597425,
+        0.007133653196323667
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": 0.005197718157597139,
+      "mde_formula": 0.01594546726569887,
+      "gstar_median": 11.527735838179506
+     },
+     "hetero": {
+      "false_pass": {
+       "0.0167": {
+        "rate": 0.0068,
+        "ci95": [
+         0.004713660465491262,
+         0.009489470047401105
+        ],
+        "limit": 0.025,
+        "ok": true
+       },
+       "0.0250": {
+        "rate": 0.0116,
+        "ci95": [
+         0.008819824693111369,
+         0.014970187194096908
+        ],
+        "limit": 0.037500000000000006,
+        "ok": true
+       },
+       "0.0500": {
+        "rate": 0.0292,
+        "ci95": [
+         0.024709753198828895,
+         0.03425044408154172
+        ],
+        "limit": 0.07500000000000001,
+        "ok": true
+       }
+      },
+      "noedge_miss": {
+       "rate": 0.0084,
+       "ci95": [
+        0.0060604959980396535,
+        0.011337570119456861
+       ],
+       "limit": 0.025000000000000078,
+       "ok": true
+      },
+      "est_mean": 0.004501690903028238,
+      "mde_formula": 0.018935873674971376,
+      "gstar_median": 11.527735838179506
+     }
+    }
+   }
+  },
+  "passed": true,
+  "calibration_file": "k3_calibration.json",
+  "lines": [
+   "H1: rule nominal (worst scenario high: false PASS 1.67% -> 1.90% [CI up 2.32%], 2.50% -> 3.06% [CI up 3.58%], 5.00% -> 5.50% [CI up 6.17%]; NO EDGE miss 0.96%)",
+   "H2R: rule nominal (worst scenario hetero: false PASS 1.67% -> 1.36% [CI up 1.72%], 2.50% -> 2.28% [CI up 2.73%], 5.00% -> 5.12% [CI up 5.77%]; NO EDGE miss 1.64%)",
+   "H4: rule nominal (worst scenario hetero: false PASS 1.67% -> 0.68% [CI up 0.95%], 2.50% -> 1.16% [CI up 1.50%], 5.00% -> 2.92% [CI up 3.43%]; NO EDGE miss 0.84%)",
+   "H1 MDE (nominal rule, base / high / hetero): 4.51% / 5.42% / 4.77%",
+   "H2R MDE (nominal rule, base / high / hetero): 0.62% / 0.95% / 1.65%",
+   "H4 MDE (nominal rule, base / high / hetero): 0.89% / 1.59% / 1.89%"
+  ]
+ },
+ "K4": {
+  "passed": true,
+  "synthetic": {
+   "ok": true,
+   "cuts": 50,
+   "by_why": {
+    "uniform": 14,
+    "placement": 12,
+    "crash_hour": 12,
+    "weekend": 12
+   },
+   "worlds": 150,
+   "comparisons": 2250,
+   "failures": 0,
+   "compared": {
+    "n_bids": 1768143,
+    "n_fills": 1087707,
+    "n_capacity_minutes": 657305436,
+    "n_exits": 642702,
+    "n_alerts": 271344,
+    "n_twin_exits": 4335099
+   }
+  },
+  "real_universes": {
+   "ok": true,
+   "rows": 177703,
+   "changed": 0
+  },
+  "real_levels": {
+   "ok": true,
+   "rows": 6554,
+   "changed": 0
+  },
+  "real_fills": {
+   "ok": true,
+   "runs": 288,
+   "failures": 0,
+   "cuts_by_why": {
+    "placement": 6,
+    "crash_hour": 6,
+    "weekend": 6,
+    "uniform": 6
+   }
+  },
+  "lines": [
+   "synthetic: 50 cuts ({'uniform': 14, 'placement': 12, 'crash_hour': 12, 'weekend': 12}) x scale / delete / 3-day gap, 2250 run comparisons, 0 failing; compared {'n_bids': 1768143, 'n_fills': 1087707, 'n_capacity_minutes': 657305436, 'n_exits': 642702, 'n_alerts': 271344, 'n_twin_exits': 4335099}",
+   "real universes: 177703 rows before the cut, 0 cuts changed",
+   "real levels: 6554 level rows, 0 changed",
+   "real fills and capacity: 288 runs on 24 cuts ({'placement': 6, 'crash_hour': 6, 'weekend': 6, 'uniform': 6}), 0 failing"
+  ]
+ },
+ "K5": {
+  "passed": true,
+  "violations": 0,
+  "gaps": 265340,
+  "checks": 41909531,
+  "real_reaudit": 1544,
+  "lines": [
+   "41909531 engine checks, 0 violations, 265340 gap-through fills listed; real P1 re-audit: 1544 fills, 0 violations, 0 gap-through"
+  ]
+ },
+ "K6": {
+  "passed": true,
+  "sampled": 200,
+  "compared": 200,
+  "agg_missing": 0,
+  "ratio_first": {
+   "median": 0.9949111769483858,
+   "q25": 0.9113872261661863,
+   "q75": 1.0609729701372344,
+   "within_2x": 0.905
+  },
+  "ratio_life": {
+   "median": 0.9990440976517998,
+   "q25": 0.9900542409471604,
+   "q75": 1.003145025947776
+  },
+  "same_10k_sizing": 0.985,
+  "lines": [
+   "200 of 200 fills compared; C1/aggTrades first window median 0.99, life median 1.00"
+  ]
+ },
+ "K7": {
+  "passed": true,
+  "levels": {
+   "real p1_bids": {
+    "levels": 33486,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "real h4_bids": {
+    "levels": 130490,
+    "off_tick": 0,
+    "methods": [
+     "M4",
+     "M5b",
+     "M6",
+     "M7"
+    ]
+   },
+   "real K4 level rows (every per-coin method at the cut coins' placements)": {
+    "levels": 5241,
+    "off_tick": 0,
+    "methods": [
+     "M1",
+     "M2",
+     "M2a",
+     "M4",
+     "M4f",
+     "M4s",
+     "M5a",
+     "M5b",
+     "M5f",
+     "M6",
+     "M7"
+    ]
+   },
+   "synthetic K1a": {
+    "levels": 42960,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K1b": {
+    "levels": 42580,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K1c": {
+    "levels": 42914,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K1c0": {
+    "levels": 42522,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K1d": {
+    "levels": 43013,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K2": {
+    "levels": 42960,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1": {
+    "levels": 747,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-k5-12": {
+    "levels": 498,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-30": {
+    "levels": 171,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-90": {
+    "levels": 54,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-1": {
+    "levels": 5211,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-lazy": {
+    "levels": 442,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-G": {
+    "levels": 312,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 P1-1330": {
+    "levels": 747,
+    "off_tick": 0,
+    "methods": [
+     "M2"
+    ]
+   },
+   "synthetic K4 M1": {
+    "levels": 1494,
+    "off_tick": 0,
+    "methods": [
+     "M1"
+    ]
+   },
+   "synthetic K4 M2a": {
+    "levels": 746,
+    "off_tick": 0,
+    "methods": [
+     "M2a"
+    ]
+   },
+   "synthetic K4 M3": {
+    "levels": 747,
+    "off_tick": 0,
+    "methods": [
+     "M3"
+    ]
+   },
+   "synthetic K4 M8": {
+    "levels": 234,
+    "off_tick": 0,
+    "methods": [
+     "M8"
+    ]
+   },
+   "synthetic K4 H4-all": {
+    "levels": 10135,
+    "off_tick": 0,
+    "methods": [
+     "M4",
+     "M4f",
+     "M4s",
+     "M5a",
+     "M5b",
+     "M5f",
+     "M6",
+     "M7"
+    ]
+   }
+  },
+  "coverage": {
+   "required": [
+    "M1",
+    "M2",
+    "M2a",
+    "M3",
+    "M4",
+    "M4f",
+    "M4s",
+    "M5a",
+    "M5b",
+    "M5f",
+    "M6",
+    "M7",
+    "M8"
+   ],
+   "real": [
+    "M1",
+    "M2",
+    "M2a",
+    "M4",
+    "M4f",
+    "M4s",
+    "M5a",
+    "M5b",
+    "M5f",
+    "M6",
+    "M7"
+   ],
+   "synthetic": [
+    "M1",
+    "M2",
+    "M2a",
+    "M3",
+    "M4",
+    "M4f",
+    "M4s",
+    "M5a",
+    "M5b",
+    "M5f",
+    "M6",
+    "M7",
+    "M8"
+   ],
+   "missing": [],
+   "not_on_real_data": [
+    "M3",
+    "M8"
+   ]
+  },
+  "sheet": {
+   "rule": "stinkbid_sheet.rh_orders",
+   "coins": 74,
+   "orders": 796,
+   "n_violations": 0,
+   "n_rule_errors": 0,
+   "n_reference_rule_mismatch": 0,
+   "split_rungs": 110
+  },
+  "lines": [
+   "levels off tick: 0 of 447704 in 22 sources; methods checked on real levels ['M1', 'M2', 'M2a', 'M4', 'M4f', 'M4s', 'M5a', 'M5b', 'M5f', 'M6', 'M7'], on synthetic levels ['M1', 'M2', 'M2a', 'M3', 'M4', 'M4f', 'M4s', 'M5a', 'M5b', 'M5f', 'M6', 'M7', 'M8'], by none []",
+   "reference Robinhood orders by the sheet's own rule (stinkbid_sheet.rh_orders): 796 (74 coins), 0 violations, 0 rungs it could not order, 110 rungs split at the maximum size; this module's coding of the rule differs on 0"
+  ]
+ },
+ "K8": {
+  "passed": true,
+  "fills": 1544,
+  "removed_share": {
+   "F3_1": 0.11722797927461137,
+   "F3_3": 0.24287564766839376,
+   "F3d_1": 0.19753886010362698,
+   "F3usd_1": 0.11528497409326421,
+   "F3usd_3": 0.2409326424870466
+  },
+  "unverifiable": 25,
+  "lines": [
+   "1544 P1 fills: removed by F3_1 11.7%, F3_3 24.3%, F3d_1 19.8%, F3usd_1 11.5%, F3usd_3 24.1%; F5 also fills 97.5%; F3-unverifiable 25"
+  ]
+ },
+ "finished": "2026-11-19T11:07:00.585171+00:00",
+ "seconds": 3650.4535672664642,
+ "all_passed": true,
+ "controls_passed": {
+  "K1": true,
+  "K2": true,
+  "K3": true,
+  "K4": true,
+  "K5": true,
+  "K6": true,
+  "K7": true,
+  "K8": true
+ }
+}

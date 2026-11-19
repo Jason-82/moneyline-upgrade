@@ -947,3 +947,31 @@ run from scratch (A1.9), then the fill counts.
     - works on a clone without data/: the U-C list and the last 12 months' U-Q1 membership are committed in
       `stinkbid_ref/`;
     - the runner's sheet stage refuses, rather than crashes, when every coin is refused.
+
+**A2.7 The controls rerun, and H2R's K3 rule (after the controls rerun, before any outcome).**
+- **Every control passed again** on the final data (calendar key 7610f24e4687a922, code 9142fa8d36c1470c). K1, K2
+  and K4's synthetic part came from the controls' cache: they depend only on the code and on real P1's fill rates,
+  and neither changed. K4's real cuts changed nothing. K7 checked 327 more levels (447,704, none off tick). K3 ran
+  again from scratch. The first run's outputs remain in commit 455ae81.
+- **H2R's K3 rule changed.** The first full run gave H2R the simulation-calibrated rule (A2.5). In the worst
+  scenario (heterogeneous effects), its false-PASS rate at the 1.67% level was 2.08%, with a 95% interval up to
+  2.51%, 0.01 point over the 2.50% limit. The rerun gives 1.36%, up to 1.72%, so H2R now takes the nominal rule.
+  H1 and H4 keep the nominal rule in both runs (H4: 0.68%, up to 0.95%).
+- **Why.** P1's inputs did not change: H1's and H2R's null replications in the base and high-dispersion scenarios
+  are identical draw for draw. The heterogeneous scenario draws its per-episode effects after H4's twin hours, from
+  the same random stream. H4 gained fills (A2.6), so the same seed gave other effect draws. The two runs are two
+  Monte Carlo draws of H2R's heterogeneous null, and the first landed just over the limit. The mean of the two runs'
+  rates is 1.72% at the 1.67% level (2.49% at 2.5%, 5.18% at 5%). The calibrated critical t is 2.537 with the first
+  run's null draws, and 2.315 with the rerun's, below the nominal 2.369.
+- **What decides.** The rerun is the run of record (A2.6 ordered it before it ran). So H2R is decided by its nominal
+  p and bound, and its MDE is the nominal one (0.62%, 0.95% and 1.65% in the three scenarios). This is fixed before
+  any outcome.
+- **Shown beside it.** The primary stage also decides H2R under two other rules:
+  - the first run's rule (simulation-calibrated, with the first run's null draws, critical t 2.537);
+  - the record's other rule (simulation-calibrated, with the rerun's null draws, critical t 2.315).
+  The report re-runs Holm with each and prints the verdicts. If any verdict differs from the record, the answer adds
+  a note saying so.
+- The first run's H2R calibration is committed as `results_stinkbid/controls_first/k3_calibration_H2R.json`. It holds
+  tests.H2R and H2R's null draws (stat, pivot), extracted from commit 455ae81's `k3_calibration.json` (sha256
+  d1231667cec17ddc8ae1f1965abaddc360983e28aa8da775eb6a1148447ac37a). The runner reads it only if its sha256 is
+  2e0991f81746871f1a48b8bd4ac9cac9e8f4f07aa2a7ea550d5ec17d6e9dd34d.

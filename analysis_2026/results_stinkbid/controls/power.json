@@ -1,0 +1,682 @@
+{
+ "rule": {
+  "H1": "nominal",
+  "H2R": "nominal",
+  "H4": "nominal"
+ },
+ "mde": {
+  "H1": {
+   "base": {
+    "rule": "nominal",
+    "mde_formula": 0.04511716044253962,
+    "mde_empirical": 0.047548056469435065,
+    "se_mean": 0.014211528099722131,
+    "est_sd": 0.014681804529005131,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.04511716044253962
+   },
+   "high": {
+    "rule": "nominal",
+    "mde_formula": 0.05424753848391714,
+    "mde_empirical": 0.056459693144311845,
+    "se_mean": 0.017131862999489864,
+    "est_sd": 0.017433523892722135,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.05424753848391714
+   },
+   "hetero": {
+    "rule": "nominal",
+    "mde_formula": 0.047731614567603844,
+    "mde_empirical": 0.05033745113746321,
+    "se_mean": 0.015142266116918268,
+    "est_sd": 0.015543108866366723,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.047731614567603844
+   }
+  },
+  "H2R": {
+   "base": {
+    "rule": "nominal",
+    "mde_formula": 0.006223063129894543,
+    "mde_empirical": 0.007618198426849743,
+    "se_mean": 0.0021103951151653674,
+    "est_sd": 0.002352333795979258,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.006223063129894543
+   },
+   "high": {
+    "rule": "nominal",
+    "mde_formula": 0.009532616366652973,
+    "mde_empirical": 0.011390429639078143,
+    "se_mean": 0.0032065661893199335,
+    "est_sd": 0.0035171166579612396,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.009532616366652973
+   },
+   "hetero": {
+    "rule": "nominal",
+    "mde_formula": 0.016500692699553163,
+    "mde_empirical": 0.019693134591284443,
+    "se_mean": 0.00550704822446434,
+    "est_sd": 0.006080811164563311,
+    "gstar_median": 14.490637963737022,
+    "crit_nominal": 2.3694875202240864,
+    "mde_rule": 0.016500692699553163
+   }
+  },
+  "H4": {
+   "base": {
+    "rule": "nominal",
+    "mde_formula": 0.008928922972800566,
+    "mde_empirical": 0.007591412410589368,
+    "se_mean": 0.0028345047889252553,
+    "est_sd": 0.0022839180161403675,
+    "gstar_median": 11.527735838179506,
+    "crit_nominal": 2.44674561329192,
+    "mde_rule": 0.008928922972800566
+   },
+   "high": {
+    "rule": "nominal",
+    "mde_formula": 0.01594546726569887,
+    "mde_empirical": 0.01407079690454017,
+    "se_mean": 0.004998075077215733,
+    "est_sd": 0.004233276340895891,
+    "gstar_median": 11.527735838179506,
+    "crit_nominal": 2.44674561329192,
+    "mde_rule": 0.01594546726569887
+   },
+   "hetero": {
+    "rule": "nominal",
+    "mde_formula": 0.018935873674971376,
+    "mde_empirical": 0.021094824888525782,
+    "se_mean": 0.006288742751508934,
+    "est_sd": 0.006346493643663055,
+    "gstar_median": 11.527735838179506,
+    "crit_nominal": 2.44674561329192,
+    "mde_rule": 0.018935873674971376
+   }
+  }
+ },
+ "noedge_reachable_null": {
+  "H1": {
+   "base": 0.6166666666666667,
+   "hetero": 0.5233333333333333,
+   "high": 0.5066666666666667
+  },
+  "H2R": {
+   "base": 0.9966666666666667,
+   "hetero": 0.8266666666666667,
+   "high": 0.98
+  },
+  "H4": {
+   "base": 0.14333333333333334,
+   "hetero": 0.0033333333333333335,
+   "high": 0.0033333333333333335
+  }
+ },
+ "power": {
+  "H1": {
+   "base": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.02666666666666667,
+     "reject_05": 0.056666666666666664,
+     "noedge": 0.6166666666666667
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.20333333333333334,
+     "reject_05": 0.37666666666666665,
+     "noedge": 0.13666666666666666
+    },
+    {
+     "kind": "const",
+     "effect": 0.0375,
+     "rule": "nominal",
+     "reject_alpha3": 0.59,
+     "reject_05": 0.79,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "const",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.8266666666666667,
+     "reject_05": 0.9133333333333333,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "const",
+     "effect": 0.06,
+     "rule": "nominal",
+     "reject_alpha3": 0.9133333333333333,
+     "reject_05": 0.9666666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.08,
+     "rule": "nominal",
+     "reject_alpha3": 0.99,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.26666666666666666,
+     "reject_05": 0.49333333333333335,
+     "noedge": 0.05333333333333334
+    },
+    {
+     "kind": "top3",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.043333333333333335,
+     "reject_05": 0.13333333333333333,
+     "noedge": 0.3233333333333333
+    }
+   ],
+   "hetero": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.023333333333333334,
+     "reject_05": 0.06,
+     "noedge": 0.5233333333333333
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.2,
+     "reject_05": 0.38333333333333336,
+     "noedge": 0.12
+    },
+    {
+     "kind": "const",
+     "effect": 0.0375,
+     "rule": "nominal",
+     "reject_alpha3": 0.5566666666666666,
+     "reject_05": 0.72,
+     "noedge": 0.013333333333333334
+    },
+    {
+     "kind": "const",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.7633333333333333,
+     "reject_05": 0.8733333333333333,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.06,
+     "rule": "nominal",
+     "reject_alpha3": 0.8666666666666667,
+     "reject_05": 0.95,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.08,
+     "rule": "nominal",
+     "reject_alpha3": 0.9866666666666667,
+     "reject_05": 0.9933333333333333,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.28,
+     "reject_05": 0.47333333333333333,
+     "noedge": 0.06333333333333334
+    },
+    {
+     "kind": "top3",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.056666666666666664,
+     "reject_05": 0.13333333333333333,
+     "noedge": 0.27
+    }
+   ],
+   "high": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.01,
+     "reject_05": 0.03666666666666667,
+     "noedge": 0.5066666666666667
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.13333333333333333,
+     "reject_05": 0.24333333333333335,
+     "noedge": 0.1
+    },
+    {
+     "kind": "const",
+     "effect": 0.0375,
+     "rule": "nominal",
+     "reject_alpha3": 0.4,
+     "reject_05": 0.54,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.5966666666666667,
+     "reject_05": 0.79,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.06,
+     "rule": "nominal",
+     "reject_alpha3": 0.7533333333333333,
+     "reject_05": 0.8966666666666666,
+     "noedge": 0.0
+    },
+    {
+     "kind": "const",
+     "effect": 0.08,
+     "rule": "nominal",
+     "reject_alpha3": 0.9433333333333334,
+     "reject_05": 0.9766666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.17333333333333334,
+     "reject_05": 0.33666666666666667,
+     "noedge": 0.04666666666666667
+    },
+    {
+     "kind": "top3",
+     "effect": 0.05,
+     "rule": "nominal",
+     "reject_alpha3": 0.03333333333333333,
+     "reject_05": 0.10666666666666667,
+     "noedge": 0.25666666666666665
+    }
+   ]
+  },
+  "H2R": {
+   "base": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.02666666666666667,
+     "reject_05": 0.06666666666666667,
+     "noedge": 0.9966666666666667
+    },
+    {
+     "kind": "const",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.9466666666666667,
+     "reject_05": 0.98,
+     "noedge": 0.9533333333333334
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "const",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.9833333333333333,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.04
+    },
+    {
+     "kind": "top3",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.14666666666666667,
+     "reject_05": 0.36666666666666664,
+     "noedge": 0.9666666666666667
+    }
+   ],
+   "hetero": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.016666666666666666,
+     "reject_05": 0.04,
+     "noedge": 0.8266666666666667
+    },
+    {
+     "kind": "const",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.4033333333333333,
+     "reject_05": 0.6266666666666667,
+     "noedge": 0.37
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.86,
+     "reject_05": 0.9433333333333334,
+     "noedge": 0.006666666666666667
+    },
+    {
+     "kind": "const",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.9866666666666667,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.6266666666666667,
+     "reject_05": 0.8033333333333333,
+     "noedge": 0.02666666666666667
+    },
+    {
+     "kind": "top3",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.06666666666666667,
+     "reject_05": 0.19333333333333333,
+     "noedge": 0.5133333333333333
+    }
+   ],
+   "high": [
+    {
+     "kind": "const",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.0,
+     "reject_05": 0.03333333333333333,
+     "noedge": 0.98
+    },
+    {
+     "kind": "const",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.7166666666666667,
+     "reject_05": 0.8366666666666667,
+     "noedge": 0.7333333333333333
+    },
+    {
+     "kind": "const",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.9866666666666667,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.01
+    },
+    {
+     "kind": "const",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    },
+    {
+     "kind": "top10",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.9,
+     "reject_05": 0.9633333333333334,
+     "noedge": 0.06666666666666667
+    },
+    {
+     "kind": "top3",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.08666666666666667,
+     "reject_05": 0.29,
+     "noedge": 0.8233333333333334
+    }
+   ]
+  },
+  "H4": {
+   "base": [
+    {
+     "kind": "M4",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.0,
+     "reject_05": 0.023333333333333334,
+     "noedge": 0.14333333333333334
+    },
+    {
+     "kind": "all",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.0,
+     "reject_05": 0.023333333333333334,
+     "noedge": 0.14333333333333334
+    },
+    {
+     "kind": "M4",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.7133333333333334,
+     "reject_05": 0.84,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.9733333333333334,
+     "reject_05": 0.9933333333333333,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.9933333333333333,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    }
+   ],
+   "hetero": [
+    {
+     "kind": "M4",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.01,
+     "reject_05": 0.03,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "all",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.01,
+     "reject_05": 0.03,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "M4",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.12,
+     "reject_05": 0.26,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.28,
+     "reject_05": 0.49333333333333335,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.58,
+     "reject_05": 0.7333333333333333,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.83,
+     "reject_05": 0.9266666666666666,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.8966666666666666,
+     "reject_05": 0.9566666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.99,
+     "reject_05": 0.9966666666666667,
+     "noedge": 0.0
+    }
+   ],
+   "high": [
+    {
+     "kind": "M4",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.0,
+     "reject_05": 0.016666666666666666,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "all",
+     "effect": 0.0,
+     "rule": "nominal",
+     "reject_alpha3": 0.0,
+     "reject_05": 0.016666666666666666,
+     "noedge": 0.0033333333333333335
+    },
+    {
+     "kind": "M4",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.15666666666666668,
+     "reject_05": 0.36666666666666664,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.01,
+     "rule": "nominal",
+     "reject_alpha3": 0.5066666666666667,
+     "reject_05": 0.7633333333333333,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.82,
+     "reject_05": 0.9,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.02,
+     "rule": "nominal",
+     "reject_alpha3": 0.9866666666666667,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    },
+    {
+     "kind": "M4",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 0.96,
+     "reject_05": 0.9866666666666667,
+     "noedge": 0.0
+    },
+    {
+     "kind": "all",
+     "effect": 0.03,
+     "rule": "nominal",
+     "reject_alpha3": 1.0,
+     "reject_05": 1.0,
+     "noedge": 0.0
+    }
+   ]
+  }
+ },
+ "n_reps_power": {
+  "base": 300,
+  "hetero": 300,
+  "high": 300
+ },
+ "seconds": 122.28308129310608
+}

@@ -1,0 +1,34 @@
+{
+ "stage": "controls",
+ "complete": true,
+ "mode": "real",
+ "started": "2026-11-19 10:06:10 UTC",
+ "finished": "2026-11-19 11:07:01 UTC",
+ "seconds": 3651.1,
+ "all_passed": true,
+ "gate_ok": true,
+ "why": "every control passed",
+ "calibrated_tests": [],
+ "outputs": [
+  "/home/user/moneyline-upgrade/analysis_2026/results_stinkbid/controls/summary.json"
+ ],
+ "manifest": {
+  "d11_null.parquet": "a987726708f6166c088501b86f73748bb95ac4729dd578a5eb82996c650029ae",
+  "k1.json": "8f3d5e1babad7bdc1f4cfa8944ee956c84f52bd2b8abb74713bc9cd65df85c45",
+  "k2.json": "ac9c05878f742d489e7c0582a767aa67b9bd2da9042146a252ff3cf5b4ec975a",
+  "k3_calibration.json": "6e9d85351bd9a050d9a559abbdfa635b3f4043f52b0c965f873b6f62455c61fa",
+  "k4.json": "170ba4b97a7c307bf3252d90f9dfb8d7dd00f8711f5417b23dac1a600aa47500",
+  "k4_comparisons.csv": "50aa563d5bc271a5616fd31b425972c310ec5009a7227e1ce21cf0b5a42fb441",
+  "k4_real_cuts.csv": "5c20ae20902dfe0b8f4f6aa6c503072cbe78ce9d743059d0c1e0850a291c8189",
+  "k5.json": "432d3094d0becfc38e8c7e0f11f8dcc1ae4e9ce60a3a9ce0bac05d0917431841",
+  "k6.json": "9588045e8bc94f4aa539d6b791a2396b56e2e08d18e60d765a74557dbc75c7ba",
+  "k6_fills.csv": "08bebbff3b2f9044334d6e2d9dbba8e2648df964881ff8be463b119794112df8",
+  "k7.json": "d8bd1892cbf96eed96d9bc99a6f98b40d76baa1ef8162468c0f5b9994ac50434",
+  "k7_reference_orders.csv": "470fdf77831439bbadb00f960b18b0f06ac86b4c13550e8a192bbebfb5a16d83",
+  "k8.json": "7abbb72cbba7b21b242171e03e467e1fe40077ed616a22d664390a0a026e9f18",
+  "k8_events.csv": "ba05d187653c7a88012f4159143b2b79d2c8e7f62616305d53405c54fb4d2276",
+  "power.json": "08c3fb18672dd5faa200041b7323bebdfcfadda962a122c3ae756f058b797f2b",
+  "summary.json": "72d5ec24f04c1a14126d88add4e39e50e47692da1481ab1c32b13c2bd6d702eb",
+  "summary.txt": "230012dd8daecc5b09e1a6292b4e16a77aced65e458762a8f7a28886d6ad239c"
+ }
+}

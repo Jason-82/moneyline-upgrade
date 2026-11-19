@@ -1,0 +1,39 @@
+Stink-bid controls (STINKBID_PREREG.md §10.5) - 2026-11-19T11:07:00.585171+00:00
+all_passed: True   (quick: False, partial: False)
+real calendars: key 7610f24e4687a922 (built 2026-11-19T10:11:40.971053+00:00); code 9142fa8d36c1470c
+
+K1: PASSED
+    K1a: 925 fills; X-FLIP r_f engine +0.0019 vs oracle +0.0019 (2 SE = 0.0074); Delta engine +0.0021 vs oracle +0.0017 (2 SE = 0.0074); pass (all K1 exits)
+    K1b: 1791 fills; X-FLIP r_f engine -0.1337 vs oracle -0.1337 (2 SE = 0.0084); Delta engine -0.1327 vs oracle -0.1329 (2 SE = 0.0084); pass (all K1 exits)
+    wrong engine (fill at the minute's close): r_f +0.0085, +33.9 SE from the oracle: fails (as required)
+    wrong engine (fill at the minute's low): r_f +0.0100, +34.2 SE from the oracle: fails (as required)
+    K1b fill rates vs real P1: k=6 6.23% vs 7.33% (-15%), k=8 3.65% vs 3.95% (-8%), k=10 2.74% vs 2.55% (+7%) -> within +-25%
+    K1c (what regime timing alone produces: K1c minus its paired null K1c0, so the minute-level gap-through cost cancels): Delta X-FLIP -0.0058 (SE 0.0031), X-HOLD-90 -0.0608 (SE 0.0506) at C-RH, month-block CR1 SE (G* 20.9), 1622 paired X-HOLD-90 fills; oracle -0.0063 / -0.0608
+    K1c diagnostics (not regime timing): K1c's total Delta -0.1591 / -0.1451 (clustered SE 0.0154 / 0.0795); the minute-level cost alone (K1c0) -0.1521 / -0.0838; 70% of K1c's fill minutes opened below L
+    K1d: X-HOLD-90 fills closed at the delisting value 31/1902, twins 5028/190200; every position open at the end of trading took the haircut: True; engine vs oracle twin delistings +0.08 SE: pass
+K2: PASSED
+    FLIP: Delta (C-RH) +0.0773, t 6.69 (G* 17.8), oracle match True
+    FLIP_bot: Delta (C-RH) +0.0768, t 6.69 (G* 17.8), oracle match True
+K3: PASSED
+    H1: rule nominal (worst scenario high: false PASS 1.67% -> 1.90% [CI up 2.32%], 2.50% -> 3.06% [CI up 3.58%], 5.00% -> 5.50% [CI up 6.17%]; NO EDGE miss 0.96%)
+    H2R: rule nominal (worst scenario hetero: false PASS 1.67% -> 1.36% [CI up 1.72%], 2.50% -> 2.28% [CI up 2.73%], 5.00% -> 5.12% [CI up 5.77%]; NO EDGE miss 1.64%)
+    H4: rule nominal (worst scenario hetero: false PASS 1.67% -> 0.68% [CI up 0.95%], 2.50% -> 1.16% [CI up 1.50%], 5.00% -> 2.92% [CI up 3.43%]; NO EDGE miss 0.84%)
+    H1 MDE (nominal rule, base / high / hetero): 4.51% / 5.42% / 4.77%
+    H2R MDE (nominal rule, base / high / hetero): 0.62% / 0.95% / 1.65%
+    H4 MDE (nominal rule, base / high / hetero): 0.89% / 1.59% / 1.89%
+K4: PASSED
+    synthetic: 50 cuts ({'uniform': 14, 'placement': 12, 'crash_hour': 12, 'weekend': 12}) x scale / delete / 3-day gap, 2250 run comparisons, 0 failing; compared {'n_bids': 1768143, 'n_fills': 1087707, 'n_capacity_minutes': 657305436, 'n_exits': 642702, 'n_alerts': 271344, 'n_twin_exits': 4335099}
+    real universes: 177703 rows before the cut, 0 cuts changed
+    real levels: 6554 level rows, 0 changed
+    real fills and capacity: 288 runs on 24 cuts ({'placement': 6, 'crash_hour': 6, 'weekend': 6, 'uniform': 6}), 0 failing
+K5: PASSED
+    41909531 engine checks, 0 violations, 265340 gap-through fills listed; real P1 re-audit: 1544 fills, 0 violations, 0 gap-through
+K6: PASSED
+    200 of 200 fills compared; C1/aggTrades first window median 0.99, life median 1.00
+K7: PASSED
+    levels off tick: 0 of 447704 in 22 sources; methods checked on real levels ['M1', 'M2', 'M2a', 'M4', 'M4f', 'M4s', 'M5a', 'M5b', 'M5f', 'M6', 'M7'], on synthetic levels ['M1', 'M2', 'M2a', 'M3', 'M4', 'M4f', 'M4s', 'M5a', 'M5b', 'M5f', 'M6', 'M7', 'M8'], by none []
+    reference Robinhood orders by the sheet's own rule (stinkbid_sheet.rh_orders): 796 (74 coins), 0 violations, 0 rungs it could not order, 110 rungs split at the maximum size; this module's coding of the rule differs on 0
+K8: PASSED
+    1544 P1 fills: removed by F3_1 11.7%, F3_3 24.3%, F3d_1 19.8%, F3usd_1 11.5%, F3usd_3 24.1%; F5 also fills 97.5%; F3-unverifiable 25
+
+Timings (s): calendars 331, K1 0, K3 2978, K4 196, K5 17, K6 39, K7 91, K8 0

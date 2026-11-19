@@ -63,7 +63,8 @@ Stages, their gates and their outputs (OUT = --out, CACHE = --cache; markers in 
             placebos; P1 on U-C, the hindsight row beside every headline) and computes H1, H2R and H4 with every gate
             (§10.3), the rows reported beside them (F3d, F3 at s = 3%, U-B, U-C), the bot-latency version of H1, the
             F3-kept subsets ("a Binance-only result") and concentration / single events; K3's rule is applied
-            (stinkbid_stats.apply_calibration). Writes OUT/primary/{primary.json, gates.csv, h4_methods.csv,
+            (stinkbid_stats.apply_calibration), and H2R is also decided under the other K3 rules (primary.json's
+            k3_other; prereg Addendum 2, A2.7). Writes OUT/primary/{primary.json, gates.csv, h4_methods.csv,
             samples_H1.csv, samples_H2R.csv}.
   report    refuses until primary is complete. Holm over the three p-values whatever the gates
             (stinkbid_stats.family_verdicts), the verdicts, and the answer of §11. Writes OUT/verdicts.txt (the
@@ -111,7 +112,11 @@ Coding choices the pre-registration leaves open (most literal reading; listed in
     (h4_frames on F3_1, b of the argmax method on the F3 sample's own partition). A gate that cannot be evaluated
     (no fills) is not met.
  4. K3 (§10.5): a test whose calibration says needs_calibration gets the simulation-calibrated p and the widened
-    bound (stinkbid_stats.apply_calibration), also for the bot-latency and F3-kept rows of the same test.
+    bound (stinkbid_stats.apply_calibration), also for the bot-latency and F3-kept rows of the same test. H2R's rule
+    turned on Monte Carlo noise between the two full controls runs (prereg Addendum 2, A2.7): the verdicts of record
+    use the rerun's rule; H2R is also decided under the first run's rule (its pinned null draws,
+    results_stinkbid/controls_first/) and under the record's other rule, the report re-runs Holm with each and notes
+    any verdict that differs.
  5. "If it passes only at bot latency" (§11, H1 row): H1 under X-FLIP-bot (the same sample rules, gates and K3
     rule, U-B and F3 gates on their bot rows) with its p put in H1's place in the three-test Holm family; it
     "passes" when its verdict under the rule of every verdict is PASS (stinkbid_stats.verdict: Holm-adjusted
@@ -1405,11 +1410,65 @@ def _clean_row(row: dict) -> dict:
     return out
 
 
-def _mean_test(d: pd.DataFrame, test: str, ctx: Ctx, calib) -> dict:
+def _mean_raw(d: pd.DataFrame, test: str, ctx: Ctx) -> dict:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        r = sbs.test_mean(d["y"].to_numpy(float), d["mb"].to_numpy(), E_=E[test], B=ctx.B, unit="month-block")
-    return _calibrate(r, test, calib)
+        return sbs.test_mean(d["y"].to_numpy(float), d["mb"].to_numpy(), E_=E[test], B=ctx.B, unit="month-block")
+
+
+def _mean_test(d: pd.DataFrame, test: str, ctx: Ctx, calib) -> dict:
+    return _calibrate(_mean_raw(d, test, ctx), test, calib)
+
+
+FIRST_K3 = "controls_first/k3_calibration_H2R.json"     # A2.7: H2R's calibration from the first full controls run
+FIRST_K3_SHA256 = "2e0991f81746871f1a48b8bd4ac9cac9e8f4f07aa2a7ea550d5ec17d6e9dd34d"
+
+
+def k3_first_run(ctx: Ctx) -> dict | None:
+    """H2R's K3 calibration from the first full controls run (tests.H2R and H2R's null draws, extracted from commit
+    455ae81; prereg Addendum 2, A2.7). On real data the file must match the sha256 pinned here, else the stage
+    refuses. None when the file is absent (the selftest's worlds without it) or holds no H2R null draws."""
+    p = ctx.out / FIRST_K3
+    if not p.exists():
+        return None
+    if not ctx.injected and hashlib.sha256(p.read_bytes()).hexdigest() != FIRST_K3_SHA256:
+        raise StageRefused(f"{FIRST_K3} is not the file pinned in prereg Addendum 2, A2.7 (sha256 {FIRST_K3_SHA256})")
+    C = _jload(p)
+    return C if _full_calibration(C) and "H2R" in C["tests"] and (C.get("null") or {}).get("H2R") else None
+
+
+def _rule_name(C: dict, test: str) -> str:
+    return K3_RULES[1] if C["tests"][test].get("needs_calibration") else K3_RULES[0]
+
+
+def k3_alternatives(calib: dict | None, ctx: Ctx) -> list:
+    """The K3 rules H2R is also decided under, beside the rule of record (prereg Addendum 2, A2.7):
+    [(key, label, calibration)]. "first_run": the rule the first full controls run gave H2R, with that run's null
+    draws; "switched": the run of record's other rule, with the record's null draws (k3_switched)."""
+    out = []
+    C1 = k3_first_run(ctx)
+    if C1 is not None:
+        out.append(("first_run", f"the first controls run's rule ({_rule_name(C1, 'H2R')}, its null draws)", C1))
+    C2 = k3_switched(calib, "H2R")
+    if C2 is not None:
+        out.append(("switched", f"the record's other rule ({_rule_name(C2, 'H2R')}, the record's null draws)", C2))
+    return out
+
+
+def k3_switched(calib: dict | None, test: str) -> dict | None:
+    """The calibration with `test`'s K3 rule switched (nominal <-> simulation-calibrated), every other test as it was;
+    None when there is no calibration for the test, or when switching to the calibrated rule finds no null draws for
+    it. H2R's K3 rule turned on Monte Carlo noise between the two full controls runs, so the primary stage also
+    decides H2R under the other rule, beside the verdict of record (prereg Addendum 2, A2.7)."""
+    if not calib or test not in (calib.get("tests") or {}):
+        return None
+    need = not bool(calib["tests"][test].get("needs_calibration"))
+    if need and not (calib.get("null") or {}).get(test):
+        return None
+    C = dict(calib)
+    C["tests"] = dict(calib["tests"])
+    C["tests"][test] = dict(calib["tests"][test], needs_calibration=need)
+    return C
 
 
 def _mean_gates(d: pd.DataFrame, ub_rows: pd.DataFrame, f3_rows: pd.DataFrame, r_pos=None) -> dict:
@@ -1503,7 +1562,7 @@ def _beside(res: dict, stat: str, rule: str, exit: str = "FLIP", B: int = sbs.B_
 def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
     """H1, H2R and H4 with every gate (§10.3; coding choices 3-6), the rows beside them and the robustness checks."""
     P, UB, H4, UC = (runs.get(k) for k in ("P1/U_Q1", "P1/U_B", "H4/U_Q1", "P1/U_C"))
-    out = dict(rows={}, gates={}, beside={}, robust={}, bot={}, f3kept={}, samples={}, warnings=[])
+    out = dict(rows={}, gates={}, beside={}, robust={}, bot={}, f3kept={}, samples={}, warnings=[], k3_other={})
     B = ctx.B
     # ---- H1 FLIP
     d1 = sbdesc.per_fill(P, "F1", "FLIP", "C-RH", "delta")
@@ -1532,7 +1591,10 @@ def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
     d2 = sbdesc.per_bench(P, "F1", "alert_M")
     ub2 = sbdesc.per_bench(UB, "F1", "alert_M") if UB is not None else sbdesc.per_bench({}, "F1")
     f32 = sbdesc.per_bench(P, "F3_1", "alert_M")
-    out["rows"]["H2R"] = _mean_test(d2, "H2R", ctx, calib)
+    r2 = _mean_raw(d2, "H2R", ctx)
+    out["rows"]["H2R"] = _calibrate(dict(r2), "H2R", calib)
+    for key, label, C in k3_alternatives(calib, ctx):  # H2R under the other K3 rules (A2.7), beside the verdict
+        out["k3_other"].setdefault("H2R", {})[key] = dict(_calibrate(dict(r2), "H2R", C), label=label)
     out["gates"]["H2R"] = _mean_gates(d2, ub2, f32)
     out["robust"]["H2R"] = sbdesc.robust(d2)
     out["beside"]["H2R"] = {"F3_1": _beside(P, "alert", "F3_1", B=B), "F3d_1": _beside(P, "alert", "F3d_1", B=B),
@@ -1627,6 +1689,7 @@ def stage_primary(ctx: Ctx) -> dict:
     js = dict(rows=rows, gates=Pc["gates"], beside=Pc["beside"], robust=Pc["robust"],
               bot=dict(row=_clean_row(Pc["bot"]["row"]), gates=Pc["bot"]["gates"]),
               f3kept={t: _clean_row(r) for t, r in Pc["f3kept"].items()}, warnings=Pc["warnings"],
+              k3_other={t: {k: _clean_row(r) for k, r in alts.items()} for t, alts in Pc.get("k3_other", {}).items()},
               calibration={t: ("simulation-calibrated" if Pc["rows"][t].get("calibrated") else "nominal")
                            for t in FAMILY}, mode=ctx.mode, B=ctx.B, runs=[f"{p}/{u}" for p, u, _ in ANSWER_RUNS])
     _jdump(d / "primary.json", js)
@@ -1811,6 +1874,43 @@ def run_on_robinhood(flags: dict, P: dict, d7r: dict | None) -> dict:
     return dict(ok=ok, passing=passing, uc_f3=uc, account=d7r, why="; ".join(why) if why else "all conditions hold")
 
 
+def k3_other_verdicts(P: dict) -> list:
+    """The family re-decided with H2R's row under each other K3 rule in primary.json (prereg Addendum 2, A2.7). Holm
+    runs over all three tests, so every verdict is recomputed; the gates are the same. [] when there are none."""
+    alts = (P.get("k3_other") or {}).get("H2R") or {}
+    if not isinstance(alts, dict) or not alts:
+        return []
+    fv0 = sbs.family_verdicts(P["rows"], P["gates"])
+    v0 = dict(zip(fv0["test"], fv0["verdict"]))
+    out = []
+    for key, alt in alts.items():
+        fv1 = sbs.family_verdicts(dict(P["rows"], H2R=alt), P["gates"])
+        v1 = dict(zip(fv1["test"], fv1["verdict"]))
+        r = fv1.set_index("test").loc["H2R"]
+        crit = sbdesc._f(alt.get("crit_calibrated"))
+        out.append(dict(key=key, label=alt.get("label", key), rule=K3_RULES[1] if alt.get("calibrated") else K3_RULES[0],
+                        crit=crit if np.isfinite(crit) else None, p=sbdesc._f(r["p_decide"]),
+                        p_holm=sbdesc._f(r["p_holm"]), ub=sbdesc._f(r["ub"]), mde=sbdesc._f(alt.get("mde")),
+                        verdicts=v1, verdicts_of_record=v0, differ=[t for t in ORDER if v0[t] != v1[t]]))
+    return out
+
+
+def k3_other_lines(ko: list, rule_of_record: str) -> list:
+    """verdicts.txt's lines for k3_other_verdicts (A2.7)."""
+    if not ko:
+        return []
+    out = [f"K3's rule for H2R turned on Monte Carlo noise (prereg Addendum 2, A2.7); the verdicts of record use the "
+           f"{rule_of_record} rule. H2R decided under the other rules:"]
+    for k in ko:
+        out.append(f"  {k['label']}" + (f", critical t {k['crit']:.3f}" if k.get("crit") else "") +
+                   f": H2R p {k['p']:.4f}, Holm-adjusted {k['p_holm']:.4f}, 98.33% upper bound "
+                   f"{_pct(k['ub'], 2, True)}, MDE {_pct(k['mde'], 2)}; verdicts " +
+                   ", ".join(f"{t} {k['verdicts'][t]}" for t in ORDER) +
+                   (" (the same as of record)" if not k["differ"] else
+                    f" (DIFFERENT from the record for {', '.join(k['differ'])})"))
+    return out
+
+
 def verdict_line(t: str, r: pd.Series, rb: dict, flags: dict, beside: dict) -> str:
     """The verdict of one test, stated first (§11), worded by §11's rules (NO EDGE: "not by E or more";
     INCONCLUSIVE: "the data cannot tell" with the MDE; every interval with its cluster unit, G and G*)."""
@@ -1956,6 +2056,14 @@ def stage_report(ctx: Ctx) -> dict:
         d7r = sbdesc.d7_robinhood(sbdesc.d7(Pr, ctx.data, ctx.B, routes=("F3_1",), r_res=(0.0,)))
     rh = run_on_robinhood(flags, P, d7r)
     lines, rec, fx = compose_answer(fv, P, flags, rh, nums, dsent, ctx.mode)
+    ko = k3_other_verdicts(P)
+    rule_rec = (P.get("calibration") or {}).get("H2R", K3_RULES[0])
+    dif = [t for t in ORDER if any(t in k["differ"] for k in ko)]
+    if dif:                                           # stated with the answer, not only in the details (A2.7)
+        lines += ["", f"Note: the verdict for {', '.join(dif)} depends on which K3 rule H2R takes (prereg Addendum 2, "
+                      f"A2.7). Of record: the {rule_rec} rule. " +
+                  "; ".join(f"Under {k['label']}: " + ", ".join(f"{t} {k['verdicts'][t]}" for t in ORDER)
+                            for k in ko if k["differ"]) + "."]
     # details
     det = ["", "=" * 100, "Details", "=" * 100, ""]
     d12 = sbdesc.d12(Pr)
@@ -1999,6 +2107,7 @@ def stage_report(ctx: Ctx) -> dict:
                 f"{_pct(flags.get('bot_ub'), 2, True)}: {flags.get('bot_verdict')}; passes only at bot latency: "
                 f"{flags['h1_bot_only']}",
             f"K3 rule per test: {P.get('calibration')}",
+            *(k3_other_lines(ko, rule_rec) or ["K3's other rules for H2R: not computed (no rows in primary.json)"]),
             k3_power_line(ctx, cs),
             f"Warnings: {P.get('warnings') or 'none'}", "",
             "Deviations (§12): " + ("none" if not deviations(ctx) else json.dumps(deviations(ctx))), "", RH_PROXY]
@@ -2036,7 +2145,7 @@ def stage_report(ctx: Ctx) -> dict:
                holm={t: dict(p=sbdesc._f(fv.loc[fv.test == t, "p_decide"].iloc[0]),
                              p_holm=sbdesc._f(fv.loc[fv.test == t, "p_holm"].iloc[0]), level=flags["holm_level"][t])
                      for t in FAMILY},
-               sensitivity=dict(H1_E_gold=es), deviations=deviations(ctx))
+               sensitivity=dict(H1_E_gold=es), k3_other=ko, deviations=deviations(ctx))
     _jdump(ctx.out / "answer.json", ans)
     info = dict(started=started, outputs=[str(ctx.out / f) for f in ("verdicts.txt", "verdicts.csv", "answer.json")])
     write_marker(ctx, "report", t0, info)
@@ -2334,6 +2443,9 @@ def _toy_controls(all_passed: bool = True, calibrate: bool = True, reps: int = 2
             for t in C["tests"]:
                 C["tests"][t]["needs_calibration"] = False
         _jdump(cdir / "k3_calibration.json", C)
+        (ctx.out / FIRST_K3).parent.mkdir(parents=True, exist_ok=True)   # A2.7's first-run rule (toy)
+        _jdump(ctx.out / FIRST_K3, dict(level_noedge=C["level_noedge"], null={"H2R": C["null"]["H2R"]},
+                                        tests={"H2R": dict(C["tests"]["H2R"], needs_calibration=True)}))
         _jdump(cdir / "summary.json", dict(all_passed=all_passed, quick=False,
                                            K1=dict(K1c=dict(HOLD90=dict(engine_delta_RH=-0.012, engine_delta=-0.003))),
                                            note="synthetic selftest controls (not the study's controls)"))
@@ -2861,6 +2973,45 @@ def _t_review_units(say):
     rc = _calibrate(row0, tc, Ct)
     want = (calib_crit(tc, Ct) + stats.t.ppf(0.80, 13.5)) * 0.004
     assert rc["calibrated"] and math.isclose(rc["mde"], want) and math.isclose(rc["mde_nominal"], sbs.mde(0.004, 14.5))
+    # A2.7: the other K3 rule switches one test only and leaves the calibration it came from untouched
+    Cs = k3_switched(Ct, tc)
+    assert Cs["tests"][tc]["needs_calibration"] is False and Ct["tests"][tc]["needs_calibration"] is True
+    assert all(Cs["tests"][t_] == Ct["tests"][t_] for t_ in Ct["tests"] if t_ != tc)
+    assert _calibrate(dict(row0), tc, Cs)["rule"] == "nominal" and k3_switched(Cs, tc)["tests"][tc]["needs_calibration"]
+    assert k3_switched(None, tc) is None and k3_switched(dict(Cs, null={}), tc) is None   # no null draws: no row
+    Pk = dict(rows={"H2R": dict(p_decide=0.001, ub=0.05, estimate=0.03, se=0.01),
+                    "H1": dict(p_decide=0.5, ub=0.08, estimate=0.0, se=0.02),
+                    "H4": dict(p_decide=0.5, ub=0.03, estimate=0.0, se=0.01)},
+              gates={t_: True for t_ in FAMILY}, calibration={"H2R": "nominal"},
+              k3_other={"H2R": {"first_run": dict(p_decide=0.04, ub=0.06, estimate=0.03, se=0.01, calibrated=True,
+                                                  crit_calibrated=2.537, mde=0.02, label="first"),
+                                "switched": dict(p_decide=0.0009, ub=0.05, estimate=0.03, se=0.01, calibrated=True,
+                                                 crit_calibrated=2.31, mde=0.019, label="switched")}})
+    ko = k3_other_verdicts(Pk)
+    assert [k["key"] for k in ko] == ["first_run", "switched"], ko
+    assert ko[0]["verdicts_of_record"]["H2R"] == "PASS" and ko[0]["verdicts"]["H2R"] == "INCONCLUSIVE", ko
+    assert ko[0]["differ"] == ["H2R"] and not ko[1]["differ"] and ko[0]["rule"] == K3_RULES[1]
+    L_ = k3_other_lines(ko, "nominal")
+    assert "DIFFERENT from the record for H2R" in L_[1] and "(the same as of record)" in L_[2], L_
+    assert k3_other_verdicts(dict(Pk, k3_other={})) == [] and k3_other_lines([], "nominal") == []
+    # the first run's file: absent -> no row; on real data only the pinned file is read
+    pf = Ctx(out=SCRATCH / "a27_unit", verbose=False)
+    shutil.rmtree(pf.out, ignore_errors=True)
+    assert k3_first_run(pf) is None and [k for k, _, _ in k3_alternatives(Ct, pf)] == ["switched"]
+    (pf.out / FIRST_K3).parent.mkdir(parents=True)
+    real_first = ROOT / "analysis_2026" / "results_stinkbid" / FIRST_K3
+    if real_first.exists():
+        shutil.copy(real_first, pf.out / FIRST_K3)
+        C1_ = k3_first_run(pf)
+        assert C1_["tests"]["H2R"]["needs_calibration"] is True and abs(calib_crit("H2R", C1_) - 2.537) < 5e-4
+        assert [k for k, _, _ in k3_alternatives(Ct, pf)] == ["first_run", "switched"]
+    _jdump(pf.out / FIRST_K3, dict(tests={"H2R": dict(needs_calibration=True)}, null={"H2R": {}}))
+    try:
+        k3_first_run(pf)
+        raise AssertionError("an altered first-run file was read on real data")
+    except StageRefused as e:
+        assert "pinned" in str(e), e
+    shutil.rmtree(pf.out, ignore_errors=True)
     po = Ctx(out=SCRATCH / "a26_unit", verbose=False)
     shutil.rmtree(po.out, ignore_errors=True)
     (po.out / "controls").mkdir(parents=True)
@@ -3123,6 +3274,11 @@ def _t_shapes(say, ctx: Ctx):
                                                          "MONEYLINE", "CAPACITY"]
     assert len(A["descriptive_sentences"]) == 5 and not sbdesc.check_wording(A["descriptive_sentences"])
     txt = (out / "verdicts.txt").read_text()
+    P_ = _jload(out / "primary" / "primary.json")
+    assert sorted(P_.get("k3_other", {}).get("H2R", {})) == ["first_run", "switched"], P_.get("k3_other")  # A2.7
+    assert "K3's rule for H2R turned on Monte Carlo noise (prereg Addendum 2, A2.7)" in txt
+    assert [k["key"] for k in A.get("k3_other", [])] == ["first_run", "switched"]
+    assert A["k3_other"][1]["rule"] != P_["calibration"]["H2R"]            # the switched rule is the other one
     i2, i1, i4 = (txt.index(NAMES[t] + ":") for t in ORDER)
     assert i2 < i1 < i4 < txt.index("What you are told") < txt.index("Printed with every answer")
     assert "SYNTHETIC DATA: NOT A RESULT" in txt and "G* =" in txt and "month-block clusters" in txt
