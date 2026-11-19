@@ -1056,10 +1056,11 @@ def d7_robinhood(d7res: dict) -> dict:
 
 
 # ============================================================================ D-ML, D8
-def ml_split(fills: pd.DataFrame) -> dict:
-    """The F1 fills split by the coin's replicated MoneyLine state at placement (ml_d0: 1 green, 0 red, -1
-    undefined), with the red share of the fills whose state is defined (§11 sentence 3, D-ML)."""
-    f = fills[fills["t_F1"].to_numpy() >= 0] if "t_F1" in fills else fills.iloc[:0]
+def ml_split(fills: pd.DataFrame, fill_col: str = "t_F1") -> dict:
+    """The fills (F1 by default; fill_col "t_F3_1" for the Robinhood-route proxy) split by the coin's replicated
+    MoneyLine state at placement (ml_d0: 1 green, 0 red, -1 undefined), with the red share of the fills whose state
+    is defined (§11 sentence 3, D-ML)."""
+    f = fills[fills[fill_col].to_numpy() >= 0] if fill_col in fills else fills.iloc[:0]
     st = f["ml_d0"].to_numpy() if "ml_d0" in f else np.full(len(f), -1)
     n_def = int(np.isin(st, (0, 1)).sum())
     return dict(n=int(len(f)), green=int((st == 1).sum()), red=int((st == 0).sum()), undefined=int((st == -1).sum()),
@@ -1260,10 +1261,16 @@ def _num(f: pd.DataFrame, col: str) -> np.ndarray:
     return pd.to_numeric(f[col], errors="coerce").to_numpy(float) if col in f else np.full(len(f), NAN)
 
 
-def fill_capacity(f: pd.DataFrame) -> np.ndarray:
-    """C(L) of F1 fills over the order's life: aggTrades where streamed (cap_src 'agg'), else C1."""
+def fill_capacity(f: pd.DataFrame, life: bool = False) -> np.ndarray:
+    """C(L) of F1 fills, aggTrades where streamed (cap_src 'agg'), else C1. By default in the fill's own capacity
+    window (draft §8.3: from the first trade below L until the first later minute whose low is above L, or 60
+    minutes), the window of the size cap Q_max (draft §7.3, prereg §7). life=True sums every window of the order's
+    life (the remainder rule of §8.3). Post-results correction found by the outcome audit: the size cap had used the
+    whole life, which overstated Q_max 17-22 times; no verdict depends on it."""
     src = f["cap_src"].astype(str).to_numpy() if "cap_src" in f else np.full(len(f), "c1")
-    return np.where(src == "agg", _num(f, "agg_life"), _num(f, "c1_life"))
+    if life:
+        return np.where(src == "agg", _num(f, "agg_life"), _num(f, "c1_life"))
+    return np.where(src == "agg", _num(f, "agg_first"), _num(f, "c1_first"))
 
 
 def d4(res: dict) -> pd.DataFrame:
@@ -1931,20 +1938,29 @@ def _bw(x) -> str:
     return "better" if _f(x) >= 0 else "worse"
 
 
-def sentence_dh2(r: dict) -> str:
+def _f3_note(r3) -> str:
+    """'; F3 (Robinhood-route proxy): x (CI; uncertainty)' for a computed F3 row, else '' (prereg §12)."""
+    if not isinstance(r3, dict) or not np.isfinite(_f(r3.get("estimate"))):
+        return ""
+    return (f"; on the Robinhood-route proxy (F3): {fmt_pct(r3.get('estimate'), sign=True)} "
+            f"({fmt_ci(r3.get('ci_lo'), r3.get('ci_hi'))}; {unc(r3)})")
+
+
+def sentence_dh2(r: dict, r3: dict | None = None) -> str:
     x = _f(r.get("estimate"))
     return (f"Descriptive only. Over 90 days, coins bought through stink bids did {fmt_pct(abs(x))} "
             f"({fmt_ci(r.get('ci_lo'), r.get('ci_hi'))} for the difference) {_bw(x)} than the same coins bought at "
             "random times outside the six months around each fill. An edge under about 20-40% could not be detected, "
             "and the comparison also reflects whether the crashes fell in bear or bull stretches. "
-            f"[{unc(r)}; MDE computed here {fmt_pct(r.get('mde'))}]")
+            f"[{unc(r)}; MDE computed here {fmt_pct(r.get('mde'))}{_f3_note(r3)}]")
 
 
-def sentence_dh3(r: dict) -> str:
+def sentence_dh3(r: dict, r3: dict | None = None) -> str:
     x = _f(r.get("estimate"))
     return (f"Descriptive only. Fast wicks were {fmt_pct(abs(x))} per fill ({fmt_ci(r.get('ci_lo'), r.get('ci_hi'))} "
             f"for the difference) {_bw(x)} than slow slides to the same depth. A difference under about 6-10% per fill "
-            f"could not be detected. [{unc(r)}; episode fixed effects; MDE computed here {fmt_pct(r.get('mde'))}]")
+            f"could not be detected. [{unc(r)}; episode fixed effects; MDE computed here {fmt_pct(r.get('mde'))}"
+            f"{_f3_note(r3) or '; F3 not computed'}]")
 
 
 def sentence_dh5(rows: dict, u_q2_built: bool = False) -> str:
@@ -1962,17 +1978,21 @@ def sentence_dh5(rows: dict, u_q2_built: bool = False) -> str:
     if not u_q2_built:
         s += " The study did not test a real-revenue filter."
     s += (f" [{int(p.get('n', 0))} fills; two-way coin x quarter clusters, G_coin = {p.get('G_coin')}, "
-          f"G_quarter = {p.get('G_quarter')}, t at {p.get('df')} df]")
+          f"G_quarter = {p.get('G_quarter')}, t at {p.get('df')} df; Binance spot fills only, F3 not computed on U-B "
+          "(prereg Addendum 1, A1.7)]")
     return s
 
 
 def sentence_d8(r: dict) -> str:
     a, b = r.get("premium_72h", {}), r.get("after_72h_vs_tbill", {})
+    b3 = r.get("after_72h_vs_tbill_F3")
     return ("Flip or own is a choice about whether you want to hold the coin, not about stink-bid skill. The study's "
             f"evidence on the bid is the same for both. [shared premium (the alert buyer's price 72 h later): "
-            f"{fmt_pct(a.get('estimate'), sign=True)} ({fmt_ci(a.get('ci_lo'), a.get('ci_hi'))}; {unc(a)}); "
+            f"{fmt_pct(a.get('estimate'), sign=True)} ({fmt_ci(a.get('ci_lo'), a.get('ci_hi'))}; {unc(a)})"
+            f"{_f3_note(r.get('premium_72h_F3'))}; "
             f"return from 72 h to 90 days against T-bills: {fmt_pct(b.get('estimate'), sign=True)} "
-            f"({fmt_ci(b.get('ci_lo'), b.get('ci_hi'))}; {unc(b)})]")
+            f"({fmt_ci(b.get('ci_lo'), b.get('ci_hi'))}; {unc(b)})"
+            f"{_f3_note(b3) or '; F3 not computed (prereg Addendum 1, A1.7)'}]")
 
 
 # ============================================================================ stage-level compute and write
@@ -2110,12 +2130,14 @@ def desc_sentences(T: dict, u_q2_built: bool = False) -> list:
     """The §11 descriptive sentences (D-H2, D-H3, D-H5, D8) with their estimates, plus the D-H2 regime caveat."""
     out = []
     if isinstance(T.get("dh2"), dict) and "twin" in T["dh2"]:
-        out.append(sentence_dh2(T["dh2"]["twin"]))
+        out.append(sentence_dh2(T["dh2"]["twin"], T["dh2"].get("f3")))
         k = T["dh2"].get("k1c")
         out.append(REGIME_CAVEAT + (f" (K1c, regime timing alone: {fmt_pct(k, sign=True)} per 90 days)"
                                     if k is not None and np.isfinite(_f(k)) else ""))
     if isinstance(T.get("dh3"), dict) and "s24" in T["dh3"]:
-        out.append(sentence_dh3(T["dh3"]["s24"]["primary"]))
+        f3 = T["dh3"].get("F3_1")
+        f3 = f3.get("s24", f3).get("primary", f3) if isinstance(f3, dict) else None
+        out.append(sentence_dh3(T["dh3"]["s24"]["primary"], f3))
     if isinstance(T.get("dh5"), dict) and "U_Q1" in T["dh5"]:
         out.append(sentence_dh5(T["dh5"], u_q2_built))
     if isinstance(T.get("d8"), dict) and "premium_72h" in T["d8"]:

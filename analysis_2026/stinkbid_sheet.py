@@ -1721,8 +1721,9 @@ LEGEND = _a("Columns: limit on Robinhood's tick; depth below the reference in % 
             "recomputed after rounding); wait = median weeks to a fill if re-placed weekly / chance of no fill within "
             "a year (Kaplan-Meier, shrunk to the U-Q1 rung); Robinhood odds = fill odds per weekly bid on the "
             "Robinhood-route proxy F3 with a 95% interval widened by sqrt(phi); Binance = the Binance spot figure, an "
-            "upper bound; capacity = past seller-initiated dollars printed below the level on Binance spot (median / "
-            "10th percentile / Q_max = 0.25 x p10; context only on the market-maker route).")
+            "upper bound; capacity = past seller-initiated dollars printed below the level on Binance spot during the "
+            "wick, from the first trade below it until it trades back above or 60 minutes pass (median / 10th "
+            "percentile / Q_max = 0.25 x p10; context only on the market-maker route).")
 WRAP = 118
 
 

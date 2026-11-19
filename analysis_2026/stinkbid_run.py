@@ -1559,6 +1559,9 @@ def _beside(res: dict, stat: str, rule: str, exit: str = "FLIP", B: int = sbs.B_
     return r
 
 
+UC_LABEL = "U-C: Robinhood-listed coins (hindsight)"
+
+
 def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
     """H1, H2R and H4 with every gate (§10.3; coding choices 3-6), the rows beside them and the robustness checks."""
     P, UB, H4, UC = (runs.get(k) for k in ("P1/U_Q1", "P1/U_B", "H4/U_Q1", "P1/U_C"))
@@ -1617,6 +1620,9 @@ def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
         fr = methods[am]
         part = r4["clusters"][am]
         dd = sbdesc.add_clusters(pd.DataFrame({"time": pd.to_datetime(fr["time"], utc=True)}))
+        # the top month-block on the partition the four methods share (A1.8), not the argmax method's own blocks
+        # (post-results correction found by the outcome audit)
+        dd["mb"] = np.asarray(part)
 
         def fit(mask, fr=fr, part=part):
             with warnings.catch_warnings():
@@ -1633,6 +1639,11 @@ def primary_compute(runs: dict, calib: dict | None, ctx: Ctx) -> dict:
     out["beside"]["H4"] = {"F3_1": b3, "F3_1_omnibus": dict(T=r43.get("T"), argmax=r43.get("argmax"),
                                                             p_decide=r43.get("p_decide"), note="H4 re-run on F3 fills")}
     out["rows"]["H4"] = r4
+    for t in ("H1", "H2R"):                            # §5, §12: every U-C row is labelled hindsight
+        for k in ("U_C", "U_C_F3"):
+            row = out["beside"][t].get(k)
+            if isinstance(row, dict) and row:
+                row["label"] = "; ".join(x for x in (row.get("label", ""), UC_LABEL) if x)
     out["samples"] = {"H1": d1, "H2R": d2}
     return out
 
@@ -1731,6 +1742,15 @@ def _ci(lo, hi):
     return sbdesc.fmt_ci(lo, hi)
 
 
+def _gnote(c: dict, what: str = "fills") -> str:
+    """' [N fills, month-block clusters G = g, G* = x]' for a recommendation's interval (§12: every interval states its
+    cluster unit, G and G*); '' without the numbers."""
+    if not c or c.get("N") is None or c.get("G") is None:
+        return ""
+    gs = sbdesc._f(c.get("gstar"))
+    return f" [{c.get('N')} {what}, month-block clusters G = {c.get('G')}, G* = {gs:.1f}]" if np.isfinite(gs) else ""
+
+
 def recommendation(v: dict) -> list:
     """The §11 recommendation table, applied in order (H2R, then H1, then H4). v: verdicts {"H2R", "H1", "H4"} each
     PASS | NO EDGE | NO EDGE (HARMS) | INCONCLUSIVE; h1_bot_only (bool); numbers per test (X, lo, hi, N, G, gstar,
@@ -1761,11 +1781,14 @@ def recommendation(v: dict) -> list:
     b = n.get("H1", {})
     h1 = v["H1"]
     if h1 == "PASS":
+        r3 = sbdesc._f(b.get("R_F3"))
         out.append(("H1_PASS", f"Selling stink-bid fills into the rebound by hand beat random buys of the same coin by "
                                f"{_pct(b.get('X'))} per fill ({_ci(b.get('lo'), b.get('hi'))}). After Robinhood costs, "
-                               f"a flip made {_pct(b.get('R'), sign=True)} on average. It held in both halves, without "
-                               "the biggest month and crash, and on Robinhood-like prices. The sheet shows the flip "
-                               "target."))
+                               f"a flip made {_pct(b.get('R'), sign=True)} on average"
+                               + (f" ({_pct(r3, sign=True)} on the Robinhood-route proxy, F3)" if np.isfinite(r3)
+                                  else "") +
+                               ". It held in both halves, without the biggest month and crash, and on Robinhood-like "
+                               "prices. The sheet shows the flip target." + _gnote(b)))
     elif h1.startswith("NO EDGE"):
         out.append(("H1_NOEDGE", "Flipping stink-bid fills doesn't beat random buys by the 3.75% per fill it would "
                                  "take to cover the round trip and the cash the bids tie up. Don't run the flip "
@@ -1786,7 +1809,7 @@ def recommendation(v: dict) -> list:
     if h4 == "PASS":
         out.append(("H4_PASS", f"Method {c.get('j')}'s levels beat plain volatility-scaled levels at the same depth, "
                                f"in the same wicks, by {_pct(c.get('X'))} per fill ({_ci(c.get('lo'), c.get('hi'))}). "
-                               "The sheet shows them."))
+                               "The sheet shows them." + _gnote(c, "stacked fills")))
     elif h4.startswith("NO EDGE"):
         out.append(("H4_NOEDGE", "Chart levels (swing lows, round numbers, volume nodes, liquidation bands) were not "
                                  "better places for a bid than a plain volatility-scaled level at the same depth, by "
@@ -1805,23 +1828,30 @@ def fixed_sentences(nums: dict) -> list:
     capt = "; ".join(f"rung k = {sbdesc._f(r.get('rung')):g}: 10th percentile ${sbdesc._f(r.get('C_p10')):,.0f}, "
                      f"cap about ${sbdesc._f(r.get('Q_max')):,.0f} per order" for r in cap) or "n/a"
     red = ml.get("red_share_of_defined")
+    wd3 = nums.get("worst_day_F3", {}) or {}
+    ml3 = nums.get("moneyline_F3", {}) or {}
+    wd3t = (f"; on the Robinhood-route proxy (F3): {_pct(wd3.get('share'), 0)} on {wd3.get('day')} ({wd3.get('filled')} "
+            f"of {wd3.get('live')})" if np.isfinite(sbdesc._f(wd3.get("share"))) else "")
+    ml3t = (f"; F3 fills: {_pct(ml3.get('red_share_of_defined'))} red ({ml3.get('red')} red, {ml3.get('green')} green)"
+            if np.isfinite(sbdesc._f(ml3.get("red_share_of_defined"))) else "")
     out = [("DISCOUNT", DISCOUNT),
            ("TAIL_TOGETHER", f"Bids fill together. On the worst day, {_pct(wd.get('share'), 0)} of the live bids in "
                              "the study's main universe filled the same day. Size the whole ladder as one position you "
                              f"are willing to hold through a further 50-80% fall. [day {wd.get('day')}: "
-                             f"{wd.get('filled')} of {wd.get('live')} live P1 bids on U-Q1]"),
+                             f"{wd.get('filled')} of {wd.get('live')} live P1 bids on U-Q1{wd3t}]"),
            ("TAIL_BOTTOM", f"A fill is not a bottom: {_pct(kn.get('A'))} of past fills were 50% or more below the fill "
                            f"price a year later, against {_pct(kn.get('B'))} for random buys of the same coins. "
-                           f"[{kn.get('n')} P1 fills with a year observed]"),
+                           f"[{kn.get('n')} P1 fills with a year observed; Binance spot fills, F3 not computed]"),
            ("TAIL_NEWS", TAIL_NEWS),
            ("MONEYLINE", MONEYLINE + " " + MONEYLINE_NOTE + f" [computed: {_pct(red)} of P1 fills with a defined "
                          f"state were red at placement ({ml.get('red')} red, {ml.get('green')} green, "
-                         f"{ml.get('undefined')} undefined)"
+                         f"{ml.get('undefined')} undefined){ml3t}"
                          + ("; note: not a majority" if (red is not None and np.isfinite(sbdesc._f(red))
                                                          and sbdesc._f(red) <= 0.5) else "") + "]"),
            ("CAPACITY", "Capacity: assume every rung fills on the same day, and keep each order within the size cap "
                         "(a quarter of the 10th percentile of past seller-initiated dollars printed below the level "
-                        f"on Binance spot): {capt}.")]
+                        "on Binance spot during the wick, from the first trade below it until it trades back above or "
+                        f"60 minutes pass): {capt}.")]
     return out
 
 
@@ -2025,6 +2055,11 @@ def stage_report(ctx: Ctx) -> dict:
         raise StageRefused("report refuses: primary/primary.json is missing")
     cs = controls_status(ctx)
     fv = sbs.family_verdicts(P["rows"], P["gates"])
+    # H4's MDE is that of the test as run, Bonferroni over its four methods (mde_bonf), not the argmax method's
+    # single-test MDE (post-results correction found by the outcome audit; no verdict depends on it)
+    mb4 = sbdesc._f(P["rows"]["H4"].get("mde_bonf"))
+    if np.isfinite(mb4):
+        fv.loc[fv["test"] == "H4", "mde"] = mb4
     flags = answer_flags(fv, P)
     runs = runs_for(ctx, ANSWER_RUNS)
     Pr = runs["P1/U_Q1"]
@@ -2041,6 +2076,13 @@ def stage_report(ctx: Ctx) -> dict:
     nums = dict(tests=_numbers_for_answer(fv, P, mu), mu_star=mu, worst_day=sbdesc.worst_day(bft),
                 knife=knife, moneyline=sbdesc.ml_split(Pr["fills"]) if len(Pr["fills"]) else {},
                 capacity=sbdesc.capacity_cap(Pr).to_dict("records"))
+    # every Binance number beside its F3 number (§12): the flip's net return, the worst day, the MoneyLine split
+    f3r = sbdesc.per_fill(Pr, "F3_1", "FLIP", "RH", "delta")
+    nums["tests"]["H1"]["R_F3"] = (float(np.nanmean(pd.to_numeric(f3r["r"], errors="coerce")))
+                                   if len(f3r) and "r" in f3r else NAN)
+    nums["worst_day_F3"] = sbdesc.worst_day(sbdesc.bid_fill_table(Pr, ("F1", "F3_1")), "t_F3_1")
+    nums["moneyline_F3"] = (sbdesc.ml_split(Pr["fills"], "t_F3_1")
+                            if len(Pr["fills"]) and "t_F3_1" in Pr["fills"] else {})
     # the answer's descriptive sentences (D-H2, D-H3, D-H5, D8) from stinkbid_desc
     T = dict(dh2=sbdesc.dh2(Pr, ctx.B, k1c=k1c_delta90(ctx, cs.get("summary"))),
              dh3=sbdesc.dh3(Pr, ctx.B),
@@ -2092,6 +2134,10 @@ def stage_report(ctx: Ctx) -> dict:
             if isinstance(r, dict) and "estimate" in r:
                 det.append(f"  {t} {k:7s}: {_pct(r.get('estimate'), 2, True)} ({_ci(r.get('ci_lo'), r.get('ci_hi'))}; "
                            f"{sbdesc.unc(r)}) {r.get('label', '')}")
+    if not (P["beside"].get("H4") or {}).get("U_C"):
+        det.append("  H4 U_C   : not computed. H4 ran on U-Q1 only, so no U-C (hindsight) row stands beside it; an "
+                   "omission found by the outcome audit after the results (its futures and index inputs were never "
+                   "planned for U-C)")
     det += ["", "Concentration and single events (every headline):"]
     for t in ORDER:
         rb = P["robust"].get(t, {})
